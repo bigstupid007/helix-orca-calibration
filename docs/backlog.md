@@ -31,7 +31,10 @@ checkout: the seven committed Issue #1 tests plus 18 unrelated, uncommitted
 Orca diagnostic tests. The product acceptance evidence is unchanged; this
 corrects the provenance of the count.
 
-## Candidate: Issue #2 — native Helix mock-printer UX harness
+## Completed: Issue #2 — native Helix mock-printer UX harness
+
+Founder accepted the native development harness and missing-tile repair on
+2026-10-10. PR #3 is the closeout authority.
 
 - [x] Pin and verify beta.4 source, recursive submodules, release data, binary
   provenance/hash, Docker bases, and durable source-build recipe; treat the
@@ -45,17 +48,18 @@ corrects the provenance of the count.
 - [x] Prove independent read access from the authorized Mac mini.
 - [x] Prove beta.4 `PluginDirWatcher` reload without restarting Helix or
   changing product content.
-- [x] Capture Home, chooser, Temperature, and Start toast at all eleven target
-  sizes while asserting the accepted navigation and fit contract.
+- [x] Capture the actual visible Home landing, chooser, Temperature, and Start
+  toast at all eleven target sizes while asserting native pointer interaction,
+  accepted navigation, and fit.
 - [x] Retain full generated artifacts in durable XDG state and promote a
-  bounded versioned matrix/report/final-frame evidence set.
+  bounded versioned matrix/report with landing and final-frame evidence.
 - [x] Bind evidence to capture-time candidate/product/matrix/frame hashes and
   add proportionate GitHub CI for that integrity check, the dependency-free
   policy suite, static harness contract, wrapper syntax, and whitespace.
 - [x] Preserve every `helix-plugin/orcacal/` product file byte-for-byte.
 
-The candidate commit contains 22 tests (seven product-policy plus fifteen
-harness tests). The present dirty canonical checkout reports 40 because the 18
+The merged change contains 22 tests (seven product-policy plus fifteen harness
+tests). The present dirty canonical checkout reports 40 because the 18
 unrelated Orca diagnostic tests remain uncommitted and untouched. Native
 runtime evidence is in [`evidence/issue-2/`](evidence/issue-2/) and the operator
 contract is [`HELIX_DEV_HARNESS.md`](HELIX_DEV_HARNESS.md).
@@ -67,3 +71,7 @@ contract is [`HELIX_DEV_HARNESS.md`](HELIX_DEV_HARNESS.md).
 - Print start, monitoring, results, or calibration scoring.
 - Orca preset mutation or writeback.
 - Additional calibration modules beyond a separately approved increment.
+- Interactive Temperature picker on the Temperature calibration screen
+  ([Issue #4](https://github.com/bigstupid007/helix-orca-calibration/issues/4));
+  detailed behavior remains intentionally undefined pending product definition
+  and explicit implementation approval.
