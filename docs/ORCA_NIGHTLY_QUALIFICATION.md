@@ -45,9 +45,17 @@ These observations precede the founder's explicit October 11 approval for
 minimum LAN-only command/interactive GUI access. The prepared route in
 [`SPARE_TEST_ACCESS.md`](SPARE_TEST_ACCESS.md) uses an unelevated worker over the
 existing outbound SSH path; no Windows listener, installation, firewall change,
-new key/account, or Tailscale is needed. Its first target-side launch is the
-remaining unavoidable owner-only action. Command and actual native GUI proof
-must pass before qualification starts. The agent then verifies Windows
+new key/account, or Tailscale is needed. Command execution and a native button
+click are now proven. The exact nightly and test inputs were transferred and
+hash-verified. An output-pipe capture timeout interrupted the launch retry;
+the corrected worker needs one owner-only restart and focused Windows proof.
+
+The first launch used an unsupported `--no-single-instance` flag and crashed;
+that flag has been removed. Its internal parser helper is not CLI registration.
+A retry with only `--datadir` has an unresolved outcome. Inspect test process
+state/logs after reconnecting before relaunching. Normal Orca remains outside
+the tooling's process/path/input guards. These observations do not pass the
+Windows qualification gate. The agent then verifies Windows
 hostname/account/session, normal Orca processes, and isolated paths and owns
 setup and evidence collection. Stop only for unavoidable owner-only access or
 a material risk change outside the approval. The Windows qualification gate

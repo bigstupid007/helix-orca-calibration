@@ -76,8 +76,11 @@ The Windows launcher and interactive checklist are in
 Spare is the intended interactive Windows target. The founder approved minimum
 LAN-only command/GUI testing access on October 11. The prepared unelevated
 reverse worker reuses existing SSH without a Windows listener, installation,
-firewall change, or Tailscale. Actual Windows access is still unproven pending
-its first local launch; see [`docs/SPARE_TEST_ACCESS.md`](docs/SPARE_TEST_ACCESS.md).
+firewall change, or Tailscale. Commands and native GUI input were proven on
+Spare. The exact nightly was transferred and its executable/DLL hashes verified;
+qualification remains pending. A launch exposed an output-pipe timeout in the
+worker; the repaired worker requires one local restart before runtime checks
+continue. See [`docs/SPARE_TEST_ACCESS.md`](docs/SPARE_TEST_ACCESS.md).
 
 Windows runtime qualification is still pending, so no round-trip transport,
 result handling, profile writeback, or printing behavior has been implemented.

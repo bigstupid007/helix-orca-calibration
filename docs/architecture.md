@@ -84,8 +84,9 @@ Windows setup, isolated runtime execution, and capture use the founder-approved
 LAN-only access envelope. A prepared unelevated Windows worker carries command
 requests through the existing outbound SSH connection to a private devbox Unix
 socket. It needs no Windows listener, service, firewall change, or Tailscale.
-The worker executes inside the visible desktop; actual access still requires
-its first local launch and the native GUI smoke test to pass. Transport details
+The worker executes inside the visible desktop. Commands and a native GUI click
+were proven there. A later output-pipe EOF wait interrupted access; the repaired
+worker requires a local restart and a focused Windows regression check. Transport details
 and operational boundaries are in [`SPARE_TEST_ACCESS.md`](SPARE_TEST_ACCESS.md). Source/tests and
 devbox execution cannot satisfy the Windows gate. The fixed nightly must use
 its own portable directory and marked `--datadir`, preserving the normal Orca

@@ -11,6 +11,9 @@ using System.Runtime.InteropServices;
 public static class Issue4GuiProbe {
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+  [StructLayout(LayoutKind.Sequential)] public struct POINT { public int x; public int y; }
+  [DllImport("user32.dll")] public static extern IntPtr WindowFromPoint(POINT p);
+  [DllImport("user32.dll")] public static extern IntPtr GetAncestor(IntPtr h, uint flag);
   [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
   [DllImport("user32.dll")] public static extern void mouse_event(uint f, uint x, uint y, uint d, UIntPtr e);
 }
@@ -21,6 +24,7 @@ $Form.ClientSize = [Drawing.Size]::new(500, 140)
 $Form.StartPosition = 'CenterScreen'
 $Form.FormBorderStyle = 'FixedDialog'
 $Form.MaximizeBox = $false
+$Form.TopMost = $true
 $Label = [Windows.Forms.Label]::new()
 $Label.Text = 'Native desktop input: waiting'
 $Label.Location = [Drawing.Point]::new(20, 20)
@@ -40,10 +44,14 @@ try {
     [Issue4GuiProbe]::SetForegroundWindow($Form.Handle) | Out-Null
     Start-Sleep -Milliseconds 300
     [Windows.Forms.Application]::DoEvents()
-    if ([Issue4GuiProbe]::GetForegroundWindow() -ne $Form.Handle) {
-        throw 'Probe window is not foreground; refusing to send input or capture.'
-    }
     $Point = $Button.PointToScreen([Drawing.Point]::new(65, 17))
+    $NativePoint = [Issue4GuiProbe+POINT]::new()
+    $NativePoint.x = $Point.X
+    $NativePoint.y = $Point.Y
+    $Hit = [Issue4GuiProbe]::WindowFromPoint($NativePoint)
+    if ([Issue4GuiProbe]::GetAncestor($Hit, 2) -ne $Form.Handle) {
+        throw 'Probe click point is not owned by its window; refusing input.'
+    }
     [Issue4GuiProbe]::SetCursorPos($Point.X, $Point.Y) | Out-Null
     [Issue4GuiProbe]::mouse_event(2, 0, 0, 0, [UIntPtr]::Zero)
     [Issue4GuiProbe]::mouse_event(4, 0, 0, 0, [UIntPtr]::Zero)

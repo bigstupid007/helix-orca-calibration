@@ -104,3 +104,28 @@ and [`../helix-plugin/PREFLIGHT.md`](../helix-plugin/PREFLIGHT.md).
   execution and GUI access remain unproven until the owner starts the worker
   in the visible desktop and the agent validates the resulting access. This
   checkpoint is not a qualification pass or round-trip implementation.
+
+## Issue #4 actual Windows access and launch checkpoint
+
+- The worker identified `SPARE`, `AzureAD\ChrisDeMichael`, session 1,
+  unelevated execution, and direct LAN SSH from `192.168.1.155` to
+  `192.168.1.114:22`. Commands executed in the visible desktop.
+- The initial foreground-only smoke test correctly refused input. Using a
+  topmost test window and native point ownership allowed an actual button
+  click without changing foreground-lock policy. The cropped native screenshot
+  was returned, hash-verified, and visually inspected; private evidence is in
+  XDG state. This proves access only.
+- The fixed nightly and test inputs were transferred to separately marked
+  Windows directories, with archive and executable/DLL hashes checked. A
+  private normal-profile/settings fingerprint baseline was retained.
+- The first nightly launch used an unsupported CLI flag. Although the exact
+  source contains an internal `--no-single-instance` parser, the CLI option
+  registration is commented out. Windows recorded a startup crash; the flag
+  was removed rather than patching Orca or replacing the fixed target.
+- The original-argument/portable-working-directory retry then exposed the
+  testing worker's unbounded asynchronous pipe-EOF wait. The bridge timed out.
+  Capture waits are now bounded; actual Windows regression requires one
+  owner-only restart. Retry process/UI state remains unobserved.
+- Normal Orca was not closed or selected for input; product code and accepted
+  Helix behavior remain unchanged. Qualification and round-trip work remain
+  gated until actual context/panel/lifecycle/export proof is complete.

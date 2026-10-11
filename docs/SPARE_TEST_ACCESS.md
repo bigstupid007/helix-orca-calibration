@@ -7,10 +7,15 @@ and interactive GUI testing access between devbox and Spare for Issue #4.
 The approval is recorded in the current GitHub Issue. No Tailscale, public
 exposure, new account, or unnecessary security change is authorized.
 
-The reverse SSH worker is prepared and its local protocol/isolation tests pass.
-Actual Windows command execution and GUI input remain **unproven** until its
-first launch on Spare and the agent-operated smoke test. This is access
-infrastructure, not qualification evidence or product behavior. The exact
+The reverse SSH worker was launched on Spare. Command execution and a real
+native button click were proven in session 1 as unelevated
+`AzureAD\ChrisDeMichael`. The agent inspected the temporary-window screenshot,
+SHA-256 `43c8f20c4aa69a03eb46df2d70f7b18035d5771f9cfd5a1c9389e6793f5fd327`.
+A later launch exposed an unbounded output-pipe EOF wait when a descendant
+retained a handle; the transport expired. The worker now bounds each EOF wait
+to 750 milliseconds and reports incomplete capture. The repaired worker needs
+one local restart and Windows regression proof. This is access infrastructure,
+not a completed Orca qualification or product behavior. The exact
 nightly qualification gate remains in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md).
 
@@ -35,7 +40,9 @@ security context. It is an authenticated command channel, not an OS sandbox.
 All commands remain subject to Issue #4: preserve normal Orca settings and
 installation, do not access a physical printer, and keep GUI automation in
 isolated testing only. The initial GUI smoke test uses only its own temporary
-native window and refuses input/capture when that window is not foreground.
+native topmost window, verifies that the click point belongs to that window,
+and requires it to be foreground before capture. This avoids treating
+SetForegroundWindow permission as proof of input access.
 
 Requests are serialized, correlated by unique IDs, limited to 8192 script
 characters and 60 seconds, and output-bounded. Timeout kills only the direct
@@ -101,3 +108,26 @@ its active socket/session record on ordinary disconnect. If interrupted by a
 hard process kill, inspect the recorded PID and remove only a confirmed stale
 access socket before reconnecting. Frozen scripts and hash-only request logs
 remain in user cache/state for reproducibility.
+
+## October 11 nightly staging checkpoint
+
+- The 230,435,783-byte transfer archive was hash-verified on Spare as
+  `f151331dbc1246a0a543c7ca34a25cf1001123b1f7517cdeef120c149e1b3a05`.
+- The staged executable and DLL match the fixed Issue #4 hashes. Qualification
+  inputs match transfer SHA-256
+  `5e6a594db134042091fb8496c036287b5e0f660b6c6ef3466c2701ffc05b90c1`.
+- A baseline fingerprint of 1429 normal Orca settings/profile files was retained
+  privately; content was not used by the plugin. The ordinary installed Orca
+  process `40056` was still running in the last completed observation.
+- The first test launch included `--no-single-instance` and crashed with Windows
+  event exception `0xc0000409` in `ucrtbase.dll`. Exact source review then showed
+  that CLI registration is commented out, despite an internal parser helper.
+  The flag was removed; no upstream or normal installation was modified.
+- A retry with only `--datadir` and the portable working directory was issued,
+  but its result was lost when output capture timed out. Inspect current test
+  processes, windows, and test logs after reconnecting before another launch.
+  Do not infer that the bare nightly fails or that qualification passes.
+- Native UI tooling in `orca-windows-review.py` / `orca-windows-ui.ps1` verifies
+  the isolated executable, marked data directory, launch arguments, window PID,
+  and pointer/capture ownership before any interaction. Normal Orca is excluded.
+  The tooling itself still requires runtime proof against the nightly.

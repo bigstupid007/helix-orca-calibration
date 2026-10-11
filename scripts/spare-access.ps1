@@ -80,15 +80,23 @@ try {
                 $ErrTask = $Child.StandardError.ReadToEndAsync()
                 if (-not $Child.WaitForExit([int]$Request.timeout_seconds * 1000)) {
                     $Child.Kill()
-                    $Child.WaitForExit()
+                    if (-not $Child.WaitForExit(5000)) { throw 'Direct command child did not stop after timeout.' }
                     $Response.exit_code = 124
                     $Response.error = 'Qualification command exceeded its bound; its direct child was stopped.'
                 } else { $Response.exit_code = $Child.ExitCode }
-                $Out = $OutTask.Result
-                $Err = $ErrTask.Result
+                # A launched GUI descendant can retain inherited pipe handles after
+                # this command exits. Never wait indefinitely for pipe EOF.
+                $OutComplete = $OutTask.Wait(750)
+                $ErrComplete = $ErrTask.Wait(750)
+                $Out = if ($OutComplete) { $OutTask.Result } else { '' }
+                $Err = if ($ErrComplete) { $ErrTask.Result } else { '' }
                 $Response.stdout = $Out.Substring(0, [Math]::Min($Out.Length, 100000))
                 $Response.stderr = $Err.Substring(0, [Math]::Min($Err.Length, 10000))
-                $Response.output_truncated = ($Out.Length -gt 100000 -or $Err.Length -gt 10000)
+                $Response.output_truncated = ($Out.Length -gt 100000 -or $Err.Length -gt 10000 -or -not $OutComplete -or -not $ErrComplete)
+                if (-not $OutComplete -or -not $ErrComplete) {
+                    $Response.exit_code = 125
+                    $Response.error = 'A descendant retained an output pipe; capture was bounded and may be incomplete. Inspect target state before retrying.'
+                }
             } finally { $Child.Dispose() }
         } else { throw 'Unsupported testing operation.' }
         $Writer.WriteLine(($Response | ConvertTo-Json -Compress -Depth 6))
