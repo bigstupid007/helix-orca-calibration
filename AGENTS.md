@@ -95,9 +95,11 @@ or bounded round-trip artifacts below host-provided plugin storage. Preserve
 saved preset identity, the edited copy, and merged effective values as distinct
 sources. Reference checkouts remain read-only.
 
-The canonical devbox owns implementation, Git, and evidence assembly. Windows
-is a target-validation environment reached only through existing authorized
-access. Do not author or branch there, add remote access, or broaden credentials
+The canonical devbox owns implementation, Git, and evidence assembly. Spare
+is the intended interactive Windows qualification target; LAPTOP-EC83OFDE is
+not this workstream's target. Windows is a target-validation environment reached
+only through existing authorized access. A Spare-to-devbox SSH connection does
+not establish devbox-to-Spare execution or interactive desktop access. Do not author or branch there, add remote access, or broaden credentials
 without explicit approval. Ask the owner only for an unavoidable physical or
 session access action such as waking or unlocking that target.
 

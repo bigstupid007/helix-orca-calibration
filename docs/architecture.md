@@ -71,3 +71,25 @@ GitHub CI covers deterministic Python/XML/manifest/harness policy and verifies
 the bounded promoted evidence against the checked-out candidate. Native runtime
 capture remains a devbox gate because an exact source build and eleven native
 viewport runs are intentionally too heavy for proportionate per-commit CI.
+
+## Issue #4 qualification and host boundary
+
+The canonical implementation checkout remains
+`/home/dev/Projects/personal/helix-orca-calibration` on devbox. The existing
+`codex/issue-4-temperature-round-trip` worktree isolates Issue #4 from unrelated
+canonical changes. Spare is the intended Windows runtime-validation target;
+LAPTOP-EC83OFDE is outside this workstream.
+
+Windows setup, isolated runtime execution, and capture require an existing
+authorized route to Spare's Windows session. The client-to-devbox SSH path does
+not provide a Windows command channel or desktop control. Source/tests and
+devbox execution cannot satisfy the Windows gate. The fixed nightly must use
+its own portable directory and marked `--datadir`, preserving the normal Orca
+installation and profiles.
+
+Prefer the Orca-owned dock panel and lifecycle file association. If necessary,
+qualify a host-owned modeless window and explicit manual file selection under
+the approved Issue #4 fallback authority. UI driving belongs only to isolated
+evidence tooling. The mock-only Temperature round trip remains gated on the
+actual Windows observations in
+[`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md).

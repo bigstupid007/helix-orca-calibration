@@ -63,3 +63,27 @@ and [`../helix-plugin/PREFLIGHT.md`](../helix-plugin/PREFLIGHT.md).
   18 unrelated uncommitted Orca tests already present in the canonical dirty
   checkout. Issue #2 adds fifteen committed harness tests, so its candidate CI
   suite contains 22 while the current working tree runs 40.
+
+## Issue #4 Windows access checkpoint — 2026-10-11
+
+- Current Issue #4 authority and shared Development System GitHub main
+  `de8d7a66e58aca81fc9b44cda6a6463ffcea47ff` were checked. The shared local
+  checkout has the same tree; its working tree was not changed.
+- The owner identifies Spare as the intended interactive Windows target with
+  Orca installed. This session's shell runs on devbox/Linux; it has not executed
+  Windows commands or inspected the installed Orca build.
+- Spare resolves to `192.168.1.155`. An established TCP connection from that
+  address to devbox's SSH listener proves the client-to-devbox direction.
+- A batch-mode SSH attempt to Spare with strict host-key checking and an
+  eight-second connection bound timed out before authentication. Separate
+  five-second TCP checks of ports 22, 3389, and 5985 also timed out. No host key,
+  credential, firewall, service, or access configuration was changed. These
+  observations do not distinguish filtering from an unavailable service.
+- Existing Tailscale discovery lists LAPTOP-EC83OFDE separately and no Spare
+  peer. The laptop was not used as a substitute. This session exposes no
+  Windows-local execution or desktop-control tool.
+- Windows qualification remains blocked on existing authorized execution and
+  desktop access. No Windows installation/settings were touched, no runtime
+  pass is claimed, and round-trip implementation has not begun. The detailed
+  continuation condition is in
+  [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md).

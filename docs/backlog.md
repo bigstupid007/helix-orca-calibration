@@ -82,7 +82,14 @@ events in that exact source.
 - [ ] Only after that gate, implement and prove the bounded mock-only round trip.
 - [ ] Freeze, independently review, and prepare one PR without merging it.
 
-The exact gate and owner runbook are in
+Spare is the intended Windows target, superseding any LAPTOP-EC83OFDE
+assumption. On October 11, Spare-to-devbox SSH was established; reverse SSH,
+RDP, and WinRM connection checks timed out. This is a documented access
+exception, not a Windows capability failure or qualification pass. The gate
+remains pending until an existing authorized Windows execution and interactive
+UI route is available.
+
+The exact gate and agent-operated runbook are in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md). Linux-only
 evidence cannot close the pending item.
 

@@ -13,6 +13,44 @@ surfaces needed by Issue #4. Passing it does not authorize the round-trip
 implementation by itself; it satisfies the explicit first gate in the approved
 Issue #4 work item.
 
+## Windows host and access checkpoint
+
+Spare is the intended interactive Windows qualification target, as confirmed
+by the owner on 2026-10-11. LAPTOP-EC83OFDE is not the target. Devbox remains
+the implementation, Git, and evidence-assembly authority at
+`/home/dev/Projects/personal/helix-orca-calibration`; the existing Issue #4
+branch/worktree preserves unrelated canonical changes. Windows receives only
+bounded setup, runtime qualification, and capture work through existing
+authorized access. Do not author implementation or create branches there.
+
+At 18:51 UTC on October 11 (1:51 p.m. America/Chicago), this session observed:
+
+| Check | Observation | What it proves |
+| --- | --- | --- |
+| Shell identity | devbox, Linux `6.8.0-146-generic` | Implementation execution is on devbox |
+| Spare name resolution | `192.168.1.155` | Current address resolved by devbox |
+| Established SSH socket | Spare address to `192.168.1.114:22` | Spare-to-devbox connection exists |
+| SSH to Spare | Eight-second batch-mode attempt timed out before authentication | Windows execution via reverse SSH is unproven |
+| TCP to Spare ports 22, 3389, 5985 | Each five-second check timed out | These standard access endpoints were unreachable from devbox |
+| Session tools | No Windows-local command or desktop-control tool | Launching this chat on Spare does not provide Windows execution here |
+
+The installed Orca version, Windows account, interactive session state, and
+fixed nightly launch have not been observed. Do not infer that Spare is asleep,
+that SSH is disabled, or that credentials are wrong from a timeout. Existing
+Tailscale discovery does not list Spare; its separate laptop entry is not a
+qualification substitute. No Windows access mechanism or configuration was
+changed.
+
+This is Issue #4's documented material access exception. Resume when an
+existing authorized Windows command and interactive desktop route is
+available. Verify Windows hostname/account/session, normal Orca process state,
+and the isolated paths before setup. If only waking/unlocking Spare is needed,
+request that exact owner action. If access would require installing/enabling a
+service, opening a port, adding a key, changing credentials, or another new
+remote-access mechanism, stop for explicit authority with the concrete change
+and boundary. Do not assign Git, PowerShell setup, or evidence collection to
+the owner.
+
 ## Fixed target
 
 | Item | Pin |
@@ -56,7 +94,9 @@ unambiguously, later round-trip work must retain explicit manual file selection.
 
 ## Launch with isolated settings
 
-Open PowerShell in this repository and run:
+Through the existing authorized Windows execution route, stage the exact
+devbox candidate as validation inputs on Spare, then run its launcher in
+PowerShell:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
@@ -105,7 +145,8 @@ files. Record any mismatch exactly and stop.
    remain separate; an inherited saved value must not be fabricated as a leaf
    value.
 6. Run **Helix Calibration Nightly Qualification**. Verify an Orca-owned panel
-   appears in the Prepare/Preview workspace and reports version `2.5.0-dev`,
+   appears in the Prepare/Preview workspace (or qualify the approved host-owned
+   modeless-window fallback if the dock cannot work) and reports version `2.5.0-dev`,
    build `210bc927`, target match **Yes**, the same active profiles, and the
    effective `217 °C` value.
 7. Switch away from and back to each test profile. Make and revert one unsaved
@@ -121,7 +162,9 @@ files. Record any mismatch exactly and stop.
    launcher's `qualification-output` directory. Verify the exported file exists
    and that the panel receives `GCodeExportStarted` followed by a successful
    `GCodeExportFinished` naming that exact path and the same model association.
-   Do not click Print, Upload, Send, or any device action.
+   If lifecycle association is missing or ambiguous, retain the actual payload
+   and qualify explicit manual selection of the exact exported file as the
+   approved fallback. Do not click Print, Upload, Send, or any device action.
 10. Inspect the prepared G-code and record the commanded Temperature choices.
     They must cover Helix's accepted `230, 225, 220, 215, 210, 205, 200, 195,
     190 °C` result choices. A mismatch is a qualification failure, not a reason
@@ -147,18 +190,25 @@ Windows GUI runtime:
 
 - exact runtime build match;
 - real saved, edited/unsaved, and merged-effective context reads;
-- working host-owned dock panel;
-- `PresetSelected`, `ProjectDirtyChanged`, `GCodeExportStarted`, and successful
-  `GCodeExportFinished` payloads with useful identity/path fields;
+- working host-owned dock panel or a qualified modeless-window fallback;
+- useful `PresetSelected` and `ProjectDirtyChanged` payloads and truthful
+  refreshed context;
+- useful `GCodeExportStarted` and successful `GCodeExportFinished` association,
+  or captured evidence of the limitation plus qualified explicit manual
+  selection of the actual file;
 - an actual normally prepared and manually exported Temperature file whose
   choices match Helix; and
 - isolation from the existing Orca installation.
 
-Any plugin load failure, missing context distinction, missing or ambiguous file
-association, event loss, incorrect Temperature schedule, or inability to keep
-settings isolated is a genuine capability blocker. Stop there and attach the
-evidence to Issue #4. Do not compensate with profile writes, UI automation, a
-custom G-code generator, or physical-printer access.
+Any plugin load failure, missing context distinction, required event loss,
+incorrect Temperature schedule, or inability to keep settings isolated is a
+genuine capability blocker. Dock-panel or file-association limitations require
+the approved fallback to be proved before proceeding; fallback permission is
+not evidence that the fallback works. Stop if neither approved path can be
+proved, and attach the observations to Issue #4. Do not compensate with profile
+writes, unsupported product UI automation, a custom G-code generator, or
+physical-printer access. Isolated qualification UI driving remains approved
+test infrastructure.
 
 The interactive Temperature picker remains a deferred product requirement and
 is not part of this qualification or Issue #4 implementation.

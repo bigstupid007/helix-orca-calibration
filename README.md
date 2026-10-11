@@ -73,6 +73,11 @@ for exact build/context/lifecycle evidence.
 
 The Windows launcher and interactive checklist are in
 [`docs/ORCA_NIGHTLY_QUALIFICATION.md`](docs/ORCA_NIGHTLY_QUALIFICATION.md).
+Spare is the intended interactive Windows target. The October 11 access check
+proved Spare-to-devbox SSH connectivity, but Windows command execution and UI
+control remain unavailable to this session. The bounded observations and
+continuation condition are in the qualification guide.
+
 Windows runtime qualification is still pending, so no round-trip transport,
 result handling, profile writeback, or printing behavior has been implemented.
 The accepted Helix plugin remains unchanged.
