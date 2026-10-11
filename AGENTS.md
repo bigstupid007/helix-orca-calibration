@@ -98,10 +98,14 @@ sources. Reference checkouts remain read-only.
 The canonical devbox owns implementation, Git, and evidence assembly. Spare
 is the intended interactive Windows qualification target; LAPTOP-EC83OFDE is
 not this workstream's target. Windows is a target-validation environment reached
-only through existing authorized access. A Spare-to-devbox SSH connection does
-not establish devbox-to-Spare execution or interactive desktop access. Do not author or branch there, add remote access, or broaden credentials
-without explicit approval. Ask the owner only for an unavoidable physical or
-session access action such as waking or unlocking that target.
+through the founder-approved LAN-only testing access between devbox and Spare.
+Approval on 2026-10-11 permits the minimum secure command/interactive GUI route;
+no Tailscale, public exposure, new account, or unnecessary security change.
+Prefer the unelevated reverse worker over the existing LAN SSH connection in
+`docs/SPARE_TEST_ACCESS.md`; no inbound Windows service/firewall change is
+needed. Do not author or branch on Windows or broaden this access envelope.
+The first local worker launch is owner-only when no execution route exists;
+the agent owns subsequent setup, qualification, and evidence collection.
 
 ## OSS safety before GitHub changes
 

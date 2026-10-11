@@ -41,15 +41,17 @@ Tailscale discovery does not list Spare; its separate laptop entry is not a
 qualification substitute. No Windows access mechanism or configuration was
 changed.
 
-This is Issue #4's documented material access exception. Resume when an
-existing authorized Windows command and interactive desktop route is
-available. Verify Windows hostname/account/session, normal Orca process state,
-and the isolated paths before setup. If only waking/unlocking Spare is needed,
-request that exact owner action. If access would require installing/enabling a
-service, opening a port, adding a key, changing credentials, or another new
-remote-access mechanism, stop for explicit authority with the concrete change
-and boundary. Do not assign Git, PowerShell setup, or evidence collection to
-the owner.
+These observations precede the founder's explicit October 11 approval for
+minimum LAN-only command/interactive GUI access. The prepared route in
+[`SPARE_TEST_ACCESS.md`](SPARE_TEST_ACCESS.md) uses an unelevated worker over the
+existing outbound SSH path; no Windows listener, installation, firewall change,
+new key/account, or Tailscale is needed. Its first target-side launch is the
+remaining unavoidable owner-only action. Command and actual native GUI proof
+must pass before qualification starts. The agent then verifies Windows
+hostname/account/session, normal Orca processes, and isolated paths and owns
+setup and evidence collection. Stop only for unavoidable owner-only access or
+a material risk change outside the approval. The Windows qualification gate
+itself remains unchanged.
 
 ## Fixed target
 

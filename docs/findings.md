@@ -87,3 +87,20 @@ and [`../helix-plugin/PREFLIGHT.md`](../helix-plugin/PREFLIGHT.md).
   pass is claimed, and round-trip implementation has not begun. The detailed
   continuation condition is in
   [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md).
+
+## Issue #4 LAN-only access approval and prepared worker
+
+- The founder explicitly approved minimum LAN-only command and interactive GUI
+  testing access on October 11. The exception is now in GitHub Issue #4; no
+  Tailscale, public exposure, or unnecessary security change is approved.
+- The existing devbox authorized-key inventory includes Spare's client key.
+  The prepared worker therefore reuses existing SSH authentication and pins
+  devbox's public host identity. No credential, account, inbound Windows
+  service, firewall rule, or elevation is introduced.
+- Local bridge tests exercise a real private Unix-socket/stdio round trip,
+  permissions, wrong-host/route/session rejection, stale-response termination,
+  duplicate-worker exclusion, request bounds, and frozen-bundle integrity.
+- The native Windows GUI smoke test is prepared but has not run. Windows
+  execution and GUI access remain unproven until the owner starts the worker
+  in the visible desktop and the agent validates the resulting access. This
+  checkpoint is not a qualification pass or round-trip implementation.

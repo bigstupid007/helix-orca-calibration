@@ -85,9 +85,11 @@ events in that exact source.
 Spare is the intended Windows target, superseding any LAPTOP-EC83OFDE
 assumption. On October 11, Spare-to-devbox SSH was established; reverse SSH,
 RDP, and WinRM connection checks timed out. This is a documented access
-exception, not a Windows capability failure or qualification pass. The gate
-remains pending until an existing authorized Windows execution and interactive
-UI route is available.
+exception, not a Windows capability failure or qualification pass. The founder
+subsequently approved minimum LAN-only testing access, and the reverse SSH
+worker plus native GUI smoke test are prepared. Local protocol tests pass;
+actual Windows command/GUI validation awaits the first owner-only worker launch.
+See [`SPARE_TEST_ACCESS.md`](SPARE_TEST_ACCESS.md). Qualification remains pending.
 
 The exact gate and agent-operated runbook are in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md). Linux-only
