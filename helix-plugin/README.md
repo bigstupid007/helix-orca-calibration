@@ -20,7 +20,22 @@ application shell.
 
 ## Test locally
 
-Use HelixScreen `v1.1.0-beta.4` or a compatible later build:
+The canonical devbox path uses the repository-owned real beta.4 mock harness:
+
+```sh
+./scripts/helix-dev bootstrap  # first setup only
+./scripts/helix-dev up
+./scripts/helix-dev status
+```
+
+Open `http://192.168.1.114:8540/`, tap the tile, select **Temperature**,
+tap **Start**, and confirm the toast reads `Calibration request test`. Plugin
+saves hot-reload in about one second. Use `./scripts/helix-dev down` when done,
+or `./scripts/helix-dev capture` for the complete eleven-target gate. See
+[`../docs/HELIX_DEV_HARNESS.md`](../docs/HELIX_DEV_HARNESS.md).
+
+With another verified HelixScreen `v1.1.0-beta.4` developer build, the direct
+upstream invocation remains:
 
 ```sh
 HELIX_PLUGIN_DIR="$PWD/helix-plugin" \

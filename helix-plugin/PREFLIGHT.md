@@ -25,10 +25,16 @@ is recorded in [`CAPABILITY_PREFLIGHT.md`](CAPABILITY_PREFLIGHT.md).
 - Enabled-plugin record: version `0.2.0`, empty permissions, with the accepted
   `orcacal__tile` placement on its own native Home page.
 
-Final closeout evidence is beneath `/tmp/orcacal-issue1-closeout.BbJLnb`. Each viewport
-directory contains runtime logs, live widget listings, measured geometry,
-navigation-state JSON, and Home/chooser/Temperature/toast PNGs. `matrix.tsv`
-is the machine-readable summary.
+The original Issue #1 closeout used
+`/tmp/orcacal-issue1-closeout.BbJLnb`. Issue #2 replaces that ephemeral,
+machine-specific procedure with the reproducible repository command
+`./scripts/helix-dev capture`. Full generated artifacts now persist beneath
+`~/.local/state/helix-orca-calibration/helix-dev/captures/`; a bounded durable
+matrix, report, and one final native frame per target are versioned beneath
+[`../docs/evidence/issue-2/`](../docs/evidence/issue-2/).
+That replacement can build the exact pinned source after the short-lived
+Actions artifact expires, and promoted evidence is rejected unless its
+capture-time candidate, product, matrix, and frame hashes still match.
 
 ## Runtime matrix
 
@@ -75,14 +81,19 @@ The Temperature screenshots before and after the polish are byte-identical at
 
 ## Automated policy result
 
-`python3 -m unittest discover -s tests -v` passes 25 tests. The Helix tests
-validate the beta.4 manifest contract, closed XML allowlist, plugin-owned names,
-native overlay/scroller structure, permissionless Lua handler coverage, fixed
-context and Temperature content, and absence of unsupported visible features.
+Issue #1's exact commit contains seven tests in `tests/test_helix_plugin.py`.
+The closeout command reported 25 because the dirty canonical checkout also
+contained 18 unrelated, uncommitted Orca diagnostic tests. The seven Helix
+tests validate the beta.4 manifest contract, closed XML allowlist,
+plugin-owned names, native overlay/scroller structure, permissionless Lua
+handler coverage, fixed context and Temperature content, and absence of
+unsupported visible features. Issue #2 adds fifteen committed harness tests;
+its candidate CI suite therefore contains 22 tests.
 
 ## Verdict
 
-Issue #1 is ready for closeout as the native beta.4 mock-printer baseline for
-future calibration modules. It is not real-printer execution acceptance:
+Issue #1 is the closed native beta.4 mock-printer baseline for future
+calibration modules. Issue #2 makes that acceptance procedure reproducible but
+does not change the product. Neither is real-printer execution acceptance:
 Moonraker coordination, G-code, print control/monitoring, results, and Orca
 writeback remain unimplemented and out of scope.

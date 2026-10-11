@@ -17,7 +17,7 @@ Founder accepted the final candidate on 2026-10-10. HelixScreen plugin
 - [x] Request no permissions and expose no unsupported future workflow UI.
 - [x] Validate discovery, enablement, tile, chooser, Temperature, Start toast,
   native Back, close/reopen, and horizontal fit at every supported target size.
-- [x] Pass 25 dependency-free unit/policy tests and `git diff --check`.
+- [x] Pass the seven committed Helix unit/policy tests and `git diff --check`.
 
 The closeout matrix covers 480x272, 272x480, 480x320, 480x400, 800x480,
 480x800, 1024x600, 1280x720, 1080x2400 at 405 DPI, 1920x480, and 320x1480.
@@ -25,6 +25,40 @@ The closeout matrix covers 480x272, 272x480, 480x320, 480x400, 800x480,
 This chooser/detail structure is the baseline for future calibration modules.
 Future modules extend the registry and add their own native detail component;
 they do not redesign the accepted Helix shell.
+
+The closeout note's “25 tests” was the result from this dirty canonical
+checkout: the seven committed Issue #1 tests plus 18 unrelated, uncommitted
+Orca diagnostic tests. The product acceptance evidence is unchanged; this
+corrects the provenance of the count.
+
+## Candidate: Issue #2 — native Helix mock-printer UX harness
+
+- [x] Pin and verify beta.4 source, recursive submodules, release data, binary
+  provenance/hash, Docker bases, and durable source-build recipe; treat the
+  expiring developer artifact only as an optional accelerator.
+- [x] Provide `bootstrap`, `up`, `status`, `reload`, `capture`, `promote`,
+  `verify-evidence`, and `down` through one repository-owned command.
+- [x] Run the real Helix beta.4 binary with the mock printer, direct plugin
+  mount, dark 800x480 default, private control socket, and no container network.
+- [x] Make the real native frame and pointer interaction reachable at the
+  reserved trusted-LAN URL `http://192.168.1.114:8540/`.
+- [x] Prove independent read access from the authorized Mac mini.
+- [x] Prove beta.4 `PluginDirWatcher` reload without restarting Helix or
+  changing product content.
+- [x] Capture Home, chooser, Temperature, and Start toast at all eleven target
+  sizes while asserting the accepted navigation and fit contract.
+- [x] Retain full generated artifacts in durable XDG state and promote a
+  bounded versioned matrix/report/final-frame evidence set.
+- [x] Bind evidence to capture-time candidate/product/matrix/frame hashes and
+  add proportionate GitHub CI for that integrity check, the dependency-free
+  policy suite, static harness contract, wrapper syntax, and whitespace.
+- [x] Preserve every `helix-plugin/orcacal/` product file byte-for-byte.
+
+The candidate commit contains 22 tests (seven product-policy plus fifteen
+harness tests). The present dirty canonical checkout reports 40 because the 18
+unrelated Orca diagnostic tests remain uncommitted and untouched. Native
+runtime evidence is in [`evidence/issue-2/`](evidence/issue-2/) and the operator
+contract is [`HELIX_DEV_HARNESS.md`](HELIX_DEV_HARNESS.md).
 
 ## Deferred — requires new approval
 

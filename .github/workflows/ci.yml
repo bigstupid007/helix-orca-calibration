@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependency-free unit and policy suite
+        run: python3 -m unittest discover -s tests -v
+      - name: Static native-harness contract
+        run: |
+          bash -n scripts/helix-dev
+          python3 scripts/helix_dev.py doctor --static
+      - name: Promoted native-evidence integrity
+        run: python3 scripts/helix_dev.py verify-evidence docs/evidence/issue-2/native
+      - name: Whitespace validation
+        run: git show --check --format= HEAD
