@@ -71,19 +71,37 @@ VIEWPORTS = (
 CAPTURE_FRAME_NAMES = ("home.png", "chooser.png", "temperature.png", "start-toast.png")
 EXPECTED_ASSERTIONS = (
     "plugin-loaded",
-    "tile-rendered",
-    "tile-horizontal-fit",
-    "tile-opens-chooser",
+    "landing-home",
+    "tile-visible",
+    "tile-native-tap-opens-chooser",
     "chooser-native-back",
     "chooser-horizontal-fit",
-    "chooser-opens-temperature",
+    "chooser-native-tap-opens-temperature",
     "temperature-native-back",
     "temperature-horizontal-fit",
     "start-visible",
-    "start-callback-toast",
+    "start-native-tap-toast",
     "back-to-chooser",
     "back-to-home",
-    "tile-reopens",
+    "home-action-keeps-tile-visible",
+    "tile-native-tap-reopens",
+)
+BETA4_DEFAULT_HOME_WIDGETS = (
+    "printer_image",
+    "print_status",
+    "led",
+    "fan_stack",
+    "temperature",
+    "bed_temperature",
+    "filament",
+    "tips",
+    "notifications",
+)
+BETA4_MOCK_ACKNOWLEDGED_HARDWARE = (
+    "neopixel chamber_light",
+    "fan_generic nevermore",
+    "controller_fan controller_fan",
+    "filament_switch_sensor runout_sensor",
 )
 
 
@@ -558,15 +576,23 @@ def seed_settings(config_dir: Path) -> Path:
     }
     printer = settings.setdefault("printers", {}).setdefault("default", {})
     printer["name"] = "Helix native mock printer"
+    # These devices are built into Helix's beta.4 mock printer. Acknowledge
+    # them so the stock eight-second discovery toast cannot cover the review
+    # tile on compact landing screens.
+    printer.setdefault("hardware", {})["expected"] = list(
+        BETA4_MOCK_ACKNOWLEDGED_HARDWARE
+    )
     printer["panel_widgets"] = {
         "home": {
             "grid": "12x8",
-            "main_page_index": 1,
-            "next_page_id": 2,
+            # Beta.4's normal Home action always selects physical page zero,
+            # even when main_page_index names another page. Keep the review
+            # tile on page zero so startup, retained state, and Home agree.
+            "main_page_index": 0,
+            "next_page_id": 1,
             "pages": [
-                {"id": "main", "widgets": []},
                 {
-                    "id": "page_1",
+                    "id": "main",
                     "widgets": [
                         {
                             "col": 0,
@@ -575,7 +601,18 @@ def seed_settings(config_dir: Path) -> Path:
                             "id": "orcacal__tile",
                             "row": 0,
                             "rowspan": 2,
-                        }
+                        },
+                        *(
+                            {
+                                "col": -1,
+                                "colspan": 1,
+                                "enabled": False,
+                                "id": widget_id,
+                                "row": -1,
+                                "rowspan": 1,
+                            }
+                            for widget_id in BETA4_DEFAULT_HOME_WIDGETS
+                        ),
                     ],
                 },
             ],
@@ -805,6 +842,7 @@ def up() -> None:
     run(_container_args(CONTAINER, root, 800, 480, "standard", 160), capture=True)
     try:
         wait_ready(CONTAINER)
+        _wait_visible_landing(CONTAINER, 800, 480)
         viewer_pid = start_viewer()
     except Exception:
         _remove_container(CONTAINER)
@@ -940,6 +978,65 @@ def _assert_horizontal_fit(value: Any, width: int) -> None:
             raise HarnessError(f"positive horizontal scroll extent at {width}px: {widget}")
 
 
+def _visible_widget_geometry(value: Any, name: str, width: int, height: int) -> dict[str, Any]:
+    widgets = _widgets(value)
+    widget = next((item for item in widgets if item.get("name") == name), None)
+    if widget is None:
+        raise HarnessError(f"native widget geometry not found: {name}")
+    x = int(widget.get("x", -1))
+    y = int(widget.get("y", -1))
+    w = int(widget.get("w", 0))
+    h = int(widget.get("h", 0))
+    if (
+        widget.get("hidden") is True
+        or w <= 0
+        or h <= 0
+        or x < 0
+        or y < 0
+        or x + w > width
+        or y + h > height
+    ):
+        raise HarnessError(f"native widget is not visible in {width}x{height}: {widget}")
+    return widget
+
+
+def _assert_visible_landing(container: str, width: int, height: int) -> dict[str, Any]:
+    current = ctl(container, "current")
+    if not isinstance(current, dict) or current.get("panel") != "home" or current.get(
+        "overlays"
+    ) != []:
+        raise HarnessError(f"native landing screen is not unobstructed Home: {current!r}")
+    return _visible_widget_geometry(
+        ctl(container, "geom", "orcacal__tile", "0"),
+        "orcacal__tile",
+        width,
+        height,
+    )
+
+
+def _wait_visible_landing(
+    container: str, width: int, height: int, timeout: float = 10.0
+) -> dict[str, Any]:
+    deadline = time.monotonic() + timeout
+    last_error: Exception | None = None
+    while time.monotonic() < deadline:
+        try:
+            return _assert_visible_landing(container, width, height)
+        except (HarnessError, subprocess.CalledProcessError) as exc:
+            last_error = exc
+            time.sleep(0.1)
+    raise HarnessError(f"tile never became visible on native Home: {last_error}")
+
+
+def _tap_visible_widget(container: str, name: str, width: int, height: int) -> None:
+    widget = _visible_widget_geometry(ctl(container, "geom", name, "0"), name, width, height)
+    x = int(widget["x"]) + int(widget["w"]) // 2
+    y = int(widget["y"]) + int(widget["h"]) // 2
+    ctl(container, "press", str(x), str(y))
+    ctl(container, "release", str(x), str(y))
+    ctl(container, "wait_idle")
+
+
 def _assert_overlay(value: Any, expected: list[str]) -> None:
     if not isinstance(value, dict) or value.get("overlays") != expected:
         raise HarnessError(f"expected overlay stack {expected!r}, got {value!r}")
@@ -1066,12 +1163,16 @@ def verify_promoted_evidence(root: Path) -> None:
     if promotion.get("candidate_files") != report.get("candidate_files"):
         raise HarnessError("promotion candidate hashes do not match capture-time hashes")
     selected = promotion.get("selected_screenshots", {})
-    expected_selected = {
-        f"screenshots/{label}.png": report["screenshots"][f"{label}/start-toast.png"]
-        for label, _width, _height, _layout, _dpi in VIEWPORTS
-    }
+    expected_selected = {}
+    for label, _width, _height, _layout, _dpi in VIEWPORTS:
+        expected_selected[f"screenshots/landing/{label}.png"] = report["screenshots"][
+            f"{label}/home.png"
+        ]
+        expected_selected[f"screenshots/start-toast/{label}.png"] = report["screenshots"][
+            f"{label}/start-toast.png"
+        ]
     if selected != expected_selected:
-        raise HarnessError("promotion does not select the exact eleven Start-toast frames")
+        raise HarnessError("promotion does not select the exact landing and Start-toast frames")
     for relative, expected in selected.items():
         path = root / relative
         if not path.is_file() or sha256(path) != expected:
@@ -1093,26 +1194,24 @@ def run_viewport(entry: tuple[str, int, int, str, int], root: Path) -> dict[str,
         wait_ready(name)
         assertions.append("plugin-loaded")
 
-        tile = ctl(name, "ls", "orcacal__tile")
-        _assert_widget(tile, "orcacal__tile")
-        _assert_horizontal_fit(ctl(name, "geom", "orcacal__tile", "3"), width)
-        assertions.extend(("tile-rendered", "tile-horizontal-fit"))
+        _wait_visible_landing(name, width, height)
+        assertions.extend(("landing-home", "tile-visible"))
         _screenshot(name, output, "home.png")
 
-        ctl(name, "click", "orcacal__tile")
-        ctl(name, "wait_idle")
+        _tap_visible_widget(name, "orcacal__tile", width, height)
         _assert_overlay(ctl(name, "current"), ["orcacal__wizard"])
         chooser = ctl(name, "ls", "orcacal__wizard")
         _assert_widget(chooser, "back_button")
         _assert_widget(chooser, "orcacal__temperature_choice")
         _assert_horizontal_fit(ctl(name, "geom", "orcacal__chooser_content", "8"), width)
-        assertions.extend(("tile-opens-chooser", "chooser-native-back", "chooser-horizontal-fit"))
+        assertions.extend(
+            ("tile-native-tap-opens-chooser", "chooser-native-back", "chooser-horizontal-fit")
+        )
         _screenshot(name, output, "chooser.png")
 
         ctl(name, "scroll", "orcacal__temperature_choice")
         ctl(name, "wait_idle")
-        ctl(name, "click", "orcacal__temperature_choice")
-        ctl(name, "wait_idle")
+        _tap_visible_widget(name, "orcacal__temperature_choice", width, height)
         _assert_overlay(
             ctl(name, "current"), ["orcacal__wizard", "orcacal__temperature"]
         )
@@ -1121,7 +1220,11 @@ def run_viewport(entry: tuple[str, int, int, str, int], root: Path) -> dict[str,
         _assert_widget(temperature, "orcacal__start_button")
         _assert_horizontal_fit(ctl(name, "geom", "orcacal__temperature_content", "8"), width)
         assertions.extend(
-            ("chooser-opens-temperature", "temperature-native-back", "temperature-horizontal-fit")
+            (
+                "chooser-native-tap-opens-temperature",
+                "temperature-native-back",
+                "temperature-horizontal-fit",
+            )
         )
         _screenshot(name, output, "temperature.png")
 
@@ -1132,7 +1235,7 @@ def run_viewport(entry: tuple[str, int, int, str, int], root: Path) -> dict[str,
             start_geom.get("h", 0)
         ) > height:
             raise HarnessError(f"Start is not visible after native scroll: {start_geom}")
-        ctl(name, "click", "orcacal__start_button")
+        _tap_visible_widget(name, "orcacal__start_button", width, height)
         deadline = time.monotonic() + 3
         combined = ""
         while time.monotonic() < deadline:
@@ -1143,8 +1246,13 @@ def run_viewport(entry: tuple[str, int, int, str, int], root: Path) -> dict[str,
             time.sleep(0.1)
         else:
             raise HarnessError("Start callback did not produce the expected native toast")
-        assertions.extend(("start-visible", "start-callback-toast"))
+        assertions.extend(("start-visible", "start-native-tap-toast"))
         _screenshot(name, output, "start-toast.png")
+
+        # The proof toast intentionally covers compact content for four
+        # seconds. Let that real user-visible feedback finish before proving
+        # the later Home interaction, so the follow-up tap is not intercepted.
+        time.sleep(4.1)
 
         ctl(name, "go_back")
         ctl(name, "wait_idle")
@@ -1152,10 +1260,20 @@ def run_viewport(entry: tuple[str, int, int, str, int], root: Path) -> dict[str,
         ctl(name, "go_back")
         ctl(name, "wait_idle")
         _assert_overlay(ctl(name, "current"), [])
-        ctl(name, "click", "orcacal__tile")
+        _assert_visible_landing(name, width, height)
+        ctl(name, "navigate", "home")
         ctl(name, "wait_idle")
+        _assert_visible_landing(name, width, height)
+        _tap_visible_widget(name, "orcacal__tile", width, height)
         _assert_overlay(ctl(name, "current"), ["orcacal__wizard"])
-        assertions.extend(("back-to-chooser", "back-to-home", "tile-reopens"))
+        assertions.extend(
+            (
+                "back-to-chooser",
+                "back-to-home",
+                "home-action-keeps-tile-visible",
+                "tile-native-tap-reopens",
+            )
+        )
 
         (output / "runtime.log").write_text(combined, encoding="utf-8")
         return {
@@ -1228,24 +1346,26 @@ def promote(source: Path, output: Path) -> None:
     results = report["results"]
     if output.exists():
         raise HarnessError(f"evidence destination already exists: {output}")
-    source_images = {
-        row["label"]: source / row["label"] / "start-toast.png" for row in results
-    }
+    source_images = {}
+    for row in results:
+        label = row["label"]
+        source_images[f"screenshots/landing/{label}.png"] = source / label / "home.png"
+        source_images[f"screenshots/start-toast/{label}.png"] = (
+            source / label / "start-toast.png"
+        )
     missing = [str(path) for path in source_images.values() if not path.is_file()]
     if missing:
         raise HarnessError("capture is missing final-flow screenshots:\n  " + "\n  ".join(missing))
     output.parent.mkdir(parents=True, exist_ok=True)
     staging = Path(tempfile.mkdtemp(prefix=f".{output.name}-", dir=output.parent))
     try:
-        screenshots = staging / "screenshots"
-        screenshots.mkdir()
+        (staging / "screenshots" / "landing").mkdir(parents=True)
+        (staging / "screenshots" / "start-toast").mkdir(parents=True)
         shutil.copy2(report_path, staging / "report.json")
         shutil.copy2(matrix_path, staging / "matrix.tsv")
         selected: dict[str, str] = {}
-        for row in results:
-            label = row["label"]
-            source_image = source_images[label]
-            target = screenshots / f"{label}.png"
+        for relative, source_image in source_images.items():
+            target = staging / relative
             shutil.copy2(source_image, target)
             selected[str(target.relative_to(staging))] = sha256(target)
         promotion = {
@@ -1262,7 +1382,7 @@ def promote(source: Path, output: Path) -> None:
         if staging.exists():
             shutil.rmtree(staging)
         raise
-    print(f"Promoted matrix, report, and eleven final-flow screenshots to {output}")
+    print(f"Promoted matrix, report, and 22 landing/final-flow screenshots to {output}")
 
 
 def _git_head() -> str:

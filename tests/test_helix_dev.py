@@ -83,22 +83,46 @@ class HelixDevContractTests(unittest.TestCase):
         template = {
             "dark_mode": False,
             "plugins": {"enabled": []},
-            "printers": {"default": {}},
+            "printers": {
+                "default": {
+                    "panel_widgets": {
+                        "home": {
+                            "main_page_index": 1,
+                            "pages": [
+                                {"id": "main", "widgets": []},
+                                {"id": "stale", "widgets": [{"id": "orcacal__tile"}]},
+                            ],
+                        }
+                    }
+                }
+            },
         }
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             template_path = root / "settings.json.template"
             template_path.write_text(json.dumps(template), encoding="utf-8")
+            config = root / "config"
+            config.mkdir()
+            (config / "settings-test.json").write_text(json.dumps(template), encoding="utf-8")
             with mock.patch.object(helix_dev, "_template_path", return_value=template_path):
-                output = helix_dev.seed_settings(root / "config")
+                output = helix_dev.seed_settings(config)
             result = json.loads(output.read_text(encoding="utf-8"))
         self.assertEqual(
             result["plugins"]["enabled"],
             {"orcacal": {"permissions": [], "version": "0.2.0"}},
         )
         home = result["printers"]["default"]["panel_widgets"]["home"]
-        self.assertEqual(home["main_page_index"], 1)
-        self.assertEqual(home["pages"][1]["widgets"][0]["id"], "orcacal__tile")
+        self.assertEqual(home["main_page_index"], 0)
+        self.assertEqual(len(home["pages"]), 1)
+        self.assertEqual(home["pages"][0]["widgets"][0]["id"], "orcacal__tile")
+        seeded = {item["id"]: item for item in home["pages"][0]["widgets"]}
+        self.assertTrue(seeded["orcacal__tile"]["enabled"])
+        for widget_id in helix_dev.BETA4_DEFAULT_HOME_WIDGETS:
+            self.assertFalse(seeded[widget_id]["enabled"])
+        self.assertEqual(
+            result["printers"]["default"]["hardware"]["expected"],
+            list(helix_dev.BETA4_MOCK_ACKNOWLEDGED_HARDWARE),
+        )
         self.assertTrue(result["dark_mode"])
         self.assertEqual(result["tour"], {"completed": True, "last_seen_version": 1})
 
@@ -176,7 +200,7 @@ class HelixDevContractTests(unittest.TestCase):
         with self.assertRaises(helix_dev.HarnessError):
             helix_dev._validate_report_structure(report, helix_dev._matrix_text(results))
 
-    def test_geometry_assertion_rejects_horizontal_overflow(self):
+    def test_geometry_assertions_reject_offscreen_widgets(self):
         fitting = {
             "widgets": [
                 {"name": "ok", "x": 0, "y": 0, "w": 480, "h": 30, "scroll": {}}
@@ -190,6 +214,11 @@ class HelixDevContractTests(unittest.TestCase):
         }
         with self.assertRaises(helix_dev.HarnessError):
             helix_dev._assert_horizontal_fit(overflowing, 480)
+        self.assertEqual(
+            helix_dev._visible_widget_geometry(fitting, "ok", 480, 272)["name"], "ok"
+        )
+        with self.assertRaises(helix_dev.HarnessError):
+            helix_dev._visible_widget_geometry(overflowing, "bad", 480, 272)
 
     def test_overlay_assertion_requires_exact_native_stack(self):
         helix_dev._assert_overlay(

@@ -30,7 +30,8 @@ The original Issue #1 closeout used
 machine-specific procedure with the reproducible repository command
 `./scripts/helix-dev capture`. Full generated artifacts now persist beneath
 `~/.local/state/helix-orca-calibration/helix-dev/captures/`; a bounded durable
-matrix, report, and one final native frame per target are versioned beneath
+matrix, report, and the initial landing plus final native frame per target are
+versioned beneath
 [`../docs/evidence/issue-2/`](../docs/evidence/issue-2/).
 That replacement can build the exact pinned source after the short-lived
 Actions artifact expires, and promoted evidence is rejected unless its
@@ -55,16 +56,25 @@ capture-time candidate, product, matrix, and frame hashes still match.
 At every size the harness proved:
 
 - `[PluginHost] orcacal: loaded` after discovery and persisted enablement;
-- the home tile exists with nonzero geometry and opens `orcacal__wizard`;
+- native state lands on physical Home page zero with the complete tile visible;
+- a screen-coordinate native pointer tap opens `orcacal__wizard`;
 - chooser XML exposes native Back and the Temperature row;
 - selecting Temperature pushes `orcacal__temperature` as the second native
   overlay;
 - every measured plugin descendant remains inside the horizontal viewport and
   reports no positive left/right scroll extent;
-- **Start** can be scrolled into view where needed and emits the exact native
-  toast `Calibration request test`;
+- **Start** can be scrolled into view where needed, accepts a native pointer
+  tap, and emits the exact native toast `Calibration request test`;
 - Back pops Temperature to the chooser and the chooser to Home; and
-- the home tile reopens the chooser after the stack closes.
+- Helix's normal Home action keeps the tile visible and a second native pointer
+  tap reopens the chooser after the stack closes.
+
+This stronger gate repairs the Issue #2 Founder Review defect. The rejected
+harness put the tile on retained carousel page 1 even though beta.4's normal
+Home action always selects physical page 0, then used object-name clicks that
+could activate the off-screen widget. The repaired mock configuration uses one
+deterministic page-zero layout and the capture path uses the same pointer input
+as the review viewer. The Issue #1 plugin files remain byte-identical.
 
 Visual inspection of the smallest landscape, smallest portrait, narrow-tall,
 high-DPI phone, default, and ultrawide captures confirms native Helix headers,

@@ -69,7 +69,13 @@ Nothing depends on an Issue-specific `/tmp` directory.
 
 `up` starts the real beta.4 Ubuntu developer binary in `--test` mode at the
 default 800x480 dark viewport. It pre-enables only `orcacal` and places the
-accepted tile on its own native Home page. Open:
+accepted tile on physical Home page zero. Each start normalizes that bounded
+mock layout even when the retained test config previously selected or stored a
+different page. It also disables beta.4's stock default widgets for this
+tile-only review page and acknowledges the mock printer's built-in hardware so
+an unrelated discovery toast cannot cover the tile on compact screens. `up`
+does not open the viewer until native state reports unobstructed Home and the
+complete tile geometry is inside the viewport. Open:
 
 - trusted LAN: `http://192.168.1.114:8540/`
 - Tailscale on the current devbox: `http://100.120.150.65:8540/`
@@ -101,11 +107,14 @@ The command starts an isolated native instance for each verified beta.4 target:
 `1024x600`, `1280x720`, `1080x2400` at 405 DPI, `1920x480`, and
 `320x1480`.
 
-At every size it proves plugin load, tile render, tile-to-chooser navigation,
-native Back, chooser-to-Temperature navigation, horizontal fit, Start
-visibility, the exact `Calibration request test` toast, return to Home, and
-reopen. It captures Home, chooser, Temperature, and toast frames plus the
-runtime log. The report records runtime pins, image identity, exact
+At every size it proves plugin load, the actual visible Home landing screen,
+tile-to-chooser navigation through a native pointer tap, native Back,
+chooser-to-Temperature navigation through a native pointer tap, horizontal
+fit, Start visibility and pointer interaction, the exact
+`Calibration request test` toast, return to Home, continued tile visibility
+after Helix's normal Home action, and a second native pointer reopen. It
+captures Home, chooser, Temperature, and toast frames plus the runtime log. The
+report records runtime pins, image identity, exact
 capture-time hashes for the harness/CI candidate, unchanged product hashes, the
 ordered matrix, assertions, and every screenshot hash. Default output is
 timestamped durable XDG state, outside Git.
@@ -118,17 +127,19 @@ Only a complete passing run can be explicitly promoted:
   --output docs/evidence/issue-2/native
 ```
 
-Promotion keeps the matrix, full report, and one final-flow native screenshot
-per viewport. It rejects a changed harness, changed product, reordered or
-partial matrix, runtime/cache mismatch, or altered frame. Verify the committed
-bounded set independently with:
+Promotion keeps the matrix, full report, and both the initial Home landing and
+final Start/toast native screenshot for every viewport (22 frames). It rejects
+a changed harness, changed product, reordered or partial matrix,
+runtime/cache mismatch, or altered frame. Verify the committed bounded set
+independently with:
 
 ```sh
 ./scripts/helix-dev verify-evidence docs/evidence/issue-2/native
 ```
 
 This provides versioned evidence bound to the exact candidate without
-committing generated config, caches, full logs, or all 44 transient frames.
+committing generated config, caches, full logs, or the other 22 transient
+frames.
 
 ## Isolation and scope
 

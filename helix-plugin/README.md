@@ -28,10 +28,11 @@ The canonical devbox path uses the repository-owned real beta.4 mock harness:
 ./scripts/helix-dev status
 ```
 
-Open `http://192.168.1.114:8540/`, tap the tile, select **Temperature**,
-tap **Start**, and confirm the toast reads `Calibration request test`. Plugin
-saves hot-reload in about one second. Use `./scripts/helix-dev down` when done,
-or `./scripts/helix-dev capture` for the complete eleven-target gate. See
+Open `http://192.168.1.114:8540/`. The tile must already be visible on the
+initial Home screen; tap it directly, select **Temperature**, tap **Start**,
+and confirm the toast reads `Calibration request test`. Plugin saves hot-reload
+in about one second. Use `./scripts/helix-dev down` when done, or
+`./scripts/helix-dev capture` for the complete eleven-target gate. See
 [`../docs/HELIX_DEV_HARNESS.md`](../docs/HELIX_DEV_HARNESS.md).
 
 With another verified HelixScreen `v1.1.0-beta.4` developer build, the direct

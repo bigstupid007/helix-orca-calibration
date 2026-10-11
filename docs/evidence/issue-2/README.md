@@ -2,7 +2,7 @@
 
 Status: candidate evidence captured 2026-10-11 UTC from the canonical devbox
 checkout. This directory is a bounded promotion from retained capture
-`20261010-215459` beneath the harness's durable XDG state directory.
+`20261010-223015` beneath the harness's durable XDG state directory.
 
 ## Exact runtime
 
@@ -33,23 +33,44 @@ binds the full report to that candidate and every promoted frame.
 
 ## Flow result
 
+### Founder Review defect and repair
+
+The rejected candidate registered the tile but seeded it on physical Home page
+1 with `main_page_index: 1`. Beta.4 initially honored that retained value, but
+its normal Home action always navigated the carousel to physical page 0. The
+old validator then hid the defect by finding an off-screen widget and invoking
+its callback by object name.
+
+The repaired harness normalizes retained mock configuration to one physical
+page (`main`, index 0), places `orcacal__tile` there, and explicitly disables
+the beta.4 stock default widgets that would otherwise be appended ahead of it.
+It acknowledges the four devices built into the beta.4 mock printer so the
+unrelated eight-second hardware-discovery toast cannot intercept the initial
+tap at compact sizes. Product files and behavior are unchanged.
+
 At each target the native driver proved:
 
 1. beta.4 discovers and loads enabled plugin `orcacal`;
-2. the native Home tile renders and opens `orcacal__wizard`;
-3. the chooser owns native Back and opens the Temperature detail;
-4. plugin descendants have no horizontal viewport overflow;
-5. native scroll makes Start visible where required;
-6. Start emits the exact toast `Calibration request test`;
-7. Back returns Temperature -> chooser -> Home; and
-8. the tile reopens the chooser.
+2. the actual landing state is Home with no navigation overlay, and the entire
+   tile is inside the visible viewport;
+3. a screen-coordinate pointer press/release on the visible tile opens
+   `orcacal__wizard`;
+4. the chooser owns native Back and a visible pointer tap opens Temperature;
+5. plugin descendants have no horizontal viewport overflow;
+6. native scroll makes Start visible where required, and a visible pointer tap
+   emits the exact toast `Calibration request test`;
+7. Back returns Temperature -> chooser -> Home;
+8. Helix's normal Home action keeps the tile on the visible landing page; and
+9. another visible pointer tap reopens the chooser.
 
-The eleven PNGs in [`native/screenshots/`](native/screenshots/) are the final
-Start/toast frame from each target. Visual inspection covered the two minimum
-geometries, default, high-DPI phone, ultrawide, and narrow-tall targets. They
-retain the accepted Helix navigation, dark tokens, compact cards, typography,
-range, and Start-only detail. The mock runtime's independent “new hardware”
-toast may coexist with the calibration toast; it is stock test-mode behavior.
+The 22 PNGs in [`native/screenshots/landing/`](native/screenshots/landing/) and
+[`native/screenshots/start-toast/`](native/screenshots/start-toast/) retain the
+actual initial Home frame and final Start/toast frame from each target. Visual
+inspection covered the two minimum geometries, default, high-DPI phone,
+ultrawide, and narrow-tall targets. The landing set shows the tile immediately,
+without another page or covering toast; the final set retains the accepted
+Helix navigation, dark tokens, compact cards, typography, range, and Start-only
+detail.
 
 ## Interactive and remote proof
 
@@ -59,9 +80,10 @@ The final interactive path passed:
 native Home tile -> chooser -> Temperature -> Start toast -> Back -> Back
 ```
 
-The viewer forwarded browser taps as beta.4 synthetic pointer
-`press`/`release` events; native overlay state and the runtime log confirmed
-each transition and callback. `./scripts/helix-dev reload` independently
+The viewer and capture driver use the same beta.4 synthetic pointer
+`press`/`release` path; native overlay state and the runtime log confirmed each
+transition and callback. No object-name `click` command is used for the tile,
+Temperature row, or Start button. `./scripts/helix-dev reload` independently
 observed `PluginDirWatcher` and a second `[PluginHost] orcacal: loaded` event
 without restarting Helix or changing a product file.
 
@@ -77,13 +99,15 @@ After rechecking the authorized Mac mini ED25519 fingerprint
 ```text
 http://192.168.1.114:8540/           200, 2563 bytes
 http://192.168.1.114:8540/health     200, 47 bytes
-http://192.168.1.114:8540/frame.png  200, 4829 bytes
+http://192.168.1.114:8540/frame.png  200, 4385 bytes
 ```
 
-The same independent client then posted a native tap at `200,63`; `/api/status`
-reported `overlays: ["orcacal__wizard"]`. Its bounded Back action returned the
-stack to `overlays: []`. This proves off-box view and control, not only a host-
-local HTTP route.
+Initial `/api/status` reported Home with `overlays: []`. The same independent
+client then posted a native tap at `200,63`; `/api/status` reported
+`overlays: ["orcacal__wizard"]`. Its bounded Back and normal Home actions
+returned the stack to `overlays: []`, and the resulting native frame still
+showed the tile. This proves off-box view and normal interaction, not only a
+host-local HTTP route.
 
 No public exposure, firewall, DNS, TLS, printer, or Moonraker change was made.
 
@@ -98,9 +122,10 @@ No public exposure, firewall, DNS, TLS, printer, or Moonraker change was made.
 
 Then compare the generated `matrix.tsv`, `report.json`, and hashes. See
 [`../../HELIX_DEV_HARNESS.md`](../../HELIX_DEV_HARNESS.md) for the complete
-operator contract. The full generated configs, runtime logs, Home/chooser/
-Temperature/toast sequence, and cache artifacts remain outside Git by default;
-only the proportionate review evidence is promoted here.
+operator contract. The full generated configs, runtime logs, chooser/
+Temperature intermediate frames, and cache artifacts remain outside Git by
+default; only the proportionate landing and Start/toast review evidence is
+promoted here.
 
 ## Test-count audit
 
