@@ -28,6 +28,29 @@ that does not exist.
 `python3 -m unittest discover -s tests -v`, `git diff --check`, and the complete
 viewport matrix in `helix-plugin/CAPABILITY_PREFLIGHT.md` after Helix UI changes.
 
+## Issue #2 development harness authority
+
+`scripts/helix-dev` is the authority for the pinned HelixScreen
+`v1.1.0-beta.4` native mock-printer loop, trusted-LAN review, hot-reload proof,
+and eleven-target capture matrix. Preserve these boundaries:
+
+- the Helix container runs `--test`, Docker `--network none`, a private control
+  socket, and read-only runtime/plugin mounts, never `--real-moonraker`;
+- the browser viewer at reserved devbox port `8540` displays native Helix
+  screenshots and forwards only bounded native input/navigation actions; it is
+  development infrastructure, not product UI;
+- runtime assets live in the user cache and generated evidence in XDG state by
+  default, never in an Issue-specific `/tmp` dependency;
+- durable bootstrap must build the exact pinned public source and recursive
+  submodule revisions after short-lived upstream artifacts expire; an Actions
+  artifact may be only an optional SHA-verified accelerator;
+- only a complete passing capture may be explicitly promoted beneath
+  `docs/evidence/`, and `./scripts/helix-dev verify-evidence
+  docs/evidence/issue-2/native` must bind it to the exact harness/CI candidate,
+  product hashes, viewport matrix, and screenshots; and
+- harness changes must not modify `helix-plugin/orcacal/` product behavior or
+  weaken the deferred Moonraker/G-code/print/writeback boundary.
+
 ## OSS safety before GitHub changes
 
 No GitHub mutation is implied by an implementation request. Before any future

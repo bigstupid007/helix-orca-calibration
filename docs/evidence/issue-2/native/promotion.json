@@ -1,0 +1,37 @@
+{
+  "candidate_files": {
+    ".github/workflows/ci.yml": "af6997b1f44fedf17a4767c820387ff6ea4be2b1734f4436cec40c41fb2090c5",
+    "scripts/helix-dev": "9de84bd9d82a34232b6344e9866ddb7a8198c4a8c5f7b29eb68a59c146e8699c",
+    "scripts/helix-dev-build.Dockerfile": "988ad9478d513731680bf7c0b0e41ee639d0ac9d776aa15ef369fb9029c9d40e",
+    "scripts/helix-dev.Dockerfile": "7fcbae34d51f4b6d56517b39dd12ffdb3fe0f7e0f1f2559673780d49ced2a4c0",
+    "scripts/helix_dev.py": "3c9eb5a1c5d97986146922bca1b12941688103d78846189bf8c1ceb0f2da8f8b",
+    "tests/test_helix_dev.py": "eaaf318e580d6392cf8ce8b328b23d2dabfd3c6f8fb075a4d6f26aadb0a03259"
+  },
+  "full_capture_report_sha256": "d2e6289563f3b494a8e220a362ddd3a9fa64890fe32697228d2ec82370dcb816",
+  "promoted_at": "2026-10-11T03:32:28Z",
+  "selected_screenshots": {
+    "screenshots/landing/large_1024x600.png": "05bce1e01105218697a5dda21780e54afaa70cd11961f01f5fbd287728abb7c8",
+    "screenshots/landing/medium_800x480.png": "c3ee6fecc4fa8de0d4dc4e57878f79e5bcb20e9fd39fc5e6020b0449d0e98c07",
+    "screenshots/landing/micro_480x272.png": "ad9a3096161b40b0f11219a011e76bd865b4828ee3760975604698647f657584",
+    "screenshots/landing/micro_portrait_272x480.png": "e85bb22357ff6c982e7e1b3f13d5887ee7241ff8417e9446efeafe695dfcea73",
+    "screenshots/landing/phone_1080x2400_dpi405.png": "59326a5652381f9006e3a25298db12e427892b5e638df2856d2e855795c9368c",
+    "screenshots/landing/portrait_480x800.png": "1a84fed1456f30e490b8916f054688af7591e7472a0cf4496e6dca6a9738bf76",
+    "screenshots/landing/small_480x400.png": "422132f11d53ac372c38f99fc6ee17302de1b6e3d02621a591c7c9e89d5e7320",
+    "screenshots/landing/tall_320x1480.png": "cfb92872fa29db1e3ff9033df4e8393c32a920313f93b91171802106b4b357b4",
+    "screenshots/landing/tiny_480x320.png": "fdca52b1e9b8961c4ed093286bb3845c08dce8d548b0e8e21fc14b5006e7cfa6",
+    "screenshots/landing/ultrawide_1920x480.png": "3213e4a56a0ca5a24e729831850d9c88e665138276e74f993ea8738b26fd1b82",
+    "screenshots/landing/xlarge_1280x720.png": "e72e1330218b0f0628338b3200d31a7b19a50081d5c55436f1db8c18544b36c8",
+    "screenshots/start-toast/large_1024x600.png": "64c9b20bcd117ce9327c9a6e71b6dd7f47dc498dc24877cb44018b17c6bc51d2",
+    "screenshots/start-toast/medium_800x480.png": "14af8c2c8172aff56cf1902244b1e06469a0436f691616a1341494738803289e",
+    "screenshots/start-toast/micro_480x272.png": "1ff03967db0dafda5093aa99c072ff7b05796eac8ebadd3cda52711003ae30d5",
+    "screenshots/start-toast/micro_portrait_272x480.png": "0100466792d18dc85c0a8e06c616305fa8a2bb5c3820e5f8cc979f29a1fd3504",
+    "screenshots/start-toast/phone_1080x2400_dpi405.png": "a33565caa74005ac79265f6998f9a0fc25f64998fc22f5e4422f701c13c79ad3",
+    "screenshots/start-toast/portrait_480x800.png": "1f5169dac9b2e70037854e668505a5afd6d4af99f9f9293566bd14be1bbefa3b",
+    "screenshots/start-toast/small_480x400.png": "cc77617af86a810436211ba44f8aa6fa460f0941a938140d2c30c018cc4febbe",
+    "screenshots/start-toast/tall_320x1480.png": "4915f9de08e2ad00f45adede057212892d7867b2f64a73de434228c8a26c5d82",
+    "screenshots/start-toast/tiny_480x320.png": "b0c93e831ff480ae1f0559d183c88edd05dabb1edecf81d50e93c39377b8b472",
+    "screenshots/start-toast/ultrawide_1920x480.png": "2adbde3366a362bb8a28d32142fc54e2ceee8888b82b49b2b47f6d0c4b2f9d5f",
+    "screenshots/start-toast/xlarge_1280x720.png": "dda2341010ac9592df9ad5af7ec27b05cabf1622726fcf576cc57005f5e077ba"
+  },
+  "source_capture_id": "20261010-223015"
+}

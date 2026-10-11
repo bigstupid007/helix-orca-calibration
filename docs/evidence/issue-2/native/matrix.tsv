@@ -1,0 +1,12 @@
+label	viewport	layout	dpi	result
+micro_480x272	480x272	standard	160	PASS
+micro_portrait_272x480	272x480	portrait	160	PASS
+tiny_480x320	480x320	standard	160	PASS
+small_480x400	480x400	standard	160	PASS
+medium_800x480	800x480	standard	160	PASS
+portrait_480x800	480x800	portrait	160	PASS
+large_1024x600	1024x600	standard	160	PASS
+xlarge_1280x720	1280x720	standard	160	PASS
+phone_1080x2400_dpi405	1080x2400	portrait	405	PASS
+ultrawide_1920x480	1920x480	ultrawide	160	PASS
+tall_320x1480	320x1480	portrait	160	PASS

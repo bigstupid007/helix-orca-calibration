@@ -25,10 +25,17 @@ is recorded in [`CAPABILITY_PREFLIGHT.md`](CAPABILITY_PREFLIGHT.md).
 - Enabled-plugin record: version `0.2.0`, empty permissions, with the accepted
   `orcacal__tile` placement on its own native Home page.
 
-Final closeout evidence is beneath `/tmp/orcacal-issue1-closeout.BbJLnb`. Each viewport
-directory contains runtime logs, live widget listings, measured geometry,
-navigation-state JSON, and Home/chooser/Temperature/toast PNGs. `matrix.tsv`
-is the machine-readable summary.
+The original Issue #1 closeout used
+`/tmp/orcacal-issue1-closeout.BbJLnb`. Issue #2 replaces that ephemeral,
+machine-specific procedure with the reproducible repository command
+`./scripts/helix-dev capture`. Full generated artifacts now persist beneath
+`~/.local/state/helix-orca-calibration/helix-dev/captures/`; a bounded durable
+matrix, report, and the initial landing plus final native frame per target are
+versioned beneath
+[`../docs/evidence/issue-2/`](../docs/evidence/issue-2/).
+That replacement can build the exact pinned source after the short-lived
+Actions artifact expires, and promoted evidence is rejected unless its
+capture-time candidate, product, matrix, and frame hashes still match.
 
 ## Runtime matrix
 
@@ -49,16 +56,25 @@ is the machine-readable summary.
 At every size the harness proved:
 
 - `[PluginHost] orcacal: loaded` after discovery and persisted enablement;
-- the home tile exists with nonzero geometry and opens `orcacal__wizard`;
+- native state lands on physical Home page zero with the complete tile visible;
+- a screen-coordinate native pointer tap opens `orcacal__wizard`;
 - chooser XML exposes native Back and the Temperature row;
 - selecting Temperature pushes `orcacal__temperature` as the second native
   overlay;
 - every measured plugin descendant remains inside the horizontal viewport and
   reports no positive left/right scroll extent;
-- **Start** can be scrolled into view where needed and emits the exact native
-  toast `Calibration request test`;
+- **Start** can be scrolled into view where needed, accepts a native pointer
+  tap, and emits the exact native toast `Calibration request test`;
 - Back pops Temperature to the chooser and the chooser to Home; and
-- the home tile reopens the chooser after the stack closes.
+- Helix's normal Home action keeps the tile visible and a second native pointer
+  tap reopens the chooser after the stack closes.
+
+This stronger gate repairs the Issue #2 Founder Review defect. The rejected
+harness put the tile on retained carousel page 1 even though beta.4's normal
+Home action always selects physical page 0, then used object-name clicks that
+could activate the off-screen widget. The repaired mock configuration uses one
+deterministic page-zero layout and the capture path uses the same pointer input
+as the review viewer. The Issue #1 plugin files remain byte-identical.
 
 Visual inspection of the smallest landscape, smallest portrait, narrow-tall,
 high-DPI phone, default, and ultrawide captures confirms native Helix headers,
@@ -75,14 +91,19 @@ The Temperature screenshots before and after the polish are byte-identical at
 
 ## Automated policy result
 
-`python3 -m unittest discover -s tests -v` passes 25 tests. The Helix tests
-validate the beta.4 manifest contract, closed XML allowlist, plugin-owned names,
-native overlay/scroller structure, permissionless Lua handler coverage, fixed
-context and Temperature content, and absence of unsupported visible features.
+Issue #1's exact commit contains seven tests in `tests/test_helix_plugin.py`.
+The closeout command reported 25 because the dirty canonical checkout also
+contained 18 unrelated, uncommitted Orca diagnostic tests. The seven Helix
+tests validate the beta.4 manifest contract, closed XML allowlist,
+plugin-owned names, native overlay/scroller structure, permissionless Lua
+handler coverage, fixed context and Temperature content, and absence of
+unsupported visible features. Issue #2 adds fifteen committed harness tests;
+its candidate CI suite therefore contains 22 tests.
 
 ## Verdict
 
-Issue #1 is ready for closeout as the native beta.4 mock-printer baseline for
-future calibration modules. It is not real-printer execution acceptance:
+Issue #1 is the closed native beta.4 mock-printer baseline for future
+calibration modules. Issue #2 makes that acceptance procedure reproducible but
+does not change the product. Neither is real-printer execution acceptance:
 Moonraker coordination, G-code, print control/monitoring, results, and Orca
 writeback remain unimplemented and out of scope.
