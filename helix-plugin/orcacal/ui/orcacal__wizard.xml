@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<component>
+  <!-- The first plugin surface is a Helix-owned overlay. Its inherited header
+       supplies native Back navigation; this child owns vertical overflow. -->
+  <view name="orcacal__wizard" extends="overlay_panel" title="Orca Calibration" bg_color="#screen_bg">
+    <lv_obj name="orcacal__chooser_content" width="100%" flex_grow="1" flex_flow="column" scrollable="true"
+            style_pad_all="#space_md" style_pad_gap="#space_md"
+            style_bg_opa="0" style_border_width="0">
+      <ui_card width="100%" height="content" flex_flow="column"
+               style_pad_all="#space_sm" style_pad_gap="#space_xxs">
+        <text_small width="100%" text="CURRENT CONTEXT" style_text_color="#text_muted"/>
+        <text_body width="100%" text="Voron 2.4 300 · 0.4 mm" long_mode="wrap"/>
+        <text_small width="100%" text="Generic PLA - Rapido · Fast Quality" long_mode="wrap"
+                    style_text_color="#text_muted"/>
+      </ui_card>
+
+      <lv_obj width="100%" height="content" flex_flow="column" scrollable="false"
+              style_pad_all="0" style_pad_gap="#space_xs"
+              style_bg_opa="0" style_border_width="0">
+        <text_small width="100%" text="CALIBRATIONS" style_text_color="#text_muted"/>
+        <lv_button name="orcacal__temperature_choice" width="100%" height="content"
+                   style_pad_all="#space_md" style_bg_color="#card_bg" style_bg_opa="255"
+                   style_radius="#border_radius" style_border_width="1"
+                   style_border_color="#border" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__select:temperature"/>
+          <lv_obj width="100%" height="content" flex_flow="row" scrollable="false"
+                  style_pad_all="0" style_pad_gap="#space_sm" style_flex_cross_place="center"
+                  style_bg_opa="0" style_border_width="0" clickable="false" event_bubble="true">
+            <icon src="thermometer_lines" size="md" variant="primary"
+                  clickable="false" event_bubble="true"/>
+            <lv_obj width="0" flex_grow="1" height="content" flex_flow="column" scrollable="false"
+                    style_pad_all="0" style_pad_gap="#space_xxs"
+                    style_bg_opa="0" style_border_width="0" clickable="false" event_bubble="true">
+              <text_body width="100%" text="Temperature" clickable="false" event_bubble="true"/>
+              <lv_obj width="100%" height="content" flex_flow="row" scrollable="false"
+                      style_pad_all="0" style_pad_gap="#space_xs" style_flex_cross_place="center"
+                      style_bg_opa="0" style_border_width="0" clickable="false" event_bubble="true">
+                <text_small text="230°C" style_text_color="#text_muted" clickable="false" event_bubble="true"/>
+                <icon src="arrow_right" size="xs" variant="muted" clickable="false" event_bubble="true"/>
+                <text_small text="190°C" style_text_color="#text_muted" clickable="false" event_bubble="true"/>
+              </lv_obj>
+            </lv_obj>
+            <icon src="chevron_right" size="sm" variant="muted"
+                  clickable="false" event_bubble="true"/>
+          </lv_obj>
+        </lv_button>
+      </lv_obj>
+    </lv_obj>
+  </view>
+</component>
