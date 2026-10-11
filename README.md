@@ -77,6 +77,12 @@ Windows runtime qualification is still pending, so no round-trip transport,
 result handling, profile writeback, or printing behavior has been implemented.
 The accepted Helix plugin remains unchanged.
 
+The approved integration may later simulate a complete print lifecycle only in
+the isolated mock harness. Qualification UI driving is evidence tooling, not a
+shipping Orca automation path. Dock-panel/event integration retains
+modeless-window and explicit manual-file fallbacks. The interactive Temperature
+picker remains deferred and unimplemented.
+
 ## Verify
 
 ```sh

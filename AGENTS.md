@@ -62,6 +62,13 @@ lifecycle payloads, an Orca-owned dock panel, and a normally prepared/exported
 Temperature file. Linux, Wine, source-only, or headless CI evidence cannot pass
 that gate.
 
+Qualification and evidence tooling may drive the isolated Orca/Helix UIs to
+reproduce operator actions and capture proof. That is test infrastructure, not
+shipping product behavior. Product code must not automate Orca's UI or invoke
+unsupported slicing/export APIs. Prefer an Orca-owned dock panel, but retain a
+host-owned modeless-window fallback. Prefer lifecycle file association, but
+retain explicit manual file selection when it is missing or ambiguous.
+
 Do not implement the round trip until the qualification evidence passes. Once
 it passes, the approved scope is one Temperature round trip using normal manual
 Orca calibration preparation/export, reliable lifecycle events plus explicit
@@ -74,15 +81,25 @@ Use Preston's `calibration-bridge` pinned at
 `ed8d0c4977873969613fcb49024109ff7df7d84e` without modifying upstream. Preserve
 the accepted Helix native shell and existing harness isolation. Cover profile
 switching, stale/duplicate results, and failed delivery in the isolated mock
-integration setup. No physical-printer access, profile writes, public exposure,
-upstream changes, custom G-code generator, UI automation, or expanded
-picker/profile-browser scope is approved.
+integration setup. That setup may simulate the complete mock print lifecycle
+needed to prove request delivery, progress/completion, result correlation,
+failure, retry, and recovery, but it must expose no physical-printer route and
+does not authorize real print control. No physical-printer access, profile
+writes, public exposure, new remote access, upstream changes, custom G-code
+generator, product UI automation, or expanded picker/profile-browser scope is
+approved. The interactive Temperature picker remains a deferred requirement.
 
 `plugin/helix_calibration.py` remains one dependency-free side-loaded Orca
 plugin. It may read Orca's supported host APIs and write only explicit evidence
 or bounded round-trip artifacts below host-provided plugin storage. Preserve
 saved preset identity, the edited copy, and merged effective values as distinct
 sources. Reference checkouts remain read-only.
+
+The canonical devbox owns implementation, Git, and evidence assembly. Windows
+is a target-validation environment reached only through existing authorized
+access. Do not author or branch there, add remote access, or broaden credentials
+without explicit approval. Ask the owner only for an unavoidable physical or
+session access action such as waking or unlocking that target.
 
 ## OSS safety before GitHub changes
 

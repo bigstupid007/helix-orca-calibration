@@ -86,6 +86,12 @@ The exact gate and owner runbook are in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md). Linux-only
 evidence cannot close the pending item.
 
+The round trip may exercise start/progress/completion/result states only in the
+separately isolated mock lifecycle. Qualification UI driving is test evidence,
+not supported product automation. Retain the host-owned modeless-window and
+manual-file-selection fallbacks. The interactive Temperature picker remains a
+separate deferred requirement.
+
 ## Deferred — requires new approval
 
 - Moonraker coordination or networking.

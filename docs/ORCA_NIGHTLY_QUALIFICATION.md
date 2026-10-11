@@ -46,6 +46,14 @@ The exact source commit exposes all of the candidate surfaces:
 The probe deliberately does not use networking, start a print, write a preset,
 or drive Orca's calibration UI.
 
+Qualification tooling may reproduce the checklist through isolated UI input
+and capture screenshots. This is evidence automation only: it must use the same
+normal Orca controls described below and must not become a product dependency
+or call unsupported slicing/export APIs. If the dock panel is unavailable or
+unreliable, the same read-only state/evidence UI may use Orca's host-owned
+modeless window. If export lifecycle payloads cannot associate one file
+unambiguously, later round-trip work must retain explicit manual file selection.
+
 ## Launch with isolated settings
 
 Open PowerShell in this repository and run:
@@ -128,6 +136,10 @@ files. Record any mismatch exactly and stop.
 12. Close the isolated nightly. Reopen the normal Orca installation normally
     and confirm its existing profiles/settings remain unchanged.
 
+The later integration harness may simulate start, progress, completion, result,
+delivery failure, and retry for a mock print. This qualification does not add
+that behavior to Orca and never targets a physical printer.
+
 ## Pass/fail boundary
 
 Qualification passes only if all of these are observed in the actual fixed
@@ -147,3 +159,6 @@ association, event loss, incorrect Temperature schedule, or inability to keep
 settings isolated is a genuine capability blocker. Stop there and attach the
 evidence to Issue #4. Do not compensate with profile writes, UI automation, a
 custom G-code generator, or physical-printer access.
+
+The interactive Temperature picker remains a deferred product requirement and
+is not part of this qualification or Issue #4 implementation.
