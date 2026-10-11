@@ -64,6 +64,28 @@ unrelated Orca diagnostic tests remain uncommitted and untouched. Native
 runtime evidence is in [`evidence/issue-2/`](evidence/issue-2/) and the operator
 contract is [`HELIX_DEV_HARNESS.md`](HELIX_DEV_HARNESS.md).
 
+## Active: Issue #4 — Temperature round trip on a qualified Orca nightly
+
+Issue #4 supersedes the deferred interactive Temperature-picker item. Source
+qualification has pinned the successful 2026-10-11 Windows nightly at commit
+`210bc927bc6fb3d3bf390fdf72e4a2767b5de4b3` and verified `app_info`, host-owned
+dock panels, `--datadir`, preset/dirty lifecycle events, and G-code-export
+events in that exact source.
+
+- [x] Record the bounded workstream in one GitHub work item.
+- [x] Pin the nightly run, artifact digest, executable/DLL hashes, and source.
+- [x] Build a hash-verifying launcher that stages the read-only probe in an
+  isolated test settings tree without selecting the existing installation.
+- [x] Add a small host-owned qualification panel and retained JSON evidence.
+- [ ] Pass the interactive Windows qualification checklist with a real unsaved
+  value, profile switching, normal Temperature preparation, and actual export.
+- [ ] Only after that gate, implement and prove the bounded mock-only round trip.
+- [ ] Freeze, independently review, and prepare one PR without merging it.
+
+The exact gate and owner runbook are in
+[`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md). Linux-only
+evidence cannot close the pending item.
+
 ## Deferred — requires new approval
 
 - Moonraker coordination or networking.
@@ -71,7 +93,4 @@ contract is [`HELIX_DEV_HARNESS.md`](HELIX_DEV_HARNESS.md).
 - Print start, monitoring, results, or calibration scoring.
 - Orca preset mutation or writeback.
 - Additional calibration modules beyond a separately approved increment.
-- Interactive Temperature picker on the Temperature calibration screen
-  ([Issue #4](https://github.com/bigstupid007/helix-orca-calibration/issues/4));
-  detailed behavior remains intentionally undefined pending product definition
-  and explicit implementation approval.
+- Picker/profile-browser expansion beyond the bounded Issue #4 flow.

@@ -1,0 +1,92 @@
+{
+	"accel_to_decel_enable": "0",
+	"bottom_surface_pattern": "rectilinear",
+	"bridge_acceleration": [
+		"3000"
+	],
+	"brim_type": "no_brim",
+	"default_acceleration": [
+		"2000"
+	],
+	"elefant_foot_compensation": "0",
+	"enable_arc_fitting": "0",
+	"enable_overhang_speed": [
+		"0"
+	],
+	"exclude_object": "1",
+	"from": "User",
+	"gap_infill_speed": [
+		"160"
+	],
+	"inherits": "process template @Voron Voron 2.4 300 0.4 nozzle",
+	"initial_layer_acceleration": [
+		"1500"
+	],
+	"initial_layer_infill_speed": [
+		"80"
+	],
+	"initial_layer_travel_acceleration": [
+		"3000"
+	],
+	"initial_layer_travel_speed": [
+		"120"
+	],
+	"inner_wall_acceleration": [
+		"7000"
+	],
+	"inner_wall_speed": [
+		"280"
+	],
+	"internal_solid_infill_acceleration": [
+		"6000"
+	],
+	"internal_solid_infill_speed": [
+		"260"
+	],
+	"min_skirt_length": "10",
+	"name": "Voron 0.20 Standard - Fast Quality",
+	"outer_wall_acceleration": [
+		"3500"
+	],
+	"print_extruder_id": [
+		"1"
+	],
+	"print_extruder_variant": [
+		"Direct Drive Standard"
+	],
+	"print_settings_id": "Voron 0.20 Standard - Fast Quality",
+	"skirt_distance": "3",
+	"skirt_loops": "2",
+	"skirt_speed": "35",
+	"slow_down_layers": "2",
+	"small_perimeter_speed": [
+		"110"
+	],
+	"sparse_infill_acceleration": [
+		"8000"
+	],
+	"sparse_infill_speed": [
+		"300"
+	],
+	"support_interface_speed": [
+		"120"
+	],
+	"support_speed": [
+		"250"
+	],
+	"top_shell_layers": "3",
+	"top_surface_acceleration": [
+		"3000"
+	],
+	"top_surface_speed": [
+		"100"
+	],
+	"travel_acceleration": [
+		"6000"
+	],
+	"travel_speed": [
+		"400"
+	],
+	"version": "1.7.0.2",
+	"wall_loops": "3"
+}

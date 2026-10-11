@@ -62,6 +62,21 @@ upstream Actions binary is used only as a SHA-verified accelerator; the durable
 fallback builds the exact public source and recursive submodule revisions with
 the pinned repository-owned builder recipe.
 
+## Issue #4 — Temperature round trip (qualification gate active)
+
+Issue #4 replaces the deferred interactive-picker idea with one bounded
+Temperature round trip. The first gate is qualification of the fixed October
+11 Windows Orca nightly in a separate settings tree. The source-verified,
+read-only probe is `plugin/helix_calibration.py` version `0.3.0`; it preserves
+the accepted context window and diagnostic export and adds an Orca-owned panel
+for exact build/context/lifecycle evidence.
+
+The Windows launcher and interactive checklist are in
+[`docs/ORCA_NIGHTLY_QUALIFICATION.md`](docs/ORCA_NIGHTLY_QUALIFICATION.md).
+Windows runtime qualification is still pending, so no round-trip transport,
+result handling, profile writeback, or printing behavior has been implemented.
+The accepted Helix plugin remains unchanged.
+
 ## Verify
 
 ```sh

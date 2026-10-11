@@ -1,0 +1,2 @@
+# Preserve the supplied Orca profile exports byte-for-byte, including CRLF.
+testdata/orca-profiles/*.json binary

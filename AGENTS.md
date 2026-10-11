@@ -51,6 +51,39 @@ and eleven-target capture matrix. Preserve these boundaries:
 - harness changes must not modify `helix-plugin/orcacal/` product behavior or
   weaken the deferred Moonraker/G-code/print/writeback boundary.
 
+## Issue #4 Temperature round-trip authority
+
+Issue #4 replaces the earlier unlaunched interactive-picker plan. First qualify
+the fixed 2026-10-11 Windows x64 Orca nightly at commit
+`210bc927bc6fb3d3bf390fdf72e4a2767b5de4b3` in a separate `--datadir`. The
+qualification must run in the actual Windows GUI and prove the existing
+read-only context plugin, saved versus edited/effective profile values,
+lifecycle payloads, an Orca-owned dock panel, and a normally prepared/exported
+Temperature file. Linux, Wine, source-only, or headless CI evidence cannot pass
+that gate.
+
+Do not implement the round trip until the qualification evidence passes. Once
+it passes, the approved scope is one Temperature round trip using normal manual
+Orca calibration preparation/export, reliable lifecycle events plus explicit
+file association, and manual file selection as a fallback. Keep the original
+target-profile context separate from test-only preparation settings. Receiving
+a test must never start printing. Returned instructions must identify the exact
+profile, setting, original value, selected value, and `not applied` state.
+
+Use Preston's `calibration-bridge` pinned at
+`ed8d0c4977873969613fcb49024109ff7df7d84e` without modifying upstream. Preserve
+the accepted Helix native shell and existing harness isolation. Cover profile
+switching, stale/duplicate results, and failed delivery in the isolated mock
+integration setup. No physical-printer access, profile writes, public exposure,
+upstream changes, custom G-code generator, UI automation, or expanded
+picker/profile-browser scope is approved.
+
+`plugin/helix_calibration.py` remains one dependency-free side-loaded Orca
+plugin. It may read Orca's supported host APIs and write only explicit evidence
+or bounded round-trip artifacts below host-provided plugin storage. Preserve
+saved preset identity, the edited copy, and merged effective values as distinct
+sources. Reference checkouts remain read-only.
+
 ## OSS safety before GitHub changes
 
 No GitHub mutation is implied by an implementation request. Before any future
