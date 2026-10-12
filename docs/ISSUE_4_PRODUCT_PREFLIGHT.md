@@ -1,7 +1,7 @@
 # Issue #4 consolidated Founder Review repair
 
-Status: focused repair validation and lead AI Product Preflight pass; independent
-re-review is pending at the frozen boundary. PR #5 remains open and unmerged. The
+Status: focused repair validation, independent re-review and lead AI Product
+Preflight pass. Ready for repeat Founder Review; PR #5 remains open and unmerged. The
 Founder rejected the earlier candidate's navigation and simulated completion.
 That report supersedes the earlier clean AI preflight. No Founder acceptance
 is claimed. Windows qualification is complete and was not restarted.
@@ -95,7 +95,24 @@ normal Home composition, the native Finish, choices and the visible not-applied
 result against the accepted native shell. The complete thirteen-phase,
 eleven-target matrix is bound to the final startup/control sources. All 75
 dependency-free tests, static checks, evidence integrity and whitespace checks
-pass. Independent re-review follows this frozen candidate.
+pass.
+
+One fresh-context independent reviewer first completed the cold operator task
+on the actual fresh LAN surface without implementation notes, then checked the
+bounded repair diff and source-bound evidence. Exact reviewed head:
+`26788819fb791d99209700cac0225c25ed4b5f2e`, against base `69e5d4ac…`.
+Disposition: **PASS, no material findings**. The reviewer independently saw
+immediate Finish, normal Home/Back, the active calibration tile and print card,
+205°C/not-applied output, and the same result after leaving/reopening. No hidden
+Settings recovery or direct state-setting was used. Ordinary native dropdown
+scrolling was needed to reach 205°C; it was not a material defect.
+
+The reviewer verified mock guards, action correlation/replay suppression,
+protected-path preservation, all eleven native evidence targets, browser-frame
+hashes and narrow-screen legibility. No source edits, Windows rerun or matrix
+recapture were performed by the reviewer. Later closeout changes reconcile only
+this disposition/backlog documentation; executed runtime source hashes remain
+identical to that independently reviewed head.
 The exact final PR head and CI disposition are recorded in Issue #4.
 
 Preservation: main remains `8e093c19…`; the canonical unrelated tracked-diff

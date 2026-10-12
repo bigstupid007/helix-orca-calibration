@@ -102,8 +102,8 @@ delivery failure/retry are proven. See [the proof](TEMPERATURE_ROUND_TRIP.md).
 PR #5 remains unmerged. Founder Review rejected the earlier navigation and
 simulation experience; that disposition supersedes the earlier AI preflight.
 The consolidated repair passes the native matrix, fresh browser operator
-paths and lead AI preflight; its independent re-review is pending at the frozen
-boundary. It is tracked in
+paths, independent re-review and lead AI preflight. It is ready for repeat
+Founder Review and tracked in
 [AI Product Preflight](ISSUE_4_PRODUCT_PREFLIGHT.md), with exact candidate and
 CI identity recorded in the governing Issue checkpoint. Windows qualification
 is complete and has not been restarted for this repair.
