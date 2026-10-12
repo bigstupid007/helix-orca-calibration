@@ -21,6 +21,14 @@ The explicitly selected, normally exported file is 3,619,569 bytes, SHA-256
 context and actual file digest. Native Helix returns **205** for the same ID,
 context, file, printer, filament and setting.
 
+The native context label says **Effective: 217°C**, keeping that value distinct
+from the saved 220°C. The executed source-built Helix binary is SHA-256
+`29dbb6f32b26561b781522991279bf6f31d6acc4230f4bb6ac0cc9d6947ffcb4`;
+the optional Actions accelerator is a different binary and was not executed.
+The report binds the actual binary and build provenance, every viewport's
+recorded binary, and the imported `scripts/helix_dev.py` along with the driver,
+Orca plugin and bridge sources.
+
 On Spare, selecting that native result shows:
 
 - Profile: **Generic PLA - Voron Rapido - Initial**.
@@ -120,8 +128,11 @@ above if needed; original target/request state survives closing/reopening that
 panel within this process.
 
 The native proof viewer uses the already reserved trusted-LAN address
-`http://192.168.1.114:8540/`. It shows only native frames and forwards bounded
-native pointer/Home/Back/capture input. It binds devbox's LAN interface and
+`http://192.168.1.114:8540/`. It shows native frames and forwards bounded
+native tap/drag/Home/Back/capture input. **Finish simulated print** is the sole
+additional proof control: after a received request is explicitly started, it
+uses the same isolated mock completion sequence as the capture driver. It
+rejects an unstarted request and cannot start printing. It binds devbox's LAN interface and
 adds no Windows listener, firewall rule, service, public route or Tailscale.
 Start/restart a review with the retained real artifacts:
 
@@ -130,8 +141,25 @@ python3 scripts/temperature-evidence.py review --request "$REQUEST_JSON" --gcode
 python3 scripts/temperature-evidence.py down
 ```
 
-Native **Back/Home** also returns to the unchanged accepted Helix chooser/detail
-shell. Judge whether the original context, mock Start, file association,
+For Founder Review:
+
+1. Start on **Mock Temperature**, where the original filament and
+   **Effective: 217°C** appear with **Mock request received; not started**.
+2. Click native **Start**. The real mock opens **Print Status**. Click the
+   viewer's **Finish simulated print** to reach the native Temperature choices
+   without waiting through the synthetic time estimate. Acknowledge the native
+   completion dialog if it appears.
+3. Choose **205°C** in the native dropdown and click **Next**. Expect
+   **205°C — sent to the companion; not applied**.
+4. On Spare, open the Orca companion through the Plugins menu. Its retained
+   result names **Generic PLA - Voron Rapido - Initial**, **Other layers**, saved
+   **220°C**, edited/effective **217/217°C**, selected **205°C**, and **NOT APPLIED**.
+
+After **Home**, return through **Settings > Plugins > calibration-bridge > Open**;
+drag upward within the native settings list to reach Plugins. The accepted
+Orca Calibration tile remains its separate Issue #1 chooser/detail/toast flow.
+Native **Back/Home** also returns to that unchanged accepted shell.
+Judge whether the original context, mock Start, file association,
 Temperature choice, retry messages, and unambiguous **not applied** instructions
 are understandable. The committed runtime/preservation checks do not need to
 be repeated by the owner. This is a proof candidate for one unmerged PR; no

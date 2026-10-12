@@ -77,7 +77,7 @@ local function refresh_ctx()
     local nozzle = cal.nozzle_mm and (" \u{00B7} " .. t("nozzle") .. " " .. tostring(cal.nozzle_mm)) or ""
     ctx_printer:set(cal.printer .. nozzle)
     ctx_filament:set(cal.filament)
-    ctx_current:set(t("Profile") .. ": " .. w.fmt:format(cal.current))
+    ctx_current:set(t("Effective") .. ": " .. w.fmt:format(cal.current))
 end
 
 -- beta.4 closes overlays through its queued navigation lifecycle. Reopen only

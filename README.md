@@ -117,8 +117,7 @@ python3 -m unittest discover -s tests -v
 git diff --check
 ```
 
-The Issue #2 candidate contains 22 committed tests: seven Issue #1 plugin
-policy tests plus fifteen harness tests. This canonical checkout currently also
-contains 18 unrelated, uncommitted Orca diagnostic tests, so the full dirty
-working-tree command reports 40. The earlier Issue #1 note saying “25 tests”
-described that mixed working tree; the exact Issue #1 commit contained seven.
+The Issue #4 candidate includes the earlier product/harness policy suite and
+the Orca qualification, access, request/result, and evidence checks. Run the
+suite from the candidate checkout; historical dirty-checkout counts are not
+the candidate's validation result.

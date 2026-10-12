@@ -128,3 +128,10 @@ request receipt never starts printing. Docker `--network none` and `--test`
 prevent any physical route. The accepted product and ordinary harness are
 unchanged. All eleven sizes and actual Spare result reception pass; see
 [TEMPERATURE_ROUND_TRIP.md](TEMPERATURE_ROUND_TRIP.md).
+
+The separate proof viewer adds bounded native drag input and a single guarded
+mock-completion action. Completion requires an already started request in the
+owned `--test`, network-none container; it cannot start printing. Native context
+labels identify effective values explicitly. Evidence binds the executed
+source-built binary and provenance, per-viewport binary hashes, and the imported
+ordinary harness in addition to the round-trip sources.

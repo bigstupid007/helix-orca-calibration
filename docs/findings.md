@@ -191,3 +191,12 @@ preservation, while the earlier shared browser-cache gap remains disclosed.
 - On relaunch the isolated nightly omitted the original colliding bundle leaf.
   Re-importing the identical fixture bundle through the supported importer
   restored it. Fresh sessions require that step. No normal profile was changed.
+- Independent review found that the first round-trip report named the optional
+  Actions binary instead of the executed source-built binary. The corrected
+  verifier binds the actual runtime metadata, each run's binary hash, and the
+  imported ordinary harness. The executed hash is `29dbb6f3…`, corroborated by
+  the accepted Issue #2 provenance; no binary or upstream source changed.
+- The native context now says **Effective: 217°C**. Proof-viewer drag input
+  allows native Settings/Plugins recovery; a guarded **Finish simulated print**
+  control uses the existing mock completion sequence to reach choices without
+  waiting through the synthetic time estimate. These are proof-only controls.

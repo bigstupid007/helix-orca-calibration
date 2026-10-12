@@ -22,7 +22,7 @@ PUBLIC_PHASES=('available','choice','returned')
 
 
 def hashes():
-    paths=[ROOT/'plugin/helix_calibration.py',ROOT/'scripts/temperature-roundtrip.py']
+    paths=[ROOT/'plugin/helix_calibration.py',ROOT/'scripts/temperature-roundtrip.py',ROOT/'scripts/helix_dev.py']
     paths.extend(p for p in (ROOT/'integration/calibration-bridge').rglob('*') if p.is_file())
     return {str(p.relative_to(ROOT)):d.digest(p) for p in sorted(paths)}
 
@@ -34,10 +34,10 @@ def dimensions(path):
 
 
 def capture(request,gcode):
-    before=hashes()
+    before=hashes();runtime=d.h.verify_assets()
     subprocess.run(['python3',str(ROOT/'scripts/temperature-roundtrip.py'),'matrix','--request',str(request),'--gcode',str(gcode)],check=True)
-    if hashes()!=before:raise ValueError('Runtime candidate changed during capture')
-    (d.STATE/'completed-matrix-candidate.json').write_text(json.dumps({'matrix_sha256':d.digest(d.STATE/'matrix.json'),'candidate_files':before},indent=2))
+    if hashes()!=before or d.h.verify_assets()!=runtime:raise ValueError('Runtime candidate changed during capture')
+    (d.STATE/'completed-matrix-candidate.json').write_text(json.dumps({'matrix_sha256':d.digest(d.STATE/'matrix.json'),'candidate_files':before,'runtime':runtime},indent=2))
 
 
 def promote(output,request):
@@ -45,12 +45,14 @@ def promote(output,request):
     matrix=json.loads((d.STATE/'matrix.json').read_text())
     if binding['candidate_files']!=hashes() or binding['matrix_sha256']!=d.digest(d.STATE/'matrix.json'):
         raise ValueError('Native capture does not bind the current runtime candidate')
+    runtime=d.h.verify_assets()
+    if binding['runtime']!=runtime:raise ValueError('Captured runtime differs from the verified current binary')
     if [r['viewport'] for r in matrix]!=[list(v) for v in d.h.VIEWPORTS]:raise ValueError('Incomplete viewport capture')
     original=json.loads(request.read_text());request_hash=d.digest(request)
     if output.exists() and any(output.iterdir()) and not (output/'report.json').is_file():raise ValueError('Unmarked evidence destination')
     report={'schema':'helix-orca-temperature-proof/v1','status':'pass','recorded_at_utc':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),
         'runtime_candidate_files':hashes(),'helix_source_commit':d.h.HELIX_SOURCE_COMMIT,
-        'helix_binary_sha256':d.h.HELIX_ARTIFACT_BINARY_SHA256,'upstream_bridge_commit':'ed8d0c4977873969613fcb49024109ff7df7d84e',
+        'helix_binary_sha256':runtime['binary_sha256'],'runtime':runtime,'upstream_bridge_commit':'ed8d0c4977873969613fcb49024109ff7df7d84e',
         'orca_plugin_sha256':d.digest(ROOT/'plugin/helix_calibration.py'),'request_sha256':request_hash,
         'request_id':original['request_id'],'context_sha256':original['context_sha256'],'file':original['file'],
         'transport':'Pinned LAN SSH plus native plugin-storage artifacts; beta.4 HTTP printer-host guard preserved.',
@@ -64,7 +66,7 @@ def promote(output,request):
         isolation=json.loads((work/'isolation.json').read_text())
         if 'isolation_contract' not in report:report['isolation_contract']=isolation
         expected_bridge={k:v for k,v in hashes().items() if k.startswith('integration/')}
-        if isolation['network']!='none' or not isolation['test'] or not isolation['readonly_root'] or isolation['bridge_hashes']!=expected_bridge or isolation['product_hashes']!=d.h._plugin_hashes():raise ValueError('Capture isolation/source mismatch')
+        if isolation['network']!='none' or not isolation['test'] or not isolation['readonly_root'] or isolation['binary_sha256']!=runtime['binary_sha256'] or isolation['bridge_hashes']!=expected_bridge or isolation['product_hashes']!=d.h._plugin_hashes():raise ValueError('Capture isolation/source mismatch')
         if json.loads((work/'orca-request.json').read_text())!=original:raise ValueError('Request changed across native targets')
         result=json.loads((work/'result.json').read_text())
         if result['value']!=205 or result['request_id']!=original['request_id'] or d.digest(work/'result.json')!=row['result_sha256']:raise ValueError('Result changed across targets')
@@ -75,7 +77,7 @@ def promote(output,request):
             frame_hashes[phase]=d.digest(path)
             if phase in PUBLIC_PHASES or label=='medium_800x480':
                 relative=f'native/{label}/{phase}.png';dest=output/relative;dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(path,dest);report['frames'][relative]=d.digest(dest)
-        report['viewport_runs'].append({'viewport':row['viewport'],'status':'pass','network':'none','test':True,'readonly_root':True,'frames':frame_hashes,'result_sha256':row['result_sha256']})
+        report['viewport_runs'].append({'viewport':row['viewport'],'status':'pass','network':'none','test':True,'readonly_root':True,'binary_sha256':isolation['binary_sha256'],'frames':frame_hashes,'result_sha256':row['result_sha256']})
         rows.append('\t'.join(map(str,row['viewport']))+'\tPASS')
     shutil.copyfile(request,output/'request.json')
     shutil.copyfile(Path(matrix[0]['work'])/'result.json',output/'result.json')
@@ -97,11 +99,17 @@ def promote(output,request):
 def verify(output):
     report=json.loads((output/'report.json').read_text())
     if report['schema']!='helix-orca-temperature-proof/v1' or report['status']!='pass' or report['runtime_candidate_files']!=hashes():raise ValueError('Evidence is not bound to current runtime candidate')
-    if report['helix_source_commit']!=d.h.HELIX_SOURCE_COMMIT or report['helix_binary_sha256']!=d.h.HELIX_ARTIFACT_BINARY_SHA256 or report['product_hashes']!=d.h._plugin_hashes():raise ValueError('Native runtime/product pin mismatch')
+    runtime=report['runtime'];origin=runtime['binary_origin']
+    if report['helix_source_commit']!=d.h.HELIX_SOURCE_COMMIT or runtime['source_commit']!=d.h.HELIX_SOURCE_COMMIT or runtime['tag']!=d.h.HELIX_TAG or runtime['tag_object']!=d.h.HELIX_TAG_OBJECT or runtime['release_archive_sha256']!=d.h.HELIX_RELEASE_SHA256 or report['helix_binary_sha256']!=runtime['binary_sha256'] or report['isolation_contract']['binary_sha256']!=runtime['binary_sha256'] or report['product_hashes']!=d.h._plugin_hashes():raise ValueError('Native runtime/product pin mismatch')
+    if origin['kind']=='actions-artifact':
+        if runtime['binary_sha256']!=d.h.HELIX_ARTIFACT_BINARY_SHA256:raise ValueError('Actions binary pin mismatch')
+    elif origin['kind']=='source-build':
+        if origin['builder_dockerfile_sha256']!=d.digest(d.h.BUILDER_DOCKERFILE) or origin['builder_image']!=d.h.BUILDER_IMAGE or origin['source_url']!=d.h.HELIX_SOURCE_URL or len(origin['submodules'])!=d.h.HELIX_SUBMODULE_COUNT:raise ValueError('Source-built runtime provenance mismatch')
+    else:raise ValueError('Unknown runtime provenance')
     if [r['viewport'] for r in report['viewport_runs']]!=[list(v) for v in d.h.VIEWPORTS]:raise ValueError('Evidence lacks the eleven targets')
     if d.digest(output/'request.json')!=report['request_sha256'] or d.digest(output/'result.json')!=report['result_sha256'] or d.digest(output/'matrix.tsv')!=report['matrix_sha256']:raise ValueError('Evidence artifact digest mismatch')
     for row in report['viewport_runs']:
-        if row['status']!='pass' or row['network']!='none' or row['test'] is not True or row['readonly_root'] is not True or set(row['frames'])!=set(PHASES):raise ValueError('Incomplete native lifecycle evidence')
+        if row['status']!='pass' or row['network']!='none' or row['test'] is not True or row['readonly_root'] is not True or row['binary_sha256']!=runtime['binary_sha256'] or set(row['frames'])!=set(PHASES):raise ValueError('Incomplete native lifecycle evidence')
         for phase in PUBLIC_PHASES:
             relative=f"native/{row['viewport'][0]}/{phase}.png"
             if report['frames'].get(relative)!=row['frames'][phase] or dimensions(output/relative)!=row['viewport'][1:3]:raise ValueError('Native evidence frame missing or mismatched')
@@ -118,7 +126,9 @@ def viewer_owned():
     command=Path(f'/proc/{pid}/cmdline')
     if not command.exists():pidfile.unlink();return None
     args=command.read_bytes().split(b'\0')
-    if args[:3]!=[b'python3',str(ROOT/'scripts/temperature-roundtrip.py').encode(),b'serve']:
+    permitted=[[b'python3',str(ROOT/script).encode(),b'serve'] for script in
+        ('scripts/temperature-roundtrip.py','scripts/temperature-evidence.py')]
+    if args[:3] not in permitted:
         raise ValueError('Refusing to signal an unexpected viewer process')
     return pid
 
@@ -127,6 +137,7 @@ def review(request,gcode):
     if viewer_owned():print('Native review already running at http://192.168.1.114:8540/');return
     probe=socket.socket()
     try:
+        probe.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
         probe.bind((d.h.REVIEW_HOST,d.h.REVIEW_PORT))
     finally:probe.close()
     info=d.inspect()
@@ -134,7 +145,7 @@ def review(request,gcode):
         raise ValueError('Existing marked proof runtime: use down before a fresh review')
     d.start(request,gcode,next(v for v in d.h.VIEWPORTS if v[0]=='medium_800x480'))
     log=(d.STATE/'review-viewer.log').open('ab')
-    process=subprocess.Popen(['python3',str(ROOT/'scripts/temperature-roundtrip.py'),'serve'],stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+    process=subprocess.Popen(['python3',str(Path(__file__).resolve()),'serve'],stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
     log.close();(d.STATE/'review-viewer.pid').write_text(str(process.pid))
     end=time.monotonic()+10
     while time.monotonic()<end:
@@ -144,6 +155,75 @@ def review(request,gcode):
                 if response.status==200:print('Native review: http://192.168.1.114:8540/');return
         except OSError:time.sleep(.1)
     raise ValueError('Native review did not become reachable')
+
+
+def drag(body):
+    coordinates=[body[k] for k in ('x0','y0','x1','y1')]
+    if any(type(v) is not int or not 0<=v<limit for v,limit in zip(coordinates,(800,480,800,480))):
+        raise ValueError('Drag is outside the native 800x480 viewport')
+    if not d.inspect():raise ValueError('No isolated proof runtime')
+    x0,y0,x1,y1=coordinates
+    d.ctl('press',str(x0),str(y0))
+    try:
+        for step in range(1,9):
+            d.ctl('move',str(round(x0+(x1-x0)*step/8)),str(round(y0+(y1-y0)*step/8)))
+    finally:d.ctl('release',str(x1),str(y1))
+    d.ctl('wait_idle')
+
+
+def finish_mock():
+    if not d.inspect():raise ValueError('No isolated proof runtime')
+    if d.ctl('get','calibration-bridge__state')['value']!=2 or d.ctl('get','print_state_enum')['value']!=1:
+        raise ValueError('Start the received mock request before finishing its simulation')
+    d.ctl('set','print_progress','100')
+    d.ctl('set','print_state_enum','3')
+    d.ctl('set','print_state','complete')
+    d.await_state(3)
+
+
+def serve():
+    if not d.inspect():raise ValueError('No isolated proof runtime')
+    current=json.loads((d.STATE/'current.json').read_text())
+    d.h.CONTAINER=d.NAME;d.h.REVIEW_BIND=d.h.REVIEW_HOST;d.h.state_root=lambda:Path(current['work'])
+    original="""    frame.addEventListener('click', event => { if(busy) return; const rect=frame.getBoundingClientRect();
+      const x=Math.round((event.clientX-rect.left)*frame.naturalWidth/rect.width);
+      const y=Math.round((event.clientY-rect.top)*frame.naturalHeight/rect.height);
+      post('/api/tap',{x,y}); });"""
+    replacement="""    let origin=null;
+    function point(event){const r=frame.getBoundingClientRect();return {
+      x:Math.max(0,Math.min(799,Math.round((event.clientX-r.left)*800/r.width))),
+      y:Math.max(0,Math.min(479,Math.round((event.clientY-r.top)*480/r.height)))};}
+    frame.addEventListener('pointerdown',event=>{if(busy)return;event.preventDefault();
+      origin=point(event);frame.setPointerCapture(event.pointerId);});
+    frame.addEventListener('pointercancel',()=>{origin=null;});
+    frame.addEventListener('pointerup',event=>{if(!origin)return;event.preventDefault();
+      const start=origin,end=point(event);origin=null;
+      if(Math.hypot(end.x-start.x,end.y-start.y)>12)
+        post('/api/drag',{x0:start.x,y0:start.y,x1:end.x,y1:end.y});
+      else post('/api/tap',end);});"""
+    if original not in d.h.VIEWER_HTML:raise ValueError('Native viewer input contract changed')
+    d.h.VIEWER_HTML=d.h.VIEWER_HTML.replace(original,replacement).replace(
+        "Inputs are sent through Helix's native synthetic pointer.",
+        "Tap or drag to scroll. Start the mock, then Finish simulated print to reach its choices. Reopen: Home → Settings → Plugins → calibration-bridge → Open.").replace(
+        '<button data-action="capture">Save capture</button>',
+        '<button data-action="finish-mock">Finish simulated print</button><button data-action="capture">Save capture</button>')
+    base=d.h.ViewerHandler
+    class ProofViewer(base):
+        def do_POST(self):
+            with self.capture_lock:
+                if self.path=='/api/finish-mock':
+                    try:finish_mock();self._json({'message':'Simulation complete; choose a temperature in native Helix'})
+                    except Exception as exc:self._json({'error':str(exc)},400)
+                    return
+                if self.path!='/api/drag':return super().do_POST()
+                try:
+                    length=int(self.headers.get('Content-Length','0'))
+                    if not 0<length<=4096:raise ValueError('Invalid input size')
+                    drag(json.loads(self.rfile.read(length)))
+                    self._json({'message':'Native drag'})
+                except Exception as exc:self._json({'error':str(exc)},400)
+    d.h.ViewerHandler=ProofViewer
+    d.h.serve()
 
 
 def down():
@@ -157,13 +237,14 @@ def down():
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=['capture','promote','verify','review','down']);p.add_argument('--request',type=Path);p.add_argument('--gcode',type=Path);p.add_argument('--output',type=Path,default=ROOT/'docs/evidence/issue-4/roundtrip');a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=['capture','promote','verify','review','down','serve']);p.add_argument('--request',type=Path);p.add_argument('--gcode',type=Path);p.add_argument('--output',type=Path,default=ROOT/'docs/evidence/issue-4/roundtrip');a=p.parse_args()
     if a.command in ('capture','promote','review') and not a.request:p.error('--request is required')
     if a.command in ('capture','review') and not a.gcode:p.error('--gcode is required')
     if a.command=='capture':capture(a.request,a.gcode)
     elif a.command=='promote':promote(a.output,a.request)
     elif a.command=='review':review(a.request,a.gcode)
     elif a.command=='down':down()
+    elif a.command=='serve':serve()
     else:verify(a.output)
 
 if __name__=='__main__':main()
