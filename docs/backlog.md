@@ -101,9 +101,12 @@ has passed at all eleven native sizes and returned 205°C with original-profile
 delivery failure/retry are proven. See [the proof](TEMPERATURE_ROUND_TRIP.md).
 PR #5 remains unmerged. Founder Review rejected the earlier navigation and
 simulation experience; that disposition supersedes the earlier AI preflight.
-The consolidated repair passes the native matrix, fresh browser operator
-paths, independent re-review and lead AI preflight. It is ready for repeat
-Founder Review and tracked in
+The navigation/simulation repair passed the native matrix and fresh browser
+operator paths. Founder subsequently confirmed the 205°C return but rejected
+the companion’s diagnostic-first primary screen. Its result-first repair
+retains the working transport and exposes the original profile, live effective
+value, selected temperature, exact manual steps and prominent NOT APPLIED.
+The focused Windows/browser proof and final independent review are tracked in
 [AI Product Preflight](ISSUE_4_PRODUCT_PREFLIGHT.md), with exact candidate and
 CI identity recorded in the governing Issue checkpoint. Windows qualification
 is complete and has not been restarted for this repair.

@@ -211,3 +211,24 @@ preservation, while the earlier shared browser-cache gap remains disclosed.
   exact browser/session cause remains unconfirmed. Narrow-browser overflow and
   low discoverability were reproduced. Responsive controls and candidate-version
   refresh address those observable viewer defects.
+
+
+## Founder companion feedback and focused repair — 2026-10-12
+
+Founder confirmed the correlated 205°C result but rejected the engineering
+interface. On the exact previous candidate, full original/live context and
+artifact paths preceded the result; the instruction only said to review the
+value manually. The repaired primary view begins with NOT APPLIED, the original
+filament, calibration-start effective value, selected value, live effective
+value/current filament and exact Other layers update steps. Diagnostics and
+preparation remain expandable. Only the companion HTML changed in the plugin.
+
+The supported Plugins Reload loaded the exact candidate in the existing
+isolated nightly, with no Orca restart or qualification rerun. Normal UI retained
+220/217/217 from the original profile, verified the existing exported bytes and
+created a fresh request with the identical context digest. One native 800x480
+mock run returned 205°C for that request. Windows result import after discarding
+the edit and switching to the template showed live 220°C separately from
+original effective 217°C, with a profile-change warning and NOT APPLIED.
+The prior native/browser reports retain their original source hashes; focused
+companion evidence binds this repair.

@@ -108,7 +108,10 @@ See [the proof and working review path](docs/TEMPERATURE_ROUND_TRIP.md).
 The [candidate review and AI Product Preflight](docs/ISSUE_4_PRODUCT_PREFLIGHT.md)
 record the consolidated Founder Review repair and its review limits. The mock
 proof provides a prominent immediate Finish control and native Home return
-tile/print card. PR #5 remains unmerged.
+tile/print card. The Orca companion leads with the selected result, original
+profile, live effective value and exact manual update steps. **NOT APPLIED** is
+prominent; preparation and technical details are expandable. PR #5 remains
+unmerged.
 
 Qualification UI driving and complete mock lifecycle simulation remain test
 infrastructure. Modeless-window and explicit manual-file fallbacks remain

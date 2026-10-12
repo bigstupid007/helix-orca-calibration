@@ -52,7 +52,7 @@ class TemperatureEvidenceTests(unittest.TestCase):
         directory=ROOT/'docs/evidence/issue-4/roundtrip/browser'
         report=json.loads((directory/'report.json').read_text())
         self.assertEqual(report['status'],'pass')
-        self.assertEqual(report['runtime_candidate_files'],e.hashes())
+        e.verify_candidate_binding(directory.parent,report)
         self.assertEqual(report['browser_driver_sha256'],e.d.digest(ROOT/'scripts/temperature-browser-review.cjs'))
         self.assertEqual(set(report['cases']),{'toolbar','native'})
         for case in report['cases'].values():

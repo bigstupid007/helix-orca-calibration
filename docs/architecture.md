@@ -150,3 +150,16 @@ later simulator snapshots. Navigation/update/render queues and the later-created
 remote input sampler stay live; pre-existing periodic timers and animations are
 paused only in this test runtime. Fresh browser proof verifies both Finish
 surfaces and native Home/Back/task return through the terminal 205°C result.
+
+
+The companion presentation now leads with the validated result and manual
+update steps. Calibration-start effective temperature remains separate from
+the live current effective value and its currently selected filament. A
+selection/settings warning prevents interpreting another profile's live value
+as the original target. Preparation/import controls and diagnostic provenance
+remain in expandable sections; no reader, callback, request/result guard or
+write boundary changed. The focused companion report binds current source and
+actual Windows reception, while retaining the original native capture hashes.
+An AST contract check permits only the companion HTML assignment to differ
+from the qualified plugin. No Helix matrix recapture is implied by this UI-only
+change.

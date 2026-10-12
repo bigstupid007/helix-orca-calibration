@@ -1,0 +1,70 @@
+{
+  "schema": "helix-orca-companion-presentation-proof/v1",
+  "status": "pass",
+  "recorded_at_utc": "2026-10-12T16:46:36.653153+00:00",
+  "baseline_commit": "b0484f29225dea2cc604ede978931035b9291e95",
+  "preserved_native_report_sha256": "0e6f3eb27c67f1db1ba078c7e8154cef5ad07011b288931807d799c69e178c33",
+  "preserved_browser_report_sha256": "276d65ce40e6ef9be14513c3fb5414f0454a2dbee541f882a8c3c873e5bc5ca4",
+  "current_runtime_candidate_files": {
+    "integration/calibration-bridge/main.lua": "691a8f0a6eabceec828798cdb941786687022878e4c892ba94c5c700564ec70a",
+    "integration/calibration-bridge/manifest.json": "d435fa35745e24035a0209b48d9b51fc63344daa87129ffa8672354e31122b53",
+    "integration/calibration-bridge/ui/calibration-bridge__ask.xml": "10301453c9f831d17fef98338463f964c81f7b1ace268148db65072b2bb7243f",
+    "integration/calibration-bridge/ui/calibration-bridge__tile.xml": "4441e73bb56190b335d45341771011e8bb02c292291fdcdd4605c1c289d4d524",
+    "plugin/helix_calibration.py": "8f0269e6510ca11848144c14fc2c42a33ea288e8dd1bfa7bd1e5789636bf3d52",
+    "scripts/helix_dev.py": "3c9eb5a1c5d97986146922bca1b12941688103d78846189bf8c1ceb0f2da8f8b",
+    "scripts/temperature-evidence.py": "81e5754915833276ec82a25524f729796856f85ea0712375aaf3fb03edeeb0ef",
+    "scripts/temperature-roundtrip.py": "a0b31a558016401574fd5aeda77cfed603486f7aff40917cd0ae389f2001c816",
+    "scripts/temperature-viewer.html": "38bcafedb53859a0f4863048b8a68e06b342ae1381fbc889b9de9220df0ee2bb"
+  },
+  "focused_source_files": {
+    "scripts/companion-evidence.py": "4b1e4bf703b1ccf38a9e27a1d9527f0530afecca67d0de9fce1079c5ca4bfd26",
+    "scripts/companion-browser-review.cjs": "8990613168aa71b2da35ef5b6a06a7b0d3517c826f270c33de0ea5fd2c66abd1"
+  },
+  "windows_validation": {
+    "status": "pass",
+    "target": "Spare",
+    "build": "210bc927",
+    "plugin_sha256": "8f0269e6510ca11848144c14fc2c42a33ea288e8dd1bfa7bd1e5789636bf3d52",
+    "supported_reload": true,
+    "fresh_companion_state": true,
+    "existing_qualified_file_selected": true,
+    "fresh_request_id": "64386306748f9fb9d424e8f694d23b4b",
+    "context_sha256": "eb13a6b113f8c59d5a8d738034a9687e6299938fb82660468e51658b92d906e7",
+    "one_native_mock_viewport": "medium_800x480",
+    "selected_temperature": 205,
+    "original_saved": 220,
+    "original_edited": 217,
+    "original_effective": 217,
+    "live_effective_after_profile_switch": 220,
+    "not_applied": true,
+    "diagnostics_expandable": true
+  },
+  "normal_preservation": {
+    "recorded_at_utc": "2026-10-12T16:45:04.1415772Z",
+    "scope": "Normal Orca .json/.conf/.ini excluding cache, logs, plugins; relative path, space, uppercase file hash, LF, no trailing LF",
+    "unchanged": true,
+    "baseline_sha256": "ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0",
+    "file_count": 1429,
+    "aggregate_sha256": "ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0"
+  },
+  "browser_runtime": {
+    "image": "mcr.microsoft.com/playwright:v1.55.1-noble",
+    "image_id": "sha256:2f29369043d81d6d69a815ceb80760f55e85f5020371ad06a4d996f18503ad1c",
+    "executable": "/ms-playwright/chromium_headless_shell-1193/chrome-linux/headless_shell",
+    "network": "none"
+  },
+  "limitations": [
+    "Browser checks use supported-message fixtures; actual Windows reception is separate.",
+    "One native mock run creates a fresh correlated result; the existing eleven-target capture is preserved, not rerun.",
+    "No preset value is applied. Printing remains isolated simulation."
+  ],
+  "artifacts": {
+    "windows-result-first.png": "1041e9241eff3095b6d1fef3aeda30fd156502283d6fd6897b0d68d5c853e01a",
+    "result-360.png": "8110885344bdee523d61a94fe07ec6bf235d14bef51c8b78585520a77657ff89",
+    "request.json": "d81a94b77d5e9db0f1ad99ec96e1d36eb56c78cf6fe39cb3226fe6f1abfe20f9",
+    "browser-report.json": "74fc7e35b231e8162a87601397e3c1aedc6bad386c811d2497438f73ebe033da",
+    "result.json": "28b9ca4fafef6999c3c2e3f486f7a980a194e22a0453916538a04659dd7fe36e",
+    "result-640.png": "cae775158ae2ff3890c1dad90c4c1de18b2533030e2461e610da28fa68b54e3b",
+    "result-440.png": "8e784b50e5e6108cc730513445256d4d86233b2f5cd7478897f4f0d4786c1b49"
+  }
+}

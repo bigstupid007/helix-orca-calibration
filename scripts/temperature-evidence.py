@@ -96,9 +96,18 @@ def promote(output,request):
     verify(output)
 
 
+def verify_candidate_binding(output,report):
+    current=hashes()
+    if report['runtime_candidate_files']==current:return
+    spec=importlib.util.spec_from_file_location('companion_evidence',ROOT/'scripts/companion-evidence.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    module.verify_binding(output,report['runtime_candidate_files'],current)
+
+
 def verify(output):
     report=json.loads((output/'report.json').read_text())
-    if report['schema']!='helix-orca-temperature-proof/v1' or report['status']!='pass' or report['runtime_candidate_files']!=hashes():raise ValueError('Evidence is not bound to current runtime candidate')
+    if report['schema']!='helix-orca-temperature-proof/v1' or report['status']!='pass':raise ValueError('Incomplete native evidence')
+    verify_candidate_binding(output,report)
     runtime=report['runtime'];origin=runtime['binary_origin']
     if report['helix_source_commit']!=d.h.HELIX_SOURCE_COMMIT or runtime['source_commit']!=d.h.HELIX_SOURCE_COMMIT or runtime['tag']!=d.h.HELIX_TAG or runtime['tag_object']!=d.h.HELIX_TAG_OBJECT or runtime['release_archive_sha256']!=d.h.HELIX_RELEASE_SHA256 or report['helix_binary_sha256']!=runtime['binary_sha256'] or report['isolation_contract']['binary_sha256']!=runtime['binary_sha256'] or report['product_hashes']!=d.h._plugin_hashes():raise ValueError('Native runtime/product pin mismatch')
     if origin['kind']=='actions-artifact':
@@ -116,7 +125,7 @@ def verify(output):
     for relative,sha in dict(report['frames'],**report['windows_frames']).items():
         path=Path(relative)
         if path.is_absolute() or '..' in path.parts or d.digest(output/path)!=sha:raise ValueError('Frame digest/path mismatch')
-    print('PASS: current Temperature runtime candidate, artifacts, and all eleven native targets')
+    print('PASS: preserved native proof, current candidate binding, artifacts, and all eleven native targets')
 
 
 def viewer_owned():

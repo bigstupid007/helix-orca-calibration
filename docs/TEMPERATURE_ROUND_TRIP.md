@@ -25,9 +25,14 @@ The native context label says **Effective: 217°C**, keeping that value distinct
 from the saved 220°C. The executed source-built Helix binary is SHA-256
 `29dbb6f32b26561b781522991279bf6f31d6acc4230f4bb6ac0cc9d6947ffcb4`;
 the optional Actions accelerator is a different binary and was not executed.
-The report binds the actual binary and build provenance, every viewport's
-recorded binary, and the imported `scripts/helix_dev.py` along with the driver,
-Orca plugin and bridge sources.
+The original report binds the executed source at its capture time, including
+the binary, every viewport and imported harness. The later result-first
+companion proof is
+[`companion/report.json`](evidence/issue-4/roundtrip/companion/report.json).
+It binds current source, the fresh request/result and actual Windows frame. An
+AST contract check proves every plugin reader, callback and guard remains
+identical while allowing the companion HTML to change. Original captures are
+retained with their original hashes; they are not relabeled as new executions.
 
 On Spare, selecting that native result shows:
 
@@ -100,9 +105,9 @@ queued navigation. No upstream changes or host security changes are needed.
    plugin installer. Open **App menu > Plugins > Helix Calibration Context >
    Helix Temperature Round Trip (mock only)**.
 3. Select the original imported profiles, make the deliberate unsaved 217°C
-   edit, and click **Retain original target context** before any temporary
+   edit, and click **Keep original profile** before any temporary
    preparation. Prepare/slice/export normally, or use the existing qualified
-   export. Explicitly select its actual bytes and click **Export mock request**.
+   export. Explicitly select its actual bytes and click **Prepare mock calibration**.
 4. Transfer the bounded request and unchanged export through the approved
    private Spare worker. On devbox, run:
 
@@ -164,9 +169,17 @@ The native mock calibration also has that control while printing.
 4. Choose **205°C** in the native dropdown and click **Next**. Expect
    **205°C — sent to the companion; not applied**. Home and the tile can also
    reopen the waiting choices or returned result without losing state.
-5. On Spare, the unchanged Orca companion names **Generic PLA - Voron Rapido -
-   Initial**, **Other layers**, saved **220°C**, edited/effective **217/217°C**,
-   selected **205°C**, and **NOT APPLIED**.
+5. On Spare, read the top result card: **Generic PLA - Voron Rapido - Initial**,
+   effective at calibration start **217°C**, selected **205°C**, and prominent
+   **NOT APPLIED**. The live current effective value has its own filament label;
+   it can differ after a profile switch. The card tells you to select the
+   original profile, open **Filament > Print temperature > Nozzle > Other
+   layers**, enter **205°C**, and save only if you choose to keep the result.
+   No setting is applied by the companion. Expand **Technical details &
+   diagnostics** for saved **220°C**, edited **217°C**, artifacts and identity
+   evidence; expand **Load another result or start a new calibration** for file
+   controls. Do not click **Keep original profile** unless starting a new task,
+   because it clears the previous result.
 
 The accepted **Orca Calibration** tile remains its separate Issue #1
 chooser/detail/toast flow. The new mock tile and stock print card are seeded

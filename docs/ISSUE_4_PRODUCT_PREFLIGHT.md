@@ -1,10 +1,59 @@
-# Issue #4 consolidated Founder Review repair
+# Issue #4 companion Founder Review repair
 
-Status: focused repair validation, independent re-review and lead AI Product
-Preflight pass. Ready for repeat Founder Review; PR #5 remains open and unmerged. The
-Founder rejected the earlier candidate's navigation and simulated completion.
-That report supersedes the earlier clean AI preflight. No Founder acceptance
-is claimed. Windows qualification is complete and was not restarted.
+Status: focused implementation and Windows/browser validation pass; independent
+review and exact-head Product Preflight pending at the frozen candidate boundary.
+PR #5 remains unmerged. Founder confirmed the 205°C return but rejected the
+companion's diagnostic-first primary experience. No Founder acceptance is claimed.
+
+## Current companion defect closure
+
+Repair base: `b0484f29225dea2cc604ede978931035b9291e95`. The exact prior Windows
+screen placed original/live context dumps and technical artifact paths before
+its result. The manual instruction did not state the value to enter or a clear
+save decision. This originated in the Orca companion HTML; the working mock
+integration and native Helix navigation needed no further changes.
+
+The result card now leads with NOT APPLIED, original filament, calibration-start
+effective value, selected temperature, live current effective value/current
+filament and the exact Other layers update steps. A warning handles changed
+selection/settings. Preparation/import and technical details are expandable.
+Every Python reader, callback, request/result guard and storage/write boundary
+is unchanged, verified by an AST contract against the qualified source.
+
+Actual supported plugin Reload loaded the candidate in Spare's existing isolated
+`210bc927` process. A fresh companion retained 220/217/217, selected the existing
+qualified export and created request `64386306748f9fb9d424e8f694d23b4b`, with the
+same original context digest. One 800x480 native mock run returned correlated
+205°C. Actual Windows import after switching to the template displayed live
+220°C separately from original effective 217°C and selected 205°C. The exact
+manual instruction and NOT APPLIED fit in the result-first dock without opening
+diagnostics. Diagnostic expansion remains functional. All 1,429 normal Orca
+settings/profile files match the original baseline after this test.
+
+Focused browser proof uses fresh contexts at 360/440/640 pixels. It covers visible
+result/instruction, separate live values, unavailable data, literal profile text,
+collapsed diagnostics, retained artifact/three-value evidence and task reset.
+These are presentation fixtures; the separate native Windows capture proves
+actual result reception. The required 78 dependency-free tests and whitespace
+check pass. Only routine bounded automation corrections were needed: transient
+menus must be clicked/captured in one guarded action sequence, and file-selection
+status can shift the Prepare button. No security/access changes were needed.
+The previous marked mock was explicitly stopped before the single fresh proof,
+as required by its ownership guard. No Windows qualification or full Helix matrix
+was restarted.
+
+[`companion/report.json`](evidence/issue-4/roundtrip/companion/report.json) binds
+current source, focused drivers, request/result, frame hashes and preservation.
+The old native/browser reports keep their original exact capture identities.
+Their eleven-target proof carries forward only when all other runtime source
+hashes match and the plugin's non-presentation AST is unchanged. The focused
+verifier rejects unrelated source changes and missing/tampered companion proof.
+
+## Previous navigation/simulation repair — retained historical evidence
+
+The following ledger records the earlier repair ending at `b0484f2`. Its
+qualification, native captures and independent review remain preserved; its
+companion UX readiness was superseded by the new Founder feedback above.
 
 ## Defect closure ledger and diagnosis
 

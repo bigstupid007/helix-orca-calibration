@@ -303,3 +303,12 @@ conflicting result selection and normal settings preservation were checked.
 On each fresh session this build may omit the colliding bundle leaf; re-import
 the identical offline bundle normally before selecting the original target.
 See [the completed proof](TEMPERATURE_ROUND_TRIP.md).
+
+
+The later result-first companion repair changes only its HTML presentation.
+Supported plugin Reload in the same isolated process loaded the new source;
+focused actual Windows file selection/request creation/result import passed
+with the same original context and qualified file. This is subsequent runtime
+validation, not a qualification restart. The current companion source hash and
+Windows frame are in
+[`evidence/issue-4/roundtrip/companion/report.json`](evidence/issue-4/roundtrip/companion/report.json).
