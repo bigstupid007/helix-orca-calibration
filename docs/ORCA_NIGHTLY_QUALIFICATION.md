@@ -2,11 +2,16 @@
 
 ## Status
 
-The fixed Windows x64 runtime has executed on Spare. Qualification is **blocked**
-on the supplied original user printer preset's collision with a bundled System
-preset; Windows runtime qualification is still pending until that exception is
-resolved. Mock round-trip implementation has not
-begun. Linux/source evidence cannot replace this original-context requirement.
+The fixed Windows x64 runtime passed qualification on Spare at
+2026-10-12 01:14:49 UTC, using the approved manual exported-file fallback.
+The original target profiles, saved/edited/effective distinction, unsaved value,
+profile switches, host-owned dock, useful events, normal Temperature export,
+manual byte/hash association, and normal-settings preservation are proven.
+Mock-only integration may proceed under the existing Issue #4 authority.
+
+See [`evidence/issue-4/windows/qualification.json`](evidence/issue-4/windows/qualification.json)
+and its eight target-only native frames. Full diagnostic inventories, actual
+G-code and file-picker captures remain private in XDG state.
 
 This gate qualifies the existing read-only Orca context plugin and the host
 surfaces needed by Issue #4. Passing it does not authorize the round-trip
@@ -34,8 +39,8 @@ At 18:51 UTC on October 11 (1:51 p.m. America/Chicago), this session observed:
 | TCP to Spare ports 22, 3389, 5985 | Each five-second check timed out | These standard access endpoints were unreachable from devbox |
 | Session tools | No Windows-local command or desktop-control tool | Launching this chat on Spare does not provide Windows execution here |
 
-The installed Orca version, Windows account, interactive session state, and
-fixed nightly launch have not been observed. Do not infer that Spare is asleep,
+At that initial checkpoint, the installed Orca version, Windows account,
+interactive session state, and fixed nightly launch had not been observed. Do not infer that Spare is asleep,
 that SSH is disabled, or that credentials are wrong from a timeout. Existing
 Tailscale discovery does not list Spare; its separate laptop entry is not a
 qualification substitute. No Windows access mechanism or configuration was
@@ -55,44 +60,63 @@ that flag was removed. Reconnection confirmed the original-argument retry was
 running. The corrected worker then passed its actual Windows bounded-pipe
 regression. No further owner access action is pending.
 
-### Material qualification exception and retained observations
+### Completed run and supported original-context resolution
 
-The supplied user printer `Voron 2.4 300 0.4 nozzle` cannot be imported by the
-normal importer: the actual Windows dialog reports zero imported configs.
-Runtime context identifies the existing same-named preset as **System**. The
-exact `210bc927` source at `src/libslic3r/PresetBundle.cpp:1889` checks an existing
-preset and rejects it when it is System/default. Selecting the imported parent
-`Voron Voron 2.4 300 0.4 nozzle` or bundled System preset does not qualify the
-original user leaf. Renaming/reinterpreting that target or modifying upstream
-is outside this qualification checkpoint; resolve an approved original-context
-path before passing the gate.
+The ordinary single-JSON importer rejects the supplied user printer's name
+because a bundled System preset already uses it. The exact source also supports
+offline `.orca_bundle` import with `bundle_structure.json` and a separate local
+namespace (`PresetBundle.cpp:1738–1828,1885–1889,8208`). That supported route
+imported all six supplied configs without changing their JSON bytes, names,
+IDs, inheritance or values. The actual printer is
+`_local/helix-issue-4-original-context/Voron 2.4 300 0.4 nozzle`, with the
+original bare alias, `is_from_bundle=true` and `is_system=false`. No parent or
+System profile substitutes for the original leaf.
 
-Other actual observations are retained privately in XDG state at
-`~/.local/state/helix-orca-calibration/windows-access/evidence/`:
+`scripts/orca-qualification-bundle.py` reproduces the offline wrapper with fixed
+ZIP timestamps and verifies every extracted profile byte. Its archive digest
+differs from the first imported archive only because that archive used current
+ZIP timestamps; both archive digests and original fixture hashes are recorded.
+Import the ordinary JSON parents first, then the bundle; Orca owns dependency
+resolution and import storage.
 
-- the supported local `.py` installer activates all three capabilities;
-- diagnostic JSON distinguishes saved `220 °C`, edited `217 °C`, and merged
-  `217 °C` for the intended filament, with dirty state and inheritance recorded;
-- the host dock shows `2.5.0-dev`, `210bc927`, target match Yes, real context,
-  useful preset events and dirty true/false; explicit refresh follows selection;
-- normal built-in PLA Temperature preparation/manual export creates nine bands,
-  230 through 190 °C in 5 °C steps, with 50 layer commands per band;
-- the actual exported file is 3,619,562 bytes, SHA-256
-  `0f70497ac2237d34838a648c72299855d4d64d35073ebbd0655842ecdd83f06d`;
-- export lifecycle payloads identify only the temporary slicing file (job ID 7),
-  not the selected export destination. Manual selection therefore remains
-  required; the native picker read that exact export and verified its hash and
-  choices in the actual dock;
-- `--datadir` alone shared normal Orca WebView2 browser data. The guard refused
-  input to its shared browser picker. The repaired launcher uses Microsoft's
-  documented child-only `WEBVIEW2_USER_DATA_FOLDER` override and actual Windows
-  process ancestry proves separate browser data after relaunch. See
-  [Microsoft's environment override reference](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/webview2-idl).
+Editing the selected bundle filament caused Orca to select the same-named
+ordinary imported User filament. The diagnostic preserves these native names
+and origins. It reports selected-saved config `220`, current-edited `217`, and
+merged effective `217`. The host also reports dirty metadata on the saved
+selection during the edit; that flag does not mean the saved config became 217.
+The original bundle printer/process identities remain distinct. Resetting the
+unsaved test changes restores 220 without saving a preset.
 
-Pre-repair observations support individual capability findings but do not prove
-complete browser isolation. No partial capture is promoted as a gate pass.
-Normal Orca PID 40056 stayed running; no normal preset was selected for input,
-no printer action occurred, and no mock transport implementation began.
+The completed run used test Orca PID 32504 and separate WebView2 storage.
+Normal Orca PID 40056 remained running. The dock reports `2.5.0-dev`, `210bc927`,
+match Yes; all three profile categories were switched away/back, dirty true/false
+arrived, and explicit refresh followed real context. Lifecycle events alone do
+not automatically refresh the context display.
+
+Normal built-in PLA Temperature preparation/export used a separate temporary
+System context. The export is 3,619,569 bytes, SHA-256
+`24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b`, with exactly
+50 `M104` commands at each of 230,225,220,215,210,205,200,195,190 degrees.
+Export events identify only the temporary slicing path (ID 7), with no exact
+manual export destination. The approved native manual picker read the actual
+new export and its local SHA-256 and choices matched the returned file.
+
+`--datadir` alone previously shared normal WebView2 browser data; the guard
+refused its shared picker. The launcher now sets Microsoft's documented
+child-only `WEBVIEW2_USER_DATA_FOLDER` override, and separate process/storage
+was proved before the complete run. See
+[Microsoft's override reference](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/webview2-idl).
+Earlier captures are retained as historical observations, never as the passing
+isolation run. The original fixture also emits a host-identity `DeviceSelected`
+event; Device/Print/Upload/Send controls were never invoked. The exact source
+keeps the printer webview lazy until that page is visited.
+
+A mistaken unsaved test bed-temperature edit during revert was caught by Orca's
+safety dialog and reset. At close, the test project and all temporary calibration
+preset edits were discarded. All 1,429 normal settings/profile files matched
+the pre-test aggregate; only the normal Orca process remained running. This
+qualification confers no physical-printer authority and is not a completed mock
+round trip.
 
 ## Fixed target
 
@@ -174,8 +198,11 @@ files. Record any mismatch exactly and stop.
 
 1. Complete the first-run wizard inside the isolated data directory without
    signing in or adding a physical printer. The test stays local.
-2. In Orca, import all JSON files from
-   `qualification-inputs\orca-profiles`. Select:
+2. Import the ordinary JSON parents from `qualification-inputs\orca-profiles`
+   first. Run `python3 scripts/orca-qualification-bundle.py` on devbox, transfer
+   its verified offline bundle as a test input, and import it through normal
+   File > Import > Import Configs. All six unchanged profiles must import.
+   Select the original leaf from the **Helix Issue 4 original fixtures** bundle:
    - printer `Voron 2.4 300 0.4 nozzle`;
    - filament `Generic PLA - Voron Rapido - Initial`; and
    - process `Voron 0.20 Standard - Fast Quality`.

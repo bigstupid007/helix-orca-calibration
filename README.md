@@ -62,7 +62,7 @@ upstream Actions binary is used only as a SHA-verified accelerator; the durable
 fallback builds the exact public source and recursive submodule revisions with
 the pinned repository-owned builder recipe.
 
-## Issue #4 — Temperature round trip (qualification gate active)
+## Issue #4 — Temperature round trip (Windows gate passed)
 
 Issue #4 replaces the deferred interactive-picker idea with one bounded
 Temperature round trip. The first gate is qualification of the fixed October
@@ -87,13 +87,19 @@ slicing file; native manual selection verified the actual export's bytes/hash.
 A child-only WebView2 data override now separates test browser state as well as
 Orca settings.
 
-Qualification remains **blocked**: the supplied user printer preset
-`Voron 2.4 300 0.4 nozzle` collides with a bundled System preset, and the exact
-nightly rejects its import. The imported parent and bundled System preset are
-recorded truthfully; neither substitutes for the original target profile.
-No mock round-trip transport or result handling has begun. See the material
-exception in [`docs/ORCA_NIGHTLY_QUALIFICATION.md`](docs/ORCA_NIGHTLY_QUALIFICATION.md).
-The accepted Helix plugin remains unchanged.
+The Windows gate passed on Spare at 2026-10-12 01:14 UTC. The supported offline
+bundle importer resolves the original printer's System-name collision while
+preserving all six supplied JSON files byte-for-byte. Runtime context identifies
+the original leaf under `_local/helix-issue-4-original-context/`, with
+`is_system=false`. The full run used separate Orca and browser storage; all
+1,429 normal settings/profile files remain unchanged.
+
+The bounded report and native frames are in
+[`docs/evidence/issue-4/windows/`](docs/evidence/issue-4/windows/).
+The new export is 3,619,569 bytes, SHA-256
+`24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b`.
+Mock round-trip work may now proceed under Issue #4. The accepted Helix plugin
+remains unchanged.
 
 The approved integration may later simulate a complete print lifecycle only in
 the isolated mock harness. Qualification UI driving is evidence tooling, not a

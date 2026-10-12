@@ -2,8 +2,10 @@
 
 ## Status and boundary
 
-Implementation is complete for source/non-GUI verification and is **awaiting
-manual Windows runtime verification**. Issue #4 supersedes the earlier runtime
+Implementation has executed in the actual fixed Windows runtime on Spare.
+The complete Issue #4 qualification passed with retained saved/edited/effective
+values and the original printer leaf imported through Orca's supported offline
+local bundle namespace. See [the Windows report](evidence/issue-4/windows/qualification.json). Issue #4 supersedes the earlier runtime
 target with the fixed Windows x64 OrcaSlicer `2.5.0-dev` nightly at build
 `210bc927`, source commit `210bc927bc6fb3d3bf390fdf72e4a2767b5de4b3`.
 
@@ -23,7 +25,7 @@ Install file:
 SHA-256:
 
 ```text
-fe765b5f6d144119cd6b822ce7c9c0061149a86f13e0c9723df98e1a8ed7f5b9
+c7b908e8e175088f6f9aeedcbd1a841a996f49c6c315c966b02bd686436ca9d4
 ```
 
 This hash must be checked again if the plugin file changes.

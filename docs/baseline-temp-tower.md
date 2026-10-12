@@ -460,3 +460,18 @@ That single experiment gives the highest-value evidence for shrinking the
 fingerprint: a dimension may be removed only if its controlled variant leaves
 the relevant executable behavior and physical calibration interpretation
 equivalent. No such new slices are generated as part of this research update.
+
+## Issue #4 Windows qualification reconciliation
+
+The fixed October 11 nightly qualified on Spare after the supported offline
+bundle importer resolved the original printer's System-name collision. The six
+supplied profile JSON files above remain unchanged. Original target context,
+including saved 220 / unsaved edited 217 / merged 217, is retained separately
+from temporary System context used for built-in Temperature preparation.
+
+The normally prepared/manual export `temperature-qualified-230-190-step5.gcode`
+is 3,619,569 bytes, SHA-256
+`24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b`, with the
+same nine 230–190 degree choices accepted by Helix. This newer qualification
+artifact does not replace or reinterpret the September baseline above.
+See [the complete Windows report](evidence/issue-4/windows/qualification.json).

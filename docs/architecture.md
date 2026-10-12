@@ -93,13 +93,17 @@ its own portable directory and marked `--datadir`, preserving the normal Orca
 installation and profiles. `WEBVIEW2_USER_DATA_FOLDER` is set only in the
 nightly child environment: `--datadir` alone reused normal Orca browser data.
 Separate browser process ancestry and data storage were verified after relaunch.
-The qualification gate remains blocked by the supplied user printer name
-colliding with a bundled System preset; the runtime must not substitute that
-preset or its imported parent for the original context.
+The qualification gate passed after the supported offline local bundle importer
+resolved the System-name collision with unchanged fixture JSON. Runtime context
+records the original printer's bundle identity and `is_system=false`, while
+saved 220, edited 217 and merged 217 remain separate. Normal Temperature
+preparation used a separately retained temporary context. Manual selection of
+the actual export is required because the lifecycle path is temporary slicing
+output. All 1,429 normal settings/profile files remained unchanged after close.
 
 Prefer the Orca-owned dock panel and lifecycle file association. If necessary,
 qualify a host-owned modeless window and explicit manual file selection under
 the approved Issue #4 fallback authority. UI driving belongs only to isolated
-evidence tooling. The mock-only Temperature round trip remains gated on the
+evidence tooling. The mock-only Temperature round trip now proceeds from the completed
 actual Windows observations in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md).

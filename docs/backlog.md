@@ -77,7 +77,7 @@ events in that exact source.
 - [x] Build a hash-verifying launcher that stages the read-only probe in an
   isolated test settings tree without selecting the existing installation.
 - [x] Add a small host-owned qualification panel and retained JSON evidence.
-- [ ] Pass the interactive Windows qualification checklist with a real unsaved
+- [x] Pass the interactive Windows qualification checklist with a real unsaved
   value, profile switching, normal Temperature preparation, and actual export.
 - [ ] Only after that gate, implement and prove the bounded mock-only round trip.
 - [ ] Freeze, independently review, and prepare one PR without merging it.
@@ -89,15 +89,18 @@ Real context, unsaved values, dock/preset/dirty events, manual Temperature expor
 and byte/hash-verified manual selection have been observed. Export lifecycle
 payloads identify the temporary slicing file, so manual selection is required.
 
-The gate is **blocked** on the original printer identity: importing the supplied
-user `Voron 2.4 300 0.4 nozzle` returns zero imports because a bundled System
-preset already uses that name. No substitute is silently accepted. Resolution
-needs an approved original-context qualification path; no round-trip
-implementation has begun. See [`SPARE_TEST_ACCESS.md`](SPARE_TEST_ACCESS.md).
+The Windows gate passed at 2026-10-12 01:14 UTC. The supported offline bundle
+namespace accepts the original supplied printer leaf with unchanged JSON bytes,
+separately from the stock System preset. Real original context and unsaved values
+were retained before normal Temperature preparation in a separate temporary
+context. The new export/manual selection hashes agree, and all 1,429 normal
+settings/profile files remain unchanged. The report is in
+[`evidence/issue-4/windows/`](evidence/issue-4/windows/). Mock-only implementation
+may now proceed; the full round trip remains unfinished.
 
 The exact gate and agent-operated runbook are in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md). Linux-only
-evidence cannot close the pending item.
+evidence alone cannot replace this completed Windows observation.
 
 The round trip may exercise start/progress/completion/result states only in the
 separately isolated mock lifecycle. Qualification UI driving is test evidence,

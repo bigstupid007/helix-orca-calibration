@@ -148,12 +148,23 @@ and [`../helix-plugin/PREFLIGHT.md`](../helix-plugin/PREFLIGHT.md).
 - `--datadir` did not isolate WebView2 browser data. A child-only
   `WEBVIEW2_USER_DATA_FOLDER` override produced a distinct test browser process
   and data folder. Ordinary Orca and its browser were left running.
-- Material gate exception: the supplied user printer name
-  `Voron 2.4 300 0.4 nozzle` is already a System preset in the fixed nightly.
-  Its import returns zero; exact-source `PresetBundle.cpp` rejects existing
-  System presets. The imported `Voron Voron 2.4 300 0.4 nozzle` parent and the
-  bundled System preset are distinct contexts. Neither is accepted as the
-  original supplied printer leaf. Qualification and integration remain blocked.
+- The initial System-name collision was resolved with the supported offline
+  local bundle importer. All six JSON profile bytes remain unchanged. The actual
+  original printer leaf has a bundle identity and `is_system=false`; neither
+  the parent nor stock System preset substitutes for it.
+- A complete run after browser isolation repair passed the Windows gate. It
+  retained original saved 220 / edited 217 / merged 217, switched all profile
+  categories, normally prepared/exported the Temperature file, and verified its
+  exact bytes/hash through manual selection. The final artifact is 3,619,569 bytes,
+  SHA-256 `24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b`.
+- Bundle filament editing selects the same-named ordinary imported User leaf.
+  The diagnostic records that origin/name change and the host's dirty metadata
+  exactly; the saved configuration still reads 220. No preset was saved.
+- One mistaken unsaved bed-temperature edit during revert was caught by the
+  safety dialog and reset; close discarded all temporary project/preset edits.
+- The completed report and bounded target-only native frames are in
+  [`evidence/issue-4/windows/`](evidence/issue-4/windows/). Mock-only bridge work
+  may proceed under the existing Issue #4 authority; the round trip is unfinished.
 
 Normal Orca preservation was checked after GUI testing: all 1429 settings/profile
 files matched the pre-test aggregate SHA-256

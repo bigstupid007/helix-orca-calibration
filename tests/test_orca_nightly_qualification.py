@@ -1,4 +1,6 @@
 import pathlib
+import hashlib
+import json
 import unittest
 
 
@@ -31,7 +33,29 @@ class OrcaNightlyQualificationContractTests(unittest.TestCase):
         guide = GUIDE.read_text(encoding="utf-8")
         normalized = " ".join(guide.split())
         self.assertIn("Windows x64", guide)
-        self.assertIn("runtime qualification is still pending", normalized)
+        self.assertIn("passed qualification on Spare", normalized)
+        report_dir = ROOT / "docs/evidence/issue-4/windows"
+        report = json.loads((report_dir / "qualification.json").read_text())
+        self.assertEqual(report["status"], "passed_with_manual_file_fallback")
+        self.assertEqual(report["host"]["name"], "SPARE")
+        self.assertTrue(report["runtime"]["matches_target"])
+        self.assertTrue(all(report["lifecycle"]["required_observations"].values()))
+        self.assertTrue(report["normal_preservation"]["unchanged"])
+        self.assertEqual(report["normal_preservation"]["file_count"], 1429)
+        original = report["original_context"]
+        self.assertFalse(original["printer"]["selected_saved"]["is_system"]["raw_value"])
+        self.assertEqual(original["printer"]["selected_saved"]["bundle_id"]["raw_value"], "helix-issue-4-original-context")
+        sources = original["nozzle_temperature_sources"]
+        self.assertEqual(sources["filament_editor.selected_saved"]["raw_value"], "220")
+        self.assertEqual(sources["filament_editor.current_edited"]["raw_value"], "217")
+        self.assertEqual(sources["preset_bundle.merged_full_config"]["raw_value"], "217")
+        self.assertEqual(report["manual_file_selection"]["bands"], list(range(230, 189, -5)))
+        for frame in report["frames"]:
+            data = (report_dir / frame["name"]).read_bytes()
+            self.assertEqual(hashlib.sha256(data).hexdigest(), frame["sha256"])
+        for fixture in report["fixtures"]:
+            data = (ROOT / "testdata/orca-profiles" / fixture["name"]).read_bytes()
+            self.assertEqual(hashlib.sha256(data).hexdigest(), fixture["sha256"])
         self.assertIn("PresetSelected", guide)
         self.assertIn("ProjectDirtyChanged", guide)
         self.assertIn("GCodeExportStarted", guide)

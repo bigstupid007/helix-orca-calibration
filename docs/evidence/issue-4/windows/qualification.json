@@ -1,0 +1,751 @@
+{
+  "schema": "helix-orca-windows-qualification/v1",
+  "status": "passed_with_manual_file_fallback",
+  "completed_at_utc": "2026-10-12T01:14:49.2373865Z",
+  "qualification_candidate": "35eae3743297cfb507fab7853c4e259309b9db5f",
+  "host": {
+    "name": "SPARE",
+    "session_id": 1,
+    "is_admin": false,
+    "access": "Spare-to-devbox pinned LAN SSH worker"
+  },
+  "source_commit": "210bc927bc6fb3d3bf390fdf72e4a2767b5de4b3",
+  "artifact_id": 11690627983,
+  "exe_sha256": "8d9db0bec8b8a8e0ad0a70485daaf7ee9fa1c88d5f1395f92eabf0430ce0339b",
+  "dll_sha256": "5b71e5dbf2f6b3319d6d69f597e3aa3dbf9403f9ea63f93c3c72dc294efba0a4",
+  "qualification_plugin_sha256": "c7b908e8e175088f6f9aeedcbd1a841a996f49c6c315c966b02bd686436ca9d4",
+  "runtime": {
+    "read_status": "runtime_read_succeeded",
+    "reason": null,
+    "info": {
+      "version": "2.5.0-dev",
+      "build": "210bc927",
+      "mode": "editor",
+      "language": "en_US",
+      "app_config_version": "2.5.0-dev",
+      "stealth_mode": true,
+      "is_signed_in": false,
+      "is_bambu_signed_in": false,
+      "network_plugin_version": "",
+      "network_plugin_error": ""
+    },
+    "matches_target": true
+  },
+  "fixtures": [
+    {
+      "name": "Generic PLA - Voron Rapido - Initial.json",
+      "bytes": 850,
+      "sha256": "eb4aaf99dbc806199aa0f18b25648e8fe6c206740d6b4c175024e05fdc5a3188"
+    },
+    {
+      "name": "Generic PLA template @Voron Voron 2.4 300 0.4 nozzle.json",
+      "bytes": 6668,
+      "sha256": "7dfc6d314ccb5000d2e326623aea5929cb3e28c63595b8163ddf2d98dbf82239"
+    },
+    {
+      "name": "Voron 0.20 Standard - Fast Quality.json",
+      "bytes": 1660,
+      "sha256": "a62c25f380d54e567e54d701d6387df853cdf35a167dde7f9c2657f9709c2aee"
+    },
+    {
+      "name": "Voron 2.4 300 0.4 nozzle.json",
+      "bytes": 931,
+      "sha256": "568cbc65fa0ccf2838845f478317050e7c64e69136ca0a243fdcd23325bc4614"
+    },
+    {
+      "name": "Voron Voron 2.4 300 0.4 nozzle.json",
+      "bytes": 6766,
+      "sha256": "1f9bed2b1cdc578bafc2fdd95a7a44b5ba607f3fcfda5b2d357d83229fcb6567"
+    },
+    {
+      "name": "process template @Voron Voron 2.4 300 0.4 nozzle.json",
+      "bytes": 12560,
+      "sha256": "4d9726ae721e8fad7f6e08787cb54d28d42ecef04c5d721fb7648b61d993d214"
+    }
+  ],
+  "imported_bundle": {
+    "name": "issue-4-original-profiles.orca_bundle",
+    "bytes": 9460,
+    "sha256": "49bf7e37c0e0012a254863279ffa980ec10fa83faa9aa07e2f8cc56622911855"
+  },
+  "reproduction_bundle": "9e3bfdfdce61d8d93f3829539e7434286cfd135ade137152cc7aaf886bed2bdc",
+  "original_context": {
+    "printer": {
+      "selected_saved": {
+        "name": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "_local/helix-issue-4-original-context/Voron 2.4 300 0.4 nozzle"
+        },
+        "alias": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "Voron 2.4 300 0.4 nozzle"
+        },
+        "bundle_id": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "helix-issue-4-original-context"
+        },
+        "is_system": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_external": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_user": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_from_bundle": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_dirty": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        }
+      },
+      "current_edited": {
+        "name": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "_local/helix-issue-4-original-context/Voron 2.4 300 0.4 nozzle"
+        },
+        "alias": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "Voron 2.4 300 0.4 nozzle"
+        },
+        "bundle_id": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "helix-issue-4-original-context"
+        },
+        "is_system": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_external": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_user": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_from_bundle": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_dirty": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        }
+      }
+    },
+    "process": {
+      "selected_saved": {
+        "name": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "_local/helix-issue-4-original-context/Voron 0.20 Standard - Fast Quality"
+        },
+        "alias": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "Voron 0.20 Standard - Fast Quality"
+        },
+        "bundle_id": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "helix-issue-4-original-context"
+        },
+        "is_system": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_external": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_user": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_from_bundle": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_dirty": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        }
+      },
+      "current_edited": {
+        "name": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "_local/helix-issue-4-original-context/Voron 0.20 Standard - Fast Quality"
+        },
+        "alias": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "Voron 0.20 Standard - Fast Quality"
+        },
+        "bundle_id": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "helix-issue-4-original-context"
+        },
+        "is_system": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_external": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_user": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_from_bundle": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_dirty": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        }
+      }
+    },
+    "filament": {
+      "selected_saved": {
+        "name": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "Generic PLA - Voron Rapido - Initial"
+        },
+        "alias": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "Generic PLA - Voron Rapido - Initial"
+        },
+        "bundle_id": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": ""
+        },
+        "is_system": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_external": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_user": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_from_bundle": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_dirty": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        }
+      },
+      "current_edited": {
+        "name": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "Generic PLA - Voron Rapido - Initial"
+        },
+        "alias": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": "Generic PLA - Voron Rapido - Initial"
+        },
+        "bundle_id": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": ""
+        },
+        "is_system": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_external": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_user": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        },
+        "is_from_bundle": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": false
+        },
+        "is_dirty": {
+          "read_status": "runtime_read_succeeded",
+          "raw_value": true
+        }
+      }
+    },
+    "nozzle_temperature_sources": {
+      "filament_editor.selected_saved": {
+        "key": "nozzle_temperature",
+        "read_status": "runtime_read_succeeded",
+        "raw_value": "220"
+      },
+      "filament_editor.current_edited": {
+        "key": "nozzle_temperature",
+        "read_status": "runtime_read_succeeded",
+        "raw_value": "217"
+      },
+      "preset_bundle.merged_full_config": {
+        "key": "nozzle_temperature",
+        "read_status": "runtime_read_succeeded",
+        "raw_value": "217"
+      }
+    }
+  },
+  "temporary_calibration_context": {
+    "status": "ok",
+    "message": null,
+    "technology": {
+      "value": "FFF",
+      "display": "FFF",
+      "reason": null
+    },
+    "profiles": {
+      "printer": {
+        "selected": {
+          "name": "Voron 2.4 300 0.4 nozzle",
+          "source": {
+            "label": "System",
+            "reason": null
+          },
+          "dirty": false,
+          "reason": null
+        },
+        "edited": {
+          "name": "Voron 2.4 300 0.4 nozzle",
+          "source": {
+            "label": "System",
+            "reason": null
+          },
+          "dirty": false,
+          "reason": null
+        },
+        "same_name": true
+      },
+      "process": {
+        "selected": {
+          "name": "0.20mm Standard @Voron",
+          "source": {
+            "label": "System",
+            "reason": null
+          },
+          "dirty": false,
+          "reason": null
+        },
+        "edited": {
+          "name": "0.20mm Standard @Voron",
+          "source": {
+            "label": "System",
+            "reason": null
+          },
+          "dirty": false,
+          "reason": null
+        },
+        "same_name": true
+      }
+    },
+    "extruders": [
+      {
+        "index": 0,
+        "nozzle_diameter": {
+          "available": true,
+          "value": 0.4,
+          "display": "0.4 mm",
+          "reason": null
+        }
+      }
+    ],
+    "filaments": [
+      {
+        "index": 0,
+        "selected_name": "Generic PLA @System",
+        "current": {
+          "name": "Generic PLA @System",
+          "source": {
+            "label": "System",
+            "reason": null
+          },
+          "dirty": true,
+          "reason": null
+        },
+        "normal_nozzle_temperature": {
+          "available": true,
+          "value": 230,
+          "display": "230 \u00b0C",
+          "reason": null
+        }
+      }
+    ],
+    "warnings": [],
+    "provenance": {
+      "profile_identity": "Saved selections come from PresetCollection.selected_preset().",
+      "edited_identity": "Current edited copies come from PresetCollection.edited_preset().",
+      "settings": "Nozzle values come from PresetBundle.full_config_value(), Orca's current effective merged configuration. They may include unsaved edits and are not claimed to be saved."
+    }
+  },
+  "manual_file_selection": {
+    "bands": [
+      230,
+      225,
+      220,
+      215,
+      210,
+      205,
+      200,
+      195,
+      190
+    ],
+    "name": "temperature-qualified-230-190-step5.gcode",
+    "sha256": "24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b",
+    "size": 3619569
+  },
+  "m104_commands_per_band": {
+    "230": 50,
+    "225": 50,
+    "220": 50,
+    "215": 50,
+    "210": 50,
+    "205": 50,
+    "200": 50,
+    "195": 50,
+    "190": 50
+  },
+  "lifecycle": {
+    "required_observations": {
+      "PresetSelected": true,
+      "ProjectDirtyChanged": true,
+      "GCodeExportStarted": true,
+      "GCodeExportFinished": true
+    },
+    "preset_selection_events": [
+      {
+        "captured_at_utc": "2026-10-12T00:52:30.700957Z",
+        "event": "PresetSelected",
+        "name": "_local/helix-issue-4-original-context/Voron 2.4 300 0.4 nozzle",
+        "code": "Ok",
+        "msg": "printer",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T00:53:12.977298Z",
+        "event": "PresetSelected",
+        "name": "_local/helix-issue-4-original-context/Voron 0.20 Standard - Fast Quality",
+        "code": "Ok",
+        "msg": "print",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T00:53:47.648286Z",
+        "event": "PresetSelected",
+        "name": "_local/helix-issue-4-original-context/Generic PLA - Voron Rapido - Initial",
+        "code": "Ok",
+        "msg": "filament",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T00:55:23.223131Z",
+        "event": "PresetSelected",
+        "name": "Generic PLA - Voron Rapido - Initial",
+        "code": "Ok",
+        "msg": "filament",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T01:01:00.267990Z",
+        "event": "PresetSelected",
+        "name": "process template @Voron Voron 2.4 300 0.4 nozzle",
+        "code": "Ok",
+        "msg": "print",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T01:01:45.507824Z",
+        "event": "PresetSelected",
+        "name": "_local/helix-issue-4-original-context/Voron 0.20 Standard - Fast Quality",
+        "code": "Ok",
+        "msg": "print",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T01:01:50.663844Z",
+        "event": "PresetSelected",
+        "name": "Generic PLA template @Voron Voron 2.4 300 0.4 nozzle",
+        "code": "Ok",
+        "msg": "filament",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T01:02:39.519892Z",
+        "event": "PresetSelected",
+        "name": "Generic PLA - Voron Rapido - Initial",
+        "code": "Ok",
+        "msg": "filament",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T01:03:23.535035Z",
+        "event": "PresetSelected",
+        "name": "Voron Voron 2.4 300 0.4 nozzle",
+        "code": "Ok",
+        "msg": "printer",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T01:03:36.554510Z",
+        "event": "PresetSelected",
+        "name": "_local/helix-issue-4-original-context/Voron 2.4 300 0.4 nozzle",
+        "code": "Ok",
+        "msg": "printer",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T01:05:08.826136Z",
+        "event": "PresetSelected",
+        "name": "Voron 2.4 300 0.4 nozzle",
+        "code": "Ok",
+        "msg": "printer",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "",
+        "index": -1,
+        "dirty": false
+      }
+    ],
+    "dirty_events": [
+      {
+        "captured_at_utc": "2026-10-12T00:48:51.952121Z",
+        "event": "ProjectDirtyChanged",
+        "name": "",
+        "code": "Ok",
+        "msg": "",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "presets",
+        "index": -1,
+        "dirty": true
+      },
+      {
+        "captured_at_utc": "2026-10-12T00:48:52.045026Z",
+        "event": "ProjectDirtyChanged",
+        "name": "",
+        "code": "Ok",
+        "msg": "",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "presets",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T00:55:45.135342Z",
+        "event": "ProjectDirtyChanged",
+        "name": "",
+        "code": "Ok",
+        "msg": "",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "presets",
+        "index": -1,
+        "dirty": true
+      },
+      {
+        "captured_at_utc": "2026-10-12T00:58:54.901203Z",
+        "event": "ProjectDirtyChanged",
+        "name": "",
+        "code": "Ok",
+        "msg": "",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "presets",
+        "index": -1,
+        "dirty": false
+      },
+      {
+        "captured_at_utc": "2026-10-12T01:05:44.880081Z",
+        "event": "ProjectDirtyChanged",
+        "name": "",
+        "code": "Ok",
+        "msg": "",
+        "id": "",
+        "previous_name": "",
+        "device_id": "",
+        "job_id": "",
+        "source": "undo_redo",
+        "index": -1,
+        "dirty": true
+      }
+    ],
+    "export_association": "Temporary slicing file only; exact manual export destination absent. Explicit file selection required.",
+    "export_events": [
+      {
+        "event": "GCodeExportStarted",
+        "code": "Ok",
+        "id": "7",
+        "name": "",
+        "path_scope": "temporary slicing file"
+      },
+      {
+        "event": "GCodeExportFinished",
+        "code": "Ok",
+        "id": "7",
+        "name": "",
+        "path_scope": "temporary slicing file"
+      }
+    ]
+  },
+  "normal_preservation": {
+    "recorded_at_utc": "2026-10-12T01:14:49.2373865Z",
+    "scope": "Normal Orca .json/.conf/.ini excluding cache, logs, plugins; relative path, space, uppercase file hash, LF, no trailing LF",
+    "unchanged": true,
+    "baseline_sha256": "ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0",
+    "file_count": 1429,
+    "aggregate_sha256": "ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0"
+  },
+  "private_evidence": [
+    {
+      "name": "orca-context-20261012T005616.527143Z.json",
+      "bytes": 450680,
+      "sha256": "36f44334d74c713eaa9bad21e65b924f320f14ed184d67f15ab273e2a9042434"
+    },
+    {
+      "name": "nightly-qualification-20261012T010947.951121Z.json",
+      "bytes": 14684,
+      "sha256": "5f84b3d378a0250f923efc6fcd877bc417fe749aa5e8a5696d50b0d84aa2951b"
+    },
+    {
+      "name": "temperature-qualified-230-190-step5.gcode",
+      "bytes": 3619569,
+      "sha256": "24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b"
+    },
+    {
+      "name": "qualification-launch.json",
+      "bytes": 1314,
+      "sha256": "05f7d3194dd129e7f0b5b6ca16eb787b821f055699fd3ac583b8f4eb2b69f620"
+    }
+  ],
+  "frames": [
+    {
+      "name": "original-bundle-import-result.png",
+      "bytes": 8837,
+      "sha256": "f48785d1589779dc73c3a5464a8942158bee599b46f5f3baa5469efd56822c35"
+    },
+    {
+      "name": "original-bundle-context-saved.png",
+      "bytes": 37155,
+      "sha256": "07f4d856ca3e35be9baaaef87ba0bbcae5664f97cd971e7e82867f0eca5699f2"
+    },
+    {
+      "name": "original-bundle-context-unsaved.png",
+      "bytes": 40187,
+      "sha256": "f2af5100d4af77e853e026094355b7355de0386df01b572a9c9c0026f30fbb60"
+    },
+    {
+      "name": "original-bundle-unsaved-217.png",
+      "bytes": 139753,
+      "sha256": "48d3369ded440a14883b09b0796b4a307e3ddbc84b6b3dce4d31c28ce970cf5c"
+    },
+    {
+      "name": "original-printer-switched-back.png",
+      "bytes": 128867,
+      "sha256": "9eebf89faca8231ef5a759ee67bd05bf23fa61f484aabeea684e3f12e4561c21"
+    },
+    {
+      "name": "qualified-temperature-dialog.png",
+      "bytes": 16681,
+      "sha256": "135898ae902f1ef500343ca1420a8f25ae15829fb891ab7644e8f38068cbe27c"
+    },
+    {
+      "name": "qualified-calibration-context.png",
+      "bytes": 240322,
+      "sha256": "e9b9ca138fdce45878f5359435fb4a8c312fc13f6367c1b36d3032bdd31d8903"
+    },
+    {
+      "name": "qualified-manual-file-verified.png",
+      "bytes": 241028,
+      "sha256": "8febccb66dd8f466bd3de39739d0f502e0e043ed14d0e668c8a263bf429d3797"
+    }
+  ],
+  "limitations": [
+    "Complete passing run occurred after separate WebView2 storage/process repair; earlier browser-cache sharing remains historical evidence, not a gate pass.",
+    "Bundle edit selected the same-named imported User filament. Runtime names, origin and dirty metadata are retained exactly; saved config remains 220 while edited/merged config is 217.",
+    "A mistaken unsaved test bed-temperature edit during revert was caught by the safety dialog and reverted with Orca reset; no preset/project was saved.",
+    "Original fixture contains a printer host identity and emitted DeviceSelected metadata. Device, Print, Upload and Send controls were never invoked; no hardware testing occurred.",
+    "Full diagnostics, G-code and Windows file-picker captures remain private in XDG state."
+  ]
+}

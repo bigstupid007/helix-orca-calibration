@@ -152,10 +152,17 @@ normal Orca PID 40056 and browser PID 11436 remained separate and running.
 No registry, user/machine environment, service, firewall, or normal browser
 configuration changed. Prior pre-repair captures do not prove browser isolation.
 
-Qualification remains blocked by the original user printer preset's collision
-with a bundled System preset. Preserve that distinction and consult
-[`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md); this checkpoint
-is not a gate pass or completed mock round trip.
+A later complete run (test PID 32504) passed the Windows gate with separate
+browser storage. Orca's supported offline local bundle importer accepted all six
+unchanged original JSON files, resolving the System-name collision. The original
+printer is a local bundle leaf with `is_system=false`. The new manually exported
+file is 3,619,569 bytes, SHA-256
+`24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b`; native manual
+selection verified the same bytes/hash and nine choices. The test project and
+unsaved calibration edits were discarded, leaving normal Orca PID 40056 running.
+No owner access action is pending; the worker remains available for bounded
+qualification/integration testing. See
+[`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md).
 
 Normal Orca preservation was checked after GUI testing: all 1429 settings/profile
 files matched the pre-test aggregate SHA-256
