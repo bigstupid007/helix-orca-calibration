@@ -170,3 +170,10 @@ files matched the pre-test aggregate SHA-256
 `scripts/spare-normal-preservation.ps1` records the exact hash-only recipe and
 excludes cache, logs, and plugin data. This establishes normal profile/settings
 preservation, while the earlier shared browser-cache gap remains disclosed.
+
+The same unelevated worker subsequently carried the `0.4.0` candidate, real
+request and native result for the completed [mock proof](TEMPERATURE_ROUND_TRIP.md).
+There is no new credential, listener, service, firewall, account or Tailscale
+change. Actual normal settings/profile preservation still passes for 1,429
+files at `2026-10-12T02:45:44Z`. Native region capture reads only guarded test
+windows; public instruction frames exclude personal artifact paths.

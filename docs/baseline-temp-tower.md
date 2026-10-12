@@ -475,3 +475,9 @@ is 3,619,569 bytes, SHA-256
 same nine 230–190 degree choices accepted by Helix. This newer qualification
 artifact does not replace or reinterpret the September baseline above.
 See [the complete Windows report](evidence/issue-4/windows/qualification.json).
+
+The Issue #4 mock proof associates those exact bytes with retained original
+context and returns 205°C without altering the file or applying a preset value.
+Native beta.4 renders the actual tower in its isolated mock print UI; controlled
+progress/completion are simulation, not physical calibration evidence. See
+[TEMPERATURE_ROUND_TRIP.md](TEMPERATURE_ROUND_TRIP.md).

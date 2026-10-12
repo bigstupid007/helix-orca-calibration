@@ -128,3 +128,10 @@ or rewrite that business identity while working on this repository.
 
 Stop and report a mismatch instead of changing identity or remote settings
 without explicit instruction.
+
+## Issue #4 candidate review
+
+The governing Issue requires one fresh-context read-only independent reviewer
+at the frozen candidate boundary. Use that bounded reviewer under the current
+shared Development System authority; only the lead integrates corrections.
+Keep the PR unmerged and complete AI Product Preflight against its exact head.

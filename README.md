@@ -62,14 +62,14 @@ upstream Actions binary is used only as a SHA-verified accelerator; the durable
 fallback builds the exact public source and recursive submodule revisions with
 the pinned repository-owned builder recipe.
 
-## Issue #4 — Temperature round trip (Windows gate passed)
+## Issue #4 — qualified mock Temperature round trip
 
 Issue #4 replaces the deferred interactive-picker idea with one bounded
 Temperature round trip. The first gate is qualification of the fixed October
 11 Windows Orca nightly in a separate settings tree. The source-verified,
-read-only probe is `plugin/helix_calibration.py` version `0.3.0`; it preserves
-the accepted context window and diagnostic export and adds an Orca-owned panel
-for exact build/context/lifecycle evidence.
+companion is `plugin/helix_calibration.py` version `0.4.0`; it preserves
+the qualified context/export/panel capabilities and adds a host-owned mock
+round-trip dock. The completed qualification used version `0.3.0`.
 
 The Windows launcher and interactive checklist are in
 [`docs/ORCA_NIGHTLY_QUALIFICATION.md`](docs/ORCA_NIGHTLY_QUALIFICATION.md).
@@ -98,14 +98,17 @@ The bounded report and native frames are in
 [`docs/evidence/issue-4/windows/`](docs/evidence/issue-4/windows/).
 The new export is 3,619,569 bytes, SHA-256
 `24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b`.
-Mock round-trip work may now proceed under Issue #4. The accepted Helix plugin
-remains unchanged.
+The mock round trip now passes at all eleven native Helix sizes and returns
+205°C to the retained original filament with **NOT APPLIED** instructions,
+even after Orca's current filament changes. Duplicate/stale/conflicting results
+and real artifact delivery failures/retries are proven. The accepted Helix
+plugin remains unchanged. Native beta.4's loopback HTTP guard is preserved;
+the isolated proof uses pinned LAN SSH and native plugin-storage artifacts.
+See [the proof and working review path](docs/TEMPERATURE_ROUND_TRIP.md).
 
-The approved integration may later simulate a complete print lifecycle only in
-the isolated mock harness. Qualification UI driving is evidence tooling, not a
-shipping Orca automation path. Dock-panel/event integration retains
-modeless-window and explicit manual-file fallbacks. The interactive Temperature
-picker remains deferred and unimplemented.
+Qualification UI driving and complete mock lifecycle simulation remain test
+infrastructure. Modeless-window and explicit manual-file fallbacks remain
+supported. The interactive Temperature picker is deferred and unimplemented.
 
 ## Verify
 

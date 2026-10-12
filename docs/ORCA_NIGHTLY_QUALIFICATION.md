@@ -292,3 +292,14 @@ files matched the pre-test aggregate SHA-256
 `scripts/spare-normal-preservation.ps1` records the exact hash-only recipe and
 excludes cache, logs, and plugin data. This establishes normal profile/settings
 preservation, while the earlier shared browser-cache gap remains disclosed.
+
+## Subsequent companion build
+
+The qualification above is historical `0.3.0` evidence. Actual Spare testing
+of `0.4.0` also installed/activated all four capabilities, retained original
+220/217/217 context, verified the same file, and received native 205°C
+instructions as **not applied** after a filament switch. Duplicate/stale/
+conflicting result selection and normal settings preservation were checked.
+On each fresh session this build may omit the colliding bundle leaf; re-import
+the identical offline bundle normally before selecting the original target.
+See [the completed proof](TEMPERATURE_ROUND_TRIP.md).

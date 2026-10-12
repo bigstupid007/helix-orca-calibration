@@ -209,3 +209,13 @@ installation.
    package-delete path does not remove this separate storage directory.
 5. Keep or delete the original downloaded `.py` file separately. No preset or
    project cleanup is required because the exporter is read-only.
+
+## Qualified companion extension
+
+Version `0.4.0` retains this diagnostic and adds the separate mock Temperature
+round-trip capability. It reads original saved, edited and merged values through
+the same qualified host APIs; it never uses config/profile files as runtime
+context sources. Only explicit request artifacts beneath host plugin storage
+are added. File/result inputs are native user-selected browser files, and
+instructions remain **not applied**. The actual build, original-profile
+semantics and current proof are in [TEMPERATURE_ROUND_TRIP.md](TEMPERATURE_ROUND_TRIP.md).

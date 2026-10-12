@@ -107,3 +107,24 @@ the approved Issue #4 fallback authority. UI driving belongs only to isolated
 evidence tooling. The mock-only Temperature round trip now proceeds from the completed
 actual Windows observations in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md).
+
+## Issue #4 bounded round-trip implementation
+
+The self-contained Orca `0.4.0` companion freezes the original supported-API
+context separately from live selection/settings, verifies a manually selected
+file in its host-owned browser, and explicitly writes one immutable request
+under plugin storage. Returned JSON must match request, context, file, printer,
+filament, current/saved values and setting; duplicates are idempotent, conflicts
+and stale results are rejected. Instructions state **not applied**. There is no
+network, process/thread, slice hook, UI automation or preset-write path in the
+Orca plugin. Lifecycle callbacks notify the page; host reads run through its
+supported UI message callback. Modeless fallback remains available.
+
+The separately mounted development bridge uses pinned native overlays,
+subjects, plugin storage and mock print APIs. Beta.4 forbids HTTP to local
+printer-host addresses, so the proof preserves that protection and transports
+real artifacts through existing SSH and supported native storage. Native
+request receipt never starts printing. Docker `--network none` and `--test`
+prevent any physical route. The accepted product and ordinary harness are
+unchanged. All eleven sizes and actual Spare result reception pass; see
+[TEMPERATURE_ROUND_TRIP.md](TEMPERATURE_ROUND_TRIP.md).

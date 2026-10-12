@@ -276,7 +276,7 @@ class PluginTests(unittest.TestCase):
         plugin = metadata["tool"]["orcaslicer"]["plugin"]
         self.assertEqual("Helix Calibration Context", plugin["name"])
         self.assertEqual("script", plugin["type"])
-        self.assertEqual("0.3.0", plugin["version"])
+        self.assertEqual("0.4.0", plugin["version"])
         self.assertNotIn("dependencies", metadata)
 
     def test_initial_html_escapes_host_text(self):
@@ -577,6 +577,7 @@ class PluginTests(unittest.TestCase):
                 self.plugin.HelixCalibrationContext,
                 self.plugin.ExportOrcaContextJson,
                 self.plugin.NightlyQualificationPanel,
+                self.plugin.TemperatureRoundTripPanel,
             ],
             self.orca.registered_capabilities,
         )

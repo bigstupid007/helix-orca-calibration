@@ -1,0 +1,12 @@
+target	width	height	layout	dpi	status
+micro_480x272	480	272	standard	160	PASS
+micro_portrait_272x480	272	480	portrait	160	PASS
+tiny_480x320	480	320	standard	160	PASS
+small_480x400	480	400	standard	160	PASS
+medium_800x480	800	480	standard	160	PASS
+portrait_480x800	480	800	portrait	160	PASS
+large_1024x600	1024	600	standard	160	PASS
+xlarge_1280x720	1280	720	standard	160	PASS
+phone_1080x2400_dpi405	1080	2400	portrait	405	PASS
+ultrawide_1920x480	1920	480	ultrawide	160	PASS
+tall_320x1480	320	1480	portrait	160	PASS

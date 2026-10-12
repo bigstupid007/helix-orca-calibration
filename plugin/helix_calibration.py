@@ -5,7 +5,7 @@
 # name = "Helix Calibration Context"
 # description = "Shows active Orca context and qualifies a read-only Helix companion panel."
 # author = "Helix-Orca Calibration contributors"
-# version = "0.3.0"
+# version = "0.4.0"
 # type = "script"
 # ///
 """Read-only OrcaSlicer context inspector and nightly qualification probe.
@@ -16,6 +16,7 @@ execution, preset/project mutation, or external profile-file access.
 """
 
 import datetime
+import hashlib
 import html
 import json
 import math
@@ -28,7 +29,7 @@ import orca
 PLUGIN_NAME = "Helix Calibration"
 EXPORT_ACTION_NAME = "Export Orca Context JSON"
 QUALIFICATION_ACTION_NAME = "Helix Calibration Nightly Qualification"
-EXPORTER_VERSION = "0.3.0"
+EXPORTER_VERSION = "0.4.0"
 TARGET_BUILD = {
     "platform": "Windows x64",
     "version": "OrcaSlicer 2.5.0-dev",
@@ -1523,6 +1524,40 @@ def write_qualification_evidence(snapshot, storage_root, captured_at=None):
     return str(evidence_path)
 
 
+FILE_SHA256_JAVASCRIPT = r"""  function sha256(bytes) {
+    var k=[1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,
+      3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,
+      3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,
+      2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,
+      666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,
+      2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,
+      430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,
+      1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298];
+    var h=[1779033703,3144134277,1013904242,2773480762,1359893119,2600822924,528734635,1541459225];
+    var input=new Uint8Array(bytes), padded=new Uint8Array(Math.ceil((input.length+9)/64)*64);
+    padded.set(input); padded[input.length]=128;
+    var view=new DataView(padded.buffer); view.setUint32(padded.length-4,input.length*8,false);
+    var w=new Uint32Array(64);
+    function rotate(x,n){return (x>>>n)|(x<<(32-n));}
+    for(var offset=0;offset<padded.length;offset+=64){
+      for(var i=0;i<16;i++) w[i]=view.getUint32(offset+i*4,false);
+      for(i=16;i<64;i++){
+        var x=w[i-15],y=w[i-2];
+        w[i]=(w[i-16]+(rotate(x,7)^rotate(x,18)^(x>>>3))+w[i-7]+(rotate(y,17)^rotate(y,19)^(y>>>10)))>>>0;
+      }
+      var a=h[0],b=h[1],c=h[2],d=h[3],e=h[4],f=h[5],g=h[6],z=h[7];
+      for(i=0;i<64;i++){
+        var t1=(z+(rotate(e,6)^rotate(e,11)^rotate(e,25))+((e&f)^(~e&g))+k[i]+w[i])>>>0;
+        var t2=((rotate(a,2)^rotate(a,13)^rotate(a,22))+((a&b)^(a&c)^(b&c)))>>>0;
+        z=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;
+      }
+      [a,b,c,d,e,f,g,z].forEach(function(value,i){h[i]=(h[i]+value)>>>0;});
+    }
+    return h.map(function(value){return value.toString(16).padStart(8,'0');}).join('');
+  }
+"""
+
+
 QUALIFICATION_PANEL_PAGE = r"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
@@ -1600,37 +1635,7 @@ button.quiet { background:transparent; }
   document.getElementById('save').addEventListener('click',function(){window.orca.postMessage({command:'save'});});
   document.getElementById('clear').addEventListener('click',function(){window.orca.postMessage({command:'clear'});});
   // about:blank host documents lack crypto.subtle. Hash selected bytes locally.
-  function sha256(bytes) {
-    var k=[1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,
-      3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,
-      3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,
-      2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,
-      666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,
-      2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,
-      430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,
-      1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298];
-    var h=[1779033703,3144134277,1013904242,2773480762,1359893119,2600822924,528734635,1541459225];
-    var input=new Uint8Array(bytes), padded=new Uint8Array(Math.ceil((input.length+9)/64)*64);
-    padded.set(input); padded[input.length]=128;
-    var view=new DataView(padded.buffer); view.setUint32(padded.length-4,input.length*8,false);
-    var w=new Uint32Array(64);
-    function rotate(x,n){return (x>>>n)|(x<<(32-n));}
-    for(var offset=0;offset<padded.length;offset+=64){
-      for(var i=0;i<16;i++) w[i]=view.getUint32(offset+i*4,false);
-      for(i=16;i<64;i++){
-        var x=w[i-15],y=w[i-2];
-        w[i]=(w[i-16]+(rotate(x,7)^rotate(x,18)^(x>>>3))+w[i-7]+(rotate(y,17)^rotate(y,19)^(y>>>10)))>>>0;
-      }
-      var a=h[0],b=h[1],c=h[2],d=h[3],e=h[4],f=h[5],g=h[6],z=h[7];
-      for(i=0;i<64;i++){
-        var t1=(z+(rotate(e,6)^rotate(e,11)^rotate(e,25))+((e&f)^(~e&g))+k[i]+w[i])>>>0;
-        var t2=((rotate(a,2)^rotate(a,13)^rotate(a,22))+((a&b)^(a&c)^(b&c)))>>>0;
-        z=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;
-      }
-      [a,b,c,d,e,f,g,z].forEach(function(value,i){h[i]=(h[i]+value)>>>0;});
-    }
-    return h.map(function(value){return value.toString(16).padStart(8,'0');}).join('');
-  }
+__FILE_HASHING__
   document.getElementById('file').addEventListener('change',async function () {
     var status=document.getElementById('file-status'), file=this.files[0];
     if (!file) return;
@@ -1649,7 +1654,7 @@ button.quiet { background:transparent; }
   });
   window.orca.postMessage({command:'ready'});
 })();
-</script></body></html>"""
+</script></body></html>""".replace("__FILE_HASHING__", FILE_SHA256_JAVASCRIPT)
 
 
 class NightlyQualificationPanel(orca.script.ScriptPluginCapabilityBase):
@@ -1794,9 +1799,248 @@ class ExportOrcaContextJson(orca.script.ScriptPluginCapabilityBase):
         )
 
 
+# Issue #4 bounded companion: artifacts only; never writes a preset or starts a print.
+ROUND_TRIP_ACTION_NAME = "Helix Temperature Round Trip (mock only)"
+TEMPERATURE_CHOICES = list(range(230, 189, -5))
+
+
+def _json_digest(value):
+    return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+
+
+def validate_temperature_file(value):
+    if not isinstance(value, dict):
+        raise ValueError("No exported Temperature file selected.")
+    name = value.get("name")
+    if (not isinstance(name, str) or not re.fullmatch(r"[^/\\]+\.gcode", name, re.IGNORECASE)
+            or any(ord(c) < 32 for c in name)):
+        raise ValueError("A G-code basename is required.")
+    if type(value.get("size")) is not int or not 0 < value["size"] <= 20000000:
+        raise ValueError("Select a nonempty G-code file below 20 MB.")
+    if not isinstance(value.get("sha256"), str) or not re.fullmatch(r"[a-f0-9]{64}", value["sha256"]):
+        raise ValueError("The selected file has no valid byte digest.")
+    bands = value.get("bands")
+    if not isinstance(bands, list) or any(type(n) is not int for n in bands) or bands != TEMPERATURE_CHOICES:
+        raise ValueError("Temperature choices do not match the qualified file.")
+    return {k: value[k] for k in ("name", "size", "sha256", "bands")}
+
+
+def capture_temperature_target(host):
+    info = host.app_info()
+    if info.get("build") != TARGET_BUILD["build"] or info.get("version") != "2.5.0-dev":
+        raise ValueError("This proof requires the qualified Windows nightly.")
+    bundle = host.preset_bundle()
+    names = list(bundle.current_filament_preset_names())
+    if len(names) != 1 or not names[0]:
+        raise ValueError("This proof requires one unambiguous filament slot.")
+    target = {"runtime": {"version": info["version"], "build": info["build"]}}
+    presets = {}
+    for role, collection in (("printer", bundle.printers), ("process", bundle.prints), ("filament", bundle.filaments)):
+        pair = {}
+        for key, method in (("selected_saved", "selected_preset"), ("current_edited", "edited_preset")):
+            preset = _call(collection, method)
+            view = _preset_view(preset)
+            if view["name"] == "Unavailable" or view["reason"]:
+                raise ValueError(f"{role} {key} identity is unavailable.")
+            view["alias"] = getattr(preset, "alias", None) or view["name"]
+            view["bundle_id"] = getattr(preset, "bundle_id", None)
+            pair[key] = view
+            presets[(role, key)] = preset
+        target[role] = pair
+    if names[0] not in (target["filament"]["selected_saved"]["name"], target["filament"]["current_edited"]["name"]):
+        raise ValueError("The filament editor cannot be mapped to the active slot.")
+    def number(raw, key):
+        values, error = _parse_number_vector(raw, key)
+        if error or len(values) != 1:
+            raise ValueError(error or f"Ambiguous {key} values.")
+        return values[0]
+    target["slot_name"] = str(names[0])
+    target["nozzle_mm"] = number(bundle.full_config_value("nozzle_diameter"), "nozzle_diameter")
+    for key, preset_key in (("saved_temperature", "selected_saved"), ("edited_temperature", "current_edited")):
+        target[key] = number(presets[("filament", preset_key)].config_value("nozzle_temperature"), "nozzle_temperature")
+    target["effective_temperature"] = number(bundle.full_config_value("nozzle_temperature"), "nozzle_temperature")
+    for key in ("saved_temperature", "edited_temperature", "effective_temperature"):
+        if target[key] != int(target[key]) or not 0 < target[key] <= 500:
+            raise ValueError("Temperature value is unavailable or invalid.")
+        target[key] = int(target[key])
+    if not 0 < target["nozzle_mm"] <= 5:
+        raise ValueError("Nozzle diameter is unavailable or invalid.")
+    target["temperature_semantics"] = "Saved preset resolved config, edited copy, and merged effective value; never a claim about a raw leaf JSON."
+    return target
+
+
+def make_temperature_request(target, file, created_at=None):
+    file = validate_temperature_file(file)
+    created_at = created_at or datetime.datetime.now(datetime.timezone.utc).isoformat()
+    context_hash = _json_digest(target)
+    request_id = _json_digest({"context": context_hash, "file": file, "created_at": created_at})[:32]
+    return {"schema": "helix-orca-temperature-request/v1", "mock_only": True,
+            "request_id": request_id, "created_at_utc": created_at, "context_sha256": context_hash,
+            "wizard": "temp_tower", "target": target, "file": file, "choices": TEMPERATURE_CHOICES,
+            "bridge_file": "helix-temp-" + request_id + ".gcode"}
+
+
+def validate_temperature_result(request, result):
+    if not isinstance(result, dict) or result.get("event") != "chosen":
+        raise ValueError("Malformed Temperature result.")
+    target = request["target"]
+    expected = {"request_id": request["request_id"], "wizard": "temp_tower",
+                "context_sha256": request["context_sha256"], "file_sha256": request["file"]["sha256"],
+                "filament": target["filament"]["selected_saved"]["name"],
+                "printer": target["printer"]["selected_saved"]["name"],
+                "current": target["effective_temperature"], "saved_current": target["saved_temperature"],
+                "setting": "nozzle_temperature", "mock_only": True}
+    for key, value in expected.items():
+        if type(result.get(key)) is not type(value) or result.get(key) != value:
+            raise ValueError(f"Stale or mismatched result: {key}.")
+    if type(result.get("value")) is not int or result["value"] not in request["choices"]:
+        raise ValueError("Returned value is outside the prepared file's choices.")
+    return {"request_id": request["request_id"], "profile": expected["filament"],
+            "profile_alias": target["filament"]["selected_saved"]["alias"],
+            "setting": "nozzle_temperature", "setting_label": "Filament > Print temperature > Nozzle > Other layers",
+            "original_saved_value": target["saved_temperature"],
+            "original_edited_value": target["edited_temperature"],
+            "original_effective_value": target["effective_temperature"],
+            "selected_value": result["value"], "status": "not applied"}
+
+
+class TemperatureRoundTripState:
+    def __init__(self):
+        self.target = None
+        self.file = None
+        self.request = None
+        self.instructions = None
+        self.export_path = None
+
+    def freeze(self, target):
+        self.__init__()
+        self.target = json.loads(json.dumps(target, allow_nan=False))
+
+    def select_file(self, value):
+        self.file = self.request = self.instructions = self.export_path = None
+        self.file = validate_temperature_file(value)
+
+    def export(self, storage):
+        if self.export_path:
+            return self.export_path  # Delivery retry uses exactly the same immutable request.
+        if not self.target or not self.file:
+            raise ValueError("Retain the original target context, then select its exported Temperature file.")
+        request = make_temperature_request(self.target, self.file)
+        directory = pathlib.Path(storage) / "roundtrip"
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory / ("request-" + request["request_id"] + ".json")
+        with path.open("x", encoding="utf-8", newline="\n") as handle:
+            handle.write(json.dumps(request, indent=2, allow_nan=False) + "\n")
+        self.request = request
+        self.export_path = str(path)
+        return self.export_path
+
+    def receive(self, value):
+        if not self.request:
+            raise ValueError("No pending request; retain a new target context first.")
+        instructions = validate_temperature_result(self.request, value)
+        if self.instructions and instructions != self.instructions:
+            raise ValueError("Conflicting duplicate result rejected.")
+        duplicate = self.instructions is not None
+        self.instructions = instructions
+        return "Duplicate result ignored; instructions unchanged." if duplicate else "Result received; not applied."
+
+
+ROUND_TRIP_PAGE = r'''<!doctype html><html><head><meta charset="utf-8"><style>
+body{font:14px system-ui;margin:14px;color:#162b40;background:white}h1{font-size:20px}.card{border:1px solid #ddd;border-radius:6px;padding:12px;margin:12px 0;overflow-wrap:anywhere}button{padding:9px;border:0;border-radius:4px;background:#008f84;color:white;margin:3px 0}input{max-width:100%}.muted{color:#526777;font-size:12px}pre{white-space:pre-wrap;font:13px system-ui}.result{border-color:#008f84}
+</style></head><body><h1>Temperature round trip</h1><p class="muted">Mock-only proof · manual preparation/export · no preset writes</p>
+<button id="freeze">Retain original target context</button><button id="refresh">Refresh current context</button>
+<section class="card"><strong>Original target context</strong><pre id="target">No target retained</pre></section>
+<section class="card"><strong>Current Orca context</strong><pre id="current"></pre></section>
+<section class="card"><label>Select the manually exported Temperature file<br><input type="file" id="file" accept=".gcode"></label><p id="file-status" class="muted">No file selected</p><button id="export">Export mock request</button><pre id="request">No request exported</pre></section>
+<section class="card result"><label>Select the returned mock result<br><input type="file" id="result" accept=".json"></label><pre id="instructions">No result received</pre></section><p id="status" class="muted"></p>
+<script>(function(){'use strict';var send=function(command,extra){window.orca.postMessage(Object.assign({command:command},extra||{}));};
+function text(id,value){document.getElementById(id).textContent=value;}
+function identity(p){return p.selected_saved.name;}
+window.orca.onMessage(function(s){if(s.command==='context_changed'){send('refresh');return;}if(s.command!=='roundtrip_state')return;
+var t=s.target; text('target',t?'Printer: '+identity(t.printer)+'\nProcess: '+identity(t.process)+'\nFilament: '+identity(t.filament)+'\nNozzle: '+t.nozzle_mm+' mm\nSaved resolved temperature: '+t.saved_temperature+' °C\nEdited: '+t.edited_temperature+' °C\nEffective: '+t.effective_temperature+' °C':'No target retained');
+var c=s.current; text('current',c&&c.status==='ok'?'Printer: '+c.profiles.printer.selected.name+'\nProcess: '+c.profiles.process.selected.name+'\nFilament: '+c.filaments[0].selected_name+'\n'+(s.current_matches_target?'Matches retained target':'Current selection/settings differ from retained target'):'Unavailable');
+text('request',s.request?'Request '+s.request.request_id+'\n'+s.export_path+'\nDelivery retry reuses this request. Receiving it does not start printing.':'No request exported');
+var i=s.instructions;text('instructions',i?'NOT APPLIED\nProfile: '+i.profile+'\nSetting: '+i.setting_label+' (nozzle_temperature)\nOriginal saved: '+i.original_saved_value+' °C\nOriginal edited/effective: '+i.original_edited_value+'/'+i.original_effective_value+' °C\nSelected: '+i.selected_value+' °C\nSelect that profile and review the value manually.':'No result received');text('status',s.status||'');document.getElementById('export').disabled=!s.target||!s.file;
+});document.getElementById('freeze').onclick=function(){send('freeze');};document.getElementById('refresh').onclick=function(){send('refresh');};document.getElementById('export').onclick=function(){send('export');};
+__FILE_HASHING__
+document.getElementById('file').onchange=async function(){var f=this.files[0];if(!f){send('file',{file:null});return;}try{if(!/\.gcode$/i.test(f.name)||f.size<=0||f.size>20000000)throw Error('Select a nonempty G-code file below 20 MB.');var bytes=await f.arrayBuffer(),t=new TextDecoder('utf-8',{fatal:true}).decode(bytes),bands=[],m,pattern=/^M10[49]\s+S(\d+)(?:\s|$)/gm;while((m=pattern.exec(t))!==null){var n=Number(m[1]);if(n>0&&bands.indexOf(n)<0)bands.push(n);}if(JSON.stringify(bands)!==JSON.stringify([230,225,220,215,210,205,200,195,190]))throw Error('Temperature choices do not match the qualified file.');var sha=sha256(bytes);text('file-status',f.name+' · '+f.size+' bytes · SHA-256 '+sha);send('file',{file:{name:f.name,size:f.size,sha256:sha,bands:bands}});}catch(e){text('file-status','Rejected: '+e.message);send('file',{file:null});}};
+document.getElementById('result').onchange=async function(){var f=this.files[0];if(!f)return;try{if(f.size<=0||f.size>65536)throw Error('Result must be a nonempty JSON file below 64 KiB.');send('result',{result:JSON.parse(await f.text())});}catch(e){text('status','Rejected: '+e.message);}};send('ready');})();</script></body></html>'''.replace('__FILE_HASHING__', FILE_SHA256_JAVASCRIPT)
+
+
+class TemperatureRoundTripPanel(orca.script.ScriptPluginCapabilityBase):
+    def __init__(self):
+        super().__init__()
+        self.panel = None
+        self.storage_root = None
+        self.state = TemperatureRoundTripState()
+        self.status = "Retain the original target before temporary calibration preparation."
+
+    def get_name(self):
+        return ROUND_TRIP_ACTION_NAME
+
+    def execute(self):
+        if self.panel is not None and self.panel.is_open():
+            self.panel.show()
+            return orca.ExecutionResult.success("Temperature round trip is already open.")
+        self.storage_root = orca.host.plugin.storage()
+        kwargs = dict(html=ROUND_TRIP_PAGE, title="Temperature round trip (mock only)", width=440, height=720,
+                      on_message=self.on_message, on_close=self.on_close)
+        try:
+            self.panel = orca.host.ui.create_dock_panel(**kwargs, dock="right")
+        except Exception:
+            self.panel = orca.host.ui.create_window(**kwargs)
+        return orca.ExecutionResult.success("Mock-only Temperature companion opened.")
+
+    def on_close(self):
+        self.panel = None
+
+    def on_message(self, message):
+        if not isinstance(message, dict):
+            return
+        command = message.get("command")
+        try:
+            if command == "freeze":
+                self.state = TemperatureRoundTripState()  # Invalid capture cannot reuse a stale request.
+                self.state.freeze(capture_temperature_target(orca.host))
+                self.status = "Original target retained. Prepare/export with Orca normally, then select the actual file."
+            elif command == "file":
+                self.state.select_file(message.get("file"))
+                self.status = "Actual file choices and bytes verified; ready to export a mock request."
+            elif command == "export":
+                self.state.export(self.storage_root)
+                self.status = "Request exported; no print started and no preset value applied."
+            elif command == "result":
+                self.status = self.state.receive(message.get("result"))
+        except Exception as exc:
+            self.status = "Rejected: " + _error_reason(exc)
+        self._post_state()
+
+    def on_lifecycle_event(self, event, context):
+        if self.panel is not None and self.panel.is_open():
+            payload = lifecycle_event_payload(event, context)
+            if payload.get("event") in {"PresetSelected", "ProjectDirtyChanged"}:
+                # Read context in the subsequent supported UI message callback, not a slice/event thread.
+                self.panel.post({"command": "context_changed"})
+
+    def _post_state(self):
+        if self.panel is None or not self.panel.is_open():
+            return
+        same = False
+        try:
+            same = self.state.target is not None and _json_digest(capture_temperature_target(orca.host)) == _json_digest(self.state.target)
+        except Exception:
+            pass
+        self.panel.post({"command": "roundtrip_state", "target": self.state.target, "file": self.state.file,
+                         "request": self.state.request, "instructions": self.state.instructions,
+                         "export_path": self.state.export_path, "status": self.status,
+                         "current": build_context(orca.host), "current_matches_target": same})
+
+
 @orca.plugin
 class HelixCalibrationPlugin(orca.base):
     def register_capabilities(self):
         orca.register_capability(HelixCalibrationContext)
         orca.register_capability(ExportOrcaContextJson)
         orca.register_capability(NightlyQualificationPanel)
+        orca.register_capability(TemperatureRoundTripPanel)

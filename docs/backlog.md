@@ -79,7 +79,7 @@ events in that exact source.
 - [x] Add a small host-owned qualification panel and retained JSON evidence.
 - [x] Pass the interactive Windows qualification checklist with a real unsaved
   value, profile switching, normal Temperature preparation, and actual export.
-- [ ] Only after that gate, implement and prove the bounded mock-only round trip.
+- [x] After that gate, implement and prove the bounded mock-only round trip.
 - [ ] Freeze, independently review, and prepare one PR without merging it.
 
 Spare command and native GUI access are proven through the founder-approved
@@ -96,13 +96,15 @@ were retained before normal Temperature preparation in a separate temporary
 context. The new export/manual selection hashes agree, and all 1,429 normal
 settings/profile files remain unchanged. The report is in
 [`evidence/issue-4/windows/`](evidence/issue-4/windows/). Mock-only implementation
-may now proceed; the full round trip remains unfinished.
+has passed at all eleven native sizes and returned 205°C with original-profile
+**not applied** instructions. Duplicate/stale/conflicting results and artifact
+delivery failure/retry are proven. See [the proof](TEMPERATURE_ROUND_TRIP.md).
 
 The exact gate and agent-operated runbook are in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md). Linux-only
 evidence alone cannot replace this completed Windows observation.
 
-The round trip may exercise start/progress/completion/result states only in the
+The round trip exercises start/progress/completion/result states only in the
 separately isolated mock lifecycle. Qualification UI driving is test evidence,
 not supported product automation. Retain the host-owned modeless-window and
 manual-file-selection fallbacks. The interactive Temperature picker remains a

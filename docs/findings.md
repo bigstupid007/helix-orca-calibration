@@ -164,7 +164,8 @@ and [`../helix-plugin/PREFLIGHT.md`](../helix-plugin/PREFLIGHT.md).
   safety dialog and reset; close discarded all temporary project/preset edits.
 - The completed report and bounded target-only native frames are in
   [`evidence/issue-4/windows/`](evidence/issue-4/windows/). Mock-only bridge work
-  may proceed under the existing Issue #4 authority; the round trip is unfinished.
+  proceeds under the existing Issue #4 authority; the completed mock proof is
+  recorded in [TEMPERATURE_ROUND_TRIP.md](TEMPERATURE_ROUND_TRIP.md).
 
 Normal Orca preservation was checked after GUI testing: all 1429 settings/profile
 files matched the pre-test aggregate SHA-256
@@ -172,3 +173,21 @@ files matched the pre-test aggregate SHA-256
 `scripts/spare-normal-preservation.ps1` records the exact hash-only recipe and
 excludes cache, logs, and plugin data. This establishes normal profile/settings
 preservation, while the earlier shared browser-cache gap remains disclosed.
+
+## Actual mock round-trip findings
+
+- Orca `0.4.0` retained original saved/edited/effective 220/217/217 values,
+  associated the qualified file, and exported request `f4a33a9c…`. Native
+  Helix returned 205, and actual Windows reception named the original profile
+  and exact setting as **not applied** after a filament switch.
+- Windows duplicate, stale-ID and conflicting-duplicate selections preserved
+  the 205 instructions. All eleven native targets passed request/result
+  failure/retry, explicit mock Start, progress, completion and native selection.
+- Beta.4 lacks the example's i18n binding and queues overlay closes. English
+  fallback plus the supported close callback resolve those compatibility gaps.
+- Native HTTP refuses local/loopback destinations to protect the printer host.
+  No exception or upstream patch was introduced: the proof uses actual bounded
+  SSH/native-storage artifacts. Normal product permissionlessness is unchanged.
+- On relaunch the isolated nightly omitted the original colliding bundle leaf.
+  Re-importing the identical fixture bundle through the supported importer
+  restored it. Fresh sessions require that step. No normal profile was changed.

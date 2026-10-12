@@ -1,0 +1,446 @@
+{
+  "schema": "helix-orca-temperature-proof/v1",
+  "status": "pass",
+  "recorded_at_utc": "2026-10-12T02:51:34Z",
+  "runtime_candidate_files": {
+    "integration/calibration-bridge/main.lua": "3349e31aaa68683fb4e8cf17205ad73af3e57a734cfac4943affdeadc5cb0aaf",
+    "integration/calibration-bridge/manifest.json": "45865ff6a505692f3e2a008c652dbdef7dff605050d789ab5d9edf8690c5a8ba",
+    "integration/calibration-bridge/ui/calibration-bridge__ask.xml": "e9d72121a59e3a0a0ed1107427401c8365872d7d0a54278fc472a5d62b8ac16e",
+    "plugin/helix_calibration.py": "fd4d37b51ee61d4260f0ff5217841cc052c1210b12c14c1e46f8f6c9d371d844",
+    "scripts/temperature-roundtrip.py": "ab99fb12dba9124701c9ffef15e1dd25f3af9be402ab65de0c14e75bd4abe79b"
+  },
+  "helix_source_commit": "13a77bec42616d5c6f4fa397f1d5e12682fa4376",
+  "helix_binary_sha256": "ab819714fd469ff32657dc974585ad3bb05270829247da08eb71161a2d5197d0",
+  "upstream_bridge_commit": "ed8d0c4977873969613fcb49024109ff7df7d84e",
+  "orca_plugin_sha256": "fd4d37b51ee61d4260f0ff5217841cc052c1210b12c14c1e46f8f6c9d371d844",
+  "request_sha256": "5a52e7d4c5f09f3a4638e40fb06b14512c07bbed2c3f28dc9290c4057400fab1",
+  "request_id": "f4a33a9c526e24c63c2d653fc51cfb0c",
+  "context_sha256": "eb13a6b113f8c59d5a8d738034a9687e6299938fb82660468e51658b92d906e7",
+  "file": {
+    "name": "temperature-qualified-230-190-step5.gcode",
+    "size": 3619569,
+    "sha256": "24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b",
+    "bands": [
+      230,
+      225,
+      220,
+      215,
+      210,
+      205,
+      200,
+      195,
+      190
+    ]
+  },
+  "transport": "Pinned LAN SSH plus native plugin-storage artifacts; beta.4 HTTP printer-host guard preserved.",
+  "viewport_runs": [
+    {
+      "viewport": [
+        "micro_480x272",
+        480,
+        272,
+        "standard",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "6068737ab6616d118a5959576854a1967ce572200f4d44762286c749a5d0f35d",
+        "available": "0ad72c1b741639ad46f9656d5c48d90cce783d4a620a42c3f90c070ee612bcc2",
+        "printing": "41307e15d8453e4bb7e261b96d8c06a0956662ed74f3e2e979dc6dfa3e4d3845",
+        "progress": "5bbd386efb43181931790cd38d9b635d8525c7d507f27dcca9984943f2113f3f",
+        "completion": "253d5c0a7532db1cc358139ed4ae24a5e787fd96676f5a9a8cc45a4051c5ddfb",
+        "choice": "15e3de2eea822d4d9a9ca1d5f08fa42755a37ce0e5bb61aeec3a2bfdeef3355d",
+        "result-retry": "81c97523b46326df94bb1c8e6eed64bbb93fe0479ccd5fb22b2dbae7328755ea",
+        "returned": "d702baf39aa8c62d75b8c4f0d61d81ccda371b22c59f61ae53f8e2d3ddf13c82"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "micro_portrait_272x480",
+        272,
+        480,
+        "portrait",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "7a7196c902c00d5bb5752c4bc247106841a54cd0afc99215877f9d96f24094c9",
+        "available": "288a92f9e73ea677e412f0262f470202a4a6bb5be589446a5246635670e02571",
+        "printing": "50e0ddbf051dced16ba2b352ff6ecac37e91219ca5a98f7415189bef148d02d0",
+        "progress": "363e6363a051a93d1fb85257a972ec8240a7fe91e386c57b3f4630425ca67a52",
+        "completion": "ab9a1f38ee0805a0d0bfa7b4dd2dc569269bb68d07d9d1a45aec712aca4cc720",
+        "choice": "770abb8f3d1587e6b225b5ee5afb6617625bfc9dbccfeee896ea4fb437ce541f",
+        "result-retry": "8968aa961b19a348a646435a14918ce6c9b9bc7e9ef291ee6882106347d56492",
+        "returned": "feed9894537d266572ec070ac04d491d37da1a94984b81c6b3888509f2c87148"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "tiny_480x320",
+        480,
+        320,
+        "standard",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "dd4a06cb1b7313cca992959ccc216d263a67eef3824a0bf4f9b7777b682cd77f",
+        "available": "45ce62fb38e35989f6bf4cf8108f0910dfb0a1aaeebf59f8a4a6761116a30ab1",
+        "printing": "0990df1cec96fa86c39f44568623e675d61cc1752d88e4f5d92ec3153fd5a8de",
+        "progress": "56b5b38cc93596d39e36b86a7fb0135b49f223f59dba9385257569db3cf813c2",
+        "completion": "3e069ee30e260b932acd31930ddf6cfe37f6d274edc5b574cfca4277fb644c28",
+        "choice": "76f905ef50802eacb2c398c455b5ba1cd86994396ae144ebb2ed73be0e790788",
+        "result-retry": "69eb561955b6e69212089412b08ec8654c8be46e7c28bf1c041ea5eba8614198",
+        "returned": "853eddaaa4b14e8afdbc8a72857ad932348628c859bde521e9724fe2b9891582"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "small_480x400",
+        480,
+        400,
+        "standard",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "126797ffbc5b641580ccb823af279b2b8e78a6023f382b59013e61ae74267d5a",
+        "available": "6abb76c33745650e41bc045f876325d27315a2c269e19c15feb60bd5f1961c82",
+        "printing": "39bbb6a5e61c265369ae64cb7decc4f23b7c932360423cfcb80daa2b6a131157",
+        "progress": "b87681b9938dcd26d0afffa9250297686ec1ecc708cb6ab36c33421c6cf54fc8",
+        "completion": "895e5a3f34b42ff719a594aceba57aa8178ac57d46b45326eebd77eb41fefc79",
+        "choice": "6b594373663a9b8ec3da03beb124ef7475d0e59311adf0baaa90b3ecb924ef2e",
+        "result-retry": "7c763a5e890d8057a63c0dccfe8c0aa9f2340fba57b1ab9e005028c52c555f93",
+        "returned": "59f71101e16b4921395e5d036b8f7efb1c86b76f26730e08bb28082e204e66eb"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "medium_800x480",
+        800,
+        480,
+        "standard",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "9b53e1c7a6bf17d43665e31a3d72d03fef27dcc6e6fb8b688ef91de729a547a9",
+        "available": "657a15b1bc1e7082b51c372d20001156a1354eb99efe630f9c46859202463066",
+        "printing": "1011ee7a8870bfb87eab85af157338fb029f7d6b9712ce5148e01c040e34ce27",
+        "progress": "b370f284e259e8f75619be24266d178c287e9103485a2e6456685b6bae765040",
+        "completion": "621d91d7a531b18056f2833edcc4796a8b6a497ef15fabd8c8739f2b6fcfabe4",
+        "choice": "8621fb4d1ce524a16f5684d3b8f592d74637573f5ae34784fee6b345747d4243",
+        "result-retry": "eb9e9fb38f9361cb7551c8a8ee347b83d59fcd5818e90758dfe7c9dfb5215591",
+        "returned": "a6e45a416aaebef41c1f4379c645aa54969275038133da038c493c3dee35ba7a"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "portrait_480x800",
+        480,
+        800,
+        "portrait",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "8f3adb83944e6e45749e5b7e83a518de46ba89ac8875ae62a100b45d6a3a90a3",
+        "available": "078aecad3ff1ab908b30c7e9546628c49c2a77f9ea88ebf7193b19692324e669",
+        "printing": "22d9078d239a4e3761382859f93dff691d26014853cbb85689936d9200b5d3a2",
+        "progress": "46fddcbe21889a0e86b0d7a7e5c6f108b79dca6ef516201dae4c232c47f609d5",
+        "completion": "4573a943df4f45686e2fc859421f6ac5c8895387a78358eca3bb2ed858cf8ee9",
+        "choice": "b33e72c384d9a84c9f7c28391b41e7c523001677e725e3d6815b3063bc6fc0a4",
+        "result-retry": "809f98a29ff0e2d111724f020a597b37db7f94010a1d72079063f03d24e19efc",
+        "returned": "1f227ab4bbe147db3939c6401bb0f64609762e71704b30d3d6ab17efb43a7b84"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "large_1024x600",
+        1024,
+        600,
+        "standard",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "9ae235207d3717ef5cb82c626a510cedc4faeae92770364ee6c7a8c918a5439e",
+        "available": "b3a0b4aed5974147919f9e255a0fe1aaadc0d1e406978e4c7a40acbd83901032",
+        "printing": "c3a17fdfc6fedf8be8b04e9aae9f664fb1fc5e3c5e8a80564edfc7137e897650",
+        "progress": "69936391a81aa17de62c42520a732dea8f48cec80d41989b30fff6a81d770d21",
+        "completion": "8298bd1269281873249ec7ebb1f6672fc27e12cf5a20a3ab5e1567ded96951c4",
+        "choice": "c8e354564525e454fbabcf3da458d4e0a1f0cf805b7b6859ce8f308801bc6855",
+        "result-retry": "869373a30a39e3e6ca1e4ad33a3b4c8d53ba8fc09ca8a8201a41298b5c2e2590",
+        "returned": "d2817b14672268ff493e9b65b3a2435979f3cd8c183d2a50b563936fb69517de"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "xlarge_1280x720",
+        1280,
+        720,
+        "standard",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "5f25db1a7991ec4c31792181a228698496cf078d0a9c17e2e8016c83ee699aba",
+        "available": "cbab6506f74b778b9c04f941bed36ab046791265934ab4658595464216f2bb00",
+        "printing": "00f578729b675bf8558d71150b43419666a4d20ea24638d404a735a66e0a8a73",
+        "progress": "9f8a9dd5af400579178f36d09447541b49636fef49abbcc8e8271c1efbc24262",
+        "completion": "7456ec8f46acb26280dc43f6b78ebdd8bc4ff2cce8d67cfc790e35281ecd5d5c",
+        "choice": "76628a6c036a87a518a9026dbbef16bb8a1f8fa359bb2af71cb9eea1d117909c",
+        "result-retry": "75c922c3fd50882937ccb6f208f7b225b0bf3a2f60e062f1313fa6bb56c1ca13",
+        "returned": "9c90f859c57c6aff216a9ab5f23840eee9f148d2a9cde227a3a5338d119c884e"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "phone_1080x2400_dpi405",
+        1080,
+        2400,
+        "portrait",
+        405
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "c0848387fcc51ba3c46b555be07ddffbf3bde7396b530dfecb6746f7d2a2c1ad",
+        "available": "03f3522b7fbfe36b204861653d39f4a15c4b3a6d2f0f6bd08cc8ab4491fa3f84",
+        "printing": "df1fb42e22ec1c7935f43d4910e263d2450392cf31634a46d4284d606ffdeefa",
+        "progress": "3aa28019f9b32ed88f68669c9496f56577b1acb28ddee94bc9347e9f91b5d826",
+        "completion": "461b1c6d4da876630fac23172f77490ef876c7633d6bf17f84b7ceefb15f8dd6",
+        "choice": "2da7d197b496ed8b0c7cddde2b8f0a849a0b38d2541d8ee6f10bdb3872f6d030",
+        "result-retry": "9a657c450494bc570b66c8a962b5e4c11b8c9016dd9baa09350a3d459096aa5f",
+        "returned": "57792e28bfa5d567361fe213c95c96b26e03d8b69151747182e96266b8ed8626"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "ultrawide_1920x480",
+        1920,
+        480,
+        "ultrawide",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "07b39c5a0565e12e42dbc57e2bc59f86feceee6be3a857ebfdd7561e9ba9597d",
+        "available": "e81651c5bc8050fdccceaddb0f348c7ceab67b2eaf9a224b2e9d0a7a68637828",
+        "printing": "07e57d89bca03f11212d6627d93e9da87059b2af5f4fff22aa0481a41c3c2aa4",
+        "progress": "f959c9968c435afa3936530f1b7bc00c68d5f1846ae72ebe4f6612a5628d3eac",
+        "completion": "f4fa4cffd9073c56f48e7a6d3f1311e58b813420d9be9cf2bbec773e52236188",
+        "choice": "4343219eb1e7527e425273f9ff897a542cf3ac5257dcc52cf18d13d6f60c7530",
+        "result-retry": "1c4e02b28130e878b3aad835337b7fca92ab969c701fb64a4fed3c1461911d91",
+        "returned": "e92fd347dddd8f9e7ab7d6c7a632a643a38e3c4b37e3a61c2d07855535f64efa"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    },
+    {
+      "viewport": [
+        "tall_320x1480",
+        320,
+        1480,
+        "portrait",
+        160
+      ],
+      "status": "pass",
+      "network": "none",
+      "test": true,
+      "readonly_root": true,
+      "frames": {
+        "request-retry": "141b7e85f69a6ccbe15a9c50c8664f02fc489a69813108979348627800027b38",
+        "available": "1a4dd0d3358f94dc6d75e67e167da592ca4b45d9002e04449809c5722e46484f",
+        "printing": "13ecd3a079d23405deb39420caeaac226dea3a4b4e736a668757136d8bb09201",
+        "progress": "f26638310cfb1177f17162cf898fcf6c2e6f6ea7e9eea7dae2d13aba11d61a51",
+        "completion": "2d2229a889f0cecdcf715a392604ca2c25f36fadc1ea30d156c4fb9c6c2d6710",
+        "choice": "14db6a7ad68be0d19ccfc0b8d192991269c7052122637c1f6c5ed7b6f66c9953",
+        "result-retry": "4402a67a15f8e6528627f301e21b93a88418e30719055a09e79f7626b6f45dea",
+        "returned": "7936e3fa8a2139e6f6b3ab5012e179e8fca48ba01246ae2eaaa0571d5ac1f3a9"
+      },
+      "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44"
+    }
+  ],
+  "frames": {
+    "native/micro_480x272/available.png": "0ad72c1b741639ad46f9656d5c48d90cce783d4a620a42c3f90c070ee612bcc2",
+    "native/micro_480x272/choice.png": "15e3de2eea822d4d9a9ca1d5f08fa42755a37ce0e5bb61aeec3a2bfdeef3355d",
+    "native/micro_480x272/returned.png": "d702baf39aa8c62d75b8c4f0d61d81ccda371b22c59f61ae53f8e2d3ddf13c82",
+    "native/micro_portrait_272x480/available.png": "288a92f9e73ea677e412f0262f470202a4a6bb5be589446a5246635670e02571",
+    "native/micro_portrait_272x480/choice.png": "770abb8f3d1587e6b225b5ee5afb6617625bfc9dbccfeee896ea4fb437ce541f",
+    "native/micro_portrait_272x480/returned.png": "feed9894537d266572ec070ac04d491d37da1a94984b81c6b3888509f2c87148",
+    "native/tiny_480x320/available.png": "45ce62fb38e35989f6bf4cf8108f0910dfb0a1aaeebf59f8a4a6761116a30ab1",
+    "native/tiny_480x320/choice.png": "76f905ef50802eacb2c398c455b5ba1cd86994396ae144ebb2ed73be0e790788",
+    "native/tiny_480x320/returned.png": "853eddaaa4b14e8afdbc8a72857ad932348628c859bde521e9724fe2b9891582",
+    "native/small_480x400/available.png": "6abb76c33745650e41bc045f876325d27315a2c269e19c15feb60bd5f1961c82",
+    "native/small_480x400/choice.png": "6b594373663a9b8ec3da03beb124ef7475d0e59311adf0baaa90b3ecb924ef2e",
+    "native/small_480x400/returned.png": "59f71101e16b4921395e5d036b8f7efb1c86b76f26730e08bb28082e204e66eb",
+    "native/medium_800x480/request-retry.png": "9b53e1c7a6bf17d43665e31a3d72d03fef27dcc6e6fb8b688ef91de729a547a9",
+    "native/medium_800x480/available.png": "657a15b1bc1e7082b51c372d20001156a1354eb99efe630f9c46859202463066",
+    "native/medium_800x480/printing.png": "1011ee7a8870bfb87eab85af157338fb029f7d6b9712ce5148e01c040e34ce27",
+    "native/medium_800x480/progress.png": "b370f284e259e8f75619be24266d178c287e9103485a2e6456685b6bae765040",
+    "native/medium_800x480/completion.png": "621d91d7a531b18056f2833edcc4796a8b6a497ef15fabd8c8739f2b6fcfabe4",
+    "native/medium_800x480/choice.png": "8621fb4d1ce524a16f5684d3b8f592d74637573f5ae34784fee6b345747d4243",
+    "native/medium_800x480/result-retry.png": "eb9e9fb38f9361cb7551c8a8ee347b83d59fcd5818e90758dfe7c9dfb5215591",
+    "native/medium_800x480/returned.png": "a6e45a416aaebef41c1f4379c645aa54969275038133da038c493c3dee35ba7a",
+    "native/portrait_480x800/available.png": "078aecad3ff1ab908b30c7e9546628c49c2a77f9ea88ebf7193b19692324e669",
+    "native/portrait_480x800/choice.png": "b33e72c384d9a84c9f7c28391b41e7c523001677e725e3d6815b3063bc6fc0a4",
+    "native/portrait_480x800/returned.png": "1f227ab4bbe147db3939c6401bb0f64609762e71704b30d3d6ab17efb43a7b84",
+    "native/large_1024x600/available.png": "b3a0b4aed5974147919f9e255a0fe1aaadc0d1e406978e4c7a40acbd83901032",
+    "native/large_1024x600/choice.png": "c8e354564525e454fbabcf3da458d4e0a1f0cf805b7b6859ce8f308801bc6855",
+    "native/large_1024x600/returned.png": "d2817b14672268ff493e9b65b3a2435979f3cd8c183d2a50b563936fb69517de",
+    "native/xlarge_1280x720/available.png": "cbab6506f74b778b9c04f941bed36ab046791265934ab4658595464216f2bb00",
+    "native/xlarge_1280x720/choice.png": "76628a6c036a87a518a9026dbbef16bb8a1f8fa359bb2af71cb9eea1d117909c",
+    "native/xlarge_1280x720/returned.png": "9c90f859c57c6aff216a9ab5f23840eee9f148d2a9cde227a3a5338d119c884e",
+    "native/phone_1080x2400_dpi405/available.png": "03f3522b7fbfe36b204861653d39f4a15c4b3a6d2f0f6bd08cc8ab4491fa3f84",
+    "native/phone_1080x2400_dpi405/choice.png": "2da7d197b496ed8b0c7cddde2b8f0a849a0b38d2541d8ee6f10bdb3872f6d030",
+    "native/phone_1080x2400_dpi405/returned.png": "57792e28bfa5d567361fe213c95c96b26e03d8b69151747182e96266b8ed8626",
+    "native/ultrawide_1920x480/available.png": "e81651c5bc8050fdccceaddb0f348c7ceab67b2eaf9a224b2e9d0a7a68637828",
+    "native/ultrawide_1920x480/choice.png": "4343219eb1e7527e425273f9ff897a542cf3ac5257dcc52cf18d13d6f60c7530",
+    "native/ultrawide_1920x480/returned.png": "e92fd347dddd8f9e7ab7d6c7a632a643a38e3c4b37e3a61c2d07855535f64efa",
+    "native/tall_320x1480/available.png": "1a4dd0d3358f94dc6d75e67e167da592ca4b45d9002e04449809c5722e46484f",
+    "native/tall_320x1480/choice.png": "14db6a7ad68be0d19ccfc0b8d192991269c7052122637c1f6c5ed7b6f66c9953",
+    "native/tall_320x1480/returned.png": "7936e3fa8a2139e6f6b3ab5012e179e8fca48ba01246ae2eaaa0571d5ac1f3a9"
+  },
+  "windows_frames": {
+    "windows/roundtrip-original-retained.png": "61248066ab1bfd9749db3b39ddbc3c89c34b02fee47fce806bfd58c2f29089b9",
+    "windows/roundtrip-file-verified.png": "71ad4360576ace3cad16019b150ff1a32fe974d43415cdb1390d8fa7d324ef88",
+    "windows/roundtrip-instructions-native.png": "3344f25ae349f1a257cec74f71a3703acad3feba3acbbf998efeb4028ab9b596",
+    "windows/roundtrip-result-duplicate.png": "10d67f059e85294afc4eb468598a3286e2b6aea893abd807a9f31c402a5369c6",
+    "windows/roundtrip-result-stale.png": "3a7f283cad8f99381094a265d3abda0bf9eaa8eaeef4d343ce152ff30e60684e",
+    "windows/roundtrip-result-conflicting.png": "7f785fc0176512297c451ad1e8827411efab37d42621ed2db3637b316aef71d2"
+  },
+  "assertions": [
+    "mock-only request validated",
+    "actual file digest and bands validated",
+    "request failure visible; delivery and reload recover",
+    "receipt does not start printing",
+    "visible native pointer Start calls test mock",
+    "native mock publishes printing",
+    "controlled progress 50 and complete states",
+    "native dropdown chooses 205",
+    "native result write fails then Next retries same ID",
+    "returned native result matches original request",
+    "all native bridge states fit horizontally",
+    "accepted orcacal files unchanged"
+  ],
+  "limitations": [
+    "All printing is simulated in --test and --network none. No hardware execution or production transport.",
+    "Progress/completion use private native subjects; result selection uses native LVGL events while freeze pauses the synthetic pointer sampler.",
+    "Request delivery retry clears beta.4 native storage cache through hot reload; this is development infrastructure.",
+    "The G-code file remains private. Its byte digest, bands and original Windows provenance are committed."
+  ],
+  "product_hashes": {
+    "helix-plugin/orcacal/main.lua": "9e9617f8b90d0ed795f63de43fd266813a02aebfa1c47c1635c164bfd099ea56",
+    "helix-plugin/orcacal/manifest.json": "6de01177e6289dbd0faf155d9abe57d9e1c41a3392dda55db097e1ff1d7a9b0d",
+    "helix-plugin/orcacal/ui/orcacal__temperature.xml": "b221855d6defcf42914e2663a8ec3b30199a287b4abacf44c07330761caf00c0",
+    "helix-plugin/orcacal/ui/orcacal__tile.xml": "fdbdb78c0b1db680ca19dc2619abfe3eed5858749162abc55bf9b95bdea26eff",
+    "helix-plugin/orcacal/ui/orcacal__wizard.xml": "cc02d31b63f804c0aa34c54f8ba134c7e51817db8ba9417f672e502bffd34f81"
+  },
+  "isolation_contract": {
+    "network": "none",
+    "test": true,
+    "readonly_root": true,
+    "mounts": [
+      {
+        "destination": "/binary",
+        "rw": false
+      },
+      {
+        "destination": "/helix",
+        "rw": false
+      },
+      {
+        "destination": "/plugin",
+        "rw": false
+      },
+      {
+        "destination": "/state",
+        "rw": true
+      },
+      {
+        "destination": "/plugin/calibration-bridge",
+        "rw": false
+      },
+      {
+        "destination": "/plugin/orcacal",
+        "rw": false
+      },
+      {
+        "destination": "/helix/assets/test_gcodes",
+        "rw": false
+      }
+    ],
+    "binary_sha256": "29dbb6f32b26561b781522991279bf6f31d6acc4230f4bb6ac0cc9d6947ffcb4",
+    "product_hashes": {
+      "helix-plugin/orcacal/main.lua": "9e9617f8b90d0ed795f63de43fd266813a02aebfa1c47c1635c164bfd099ea56",
+      "helix-plugin/orcacal/manifest.json": "6de01177e6289dbd0faf155d9abe57d9e1c41a3392dda55db097e1ff1d7a9b0d",
+      "helix-plugin/orcacal/ui/orcacal__temperature.xml": "b221855d6defcf42914e2663a8ec3b30199a287b4abacf44c07330761caf00c0",
+      "helix-plugin/orcacal/ui/orcacal__tile.xml": "fdbdb78c0b1db680ca19dc2619abfe3eed5858749162abc55bf9b95bdea26eff",
+      "helix-plugin/orcacal/ui/orcacal__wizard.xml": "cc02d31b63f804c0aa34c54f8ba134c7e51817db8ba9417f672e502bffd34f81"
+    },
+    "bridge_hashes": {
+      "integration/calibration-bridge/main.lua": "3349e31aaa68683fb4e8cf17205ad73af3e57a734cfac4943affdeadc5cb0aaf",
+      "integration/calibration-bridge/manifest.json": "45865ff6a505692f3e2a008c652dbdef7dff605050d789ab5d9edf8690c5a8ba",
+      "integration/calibration-bridge/ui/calibration-bridge__ask.xml": "e9d72121a59e3a0a0ed1107427401c8365872d7d0a54278fc472a5d62b8ac16e"
+    }
+  },
+  "result_sha256": "eb3cf40220bc7f02e95dfc067ec417f9e4d75ae3b1a954695efc7ecb49dc3f44",
+  "normal_preservation": {
+    "recorded_at_utc": "2026-10-12T02:45:44.1951338Z",
+    "scope": "Normal Orca .json/.conf/.ini excluding cache, logs, plugins; relative path, space, uppercase file hash, LF, no trailing LF",
+    "unchanged": true,
+    "baseline_sha256": "ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0",
+    "file_count": 1429,
+    "aggregate_sha256": "ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0"
+  },
+  "windows_validation": {
+    "target": "Spare",
+    "orca_build": "210bc927",
+    "plugin_version": "0.4.0",
+    "profile_switch": true,
+    "duplicate_ignored": true,
+    "stale_id_rejected": true,
+    "conflicting_duplicate_rejected": true,
+    "instructions": "not applied",
+    "selected_temperature": 205
+  },
+  "matrix_sha256": "b7d92153afe82c507989d2f4b28f5164c5cc9c1f8da46961e551e6070b4b97dc"
+}

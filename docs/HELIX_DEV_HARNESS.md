@@ -163,3 +163,14 @@ whitespace check. It deliberately does not perform a large native source build.
 Native interactive and eleven-target capture remains the reproducible devbox
 gate above; CI proves that its bounded promoted result is still tied to the
 checked-out candidate.
+
+## Separate Issue #4 integration proof
+
+The ordinary harness and permissionless product plugin remain unchanged.
+`temperature-roundtrip.py` reuses the exact verified beta.4 assets and private
+control/viewport helpers while separately mounting the pinned development
+bridge in `--test`/`--network none`. It uses marked XDG state, read-only mount
+scaffolding in cache, and the same reserved LAN review port. It preserves the
+native HTTP printer-host protection and uses real native-storage/SSH artifacts.
+Complete eleven-target proof and operator commands are in
+[TEMPERATURE_ROUND_TRIP.md](TEMPERATURE_ROUND_TRIP.md).
