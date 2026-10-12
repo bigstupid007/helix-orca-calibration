@@ -33,8 +33,8 @@ At 18:51 UTC on October 11 (1:51 p.m. America/Chicago), this session observed:
 | Check | Observation | What it proves |
 | --- | --- | --- |
 | Shell identity | devbox, Linux `6.8.0-146-generic` | Implementation execution is on devbox |
-| Spare name resolution | `192.168.1.155` | Current address resolved by devbox |
-| Established SSH socket | Spare address to `192.168.1.114:22` | Spare-to-devbox connection exists |
+| Spare name resolution | Owner-confirmed private LAN address | Current address resolved by devbox |
+| Established SSH socket | Spare address to devbox's LAN SSH endpoint | Spare-to-devbox connection exists |
 | SSH to Spare | Eight-second batch-mode attempt timed out before authentication | Windows execution via reverse SSH is unproven |
 | TCP to Spare ports 22, 3389, 5985 | Each five-second check timed out | These standard access endpoints were unreachable from devbox |
 | Session tools | No Windows-local command or desktop-control tool | Launching this chat on Spare does not provide Windows execution here |

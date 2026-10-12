@@ -127,8 +127,8 @@ and data remain separate. Open the companion from the normal Plugins menu path
 above if needed; original target/request state survives closing/reopening that
 panel within this process.
 
-The native proof viewer uses the already reserved trusted-LAN address
-`http://192.168.1.114:8540/`. It shows native frames and forwards bounded
+The native proof viewer uses the reserved trusted-LAN address supplied in the
+private task handoff. It shows native frames and forwards bounded
 native tap/drag/Home/Back/capture input. **Finish simulated print** is the sole
 additional proof control: after a received request is explicitly started, it
 uses the same isolated mock completion sequence as the capture driver. It

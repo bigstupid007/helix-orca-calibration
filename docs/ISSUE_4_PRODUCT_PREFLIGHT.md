@@ -10,7 +10,8 @@ Implementation checkpoint `bd6178d45bbd9db02a10bc5425b4dfec199ad947` received on
 fresh-context independent engineering and Cold-Start UX review under the shared
 Development System authority. Corrections are frozen at
 `6044d04cf011a100cc92e7345c406343d04bf3ed`; later changes only reconcile review
-navigation wording and this closeout record. The final PR head and CI/re-review
+navigation wording, this closeout record, and private-address redaction from
+public review documents. The final PR head and CI/re-review
 result are recorded in the Issue #4 GitHub checkpoint.
 
 The exact runtime source hashes and executed binary are bound by
