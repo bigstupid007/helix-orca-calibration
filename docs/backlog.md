@@ -80,7 +80,7 @@ events in that exact source.
 - [x] Pass the interactive Windows qualification checklist with a real unsaved
   value, profile switching, normal Temperature preparation, and actual export.
 - [x] After that gate, implement and prove the bounded mock-only round trip.
-- [ ] Freeze, independently review, and prepare one PR without merging it.
+- [x] Freeze, independently review, and prepare one PR without merging it.
 
 Spare command and native GUI access are proven through the founder-approved
 LAN-only worker, including the repaired bounded-pipe regression. The exact
@@ -99,6 +99,10 @@ settings/profile files remain unchanged. The report is in
 has passed at all eleven native sizes and returned 205°C with original-profile
 **not applied** instructions. Duplicate/stale/conflicting results and artifact
 delivery failure/retry are proven. See [the proof](TEMPERATURE_ROUND_TRIP.md).
+PR #5 remains unmerged for Founder Review. The independent correction recheck
+and lead [AI Product Preflight](ISSUE_4_PRODUCT_PREFLIGHT.md) are clean; final
+head/CI identity is recorded in the governing Issue checkpoint. This is not
+founder acceptance. Unlock Spare to view the existing Windows companion.
 
 The exact gate and agent-operated runbook are in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md). Linux-only

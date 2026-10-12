@@ -105,6 +105,8 @@ and real artifact delivery failures/retries are proven. The accepted Helix
 plugin remains unchanged. Native beta.4's loopback HTTP guard is preserved;
 the isolated proof uses pinned LAN SSH and native plugin-storage artifacts.
 See [the proof and working review path](docs/TEMPERATURE_ROUND_TRIP.md).
+The [candidate review and AI Product Preflight](docs/ISSUE_4_PRODUCT_PREFLIGHT.md)
+record the resolved findings and Founder Review limits. PR #5 remains unmerged.
 
 Qualification UI driving and complete mock lifecycle simulation remain test
 infrastructure. Modeless-window and explicit manual-file fallbacks remain

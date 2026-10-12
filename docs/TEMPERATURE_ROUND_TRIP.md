@@ -155,7 +155,7 @@ For Founder Review:
    result names **Generic PLA - Voron Rapido - Initial**, **Other layers**, saved
    **220°C**, edited/effective **217/217°C**, selected **205°C**, and **NOT APPLIED**.
 
-After **Home**, return through **Settings > Plugins > calibration-bridge > Open**;
+After **Home**, return through **Settings > Plugins > Calibration Bridge Mock Proof > Settings > Open calibration**;
 drag upward within the native settings list to reach Plugins. The accepted
 Orca Calibration tile remains its separate Issue #1 chooser/detail/toast flow.
 Native **Back/Home** also returns to that unchanged accepted shell.

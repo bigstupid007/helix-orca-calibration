@@ -204,7 +204,7 @@ def serve():
     if original not in d.h.VIEWER_HTML:raise ValueError('Native viewer input contract changed')
     d.h.VIEWER_HTML=d.h.VIEWER_HTML.replace(original,replacement).replace(
         "Inputs are sent through Helix's native synthetic pointer.",
-        "Tap or drag to scroll. Start the mock, then Finish simulated print to reach its choices. Reopen: Home → Settings → Plugins → calibration-bridge → Open.").replace(
+        "Tap or drag to scroll. Start the mock, then Finish simulated print to reach its choices. Reopen: Home → Settings → Plugins → Calibration Bridge Mock Proof → Settings → Open calibration.").replace(
         '<button data-action="capture">Save capture</button>',
         '<button data-action="finish-mock">Finish simulated print</button><button data-action="capture">Save capture</button>')
     base=d.h.ViewerHandler
