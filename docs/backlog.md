@@ -106,7 +106,8 @@ operator paths. Founder subsequently confirmed the 205°C return but rejected
 the companion’s diagnostic-first primary screen. Its result-first repair
 retains the working transport and exposes the original profile, live effective
 value, selected temperature, exact manual steps and prominent NOT APPLIED.
-The focused Windows/browser proof and final independent review are tracked in
+Focused Windows/browser proof, fresh independent review and affected AI
+Product Preflight pass; the candidate is ready for Founder Review. They are tracked in
 [AI Product Preflight](ISSUE_4_PRODUCT_PREFLIGHT.md), with exact candidate and
 CI identity recorded in the governing Issue checkpoint. Windows qualification
 is complete and has not been restarted for this repair.

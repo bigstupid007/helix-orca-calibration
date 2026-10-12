@@ -232,3 +232,12 @@ the edit and switching to the template showed live 220°C separately from
 original effective 217°C, with a profile-change warning and NOT APPLIED.
 The prior native/browser reports retain their original source hashes; focused
 companion evidence binds this repair.
+
+The fresh independent review at `2d0b7fe1…` passed with no findings. Its cold
+accessibility/frame assessment verified every primary operator fact before
+implementation notes. Spare locked afterward; guarded capture correctly refused.
+No lock bypass or repeat qualification was attempted. The source-bound actual
+frame, lead’s completed fresh import/diagnostic proof, browser disclosure/reset
+checks and unchanged callback/state AST were sufficient for this bounded review.
+Lead affected-surface Product Preflight passes; owner unlock is needed only to
+view the already loaded Founder candidate. PR #5 remains unmerged.

@@ -1,7 +1,7 @@
 # Issue #4 companion Founder Review repair
 
-Status: focused implementation and Windows/browser validation pass; independent
-review and exact-head Product Preflight pending at the frozen candidate boundary.
+Status: focused Windows/browser validation, independent review and affected-surface
+AI Product Preflight pass. Ready for Founder Review.
 PR #5 remains unmerged. Founder confirmed the 205°C return but rejected the
 companion's diagnostic-first primary experience. No Founder acceptance is claimed.
 
@@ -48,6 +48,44 @@ The old native/browser reports keep their original exact capture identities.
 Their eleven-target proof carries forward only when all other runtime source
 hashes match and the plugin's non-presentation AST is unchanged. The focused
 verifier rejects unrelated source changes and missing/tampered companion proof.
+
+## Independent disposition and affected Product Preflight
+
+One fresh-context independent reviewer assessed clean frozen head
+`2d0b7fe1b2c50b0c0da557a1fbebca2dbfdc8efa` against `b0484f2`.
+Disposition: **PASS, no actionable findings**. Before implementation notes, the
+reviewer read the actual qualified Orca accessibility tree and independently
+inspected the source-bound Windows frame. The operator facts and exact manual
+path were comprehensible from the primary card; no diagnostic expansion was
+needed. The reviewer verified source/evidence hashes, the unchanged runtime AST,
+all 78 tests and affected documentation. Later closeout edits change only docs;
+executed and independently reviewed source identities remain identical.
+
+Spare locked after the live accessibility read. Guarded capture correctly refused
+while LockApp was foreground. The reviewer did not bypass the lock or repeat
+optional pointer expansion/close/reopen actions. Those repetitions were not a
+material gate: lead had already proved actual fresh companion file/request/result
+import and diagnostic expansion, fresh browser checks cover the disclosure/reset
+behavior, and Python execute/on_close/state/callback code is unchanged. Unlock is
+needed to view the existing Founder candidate, not to restart qualification or
+repair infrastructure.
+
+Lead AI Product Preflight of the affected companion passes on this source:
+actual fresh companion progression through original 220/217/217 capture, exact
+qualified file selection, immutable request creation, native correlated 205°C
+return, profile switch, manual result import and result-first instructions. The
+primary view visibly distinguishes retained 217°C from live template 220°C and
+selected 205°C, names the exact original profile/setting, gives the manual entry
+and optional save decision, and states NOT APPLIED. Technical artifacts are
+accessible separately. Normal Orca files and accepted Helix sources are preserved.
+No additional broad product review or qualification loop is required.
+
+For Founder Review, unlock Spare and read the already loaded **Temperature
+calibration** companion. Verify the primary result/instruction card first;
+optional diagnostics need no recovery path. The private native viewer and its
+previously repaired Home/Back/Finish controls remain unchanged. No automatic
+profile application, production printer operation, release or merge is claimed.
+Exact final PR head and CI disposition are recorded in Issue #4.
 
 ## Previous navigation/simulation repair — retained historical evidence
 
