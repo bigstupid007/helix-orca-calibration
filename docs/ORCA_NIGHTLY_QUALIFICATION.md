@@ -2,11 +2,11 @@
 
 ## Status
 
-Source qualification is complete; Windows x64 runtime qualification is still
-pending. Do not begin the Temperature round-trip implementation until every
-required observation below has been captured from the fixed Windows build.
-Linux execution, Wine, source inspection, or a headless Windows CI process is
-not a substitute for this interactive target-runtime check.
+The fixed Windows x64 runtime has executed on Spare. Qualification is **blocked**
+on the supplied original user printer preset's collision with a bundled System
+preset; Windows runtime qualification is still pending until that exception is
+resolved. Mock round-trip implementation has not
+begun. Linux/source evidence cannot replace this original-context requirement.
 
 This gate qualifies the existing read-only Orca context plugin and the host
 surfaces needed by Issue #4. Passing it does not authorize the round-trip
@@ -47,19 +47,52 @@ minimum LAN-only command/interactive GUI access. The prepared route in
 existing outbound SSH path; no Windows listener, installation, firewall change,
 new key/account, or Tailscale is needed. Command execution and a native button
 click are now proven. The exact nightly and test inputs were transferred and
-hash-verified. An output-pipe capture timeout interrupted the launch retry;
-the corrected worker needs one owner-only restart and focused Windows proof.
+hash-verified. The restarted worker passed an actual bounded-pipe capture regression,
+and the retry nightly was observed running.
 
 The first launch used an unsupported `--no-single-instance` flag and crashed;
-that flag has been removed. Its internal parser helper is not CLI registration.
-A retry with only `--datadir` has an unresolved outcome. Inspect test process
-state/logs after reconnecting before relaunching. Normal Orca remains outside
-the tooling's process/path/input guards. These observations do not pass the
-Windows qualification gate. The agent then verifies Windows
-hostname/account/session, normal Orca processes, and isolated paths and owns
-setup and evidence collection. Stop only for unavoidable owner-only access or
-a material risk change outside the approval. The Windows qualification gate
-itself remains unchanged.
+that flag was removed. Reconnection confirmed the original-argument retry was
+running. The corrected worker then passed its actual Windows bounded-pipe
+regression. No further owner access action is pending.
+
+### Material qualification exception and retained observations
+
+The supplied user printer `Voron 2.4 300 0.4 nozzle` cannot be imported by the
+normal importer: the actual Windows dialog reports zero imported configs.
+Runtime context identifies the existing same-named preset as **System**. The
+exact `210bc927` source at `src/libslic3r/PresetBundle.cpp:1889` checks an existing
+preset and rejects it when it is System/default. Selecting the imported parent
+`Voron Voron 2.4 300 0.4 nozzle` or bundled System preset does not qualify the
+original user leaf. Renaming/reinterpreting that target or modifying upstream
+is outside this qualification checkpoint; resolve an approved original-context
+path before passing the gate.
+
+Other actual observations are retained privately in XDG state at
+`~/.local/state/helix-orca-calibration/windows-access/evidence/`:
+
+- the supported local `.py` installer activates all three capabilities;
+- diagnostic JSON distinguishes saved `220 °C`, edited `217 °C`, and merged
+  `217 °C` for the intended filament, with dirty state and inheritance recorded;
+- the host dock shows `2.5.0-dev`, `210bc927`, target match Yes, real context,
+  useful preset events and dirty true/false; explicit refresh follows selection;
+- normal built-in PLA Temperature preparation/manual export creates nine bands,
+  230 through 190 °C in 5 °C steps, with 50 layer commands per band;
+- the actual exported file is 3,619,562 bytes, SHA-256
+  `0f70497ac2237d34838a648c72299855d4d64d35073ebbd0655842ecdd83f06d`;
+- export lifecycle payloads identify only the temporary slicing file (job ID 7),
+  not the selected export destination. Manual selection therefore remains
+  required; the native picker read that exact export and verified its hash and
+  choices in the actual dock;
+- `--datadir` alone shared normal Orca WebView2 browser data. The guard refused
+  input to its shared browser picker. The repaired launcher uses Microsoft's
+  documented child-only `WEBVIEW2_USER_DATA_FOLDER` override and actual Windows
+  process ancestry proves separate browser data after relaunch. See
+  [Microsoft's environment override reference](https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/webview2-idl).
+
+Pre-repair observations support individual capability findings but do not prove
+complete browser isolation. No partial capture is promoted as a gate pass.
+Normal Orca PID 40056 stayed running; no normal preset was selected for input,
+no printer action occurred, and no mock transport implementation began.
 
 ## Fixed target
 
@@ -121,15 +154,18 @@ uses this separate data directory by default:
 %LOCALAPPDATA%\HelixOrcaCalibration\issue-4-nightly-210bc927
 ```
 
-It stages only the current `plugin/helix_calibration.py` and the bounded test
+It stages the current `plugin/helix_calibration.py` as a local-install input
+and the bounded test
 profiles into that directory, records the exact `--datadir` launch arguments,
 and creates `qualification-output` for manual export. Existing Orca program
 files, settings, presets, and login state are not selected.
 
-Close every ordinary Orca process before running the qualification so Windows
-single-instance handoff cannot redirect the request into a different process.
-The launcher prints the new process ID, data path, plugin hash, output path, and
-launch-record path.
+The portable executable and separate marked data path were observed alongside
+the untouched ordinary Orca process. The launcher also sets a child-only
+WebView2 data override; verify a separate browser process/storage path before
+any plugin UI input. It prints the test process ID and records launch metadata.
+Install the staged `.py` through Plugins > Install local plugin; copying into
+`orca_plugins` alone did not initially register it.
 
 ## Interactive checklist
 
@@ -222,3 +258,10 @@ test infrastructure.
 
 The interactive Temperature picker remains a deferred product requirement and
 is not part of this qualification or Issue #4 implementation.
+
+Normal Orca preservation was checked after GUI testing: all 1429 settings/profile
+files matched the pre-test aggregate SHA-256
+`ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0`.
+`scripts/spare-normal-preservation.ps1` records the exact hash-only recipe and
+excludes cache, logs, and plugin data. This establishes normal profile/settings
+preservation, while the earlier shared browser-cache gap remains disclosed.

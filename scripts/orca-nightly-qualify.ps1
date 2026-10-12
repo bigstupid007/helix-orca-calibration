@@ -78,7 +78,7 @@ $MarkerPayload = @{
 } | ConvertTo-Json
 Set-Content -LiteralPath $MarkerPath -Value $MarkerPayload -Encoding utf8
 
-$PluginDir = Join-Path $DataDir "orca_plugins"
+$PluginDir = Join-Path $DataDir "qualification-inputs\plugin"
 $InputDir = Join-Path $DataDir "qualification-inputs"
 $OutputDir = Join-Path $DataDir "qualification-output"
 New-Item -ItemType Directory -Path $PluginDir -Force | Out-Null
@@ -109,6 +109,7 @@ $LaunchRecord = @{
     plugin_sha256 = $PluginHash
     output_dir = $OutputDir
     arguments = @("--datadir", $DataDir)
+    webview2_user_data_folder = (Join-Path $DataDir "webview2")
 }
 $LaunchRecordPath = Join-Path $DataDir "qualification-launch.json"
 $LaunchRecord | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $LaunchRecordPath -Encoding utf8
@@ -119,5 +120,13 @@ Write-Host "Staged plugin SHA-256: $PluginHash"
 Write-Host "Manual export directory: $OutputDir"
 Write-Host "Launch record: $LaunchRecordPath"
 
-$Process = Start-Process -FilePath $ExePath -ArgumentList @("--datadir", ('"{0}"' -f $DataDir)) -PassThru
+# WebView2 otherwise shares normal Orca's per-user browser state even with
+# --datadir. Override only the child process environment; never user/machine env.
+$Start = [Diagnostics.ProcessStartInfo]::new()
+$Start.FileName = $ExePath
+$Start.WorkingDirectory = $OrcaDir
+$Start.Arguments = '--datadir "' + $DataDir + '"'
+$Start.UseShellExecute = $false
+$Start.EnvironmentVariables['WEBVIEW2_USER_DATA_FOLDER'] = Join-Path $DataDir 'webview2'
+$Process = [Diagnostics.Process]::Start($Start)
 Write-Host "Started isolated Orca process $($Process.Id). Existing Orca settings were not selected."

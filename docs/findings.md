@@ -124,8 +124,40 @@ and [`../helix-plugin/PREFLIGHT.md`](../helix-plugin/PREFLIGHT.md).
   was removed rather than patching Orca or replacing the fixed target.
 - The original-argument/portable-working-directory retry then exposed the
   testing worker's unbounded asynchronous pipe-EOF wait. The bridge timed out.
-  Capture waits are now bounded; actual Windows regression requires one
-  owner-only restart. Retry process/UI state remains unobserved.
+  Capture waits are now bounded. After the owner restart, a real Windows
+  inherited-pipe regression returned in 2.11 seconds and a following probe
+  succeeded. The retry process and setup wizard were observed.
 - Normal Orca was not closed or selected for input; product code and accepted
   Helix behavior remain unchanged. Qualification and round-trip work remain
   gated until actual context/panel/lifecycle/export proof is complete.
+
+### Spare qualification observations — 2026-10-12 UTC
+
+- Actual Windows context distinguishes saved filament `220 °C`, edited copy
+  `217 °C`, and merged effective `217 °C`; the editor confirms an unsaved edit.
+- The dock reports `2.5.0-dev` / `210bc927` / target match Yes. Preset changes
+  and dirty true/false payloads arrive; explicit refresh reads the real new
+  selection. Context is not silently refreshed by an event alone.
+- Built-in PLA Temperature preparation and normal manual export produced all
+  nine 230–190 °C choices. Export events refer to the temporary slicing file,
+  not the user's export destination. Manual file selection must bind the
+  actual bytes/hash; that fallback was proven in the isolated browser.
+- `crypto.subtle` is unavailable in the host's `about:blank` document. Local
+  byte hashing passed independent SHA-256 padding/standard vectors and matched
+  the real file on Windows. File selection does not write a preset or file.
+- `--datadir` did not isolate WebView2 browser data. A child-only
+  `WEBVIEW2_USER_DATA_FOLDER` override produced a distinct test browser process
+  and data folder. Ordinary Orca and its browser were left running.
+- Material gate exception: the supplied user printer name
+  `Voron 2.4 300 0.4 nozzle` is already a System preset in the fixed nightly.
+  Its import returns zero; exact-source `PresetBundle.cpp` rejects existing
+  System presets. The imported `Voron Voron 2.4 300 0.4 nozzle` parent and the
+  bundled System preset are distinct contexts. Neither is accepted as the
+  original supplied printer leaf. Qualification and integration remain blocked.
+
+Normal Orca preservation was checked after GUI testing: all 1429 settings/profile
+files matched the pre-test aggregate SHA-256
+`ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0`.
+`scripts/spare-normal-preservation.ps1` records the exact hash-only recipe and
+excludes cache, logs, and plugin data. This establishes normal profile/settings
+preservation, while the earlier shared browser-cache gap remains disclosed.

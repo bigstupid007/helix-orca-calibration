@@ -85,12 +85,17 @@ LAN-only access envelope. A prepared unelevated Windows worker carries command
 requests through the existing outbound SSH connection to a private devbox Unix
 socket. It needs no Windows listener, service, firewall change, or Tailscale.
 The worker executes inside the visible desktop. Commands and a native GUI click
-were proven there. A later output-pipe EOF wait interrupted access; the repaired
-worker requires a local restart and a focused Windows regression check. Transport details
+were proven there. The restarted worker passed an actual inherited-pipe capture
+regression in 2.11 seconds and remained connected. Transport details
 and operational boundaries are in [`SPARE_TEST_ACCESS.md`](SPARE_TEST_ACCESS.md). Source/tests and
 devbox execution cannot satisfy the Windows gate. The fixed nightly must use
 its own portable directory and marked `--datadir`, preserving the normal Orca
-installation and profiles.
+installation and profiles. `WEBVIEW2_USER_DATA_FOLDER` is set only in the
+nightly child environment: `--datadir` alone reused normal Orca browser data.
+Separate browser process ancestry and data storage were verified after relaunch.
+The qualification gate remains blocked by the supplied user printer name
+colliding with a bundled System preset; the runtime must not substitute that
+preset or its imported parent for the original context.
 
 Prefer the Orca-owned dock panel and lifecycle file association. If necessary,
 qualify a host-owned modeless window and explicit manual file selection under

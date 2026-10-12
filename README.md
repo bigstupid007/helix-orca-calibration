@@ -73,17 +73,26 @@ for exact build/context/lifecycle evidence.
 
 The Windows launcher and interactive checklist are in
 [`docs/ORCA_NIGHTLY_QUALIFICATION.md`](docs/ORCA_NIGHTLY_QUALIFICATION.md).
-Spare is the intended interactive Windows target. The founder approved minimum
-LAN-only command/GUI testing access on October 11. The prepared unelevated
-reverse worker reuses existing SSH without a Windows listener, installation,
-firewall change, or Tailscale. Commands and native GUI input were proven on
-Spare. The exact nightly was transferred and its executable/DLL hashes verified;
-qualification remains pending. A launch exposed an output-pipe timeout in the
-worker; the repaired worker requires one local restart before runtime checks
-continue. See [`docs/SPARE_TEST_ACCESS.md`](docs/SPARE_TEST_ACCESS.md).
+Spare is the verified interactive Windows target. The founder-approved LAN-only
+worker uses existing pinned SSH, without an inbound Windows service, firewall
+change, Tailscale, or identity changes. Its restarted command capture passed the
+actual Windows inherited-pipe regression. See
+[`docs/SPARE_TEST_ACCESS.md`](docs/SPARE_TEST_ACCESS.md).
 
-Windows runtime qualification is still pending, so no round-trip transport,
-result handling, profile writeback, or printing behavior has been implemented.
+The fixed Windows nightly now proves plugin installation, real saved `220 °C`
+versus unsaved/merged `217 °C`, a working Orca-owned dock, useful preset/dirty
+events, and normal Temperature preparation/export. The exported file contains
+all nine `230–190 °C` choices. Lifecycle events identify only the temporary
+slicing file; native manual selection verified the actual export's bytes/hash.
+A child-only WebView2 data override now separates test browser state as well as
+Orca settings.
+
+Qualification remains **blocked**: the supplied user printer preset
+`Voron 2.4 300 0.4 nozzle` collides with a bundled System preset, and the exact
+nightly rejects its import. The imported parent and bundled System preset are
+recorded truthfully; neither substitutes for the original target profile.
+No mock round-trip transport or result handling has begun. See the material
+exception in [`docs/ORCA_NIGHTLY_QUALIFICATION.md`](docs/ORCA_NIGHTLY_QUALIFICATION.md).
 The accepted Helix plugin remains unchanged.
 
 The approved integration may later simulate a complete print lifecycle only in

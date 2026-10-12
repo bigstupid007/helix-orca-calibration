@@ -82,16 +82,18 @@ events in that exact source.
 - [ ] Only after that gate, implement and prove the bounded mock-only round trip.
 - [ ] Freeze, independently review, and prepare one PR without merging it.
 
-Spare is the intended Windows target, superseding any LAPTOP-EC83OFDE
-assumption. On October 11, Spare-to-devbox SSH was established; reverse SSH,
-RDP, and WinRM connection checks timed out. This is a documented access
-exception, not a Windows capability failure or qualification pass. The founder
-subsequently approved minimum LAN-only testing access. Windows commands and a
-real native GUI click are now proven, and the pinned nightly and bounded test
-inputs are staged and hash-verified. An output-pipe bug interrupted the launch
-retry; the corrected worker awaits an unavoidable local restart and Windows
-regression check. See [`SPARE_TEST_ACCESS.md`](SPARE_TEST_ACCESS.md).
-Qualification remains pending; no round-trip implementation has begun.
+Spare command and native GUI access are proven through the founder-approved
+LAN-only worker, including the repaired bounded-pipe regression. The exact
+nightly has run in the marked settings tree with separate WebView2 browser data.
+Real context, unsaved values, dock/preset/dirty events, manual Temperature export,
+and byte/hash-verified manual selection have been observed. Export lifecycle
+payloads identify the temporary slicing file, so manual selection is required.
+
+The gate is **blocked** on the original printer identity: importing the supplied
+user `Voron 2.4 300 0.4 nozzle` returns zero imports because a bundled System
+preset already uses that name. No substitute is silently accepted. Resolution
+needs an approved original-context qualification path; no round-trip
+implementation has begun. See [`SPARE_TEST_ACCESS.md`](SPARE_TEST_ACCESS.md).
 
 The exact gate and agent-operated runbook are in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md). Linux-only

@@ -13,8 +13,9 @@ native button click were proven in session 1 as unelevated
 SHA-256 `43c8f20c4aa69a03eb46df2d70f7b18035d5771f9cfd5a1c9389e6793f5fd327`.
 A later launch exposed an unbounded output-pipe EOF wait when a descendant
 retained a handle; the transport expired. The worker now bounds each EOF wait
-to 750 milliseconds and reports incomplete capture. The repaired worker needs
-one local restart and Windows regression proof. This is access infrastructure,
+to 750 milliseconds and reports incomplete capture. The owner restarted the repaired worker. A harmless inherited-pipe command
+returned bounded incomplete capture in 2.11 seconds, and the following probe
+succeeded. This is access infrastructure,
 not a completed Orca qualification or product behavior. The exact
 nightly qualification gate remains in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md).
@@ -124,10 +125,41 @@ remain in user cache/state for reproducibility.
   that CLI registration is commented out, despite an internal parser helper.
   The flag was removed; no upstream or normal installation was modified.
 - A retry with only `--datadir` and the portable working directory was issued,
-  but its result was lost when output capture timed out. Inspect current test
-  processes, windows, and test logs after reconnecting before another launch.
-  Do not infer that the bare nightly fails or that qualification passes.
+  but its result was lost when output capture timed out. Reconnection confirmed
+  PID 36236 and the real setup wizard. That retry ran successfully.
 - Native UI tooling in `orca-windows-review.py` / `orca-windows-ui.ps1` verifies
   the isolated executable, marked data directory, launch arguments, window PID,
   and pointer/capture ownership before any interaction. Normal Orca is excluded.
-  The tooling itself still requires runtime proof against the nightly.
+  Actual runtime testing exposed embedded WebView/popup ownership, display
+  scaling, and queued input. Guards now check isolated top-level ownership,
+  validated WebView descendant ancestry, DPI-aware coordinates, and completion
+  before restoring the cursor. Native manual selection was proven.
+
+## Verified runtime continuation and isolation repair
+
+The fixed nightly installed/activated all three local `.py` capabilities. Its
+context window and dock read real profiles and unsaved values, and normal
+Temperature preparation/slicing/manual export completed. The manual picker
+verified the actual export SHA-256
+`0f70497ac2237d34838a648c72299855d4d64d35073ebbd0655842ecdd83f06d`.
+
+`--datadir` alone did not isolate WebView2: its browser and native file picker
+reused the ordinary Orca browser process/data folder. The input guard refused
+that picker. The test nightly alone was restarted with the documented
+`WEBVIEW2_USER_DATA_FOLDER` child-environment override. PID 17420 then owned its
+own browser PID 36352 under `issue-4-nightly-210bc927\webview2\EBWebView`;
+normal Orca PID 40056 and browser PID 11436 remained separate and running.
+No registry, user/machine environment, service, firewall, or normal browser
+configuration changed. Prior pre-repair captures do not prove browser isolation.
+
+Qualification remains blocked by the original user printer preset's collision
+with a bundled System preset. Preserve that distinction and consult
+[`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md); this checkpoint
+is not a gate pass or completed mock round trip.
+
+Normal Orca preservation was checked after GUI testing: all 1429 settings/profile
+files matched the pre-test aggregate SHA-256
+`ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0`.
+`scripts/spare-normal-preservation.ps1` records the exact hash-only recipe and
+excludes cache, logs, and plugin data. This establishes normal profile/settings
+preservation, while the earlier shared browser-cache gap remains disclosed.

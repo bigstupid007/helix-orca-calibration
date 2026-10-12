@@ -669,6 +669,21 @@ class PluginTests(unittest.TestCase):
             self.assertEqual([], capability.events)
             self.assertEqual([], capability.panel.posts[-1]["lifecycle"]["events"])
 
+    def test_manual_file_selection_is_bounded_and_clears_invalid_replacements(self):
+        capability = self.plugin.NightlyQualificationPanel()
+        valid = {"name": "temperature.gcode", "size": 3619562,
+                 "sha256": "0" * 64, "bands": list(range(230, 189, -5))}
+        capability.on_message({"command": "manual_file", "file": valid})
+        self.assertEqual(valid, capability.manual_file)
+        for change in ({"name": "../tower.gcode"}, {"size": True}, {"size": 20000001},
+                       {"sha256": "bad"}, {"bands": [230, 220]}, {"name": "tower.txt"}):
+            with self.subTest(change=change):
+                capability.on_message({"command": "manual_file", "file": valid})
+                capability.on_message({"command": "manual_file", "file": dict(valid, **change)})
+                self.assertIsNone(capability.manual_file)
+        capability.on_message({"command": "manual_file", "file": None})
+        self.assertIsNone(capability.manual_file)
+
     def test_qualification_rejects_a_different_runtime_build(self):
         host = FakeHost(
             FakeBundle(values={"printer_technology": "FFF"}),

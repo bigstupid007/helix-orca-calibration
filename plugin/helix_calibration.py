@@ -1552,6 +1552,9 @@ button.quiet { background:transparent; }
 </div>
 <section class="card"><h2>Runtime</h2><div id="runtime" class="grid"></div></section>
 <section class="card"><h2>Current Orca context</h2><div id="context" class="grid"></div></section>
+<section class="card"><h2>Manual exported file</h2>
+<label>Select the actual exported G-code <input id="file" type="file" accept=".gcode"></label>
+<div id="file-status" class="muted">No file selected</div></section>
 <section class="card"><h2>Lifecycle events</h2><ol id="events"></ol></section>
 <div id="saved" class="muted"></div>
 <script>
@@ -1596,6 +1599,54 @@ button.quiet { background:transparent; }
   document.getElementById('refresh').addEventListener('click',function(){window.orca.postMessage({command:'refresh'});});
   document.getElementById('save').addEventListener('click',function(){window.orca.postMessage({command:'save'});});
   document.getElementById('clear').addEventListener('click',function(){window.orca.postMessage({command:'clear'});});
+  // about:blank host documents lack crypto.subtle. Hash selected bytes locally.
+  function sha256(bytes) {
+    var k=[1116352408,1899447441,3049323471,3921009573,961987163,1508970993,2453635748,2870763221,
+      3624381080,310598401,607225278,1426881987,1925078388,2162078206,2614888103,3248222580,
+      3835390401,4022224774,264347078,604807628,770255983,1249150122,1555081692,1996064986,
+      2554220882,2821834349,2952996808,3210313671,3336571891,3584528711,113926993,338241895,
+      666307205,773529912,1294757372,1396182291,1695183700,1986661051,2177026350,2456956037,
+      2730485921,2820302411,3259730800,3345764771,3516065817,3600352804,4094571909,275423344,
+      430227734,506948616,659060556,883997877,958139571,1322822218,1537002063,1747873779,
+      1955562222,2024104815,2227730452,2361852424,2428436474,2756734187,3204031479,3329325298];
+    var h=[1779033703,3144134277,1013904242,2773480762,1359893119,2600822924,528734635,1541459225];
+    var input=new Uint8Array(bytes), padded=new Uint8Array(Math.ceil((input.length+9)/64)*64);
+    padded.set(input); padded[input.length]=128;
+    var view=new DataView(padded.buffer); view.setUint32(padded.length-4,input.length*8,false);
+    var w=new Uint32Array(64);
+    function rotate(x,n){return (x>>>n)|(x<<(32-n));}
+    for(var offset=0;offset<padded.length;offset+=64){
+      for(var i=0;i<16;i++) w[i]=view.getUint32(offset+i*4,false);
+      for(i=16;i<64;i++){
+        var x=w[i-15],y=w[i-2];
+        w[i]=(w[i-16]+(rotate(x,7)^rotate(x,18)^(x>>>3))+w[i-7]+(rotate(y,17)^rotate(y,19)^(y>>>10)))>>>0;
+      }
+      var a=h[0],b=h[1],c=h[2],d=h[3],e=h[4],f=h[5],g=h[6],z=h[7];
+      for(i=0;i<64;i++){
+        var t1=(z+(rotate(e,6)^rotate(e,11)^rotate(e,25))+((e&f)^(~e&g))+k[i]+w[i])>>>0;
+        var t2=((rotate(a,2)^rotate(a,13)^rotate(a,22))+((a&b)^(a&c)^(b&c)))>>>0;
+        z=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b;b=a;a=(t1+t2)>>>0;
+      }
+      [a,b,c,d,e,f,g,z].forEach(function(value,i){h[i]=(h[i]+value)>>>0;});
+    }
+    return h.map(function(value){return value.toString(16).padStart(8,'0');}).join('');
+  }
+  document.getElementById('file').addEventListener('change',async function () {
+    var status=document.getElementById('file-status'), file=this.files[0];
+    if (!file) return;
+    try {
+      if (!/\.gcode$/i.test(file.name) || file.size>20000000 || file.size===0) throw Error('Select a nonempty G-code file below 20 MB.');
+      var bytes=await file.arrayBuffer();
+      var sha=sha256(bytes);
+      var text=new TextDecoder('utf-8',{fatal:true}).decode(bytes), bands=[], match;
+      var pattern=/^M10[49]\s+S(\d+)(?:\s|$)/gm;
+      while ((match=pattern.exec(text))!==null) { var value=Number(match[1]); if(value>0 && bands.indexOf(value)<0) bands.push(value); }
+      var expected=[230,225,220,215,210,205,200,195,190];
+      if (JSON.stringify(bands)!==JSON.stringify(expected)) throw Error('Temperature choices do not match 230–190 °C in 5 °C steps.');
+      window.orca.postMessage({command:'manual_file',file:{name:file.name,size:file.size,sha256:sha,bands:bands}});
+      status.textContent=file.name+' · '+file.size+' bytes · SHA-256 '+sha+' · choices verified';
+    } catch(error) { status.textContent='Rejected: '+error.message; window.orca.postMessage({command:'manual_file',file:null}); }
+  });
   window.orca.postMessage({command:'ready'});
 })();
 </script></body></html>"""
@@ -1611,6 +1662,7 @@ class NightlyQualificationPanel(orca.script.ScriptPluginCapabilityBase):
         self.panel = None
         self.storage_root = None
         self.events = []
+        self.manual_file = None
 
     def get_name(self):
         return QUALIFICATION_ACTION_NAME
@@ -1638,6 +1690,16 @@ class NightlyQualificationPanel(orca.script.ScriptPluginCapabilityBase):
         elif command == "clear":
             self.events.clear()
             self._post_state()
+        elif command == "manual_file":
+            candidate = message.get("file")
+            self.manual_file = None
+            if (isinstance(candidate, dict) and isinstance(candidate.get("name"), str)
+                    and re.fullmatch(r"[^/\\]+\.gcode", candidate["name"], re.IGNORECASE)
+                    and type(candidate.get("size")) is int and 0 < candidate["size"] <= 20000000
+                    and isinstance(candidate.get("sha256"), str)
+                    and re.fullmatch(r"[a-f0-9]{64}", candidate["sha256"])
+                    and candidate.get("bands") == list(range(230, 189, -5))):
+                self.manual_file = dict(candidate)
         elif command == "save":
             self._save_and_post()
 
@@ -1663,6 +1725,7 @@ class NightlyQualificationPanel(orca.script.ScriptPluginCapabilityBase):
         try:
             captured_at = datetime.datetime.now(datetime.timezone.utc)
             snapshot = _qualification_snapshot(orca.host, self.events, captured_at=captured_at)
+            snapshot["manual_file_selection"] = self.manual_file
             saved_path = write_qualification_evidence(
                 snapshot,
                 self.storage_root,
