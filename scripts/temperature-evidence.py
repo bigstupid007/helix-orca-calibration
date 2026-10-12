@@ -17,12 +17,12 @@ import time
 ROOT=Path(__file__).resolve().parent.parent
 spec=importlib.util.spec_from_file_location('roundtrip',ROOT/'scripts/temperature-roundtrip.py')
 d=importlib.util.module_from_spec(spec);spec.loader.exec_module(d)
-PHASES=('request-retry','available','printing','progress','completion','choice','result-retry','returned')
-PUBLIC_PHASES=('available','choice','returned')
+PHASES=('request-retry','available','home-ready','printing','home-active','resume-print','progress','completion','home-choice','choice','result-retry','returned','home-result')
+PUBLIC_PHASES=('available','home-active','resume-print','choice','returned')
 
 
 def hashes():
-    paths=[ROOT/'plugin/helix_calibration.py',ROOT/'scripts/temperature-roundtrip.py',ROOT/'scripts/helix_dev.py']
+    paths=[ROOT/'plugin/helix_calibration.py',ROOT/'scripts/temperature-roundtrip.py',ROOT/'scripts/helix_dev.py',ROOT/'scripts/temperature-evidence.py',ROOT/'scripts/temperature-viewer.html']
     paths.extend(p for p in (ROOT/'integration/calibration-bridge').rglob('*') if p.is_file())
     return {str(p.relative_to(ROOT)):d.digest(p) for p in sorted(paths)}
 
@@ -57,7 +57,7 @@ def promote(output,request):
         'request_id':original['request_id'],'context_sha256':original['context_sha256'],'file':original['file'],
         'transport':'Pinned LAN SSH plus native plugin-storage artifacts; beta.4 HTTP printer-host guard preserved.',
         'viewport_runs':[],'frames':{},'windows_frames':{},'assertions':['mock-only request validated','actual file digest and bands validated','request failure visible; delivery and reload recover','receipt does not start printing','visible native pointer Start calls test mock','native mock publishes printing','controlled progress 50 and complete states','native dropdown chooses 205','native result write fails then Next retries same ID','returned native result matches original request','all native bridge states fit horizontally','accepted orcacal files unchanged'],
-        'limitations':['All printing is simulated in --test and --network none. No hardware execution or production transport.','Progress/completion use private native subjects; result selection uses native LVGL events while freeze pauses the synthetic pointer sampler.','Request delivery retry clears beta.4 native storage cache through hot reload; this is development infrastructure.','The G-code file remains private. Its byte digest, bands and original Windows provenance are committed.']}
+        'limitations':['All printing is simulated in --test and --network none. No hardware execution or production transport.','The native test freeze parks the synthetic clock and existing periodic timers before remote input is created. The live remote pointer, navigation/update and rendering remain usable; animations are disabled. Progress/completion are controlled private subjects.','Request delivery retry clears beta.4 native storage cache through hot reload; this is development infrastructure.','The G-code file remains private. Its byte digest, bands and original Windows provenance are committed.']}
     report['product_hashes']=d.h._plugin_hashes()
     rows=[]
     output.mkdir(parents=True,exist_ok=True)
@@ -144,6 +144,15 @@ def review(request,gcode):
     if info:
         raise ValueError('Existing marked proof runtime: use down before a fresh review')
     d.start(request,gcode,next(v for v in d.h.VIEWPORTS if v[0]=='medium_800x480'))
+    d.await_state(1)
+    # Let native entry animation finish before deleting animations in freeze.
+    # A stable native frame is required; state alone precedes overlay entry.
+    current=json.loads((d.STATE/'current.json').read_text())
+    d.h._screenshot(d.NAME,Path(current['work']),'review-entry.png')
+    # Park the synthetic clock before creating the remote pointer. The pointer
+    # sampler is created by first input afterward and stays live; native
+    # navigation/update/render queues continue throughout review.
+    d.ctl('freeze')
     log=(d.STATE/'review-viewer.log').open('ab')
     process=subprocess.Popen(['python3',str(Path(__file__).resolve()),'serve'],stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
     log.close();(d.STATE/'review-viewer.pid').write_text(str(process.pid))
@@ -172,45 +181,34 @@ def drag(body):
 
 
 def finish_mock():
-    if not d.inspect():raise ValueError('No isolated proof runtime')
-    if d.ctl('get','calibration-bridge__state')['value']!=2 or d.ctl('get','print_state_enum')['value']!=1:
-        raise ValueError('Start the received mock request before finishing its simulation')
-    d.ctl('set','print_progress','100')
-    d.ctl('set','print_state_enum','3')
-    d.ctl('set','print_state','complete')
-    d.await_state(3)
+    d.finish_simulation()
 
 
 def serve():
     if not d.inspect():raise ValueError('No isolated proof runtime')
-    current=json.loads((d.STATE/'current.json').read_text())
-    d.h.CONTAINER=d.NAME;d.h.REVIEW_BIND=d.h.REVIEW_HOST;d.h.state_root=lambda:Path(current['work'])
-    original="""    frame.addEventListener('click', event => { if(busy) return; const rect=frame.getBoundingClientRect();
-      const x=Math.round((event.clientX-rect.left)*frame.naturalWidth/rect.width);
-      const y=Math.round((event.clientY-rect.top)*frame.naturalHeight/rect.height);
-      post('/api/tap',{x,y}); });"""
-    replacement="""    let origin=null;
-    function point(event){const r=frame.getBoundingClientRect();return {
-      x:Math.max(0,Math.min(799,Math.round((event.clientX-r.left)*800/r.width))),
-      y:Math.max(0,Math.min(479,Math.round((event.clientY-r.top)*480/r.height)))};}
-    frame.addEventListener('pointerdown',event=>{if(busy)return;event.preventDefault();
-      origin=point(event);frame.setPointerCapture(event.pointerId);});
-    frame.addEventListener('pointercancel',()=>{origin=null;});
-    frame.addEventListener('pointerup',event=>{if(!origin)return;event.preventDefault();
-      const start=origin,end=point(event);origin=null;
-      if(Math.hypot(end.x-start.x,end.y-start.y)>12)
-        post('/api/drag',{x0:start.x,y0:start.y,x1:end.x,y1:end.y});
-      else post('/api/tap',end);});"""
-    if original not in d.h.VIEWER_HTML:raise ValueError('Native viewer input contract changed')
-    d.h.VIEWER_HTML=d.h.VIEWER_HTML.replace(original,replacement).replace(
-        "Inputs are sent through Helix's native synthetic pointer.",
-        "Tap or drag to scroll. Start the mock, then Finish simulated print to reach its choices. Reopen: Home → Settings → Plugins → Calibration Bridge Mock Proof → Settings → Open calibration.").replace(
-        '<button data-action="capture">Save capture</button>',
-        '<button data-action="finish-mock">Finish simulated print</button><button data-action="capture">Save capture</button>')
+    current=json.loads((d.STATE/'current.json').read_text());work=Path(current['work'])
+    d.h.CONTAINER=d.NAME;d.h.REVIEW_BIND=d.h.REVIEW_HOST;d.h.state_root=lambda:work
+    version=hashlib.sha256(json.dumps(hashes(),sort_keys=True).encode()).hexdigest()
+    d.h.VIEWER_HTML=(ROOT/'scripts/temperature-viewer.html').read_text().replace('__REVIEW_VERSION__',version)
+    storage=json.loads((work/'config/plugin-data/calibration-bridge.json').read_text())
+    last_sequence=storage.get('review_action',{}).get('sequence',0)
     base=d.h.ViewerHandler
     class ProofViewer(base):
+        def do_GET(self):
+            nonlocal last_sequence
+            route=self.path.split('?',1)[0]
+            if route in ('/frame.png','/api/review-state'):
+                with self.capture_lock:
+                    try:
+                        last_sequence=d.consume_review_action(work,last_sequence)
+                        if route=='/api/review-state':
+                            self._json({'version':version,'state':d.ctl('get','calibration-bridge__state')['value']});return
+                    except Exception as exc:
+                        self._json({'error':str(exc)},503);return
+            return super().do_GET()
         def do_POST(self):
             with self.capture_lock:
+                if not d.inspect():self._json({'error':'No isolated proof runtime'},503);return
                 if self.path=='/api/finish-mock':
                     try:finish_mock();self._json({'message':'Simulation complete; choose a temperature in native Helix'})
                     except Exception as exc:self._json({'error':str(exc)},400)

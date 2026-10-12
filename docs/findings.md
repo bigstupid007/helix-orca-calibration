@@ -196,7 +196,18 @@ preservation, while the earlier shared browser-cache gap remains disclosed.
   verifier binds the actual runtime metadata, each run's binary hash, and the
   imported ordinary harness. The executed hash is `29dbb6f3…`, corroborated by
   the accepted Issue #2 provenance; no binary or upstream source changed.
-- The native context now says **Effective: 217°C**. Proof-viewer drag input
-  allows native Settings/Plugins recovery; a guarded **Finish simulated print**
-  control uses the existing mock completion sequence to reach choices without
-  waiting through the synthetic time estimate. These are proof-only controls.
+- The native context now says **Effective: 217°C**. Founder Review subsequently rejected the
+  Settings/Plugins recovery and completion experience. Normal native Home was
+  working, but the proof config disabled the stock print card and supplied no
+  calibration return tile. The repaired proof seeds both on native Home and
+  exposes Finish prominently above the frame and inside the mock calibration.
+- The earlier Finish changed subjects while the mock simulator continued.
+  Resuming its clock published printing again and could reopen Print Status.
+  The repaired review parks the native synthetic clock before creating remote
+  input; completion stays stable, and normal pointer/Home/Back remain live.
+  This existing test freeze disables animations and pauses pre-existing
+  periodic timers; it is a proof-only limitation, with no upstream patch.
+- The earlier fresh browser contained Finish; the reported missing control's
+  exact browser/session cause remains unconfirmed. Narrow-browser overflow and
+  low discoverability were reproduced. Responsive controls and candidate-version
+  refresh address those observable viewer defects.

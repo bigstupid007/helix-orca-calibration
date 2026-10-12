@@ -40,8 +40,23 @@ normal settings or permissions. Tests simulate progress/completion through
 beta.4's private native subjects after the real mock Start publishes printing.
 Native pointer input starts the mock; native LVGL dropdown/value and click
 events select/return the result while the mock is frozen for reproducible
-capture. Freeze also pauses the synthetic-pointer sampler. No product code
+capture. Freeze occurs before remote pointer creation; its later-created sampler stays
+live while the test clock remains parked. No product code
 uses these controls.
 
 Use the operator commands and retained evidence in
 [Temperature round-trip proof](../docs/TEMPERATURE_ROUND_TRIP.md).
+
+
+Founder Review repair preserves ordinary native Home/Back. The proof seeds a
+native **Mock Temperature** resume tile and restores the stock print-status
+card on Home. The tile reopens retained available/printing/choice/result state;
+it does not modify the accepted Orca Calibration tile. The proof uses the
+native track grid for its orientation, with a card that fits the portrait grid.
+
+A prominent responsive viewer **Finish simulated print** control is available
+immediately after Start. The resumed native calibration has the same control;
+it writes a bounded native-storage action with request ID and sequence. Only
+the owned mock driver consumes it, checks identity/started state, and simulates
+completion. Duplicate actions are idempotent, and Cancel/completion is honored.
+No production printer command, navigation override or Settings recovery is used.

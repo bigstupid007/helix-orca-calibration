@@ -24,6 +24,8 @@ local ctx_current = helix.subject.string("ctx_current", "")
 local result_value = helix.subject.string("result_value", "")
 local result_sub = helix.subject.string("result_sub", "")
 local status_line = helix.subject.string("status_line", "")
+local tile_status = helix.subject.string("tile_status", "Waiting for request")
+local review_sequence = 0
 
 -- The English source of whatever the status line and result note show, so a
 -- language switch can say them again in the new language. nil = raw text or
@@ -60,6 +62,7 @@ local function set_state(v)
     printing_on:set(v == 2 and 1 or 0)
     pick_on:set(v == 3 and 1 or 0)
     result_on:set(v == 4 and 1 or 0)
+    tile_status:set(({[0]="Waiting for request",[1]="Ready to start",[2]="Printing · tap to return",[3]="Choose temperature",[4]="Result · not applied"})[v])
 end
 
 -- The context lines, rebuilt rather than patched so a language switch can
@@ -298,6 +301,19 @@ helix.ui.on("accept", function()
     result_value:set(WIZARDS[cal.wizard].fmt:format(value))
     set_state(4)
     post_result(value)
+end)
+
+-- This bridge exists only in the owned network-none mock harness. The native
+-- action writes a bounded request; only its guarded development driver may
+-- simulate completion. It never sends a printer command or starts a request.
+helix.ui.on("finish_mock", function()
+    if not cal or state:get() ~= 2 then return end
+    review_sequence = review_sequence + 1
+    local ok = pcall(helix.storage.set, "review_action", {
+        action = "finish_simulation", request_id = cal.request_id,
+        sequence = review_sequence,
+    })
+    set_status(ok and "Finishing simulation..." or "Simulation finish request failed; try again")
 end)
 
 helix.ui.on("cancel", function()

@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import test_temperature_roundtrip
 
@@ -60,3 +61,22 @@ class RoundTripHarnessTests(unittest.TestCase):
         self.assertNotIn('helix.http.',lua)
         self.assertIn('helix.storage.get("request")',lua)
         self.assertIn('pcall(helix.storage.set, "result", body)',lua)
+
+    def test_native_finish_rejects_stale_identity_and_cannot_replay(self):
+        work=self.root; (work/'config/plugin-data').mkdir(parents=True)
+        (work/'orca-request.json').write_text(json.dumps(self.request))
+        storage=work/'config/plugin-data/calibration-bridge.json'
+        action={'action':'finish_simulation','request_id':self.request['request_id'],'sequence':1}
+        info={'Mounts':[{'Destination':'/state','Source':str(work)}]}
+        with patch.object(harness,'inspect',return_value=info),patch.object(harness,'finish_simulation') as finish,patch.object(harness,'ctl',return_value={'value':2}):
+            storage.write_text(json.dumps({'review_action':dict(action,request_id='0'*32)}))
+            with self.assertRaises(ValueError):harness.consume_review_action(work,0)
+            finish.assert_not_called()
+            storage.write_text(json.dumps({'review_action':action}))
+            self.assertEqual(harness.consume_review_action(work,0),1)
+            finish.assert_called_once()
+            self.assertEqual(harness.consume_review_action(work,1),1)
+            finish.assert_called_once()
+        with patch.object(harness,'inspect',return_value=info),patch.object(harness,'finish_simulation') as finish,patch.object(harness,'ctl',return_value={'value':0}):
+            self.assertEqual(harness.consume_review_action(work,0),1)
+            finish.assert_not_called()

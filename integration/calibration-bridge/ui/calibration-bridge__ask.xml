@@ -49,6 +49,10 @@
           <lv_label text="Mock printing..." translation_tag="Mock printing..." style_text_font="#font_body"
                     style_text_color="#text_muted"/>
           <text_small width="100%" bind_text="calibration-bridge__progress_line" style_text_color="#text_muted"/>
+          <lv_button name="calibration-bridge__finish" width="100%" height="content" style_pad_all="#space_xs">
+            <event_cb trigger="clicked" callback="plugin_event" user_data="calibration-bridge__finish_mock"/>
+            <text_body text="Finish simulated print" width="100%" style_text_align="center"/>
+          </lv_button>
         </lv_obj>
         <lv_obj name="calibration-bridge__pick_row"
                 width="100%" height="content" flex_flow="column" style_pad_all="0" style_pad_gap="#space_sm"

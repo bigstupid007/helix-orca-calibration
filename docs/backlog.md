@@ -99,10 +99,14 @@ settings/profile files remain unchanged. The report is in
 has passed at all eleven native sizes and returned 205°C with original-profile
 **not applied** instructions. Duplicate/stale/conflicting results and artifact
 delivery failure/retry are proven. See [the proof](TEMPERATURE_ROUND_TRIP.md).
-PR #5 remains unmerged for Founder Review. The independent correction recheck
-and lead [AI Product Preflight](ISSUE_4_PRODUCT_PREFLIGHT.md) are clean; final
-head/CI identity is recorded in the governing Issue checkpoint. This is not
-founder acceptance. Unlock Spare to view the existing Windows companion.
+PR #5 remains unmerged. Founder Review rejected the earlier navigation and
+simulation experience; that disposition supersedes the earlier AI preflight.
+The consolidated repair passes the native matrix, fresh browser operator
+paths and lead AI preflight; its independent re-review is pending at the frozen
+boundary. It is tracked in
+[AI Product Preflight](ISSUE_4_PRODUCT_PREFLIGHT.md), with exact candidate and
+CI identity recorded in the governing Issue checkpoint. Windows qualification
+is complete and has not been restarted for this repair.
 
 The exact gate and agent-operated runbook are in
 [`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md). Linux-only

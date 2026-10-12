@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<component>
+  <view name="calibration-bridge__tile" extends="lv_obj"
+        width="100%" height="100%" clickable="true" scrollable="false"
+        style_pad_all="#space_sm" style_pad_gap="#space_xs"
+        style_flex_main_place="center" style_flex_cross_place="center" flex_flow="column">
+    <event_cb trigger="clicked" callback="plugin_event" user_data="calibration-bridge__open"/>
+    <text_body text="Mock Temperature" style_text_align="center"/>
+    <text_small bind_text="calibration-bridge__tile_status" width="100%"
+                style_text_align="center" style_text_color="#text_muted"/>
+  </view>
+</component>

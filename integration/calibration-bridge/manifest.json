@@ -8,7 +8,15 @@
     "storage",
     "moonraker_write"
   ],
-  "widgets": [],
+  "widgets": [{
+    "id": "calibration-bridge__tile",
+    "name": "Mock Temperature",
+    "icon": "tune",
+    "description": "Return to the retained mock Temperature calibration",
+    "component": "calibration-bridge__tile",
+    "colspan": 2,
+    "rowspan": 1
+  }],
   "settings": [
     {
       "key": "auto_open",

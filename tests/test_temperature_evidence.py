@@ -48,6 +48,25 @@ class TemperatureEvidenceTests(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             e.verify(ROOT/'docs/evidence/issue-4/roundtrip')
 
+    def test_fresh_browser_proof_binds_current_controls_and_terminal_result(self):
+        directory=ROOT/'docs/evidence/issue-4/roundtrip/browser'
+        report=json.loads((directory/'report.json').read_text())
+        self.assertEqual(report['status'],'pass')
+        self.assertEqual(report['runtime_candidate_files'],e.hashes())
+        self.assertEqual(report['browser_driver_sha256'],e.d.digest(ROOT/'scripts/temperature-browser-review.cjs'))
+        self.assertEqual(set(report['cases']),{'toolbar','native'})
+        for case in report['cases'].values():
+            self.assertEqual(case['selected_value'],205)
+            self.assertEqual(case['request_id'],'f4a33a9c526e24c63c2d653fc51cfb0c')
+            self.assertTrue(case['fresh_context'])
+            self.assertEqual([v['width'] for v in case['viewport_checks']],[375,640,1280])
+            self.assertTrue(all(v['finish_fully_visible'] for v in case['viewport_checks']))
+            self.assertEqual(case['page_errors'],[])
+        self.assertEqual(report['spare_lan_readback']['hostname'],'SPARE')
+        self.assertEqual(report['spare_lan_readback']['http_status'],200)
+        for filename,digest in report['frames'].items():
+            self.assertEqual(e.d.digest(directory/filename),digest)
+
     def test_actual_native_result_targets_actual_windows_request(self):
         directory=ROOT/'docs/evidence/issue-4/roundtrip'
         request=json.loads((directory/'request.json').read_text())

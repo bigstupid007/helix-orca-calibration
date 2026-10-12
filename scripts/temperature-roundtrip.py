@@ -114,6 +114,16 @@ def start(request_path,gcode,entry,fail_first=False):
     (work/'orca-request.json').write_bytes(request_path.read_bytes())
     config=h.seed_settings(work/'config')
     settings=json.loads(config.read_text());settings['plugins']['enabled']['calibration-bridge']={'permissions':['storage','moonraker_write'],'version':'0.1.0'}
+    home=settings['printers']['default']['panel_widgets']['home']
+    # Seed native track coordinates in their authored orientation. Beta.4
+    # remaps within an orientation for the measured grid; its portrait grid
+    # has eight columns, so a landscape twelve-column card cannot fit there.
+    portrait = width < height
+    home['grid']='8x12' if portrait else '12x8'
+    widgets=home['pages'][0]['widgets']
+    widgets.append({'id':'calibration-bridge__tile','enabled':True,'col':4,'row':0,'colspan':4,'rowspan':2})
+    for widget in widgets:
+        if widget['id']=='print_status':widget.update(enabled=True,col=0,row=2,colspan=8 if portrait else 12,rowspan=4)
     h.json_write(config,settings)
     args=h._container_args(NAME,work,width,height,layout,dpi)
     args[args.index(f'{h.runtime_path()}:/helix:ro')]=f'{runtime}:/helix:ro'
@@ -148,6 +158,62 @@ def tap(name,width,height):
     ctl('press',x,y);ctl('release',x,y);ctl('wait_idle')
 
 
+def finish_simulation():
+    if not inspect():raise ValueError('No isolated proof runtime')
+    if ctl('get','calibration-bridge__state')['value']!=2 or ctl('get','print_state_enum')['value']!=1:
+        raise ValueError('Start the received mock request before finishing its simulation')
+    # The proof parks native test simulation before its remote pointer is
+    # created, so mock status cannot overwrite completion while input remains
+    # sampled normally. Keep that bounded test-mode freeze through review.
+    ctl('freeze')
+    ctl('set','print_progress','100')
+    ctl('set','print_state_enum','3')
+    ctl('set','print_state','complete')
+    await_state(3)
+
+
+def consume_review_action(work,last_sequence):
+    info=inspect()
+    if not info:raise ValueError('No isolated proof runtime')
+    if Path(next(m['Source'] for m in info['Mounts'] if m['Destination']=='/state')).resolve()!=work.resolve():
+        raise ValueError('Review action is outside the owned runtime state')
+    path=work/'config/plugin-data/calibration-bridge.json'
+    if not path.exists():return last_sequence
+    if path.stat().st_size>65536:raise ValueError('Oversized native review action storage')
+    action=json.loads(path.read_text()).get('review_action')
+    if not action:return last_sequence
+    expected=json.loads((work/'orca-request.json').read_text())['request_id']
+    sequence=action.get('sequence')
+    if action.get('action')!='finish_simulation' or action.get('request_id')!=expected or type(sequence) is not int or not 0<sequence<=1000000:
+        raise ValueError('Invalid or stale native simulation action')
+    if sequence<=last_sequence:return last_sequence
+    # A simultaneous toolbar Finish, or a later Cancel, may already have left
+    # printing. Acknowledge the matching action without replaying it.
+    if ctl('get','calibration-bridge__state')['value']==2:finish_simulation()
+    return sequence
+
+
+def wait_bridge(width):
+    end=time.monotonic()+5
+    while time.monotonic()<end:
+        geometry=h.ctl(NAME,'geom','calibration-bridge__ask_content','8',check=False)
+        try:
+            if not geometry:raise ValueError('Overlay pending')
+            h._assert_horizontal_fit(geometry,width);return
+        except (ValueError,h.HarnessError):time.sleep(.1)
+    raise ValueError('Bridge overlay did not finish native navigation')
+
+
+def home_and_resume(work,phase,width,height,expected_state):
+    tap('nav_btn_home',width,height)
+    h._wait_visible_landing(NAME,width,height)
+    h._visible_widget_geometry(ctl('geom','calibration-bridge__tile','0'),'calibration-bridge__tile',width,height)
+    if ctl('get','calibration-bridge__state')['value']!=expected_state:raise ValueError('Home changed calibration state')
+    h._screenshot(NAME,work,phase+'.png')
+    tap('calibration-bridge__tile',width,height);wait_bridge(width)
+    if ctl('get','calibration-bridge__state')['value']!=expected_state:raise ValueError('Resume changed calibration state')
+
+
 def run_capture(request,gcode,entry,fail_first=False):
     work=start(request,gcode,entry,fail_first)
     _,width,height,_,_=entry
@@ -178,7 +244,7 @@ def run_capture(request,gcode,entry,fail_first=False):
         h._screenshot(NAME,work,'available.png')
         if ctl('get','print_state')['value']=='printing':raise ValueError('Receiving a request started printing')
         h._assert_horizontal_fit(ctl('geom','calibration-bridge__ask_content','8'),width)
-        ctl('unfreeze')
+        home_and_resume(work,'home-ready',width,height,1)
         tap('calibration-bridge__start',width,height)
         await_state(2)
         end=time.monotonic()+10
@@ -188,13 +254,26 @@ def run_capture(request,gcode,entry,fail_first=False):
         else:raise ValueError('Native mock start never published a printing state')
         ctl('freeze')
         h._screenshot(NAME,work,'printing.png')
+        home_and_resume(work,'home-active',width,height,2)
+        ctl('go_back');h._wait_visible_landing(NAME,width,height)
+        if ctl('get','calibration-bridge__state')['value']!=2:raise ValueError('Back lost active calibration')
+        tap('print_card_printing',width,height)
+        end=time.monotonic()+5
+        while time.monotonic()<end:
+            current=ctl('current')
+            if any('print_status' in name for name in current['overlays']):break
+            time.sleep(.1)
+        else:raise ValueError('Home print card did not reopen Print Status: '+str(current))
+        ctl('go_back');h._wait_visible_landing(NAME,width,height)
+        tap('calibration-bridge__tile',width,height);wait_bridge(width)
+        ctl('scroll','calibration-bridge__finish')
+        h._visible_widget_geometry(ctl('geom','calibration-bridge__finish','0'),'calibration-bridge__finish',width,height)
+        ctl('freeze');h._screenshot(NAME,work,'resume-print.png')
         ctl('set','print_progress','50')
         if ctl('get','calibration-bridge__progress_line')['value'] != 'Mock progress: 50%':raise ValueError('Mock progress not visible')
         ctl('screenshot','/state/progress.png')
-        ctl('set','print_progress','100')
-        ctl('set','print_state_enum','3')
-        ctl('set','print_state','complete')
-        await_state(3)
+        ctl('click','calibration-bridge__finish')
+        if consume_review_action(work,0)!=1:raise ValueError('Native Finish simulation request was not consumed')
         end=time.monotonic()+5
         while time.monotonic()<end:
             geometry=h.ctl(NAME,'geom','calibration-bridge__pick','0',check=False)
@@ -205,6 +284,8 @@ def run_capture(request,gcode,entry,fail_first=False):
         modal=h.ctl(NAME,'geom','print_completion_modal','2',check=False)
         if modal and modal.get('widgets'):
             ctl('click','btn_primary')
+        home_and_resume(work,'home-choice',width,height,3)
+        ctl('freeze')
         (work/'completion-state.json').write_text(json.dumps(ctl('current'),indent=2))
         ctl('scroll','calibration-bridge__pick')
         ctl('set_value','calibration-bridge__pick','5')
@@ -227,6 +308,7 @@ def run_capture(request,gcode,entry,fail_first=False):
         (work/'result.json').write_text(json.dumps(result,sort_keys=True,separators=(',',':')))
         if result['request_id']!=json.loads(request.read_text())['request_id'] or result['value']!=205:raise ValueError('Native result mismatch')
         h._screenshot(NAME,work,'returned.png')
+        home_and_resume(work,'home-result',width,height,4)
         (work/'logs.txt').write_text(h.run(['docker','logs',NAME],capture=True).stdout)
         h._assert_horizontal_fit(ctl('geom','calibration-bridge__ask_content','8'),width)
         return work

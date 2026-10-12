@@ -45,6 +45,10 @@ rejected, with the original 205°C instructions unchanged. No preset was saved
 or value applied. All 1,429 normal settings/profile files still match the
 pre-test aggregate fingerprint at `2026-10-12T02:45:44Z`.
 
+[Fresh-browser repair proof](evidence/issue-4/roundtrip/browser/report.json)
+records both Finish surfaces, normal Home/Back return, responsive controls,
+actual 205°C selection, and Spare LAN readback.
+
 [Committed proof](evidence/issue-4/roundtrip/report.json) retains the real Orca
 request, native result, candidate/file/frame hashes and complete eleven-target
 matrix. Public Windows instruction frames are direct bounded native screen
@@ -76,8 +80,9 @@ native Start, the mock's real printing notification, controlled 50% progress
 and completion, native dropdown selection, failed native result write and Next
 retry. It temporarily changes only the private run's plugin-data directory
 permissions and restores them. Native pointer input starts the mock; native
-LVGL value/click events handle the result while mock freeze pauses the pointer
-sampler. These are test controls, not product APIs. No hardware or real print
+LVGL value/click events handle matrix result selection; fresh-browser review
+uses normal native pointer/dropdown input. The test clock is parked before
+remote pointer creation so navigation stays live. These are test controls, not product APIs. No hardware or real print
 execution is claimed.
 
 Beta.4 also lacks the example's newer translation binding. The adapter uses
@@ -141,26 +146,47 @@ python3 scripts/temperature-evidence.py review --request "$REQUEST_JSON" --gcode
 python3 scripts/temperature-evidence.py down
 ```
 
-For Founder Review:
+For Founder Review, open a fresh browser session using the private handoff link.
+The prominent **Finish simulated print** control sits above the native frame,
+with an explicit mock-only label; it becomes enabled immediately after Start.
+The native mock calibration also has that control while printing.
 
-1. Start on **Mock Temperature**, where the original filament and
-   **Effective: 217°C** appear with **Mock request received; not started**.
-2. Click native **Start**. The real mock opens **Print Status**. Click the
-   viewer's **Finish simulated print** to reach the native Temperature choices
-   without waiting through the synthetic time estimate. Acknowledge the native
-   completion dialog if it appears.
-3. Choose **205°C** in the native dropdown and click **Next**. Expect
-   **205°C — sent to the companion; not applied**.
-4. On Spare, open the Orca companion through the Plugins menu. Its retained
-   result names **Generic PLA - Voron Rapido - Initial**, **Other layers**, saved
-   **220°C**, edited/effective **217/217°C**, selected **205°C**, and **NOT APPLIED**.
+1. On **Mock Temperature**, review the original filament, **Effective: 217°C**,
+   and **Mock request received; not started**, then click native **Start**.
+2. While printing, exercise normal navigation: **Home** exposes the native
+   **Mock Temperature** tile and stock active-print card. Tap the card to return
+   to **Print Status**, then **Back** to Home. Tap **Mock Temperature** to resume
+   the same active calibration. There is no Settings recovery step.
+3. **Print Status** may show a long synthetic estimate. Click the prominent
+   **Finish simulated print** above the frame, or the native calibration's
+   Finish button, to reach choices immediately; no timer wait is needed.
+   Acknowledge the native completion dialog if it appears.
+4. Choose **205°C** in the native dropdown and click **Next**. Expect
+   **205°C — sent to the companion; not applied**. Home and the tile can also
+   reopen the waiting choices or returned result without losing state.
+5. On Spare, the unchanged Orca companion names **Generic PLA - Voron Rapido -
+   Initial**, **Other layers**, saved **220°C**, edited/effective **217/217°C**,
+   selected **205°C**, and **NOT APPLIED**.
 
-After **Home**, return through **Settings > Plugins > Calibration Bridge Mock Proof > Settings > Open calibration**;
-drag upward within the native settings list to reach Plugins. The accepted
-Orca Calibration tile remains its separate Issue #1 chooser/detail/toast flow.
-Native **Back/Home** also returns to that unchanged accepted shell.
-Judge whether the original context, mock Start, file association,
-Temperature choice, retry messages, and unambiguous **not applied** instructions
-are understandable. The committed runtime/preservation checks do not need to
-be repeated by the owner. This is a proof candidate for one unmerged PR; no
-release, merge or hardware activation is authorized.
+The accepted **Orca Calibration** tile remains its separate Issue #1
+chooser/detail/toast flow. The new mock tile and stock print card are seeded
+only by the isolated proof driver; normal product/harness files are unchanged.
+The proof parks its synthetic clock before remote input is created, keeping
+completion stable instead of allowing a later mock snapshot to restart the
+print. The existing test freeze also pauses periodic timers and disables
+animations; native input, navigation, update and rendering remain live.
+The viewer forwards ordinary native Home/Back and pointer input. It does not
+intercept Home to reopen or trap the user in a calibration.
+
+The native Finish action writes only a bounded request-ID/sequence artifact.
+The owned mock driver checks that identity and the active-print state before
+simulating completion. Duplicate finish actions do not replay, and a later
+Cancel or an already completed result takes precedence. No real-printer
+command is introduced. Updated viewer pages detect a subsequent candidate
+change and reload rather than retaining obsolete controls.
+
+Judge discoverability, state continuity and the clarity of simulated completion
+and **not applied** instructions. Hashes, rejection cases, normal-data
+preservation and the complete native matrix are toolchain checks already done.
+The interactive Temperature picker, physical printing, profile application,
+release and merge remain excluded.

@@ -135,3 +135,18 @@ owned `--test`, network-none container; it cannot start printing. Native context
 labels identify effective values explicitly. Evidence binds the executed
 source-built binary and provenance, per-viewport binary hashes, and the imported
 ordinary harness in addition to the round-trip sources.
+
+
+The consolidated Founder Review repair supplies a proof-only native Home resume
+tile and restores the stock print-status card, while preserving normal native
+Home/Back semantics. Native Finish writes a correlated storage action; the
+owned mock driver validates and consumes it. The viewer makes the same existing
+completion action prominent and responsive. This changes only mock integration
+and review infrastructure, never the accepted shell or upstream navigation.
+
+The proof parks beta.4's synthetic clock before the remote pointer is created,
+after a stable entry frame. This keeps completion from being overwritten by
+later simulator snapshots. Navigation/update/render queues and the later-created
+remote input sampler stay live; pre-existing periodic timers and animations are
+paused only in this test runtime. Fresh browser proof verifies both Finish
+surfaces and native Home/Back/task return through the terminal 205°C result.

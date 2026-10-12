@@ -1,116 +1,115 @@
-# Issue #4 candidate review and AI Product Preflight
+# Issue #4 consolidated Founder Review repair
 
-Status: the implemented mock Temperature round trip passes; Founder Review and
-acceptance remain separate. PR #5 stays unmerged. Review date: 2026-10-11,
-America/Chicago (retained captures use UTC timestamps).
+Status: focused repair validation and lead AI Product Preflight pass; independent
+re-review is pending at the frozen boundary. PR #5 remains open and unmerged. The
+Founder rejected the earlier candidate's navigation and simulated completion.
+That report supersedes the earlier clean AI preflight. No Founder acceptance
+is claimed. Windows qualification is complete and was not restarted.
 
-## Candidate identity
+## Defect closure ledger and diagnosis
 
-Implementation checkpoint `bd6178d45bbd9db02a10bc5425b4dfec199ad947` received one
-fresh-context independent engineering and Cold-Start UX review under the shared
-Development System authority. Corrections are frozen at
-`6044d04cf011a100cc92e7345c406343d04bf3ed`; later changes only reconcile review
-navigation wording, this closeout record, and private-address redaction from
-public review documents. The final PR head and CI/re-review
-result are recorded in the Issue #4 GitHub checkpoint.
+The reported experience was a roughly 55-minute simulated print with no
+obvious Finish, loss of the active task after Home, and a viewer that did not
+feel like normal Helix. The repair base is
+`69e5d4ac016a11b2042d8c63ddf044bc4b8c9262`.
+
+| Founder defect | Verified cause | Exact acceptance proof |
+| --- | --- | --- |
+| Finish unavailable or undiscoverable | The earlier fresh viewer contained a small Finish button. Narrow browser controls overflowed; the owner's exact missing-button/session cause is unconfirmed. | Fresh browser Start immediately enables prominent Finish at 375/640/1280 pixels; Finish reaches native choices without waiting. A native Finish is also available after returning to the calibration. |
+| Home loses the active task | Native Home correctly clears overlays. The isolated proof disabled the stock print card and had no calibration resume widget. | Native Home retains state and exposes Mock Temperature plus the stock active-print card. Card returns to Print Status; Back returns normally; tile resumes printing, choices and result. No Settings recovery. |
+| Completion/navigation becomes inconsistent | Setting complete subjects left the synthetic simulator running. Its next snapshot could publish printing again and reopen Print Status. | The proof parks its clock before remote input is created. Complete remains stable through Home/Back, native dropdown/Next and result resume. |
+
+Source inspection used exact pinned Helix `13a77bec…`, including native
+navigation, widget configuration/grid placement, remote freeze/pointer handling
+and the mock backend. No upstream navigation defect or patch is claimed.
+
+## Repair and focused convergence
+
+The separate proof now seeds a native Mock Temperature return tile and the
+stock print-status card. The accepted Orca Calibration tile/chooser/detail is
+unchanged. Home/Back remain native actions; the viewer does not trap or reroute
+Home. Tile status identifies the retained task stage.
+
+Finish is prominent above the native frame and inside the printing calibration.
+The native callback writes a bounded request-ID/sequence action. The owned
+mock driver validates identity and started state, and consumes it once.
+An already completed/cancelled task takes precedence. The same guard serves the
+viewer button. No physical printer command or route is added.
+
+The responsive viewer avoids narrow-browser control overflow, labels the mock
+boundary, and reloads updated pages when candidate identity changes. Founder
+handoff uses a fresh page. The normal viewer/harness remains unchanged.
+
+Focused failures during repair exposed portrait track remapping, a wrong stock
+card selector, queued navigation timing, simulator rollback, and an entry animation interrupted by freeze. Those were
+corrected at their causal boundaries. Review startup now requires a stable
+native entry frame before parking its clock. A browser coordinate check initially
+reported success after selecting 220°C; visual inspection caught that false
+positive. The corrected check awaits each real input response and validates the
+exact correlated terminal 205°C artifact as well as its visible frame. In particular, empty grid coordinates
+were rejected by beta.4 configuration loading; orientation-tagged native track
+layouts now fit portrait. These are recorded repair iterations, not another
+Windows qualification or a new certification workstream.
+
+The existing native test freeze parks simulation and pre-existing periodic
+timers before the remote pointer is created. Remote pointer sampling, native
+navigation/update queues and rendering remain live. Animations are disabled;
+this is an explicit mock-review limitation. No upstream binary change, security
+change, new port, or new remote-access mechanism is involved.
+
+## Candidate and retained evidence
 
 The exact runtime source hashes and executed binary are bound by
 [`evidence/issue-4/roundtrip/report.json`](evidence/issue-4/roundtrip/report.json).
-Orca plugin `0.4.0` remains the actually qualified `fd4d37b5…` candidate.
-Helix source is `13a77bec…`; the executed source-built binary is `29dbb6f3…`,
-with complete build provenance retained. The optional Actions binary `ab819714…`
-was not executed. Original request `f4a33a9c526e24c63c2d653fc51cfb0c` still binds
-the real Windows export and original saved/edited/effective context.
+The actually qualified Orca plugin remains `0.4.0`, SHA `fd4d37b5…`.
+Helix source remains `13a77bec…` and the executed source-built binary remains
+`29dbb6f3…`; the optional Actions binary was not executed.
 
-## Independent findings and correction
+Original request `f4a33a9c526e24c63c2d653fc51cfb0c` retains the real Windows
+export and original profile context. Saved **220°C**, edited **217°C** and
+effective **217°C** remain distinct. The retained native result is **205°C**,
+with original-profile **NOT APPLIED** instructions. Existing Windows
+profile-switch/stale/duplicate/conflicting-result evidence remains applicable
+because the Orca plugin, request, export and result contract are unchanged.
 
-The reviewer first used the live native surface without implementation notes,
-then reviewed the exact frozen source/tests and all eleven native frame sets.
-The first disposition was **changes required**:
+## Validation and review gate
 
-- Evidence incorrectly named the optional Actions binary and omitted imported
-  harness code. Capture/promotion now bind verified runtime metadata; every
-  retained run and the committed verifier check the executed binary hash.
-  Imported `scripts/helix_dev.py` is included in source binding. Focused mutation
-  tests reject binary substitutions.
-- Native **Profile: 217°C** blurred saved and effective values. The corrected
-  label is **Effective: 217°C**; one complete corrected eleven-size capture
-  passed, with no Windows qualification restart.
-- README used obsolete dirty-checkout test counts. It now describes the current
-  candidate suite rather than historical mixed-tree counts.
-- The proof viewer could neither scroll to native Plugins after Home nor
-  complete the synthetic timer promptly. Bounded native drag and guarded
-  **Finish simulated print** resolve that review-only friction. Completion
-  requires an already started request in the owned isolated mock container.
+The lead's focused AI Product Preflight used the actual browser/native surface
+from two fresh runtime/browser sessions. Toolbar Finish worked directly after
+native Start. The second path used native Home, the stock active-print card,
+Back, the Mock Temperature return tile and its native Finish. Both reached
+205°C through native dropdown/drag/Next, retained that result after Home, and
+validated the exact correlated result artifact. Actual terminal frames were
+visually inspected; the first false-positive 220°C run is excluded.
 
-The accepted Helix product, ordinary harness, Orca runtime plugin, and original
-export bytes remain unchanged by these corrections.
+Finish is fully visible with no horizontal control overflow at browser widths
+375, 640 and 1280. No browser page errors occurred. Spare independently read
+back the updated LAN viewer (HTTP 200, Finish/Home present, matching candidate
+version) through the existing unelevated SSH worker. No new access mechanism
+or exposure was required.
 
-The same independent reviewer rechecked only the corrections and repeated the
-affected recovery/completion task. Disposition: **CLEAN**, with no material
-acceptance, correctness, safety, evidence or UX findings. Independent 73-test,
-evidence, whitespace and syntax checks pass. Two upward drags to reach Plugins
-remain acceptable proof-only friction. The source correction head and later
-menu-wording delta are explicitly covered; final head containment is recorded
-with the GitHub checkpoint.
+The bounded [browser proof](evidence/issue-4/roundtrip/browser/report.json)
+binds source hashes, browser driver/image, fresh contexts, viewport checks,
+actual 205°C selections and promoted before/after frames. The lead inspected
+normal Home composition, the native Finish, choices and the visible not-applied
+result against the accepted native shell. The complete thirteen-phase,
+eleven-target matrix is bound to the final startup/control sources. All 75
+dependency-free tests, static checks, evidence integrity and whitespace checks
+pass. Independent re-review follows this frozen candidate.
+The exact final PR head and CI disposition are recorded in Issue #4.
 
-## Lead Product Preflight
-
-The lead executed the same bounded path intended for Founder Review:
-
-1. Initial **Mock Temperature** clearly showed the original filament,
-   **Effective: 217°C**, **Mock request received; not started**, and Start.
-2. **Home > Settings**, two native upward drags, **Plugins > Calibration Bridge
-   Mock Proof > Settings > Open calibration** reopened the bridge.
-3. Native **Start** opened real mock **Print Status**. The proof viewer's
-   **Finish simulated print** reached the native choices without waiting through
-   the synthetic estimate.
-4. The native dropdown opened; a native drag exposed **205°C**; selecting it
-   and clicking **Next** displayed **205°C — sent to the companion; not applied**.
-   The live native result artifact exactly matched the qualified returned JSON.
-5. The actual retained Windows instruction capture showed the original filament,
-   precise Other layers path/key, saved **220°C**, edited/effective **217/217°C**,
-   selected **205°C**, and **NOT APPLIED**. Existing Windows profile-switch,
-   duplicate, stale and conflicting-result proof remains applicable because the
-   Orca runtime plugin and request/result bytes are unchanged.
-
-The lead inspected the corrected native context/result/retry composition and
-actual Windows instructions. Independent review inspected all eleven targets
-and found no clipping or horizontal overflow; the very tall low-DPI target has
-small but coherent composition. Private live preflight captures are retained
-outside the repository; no normal Windows desktop or personal profile content
-is published.
-
-## Validation and preservation
-
-- 73 dependency-free tests pass; static harness checks, Issue #2 evidence,
-  corrected Issue #4 evidence and whitespace checks pass.
-- The complete corrected eleven-target native matrix passes. Printing remains
-  simulated in `--test`, Docker `--network none`, with read-only runtime/plugin/
-  G-code mounts. No physical-printer execution or production transport is claimed.
-- Windows qualification passed before round-trip implementation. Its fallback is
-  explicit manual file association; the normally exported file is unchanged.
-- All 1,429 normal Orca settings/profile files match the original fingerprint at
-  the recorded post-round-trip check. The unrelated canonical tracked-change
-  fingerprint remains `d4cf0158…`; main remains `8e093c19…`.
-- OSS author, `github-oss` remote, and isolated `gh-oss` active account pass.
-  Business identity and default SSH settings were not changed.
-
-At final preflight, Windows execution remains available and the isolated Orca
-process is still running, but Spare's visible foreground is **LockApp.exe**.
-The native capture guard refused occluded capture. No unlock/security bypass
-was attempted. The owner must unlock Spare to view its existing Orca companion;
-this does not invalidate the completed qualification or require another run.
+Preservation: main remains `8e093c19…`; the canonical unrelated tracked-diff
+fingerprint remains `d4cf0158…`. The recorded post-round-trip check matched all
+1,429 normal Orca settings/profile files. This repair has made no Windows
+installation/profile changes. Helix remains `--test`, Docker `--network none`,
+with read-only runtime/product/bridge/G-code mounts and a private control socket.
+OSS account/remote safeguards remain mandatory for GitHub mutations.
 
 ## Founder Review handoff
 
-Use the working private native viewer and the isolated companion already open
-on Spare. Follow [the short walkthrough](TEMPERATURE_ROUND_TRIP.md#working-review-path).
-Judge whether context provenance, explicit mock Start, selection, recovery and
-**not applied** instructions feel clear and useful. The toolchain already checked
-hashes, rejection cases, normal-data preservation and all eleven sizes.
-
-The native viewer deliberately adds proof controls; the unchanged Issue #1 tile
-remains a separate chooser/detail/toast. Transport uses approved SSH plus native
-plugin-storage artifacts, preserving beta.4's HTTP guard. The interactive picker,
-physical printers, profile application, release and merge remain excluded.
+Follow [the tested short walkthrough](TEMPERATURE_ROUND_TRIP.md#working-review-path)
+using a fresh private LAN viewer page and the retained isolated Orca companion
+on Spare. Unlock Spare if its desktop is locked; no security bypass is part of
+this workflow. Review immediate Finish, normal Home/Back return, 205 selection
+and the visible original-profile not-applied result. Physical printers, profile
+application, picker expansion, release and merge remain excluded.

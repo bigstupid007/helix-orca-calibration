@@ -174,3 +174,10 @@ scaffolding in cache, and the same reserved LAN review port. It preserves the
 native HTTP printer-host protection and uses real native-storage/SSH artifacts.
 Complete eleven-target proof and operator commands are in
 [TEMPERATURE_ROUND_TRIP.md](TEMPERATURE_ROUND_TRIP.md).
+
+The separate proof seeds the stock Home print card and a native Mock Temperature
+return tile. The viewer and native mock calibration expose Finish simulated
+print; normal Home/Back remain Helix-owned. Its existing test freeze parks the
+synthetic clock before the remote pointer is created, preventing completed
+prints from reverting to printing while preserving native input/navigation.
+The ordinary harness is unchanged.
