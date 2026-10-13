@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mock Temperature review</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif}*{box-sizing:border-box}
+body{margin:0;background:#11151a;color:#e8edf2}header{position:sticky;top:0;z-index:1;background:#1b222a;padding:12px;border-bottom:1px solid #465462}
+.controls{max-width:800px;margin:auto;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+strong{flex:1 1 220px}.simulation{flex:1 1 300px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+button{font:inherit;padding:10px 14px;border:1px solid #64768a;border-radius:6px;background:#27313b;color:#e8edf2;cursor:pointer}
+button:disabled{opacity:.6;cursor:default}#finish{background:#276fb1;font-weight:600;flex:1 1 230px;min-height:44px}
+#hint{font-size:14px;flex:1 1 220px;color:#b9c5d1}nav{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+main{max-width:824px;margin:auto;padding:12px}#frame{display:block;width:100%;height:auto;touch-action:none;user-select:none;box-shadow:0 0 0 1px #465462}
+#message{font-size:14px;min-height:24px}p{font-size:14px;color:#b9c5d1}
+</style>
+</head>
+<body>
+<header><div class="controls"><strong>Mock Temperature · no printer connected</strong>
+<div class="simulation"><button id="finish" data-action="finish-mock" disabled>Finish simulated print</button><span id="hint">Use native Start, then finish the simulation here.</span></div>
+<nav aria-label="Native navigation"><button data-action="home">Home</button><button data-action="back">Back</button><button data-action="capture">Save capture</button></nav>
+</div></header>
+<main><img id="frame" src="/frame.png" width="800" height="480" alt="Live native HelixScreen mock. Tap controls or drag to scroll.">
+<div id="message" role="status">Loading native review…</div>
+<p>Home and Back use normal Helix navigation. On Home, tap <b>Mock Temperature</b> to return to your calibration, or the print-status card to return to the print.</p></main>
+<script>
+const version='__REVIEW_VERSION__',frame=document.querySelector('#frame'),message=document.querySelector('#message'),finish=document.querySelector('#finish'),hint=document.querySelector('#hint');let busy=false,origin=null;
+async function update(){if(busy)return;try{const r=await fetch('/api/review-state');const v=await r.json();if(!r.ok)throw Error(v.error);if(v.version!==version){location.reload();return;}
+finish.disabled=v.state!==2;hint.textContent=v.state===2?'Simulation only. Finish now; ignore the estimated print time.':v.state===3?'Choose a temperature in native Helix, then Next.':v.state===4?'Result returned; no Orca value was applied.':'Use native Start, then finish the simulation here.';
+frame.src='/frame.png?t='+Date.now();}catch(e){message.textContent=e.message;}}
+async function post(action,body={}){if(busy)return;busy=true;try{const r=await fetch('/api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const v=await r.json();if(!r.ok)throw Error(v.error);message.textContent=v.message||'Ready';}catch(e){message.textContent=e.message;}finally{busy=false;update();}}
+function point(event){const r=frame.getBoundingClientRect();return{x:Math.max(0,Math.min(799,Math.round((event.clientX-r.left)*800/r.width))),y:Math.max(0,Math.min(479,Math.round((event.clientY-r.top)*480/r.height)))};}
+frame.addEventListener('pointerdown',e=>{if(busy)return;e.preventDefault();origin=point(e);frame.setPointerCapture(e.pointerId)});
+frame.addEventListener('pointercancel',()=>{origin=null});
+frame.addEventListener('pointerup',e=>{if(!origin)return;e.preventDefault();const start=origin,end=point(e);origin=null;if(Math.hypot(end.x-start.x,end.y-start.y)>12)post('drag',{x0:start.x,y0:start.y,x1:end.x,y1:end.y});else post('tap',end)});
+document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>post(b.dataset.action)));setInterval(update,750);update();
+</script>
+</body></html>

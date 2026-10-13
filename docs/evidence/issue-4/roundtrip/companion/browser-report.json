@@ -1,0 +1,44 @@
+{
+  "status": "pass",
+  "kind": "companion presentation with supported-message fixtures",
+  "cases": [
+    {
+      "width": 360,
+      "fresh_context": true,
+      "result_first": true,
+      "instruction_visible": true,
+      "live_effective_separate": true,
+      "unavailable_preserved": true,
+      "text_escaped": true,
+      "diagnostics_retained": true,
+      "page_errors": []
+    },
+    {
+      "width": 440,
+      "fresh_context": true,
+      "result_first": true,
+      "instruction_visible": true,
+      "live_effective_separate": true,
+      "unavailable_preserved": true,
+      "text_escaped": true,
+      "diagnostics_retained": true,
+      "page_errors": []
+    },
+    {
+      "width": 640,
+      "fresh_context": true,
+      "result_first": true,
+      "instruction_visible": true,
+      "live_effective_separate": true,
+      "unavailable_preserved": true,
+      "text_escaped": true,
+      "diagnostics_retained": true,
+      "page_errors": []
+    }
+  ],
+  "frames": {
+    "result-360.png": "8110885344bdee523d61a94fe07ec6bf235d14bef51c8b78585520a77657ff89",
+    "result-440.png": "8e784b50e5e6108cc730513445256d4d86233b2f5cd7478897f4f0d4786c1b49",
+    "result-640.png": "cae775158ae2ff3890c1dad90c4c1de18b2533030e2461e610da28fa68b54e3b"
+  }
+}

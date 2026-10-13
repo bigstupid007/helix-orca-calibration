@@ -1,0 +1,120 @@
+{
+  "schema": "helix-orca-temperature-request/v1",
+  "mock_only": true,
+  "request_id": "64386306748f9fb9d424e8f694d23b4b",
+  "created_at_utc": "2026-10-12T16:41:56.973402+00:00",
+  "context_sha256": "eb13a6b113f8c59d5a8d738034a9687e6299938fb82660468e51658b92d906e7",
+  "wizard": "temp_tower",
+  "target": {
+    "runtime": {
+      "version": "2.5.0-dev",
+      "build": "210bc927"
+    },
+    "printer": {
+      "selected_saved": {
+        "name": "_local/helix-issue-4-original-context/Voron 2.4 300 0.4 nozzle",
+        "source": {
+          "label": "External",
+          "reason": null
+        },
+        "dirty": false,
+        "reason": null,
+        "alias": "Voron 2.4 300 0.4 nozzle",
+        "bundle_id": "helix-issue-4-original-context"
+      },
+      "current_edited": {
+        "name": "_local/helix-issue-4-original-context/Voron 2.4 300 0.4 nozzle",
+        "source": {
+          "label": "External",
+          "reason": null
+        },
+        "dirty": false,
+        "reason": null,
+        "alias": "Voron 2.4 300 0.4 nozzle",
+        "bundle_id": "helix-issue-4-original-context"
+      }
+    },
+    "process": {
+      "selected_saved": {
+        "name": "_local/helix-issue-4-original-context/Voron 0.20 Standard - Fast Quality",
+        "source": {
+          "label": "External",
+          "reason": null
+        },
+        "dirty": false,
+        "reason": null,
+        "alias": "Voron 0.20 Standard - Fast Quality",
+        "bundle_id": "helix-issue-4-original-context"
+      },
+      "current_edited": {
+        "name": "_local/helix-issue-4-original-context/Voron 0.20 Standard - Fast Quality",
+        "source": {
+          "label": "External",
+          "reason": null
+        },
+        "dirty": false,
+        "reason": null,
+        "alias": "Voron 0.20 Standard - Fast Quality",
+        "bundle_id": "helix-issue-4-original-context"
+      }
+    },
+    "filament": {
+      "selected_saved": {
+        "name": "Generic PLA - Voron Rapido - Initial",
+        "source": {
+          "label": "User",
+          "reason": null
+        },
+        "dirty": true,
+        "reason": null,
+        "alias": "Generic PLA - Voron Rapido - Initial",
+        "bundle_id": ""
+      },
+      "current_edited": {
+        "name": "Generic PLA - Voron Rapido - Initial",
+        "source": {
+          "label": "User",
+          "reason": null
+        },
+        "dirty": true,
+        "reason": null,
+        "alias": "Generic PLA - Voron Rapido - Initial",
+        "bundle_id": ""
+      }
+    },
+    "slot_name": "Generic PLA - Voron Rapido - Initial",
+    "nozzle_mm": 0.4,
+    "saved_temperature": 220,
+    "edited_temperature": 217,
+    "effective_temperature": 217,
+    "temperature_semantics": "Saved preset resolved config, edited copy, and merged effective value; never a claim about a raw leaf JSON."
+  },
+  "file": {
+    "name": "temperature-qualified-230-190-step5.gcode",
+    "size": 3619569,
+    "sha256": "24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b",
+    "bands": [
+      230,
+      225,
+      220,
+      215,
+      210,
+      205,
+      200,
+      195,
+      190
+    ]
+  },
+  "choices": [
+    230,
+    225,
+    220,
+    215,
+    210,
+    205,
+    200,
+    195,
+    190
+  ],
+  "bridge_file": "helix-temp-64386306748f9fb9d424e8f694d23b4b.gcode"
+}

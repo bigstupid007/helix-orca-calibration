@@ -1,0 +1,40 @@
+{
+  "id": "calibration-bridge",
+  "name": "Calibration Bridge Mock Proof",
+  "version": "0.1.0",
+  "author": "HelixScreen",
+  "description": "Development-only native Temperature bridge; mounted solely by the isolated mock integration harness.",
+  "permissions": [
+    "storage",
+    "moonraker_write"
+  ],
+  "widgets": [{
+    "id": "calibration-bridge__tile",
+    "name": "Mock Temperature",
+    "icon": "tune",
+    "description": "Return to the retained mock Temperature calibration",
+    "component": "calibration-bridge__tile",
+    "colspan": 2,
+    "rowspan": 1
+  }],
+  "settings": [
+    {
+      "key": "auto_open",
+      "type": "bool",
+      "label": "Open when a calibration arrives",
+      "default": true
+    },
+    {
+      "key": "auto_ask",
+      "type": "bool",
+      "label": "Open the picker when the print finishes",
+      "default": true
+    },
+    {
+      "key": "open_now",
+      "type": "action",
+      "label": "Open calibration",
+      "callback": "calibration-bridge__open"
+    }
+  ]
+}

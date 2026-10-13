@@ -62,6 +62,64 @@ upstream Actions binary is used only as a SHA-verified accelerator; the durable
 fallback builds the exact public source and recursive submodule revisions with
 the pinned repository-owned builder recipe.
 
+## Issue #4 — qualified mock Temperature round trip
+
+Issue #4 replaces the deferred interactive-picker idea with one bounded
+Temperature round trip. The first gate is qualification of the fixed October
+11 Windows Orca nightly in a separate settings tree. The source-verified,
+companion is `plugin/helix_calibration.py` version `0.4.0`; it preserves
+the qualified context/export/panel capabilities and adds a host-owned mock
+round-trip dock. The completed qualification used version `0.3.0`.
+
+The Windows launcher and interactive checklist are in
+[`docs/ORCA_NIGHTLY_QUALIFICATION.md`](docs/ORCA_NIGHTLY_QUALIFICATION.md).
+Spare is the verified interactive Windows target. The founder-approved LAN-only
+worker uses existing pinned SSH, without an inbound Windows service, firewall
+change, Tailscale, or identity changes. Its restarted command capture passed the
+actual Windows inherited-pipe regression. See
+[`docs/SPARE_TEST_ACCESS.md`](docs/SPARE_TEST_ACCESS.md).
+
+The fixed Windows nightly now proves plugin installation, real saved `220 °C`
+versus unsaved/merged `217 °C`, a working Orca-owned dock, useful preset/dirty
+events, and normal Temperature preparation/export. The exported file contains
+all nine `230–190 °C` choices. Lifecycle events identify only the temporary
+slicing file; native manual selection verified the actual export's bytes/hash.
+A child-only WebView2 data override now separates test browser state as well as
+Orca settings.
+
+The Windows gate passed on Spare at 2026-10-12 01:14 UTC. The supported offline
+bundle importer resolves the original printer's System-name collision while
+preserving all six supplied JSON files byte-for-byte. Runtime context identifies
+the original leaf under `_local/helix-issue-4-original-context/`, with
+`is_system=false`. The full run used separate Orca and browser storage; all
+1,429 normal settings/profile files remain unchanged.
+
+The bounded report and native frames are in
+[`docs/evidence/issue-4/windows/`](docs/evidence/issue-4/windows/).
+The new export is 3,619,569 bytes, SHA-256
+`24594869ed17ec6d26c920ff684329c087487d20cbffddaf849c1afd4cdf271b`.
+The mock round trip now passes at all eleven native Helix sizes and returns
+205°C to the retained original filament with **NOT APPLIED** instructions,
+even after Orca's current filament changes. Duplicate/stale/conflicting results
+and real artifact delivery failures/retries are proven. The accepted Helix
+plugin remains unchanged. Native beta.4's loopback HTTP guard is preserved;
+the isolated proof uses pinned LAN SSH and native plugin-storage artifacts.
+See [the proof and working review path](docs/TEMPERATURE_ROUND_TRIP.md).
+The [candidate review and AI Product Preflight](docs/ISSUE_4_PRODUCT_PREFLIGHT.md)
+record the consolidated Founder Review repair and its review limits. The mock
+proof provides a prominent immediate Finish control and native Home return
+tile/print card. The Orca companion leads with the selected result, original
+profile, live effective value and exact manual update steps. **NOT APPLIED** is
+prominent; preparation and technical details are expandable. Founder accepted
+Issue #4 and PR #5 on 2026-10-12 (America/Chicago) as a completed mock-only
+technical proof of concept and explicitly authorized merge and closeout.
+Further UX polish is [deferred backlog work](docs/backlog.md), not a completion
+gate. Acceptance authorizes no hardware, production, or profile-write use.
+
+Qualification UI driving and complete mock lifecycle simulation remain test
+infrastructure. Modeless-window and explicit manual-file fallbacks remain
+supported. The interactive Temperature picker is deferred and unimplemented.
+
 ## Verify
 
 ```sh
@@ -69,8 +127,7 @@ python3 -m unittest discover -s tests -v
 git diff --check
 ```
 
-The Issue #2 candidate contains 22 committed tests: seven Issue #1 plugin
-policy tests plus fifteen harness tests. This canonical checkout currently also
-contains 18 unrelated, uncommitted Orca diagnostic tests, so the full dirty
-working-tree command reports 40. The earlier Issue #1 note saying “25 tests”
-described that mixed working tree; the exact Issue #1 commit contained seven.
+The Issue #4 candidate includes the earlier product/harness policy suite and
+the Orca qualification, access, request/result, and evidence checks. Run the
+suite from the candidate checkout; historical dirty-checkout counts are not
+the candidate's validation result.

@@ -71,3 +71,101 @@ GitHub CI covers deterministic Python/XML/manifest/harness policy and verifies
 the bounded promoted evidence against the checked-out candidate. Native runtime
 capture remains a devbox gate because an exact source build and eleven native
 viewport runs are intentionally too heavy for proportionate per-commit CI.
+
+## Issue #4 qualification and host boundary
+
+The canonical implementation checkout remains
+`/home/dev/Projects/personal/helix-orca-calibration` on devbox. The existing
+`codex/issue-4-temperature-round-trip` worktree isolates Issue #4 from unrelated
+canonical changes. Spare is the intended Windows runtime-validation target;
+LAPTOP-EC83OFDE is outside this workstream.
+
+Windows setup, isolated runtime execution, and capture use the founder-approved
+LAN-only access envelope. A prepared unelevated Windows worker carries command
+requests through the existing outbound SSH connection to a private devbox Unix
+socket. It needs no Windows listener, service, firewall change, or Tailscale.
+The worker executes inside the visible desktop. Commands and a native GUI click
+were proven there. The restarted worker passed an actual inherited-pipe capture
+regression in 2.11 seconds and remained connected. Transport details
+and operational boundaries are in [`SPARE_TEST_ACCESS.md`](SPARE_TEST_ACCESS.md). Source/tests and
+devbox execution cannot satisfy the Windows gate. The fixed nightly must use
+its own portable directory and marked `--datadir`, preserving the normal Orca
+installation and profiles. `WEBVIEW2_USER_DATA_FOLDER` is set only in the
+nightly child environment: `--datadir` alone reused normal Orca browser data.
+Separate browser process ancestry and data storage were verified after relaunch.
+The qualification gate passed after the supported offline local bundle importer
+resolved the System-name collision with unchanged fixture JSON. Runtime context
+records the original printer's bundle identity and `is_system=false`, while
+saved 220, edited 217 and merged 217 remain separate. Normal Temperature
+preparation used a separately retained temporary context. Manual selection of
+the actual export is required because the lifecycle path is temporary slicing
+output. All 1,429 normal settings/profile files remained unchanged after close.
+
+Prefer the Orca-owned dock panel and lifecycle file association. If necessary,
+qualify a host-owned modeless window and explicit manual file selection under
+the approved Issue #4 fallback authority. UI driving belongs only to isolated
+evidence tooling. The mock-only Temperature round trip now proceeds from the completed
+actual Windows observations in
+[`ORCA_NIGHTLY_QUALIFICATION.md`](ORCA_NIGHTLY_QUALIFICATION.md).
+
+## Issue #4 bounded round-trip implementation
+
+The self-contained Orca `0.4.0` companion freezes the original supported-API
+context separately from live selection/settings, verifies a manually selected
+file in its host-owned browser, and explicitly writes one immutable request
+under plugin storage. Returned JSON must match request, context, file, printer,
+filament, current/saved values and setting; duplicates are idempotent, conflicts
+and stale results are rejected. Instructions state **not applied**. There is no
+network, process/thread, slice hook, UI automation or preset-write path in the
+Orca plugin. Lifecycle callbacks notify the page; host reads run through its
+supported UI message callback. Modeless fallback remains available.
+
+The separately mounted development bridge uses pinned native overlays,
+subjects, plugin storage and mock print APIs. Beta.4 forbids HTTP to local
+printer-host addresses, so the proof preserves that protection and transports
+real artifacts through existing SSH and supported native storage. Native
+request receipt never starts printing. Docker `--network none` and `--test`
+prevent any physical route. The accepted product and ordinary harness are
+unchanged. All eleven sizes and actual Spare result reception pass; see
+[TEMPERATURE_ROUND_TRIP.md](TEMPERATURE_ROUND_TRIP.md).
+
+The separate proof viewer adds bounded native drag input and a single guarded
+mock-completion action. Completion requires an already started request in the
+owned `--test`, network-none container; it cannot start printing. Native context
+labels identify effective values explicitly. Evidence binds the executed
+source-built binary and provenance, per-viewport binary hashes, and the imported
+ordinary harness in addition to the round-trip sources.
+
+
+The consolidated Founder Review repair supplies a proof-only native Home resume
+tile and restores the stock print-status card, while preserving normal native
+Home/Back semantics. Native Finish writes a correlated storage action; the
+owned mock driver validates and consumes it. The viewer makes the same existing
+completion action prominent and responsive. This changes only mock integration
+and review infrastructure, never the accepted shell or upstream navigation.
+
+The proof parks beta.4's synthetic clock before the remote pointer is created,
+after a stable entry frame. This keeps completion from being overwritten by
+later simulator snapshots. Navigation/update/render queues and the later-created
+remote input sampler stay live; pre-existing periodic timers and animations are
+paused only in this test runtime. Fresh browser proof verifies both Finish
+surfaces and native Home/Back/task return through the terminal 205°C result.
+
+
+The companion presentation now leads with the validated result and manual
+update steps. Calibration-start effective temperature remains separate from
+the live current effective value and its currently selected filament. A
+selection/settings warning prevents interpreting another profile's live value
+as the original target. Preparation/import controls and diagnostic provenance
+remain in expandable sections; no reader, callback, request/result guard or
+write boundary changed. The focused companion report binds current source and
+actual Windows reception, while retaining the original native capture hashes.
+An AST contract check permits only the companion HTML assignment to differ
+from the qualified plugin. No Helix matrix recapture is implied by this UI-only
+change.
+
+Founder accepted the completed Issue #4 / PR #5 mock-only technical proof on
+2026-10-12 (America/Chicago) and authorized governed merge and closeout. This
+documentation-only closeout changes no architecture or runtime boundary.
+Additional UX polish is deferred in `backlog.md`; physical-printer routes,
+production use, real-print control and Orca profile writes remain prohibited.

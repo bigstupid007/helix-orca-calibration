@@ -1,0 +1,101 @@
+{
+  "schema": "helix-orca-founder-repair-browser/v1",
+  "status": "pass",
+  "recorded_at_utc": "2026-10-12T04:31:36Z",
+  "repair_base": "69e5d4ac016a11b2042d8c63ddf044bc4b8c9262",
+  "runtime_candidate_files": {
+    "integration/calibration-bridge/main.lua": "691a8f0a6eabceec828798cdb941786687022878e4c892ba94c5c700564ec70a",
+    "integration/calibration-bridge/manifest.json": "d435fa35745e24035a0209b48d9b51fc63344daa87129ffa8672354e31122b53",
+    "integration/calibration-bridge/ui/calibration-bridge__ask.xml": "10301453c9f831d17fef98338463f964c81f7b1ace268148db65072b2bb7243f",
+    "integration/calibration-bridge/ui/calibration-bridge__tile.xml": "4441e73bb56190b335d45341771011e8bb02c292291fdcdd4605c1c289d4d524",
+    "plugin/helix_calibration.py": "fd4d37b51ee61d4260f0ff5217841cc052c1210b12c14c1e46f8f6c9d371d844",
+    "scripts/helix_dev.py": "3c9eb5a1c5d97986146922bca1b12941688103d78846189bf8c1ceb0f2da8f8b",
+    "scripts/temperature-evidence.py": "6b190dc8fc8b29795736012a1128285a9e58e7c3f8a683b6800e5a1270d8f33c",
+    "scripts/temperature-roundtrip.py": "a0b31a558016401574fd5aeda77cfed603486f7aff40917cd0ae389f2001c816",
+    "scripts/temperature-viewer.html": "38bcafedb53859a0f4863048b8a68e06b342ae1381fbc889b9de9220df0ee2bb"
+  },
+  "browser_driver_sha256": "6fdcc427d6dd9bc2e154087d49a672aac6f84fde446e24466e15b97cf1004254",
+  "viewer_version": "84debd0fb5ac57bb0e1de663637d9220c6d0fd62b428e00a6f5f855105537355",
+  "browser_image": "mcr.microsoft.com/playwright:v1.55.1-noble",
+  "browser_image_id": "sha256:2f29369043d81d6d69a815ceb80760f55e85f5020371ad06a4d996f18503ad1c",
+  "native_viewport": [
+    800,
+    480
+  ],
+  "cases": {
+    "toolbar": {
+      "status": "pass",
+      "mode": "toolbar",
+      "fresh_context": true,
+      "selected_value": 205,
+      "request_id": "f4a33a9c526e24c63c2d653fc51cfb0c",
+      "viewport_checks": [
+        {
+          "width": 375,
+          "finish_fully_visible": true
+        },
+        {
+          "width": 640,
+          "finish_fully_visible": true
+        },
+        {
+          "width": 1280,
+          "finish_fully_visible": true
+        }
+      ],
+      "page_errors": []
+    },
+    "native": {
+      "status": "pass",
+      "mode": "native",
+      "fresh_context": true,
+      "selected_value": 205,
+      "request_id": "f4a33a9c526e24c63c2d653fc51cfb0c",
+      "viewport_checks": [
+        {
+          "width": 375,
+          "finish_fully_visible": true
+        },
+        {
+          "width": 640,
+          "finish_fully_visible": true
+        },
+        {
+          "width": 1280,
+          "finish_fully_visible": true
+        }
+      ],
+      "page_errors": []
+    }
+  },
+  "frames": {
+    "toolbar-fresh.png": "68a8da782909e7be205ace1873f64ae098ea266da617f3f4c466b172e2d53d6c",
+    "toolbar-printing-375.png": "b583e0c5755cbe6ddf0ccd423aa78e4d6335991c7797cdba8b8dd94c22740469",
+    "toolbar-printing-640.png": "3c3fcdde693b6befb5bc58954ff597428b8310c79350b0d285be42409197d43d",
+    "toolbar-printing-1280.png": "0bdc4ab793e9677d759db7d8e5abcb98dbd2869fe76ff3f35e2a33702dbc73e0",
+    "toolbar-dropdown-scrolled.png": "7fd4c97da51d2a39e8a8a08b127cac2d83ff249a284571181735cce4ee7aab30",
+    "toolbar-returned.png": "3864dfef6668a839b1d24b2e7cc01680fc3dc503622578dbe55bed2bf86bbc39",
+    "toolbar-result-resumed.png": "896ea3953deea2818c2cfe417d01f822ffeeb396376074970e001699402bedf5",
+    "native-home-active.png": "7224284824fdb798e48ac91460098acf003c5791afb05dbd7c293b3bad6660fb",
+    "native-return-print.png": "c1d2d1948da38763b6d1676d9a2f93fcadbccd6f9e91aa12ec4bd4933bc0b08e",
+    "native-resume-calibration.png": "ce8a8b04c85e437ab6634d0aaf90d2177a9b007afc32c215171f43fce72bd39d",
+    "native-choices.png": "91ab7a0b239f8b7a7a98f58a704a1443dc79f925cc11914ffd1bf6b2f64be351",
+    "native-returned.png": "3864dfef6668a839b1d24b2e7cc01680fc3dc503622578dbe55bed2bf86bbc39",
+    "native-result-resumed.png": "896ea3953deea2818c2cfe417d01f822ffeeb396376074970e001699402bedf5",
+    "candidate-browser-375.png": "20368c5b165985370b51672deb1af38abf775a2563b347b059c5a98375fa3eb8",
+    "candidate-home.png": "513c8ec162c2069038af050c403558d7e0da0518167cb43995fa51ee69515b9e"
+  },
+  "limitations": [
+    "Headless Chromium executes the actual LAN viewer and native pointer events; this is AI preflight, not Founder acceptance.",
+    "Mock clock and existing periodic timers remain parked; native remote input/navigation/rendering stay live, with animations disabled.",
+    "Windows qualification and companion result evidence are retained unchanged; no normal profile mutation."
+  ],
+  "spare_lan_readback": {
+    "hostname": "SPARE",
+    "http_status": 200,
+    "has_finish": true,
+    "has_home": true,
+    "candidate_version": "84debd0fb5ac57bb0e1de663637d9220c6d0fd62b428e00a6f5f855105537355",
+    "calibration_state": 4
+  }
+}
