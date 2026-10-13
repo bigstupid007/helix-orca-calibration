@@ -240,4 +240,32 @@ No lock bypass or repeat qualification was attempted. The source-bound actual
 frame, lead’s completed fresh import/diagnostic proof, browser disclosure/reset
 checks and unchanged callback/state AST were sufficient for this bounded review.
 Lead affected-surface Product Preflight passes; owner unlock is needed only to
-view the already loaded Founder candidate. PR #5 remains unmerged.
+view the already loaded Founder candidate. PR #5 was unmerged at that review checkpoint.
+
+## Founder acceptance and governed closeout — 2026-10-12 (America/Chicago)
+
+Founder accepted Issue #4 and PR #5 as a completed mock-only technical proof of
+concept at review head `36688f5da18abe055a44ec84a99f1584f1cfeca6`. The runtime
+source independently reviewed at `2d0b7fe1b2c50b0c0da557a1fbebca2dbfdc8efa`
+is unchanged. Founder explicitly authorized acceptance recording, backlog
+reconciliation, final safeguards, merge, main verification and Issue closure.
+The earlier navigation/simulation and companion defect reports remain in this
+history; the accepted repairs and evidence are preserved. Further UX polish is
+deferred, not an open completion gate. Closeout requires no repeat Windows
+qualification or native matrix capture. Merge/main CI identity and final Issue
+disposition are recorded in the governing GitHub work item.
+
+Acceptance is limited to the mock technical proof. No hardware, production
+Moonraker route, real-print capability, profile application, release or
+deployment is authorized. Canonical unrelated dirty work is preserved; merged
+main is verified in a separate clean worktree.
+
+Final pre-merge safeguards at 2026-10-13 02:15 UTC: all 78 dependency-free
+tests, evidence/static contracts and whitespace checks pass. The closeout diff
+contains documentation and AGENTS authority only; runtime, tests and evidence
+bytes match the accepted review head. Spare's 1,429 normal settings/profile
+files still match baseline aggregate
+`ed4cd00fff296723223ede35beabcacb41a64d2046c8c30a60513aa1de3bd0f0`.
+The owned mock still uses `--test`, Docker network `none`, read-only runtime
+and plugin mounts and its private control socket. Canonical OSS guards and the
+unrelated tracked-change fingerprint match the pre-closeout checkpoint.

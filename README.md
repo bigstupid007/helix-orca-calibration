@@ -110,8 +110,11 @@ record the consolidated Founder Review repair and its review limits. The mock
 proof provides a prominent immediate Finish control and native Home return
 tile/print card. The Orca companion leads with the selected result, original
 profile, live effective value and exact manual update steps. **NOT APPLIED** is
-prominent; preparation and technical details are expandable. PR #5 remains
-unmerged.
+prominent; preparation and technical details are expandable. Founder accepted
+Issue #4 and PR #5 on 2026-10-12 (America/Chicago) as a completed mock-only
+technical proof of concept and explicitly authorized merge and closeout.
+Further UX polish is [deferred backlog work](docs/backlog.md), not a completion
+gate. Acceptance authorizes no hardware, production, or profile-write use.
 
 Qualification UI driving and complete mock lifecycle simulation remain test
 infrastructure. Modeless-window and explicit manual-file fallbacks remain

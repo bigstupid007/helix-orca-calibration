@@ -6,6 +6,13 @@ Temperature Round Trip (mock only)** beside the three qualified read-only
 capabilities. The accepted permissionless Helix plugin and ordinary native
 harness are unchanged. The interactive Temperature picker remains deferred.
 
+Founder accepted Issue #4 and PR #5 on 2026-10-12 (America/Chicago) as a completed
+mock-only technical proof of concept and authorized merge and closeout. Further
+UX polish is [future backlog work](backlog.md). The proven result remains NOT
+APPLIED; hardware, production transport, real-print control and profile writes
+remain prohibited. This closeout changes documentation only and preserves the
+existing evidence and runtime sources.
+
 ## Proven result
 
 The original target is the unchanged offline-bundle printer and process, with

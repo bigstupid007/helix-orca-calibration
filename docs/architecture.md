@@ -163,3 +163,9 @@ actual Windows reception, while retaining the original native capture hashes.
 An AST contract check permits only the companion HTML assignment to differ
 from the qualified plugin. No Helix matrix recapture is implied by this UI-only
 change.
+
+Founder accepted the completed Issue #4 / PR #5 mock-only technical proof on
+2026-10-12 (America/Chicago) and authorized governed merge and closeout. This
+documentation-only closeout changes no architecture or runtime boundary.
+Additional UX polish is deferred in `backlog.md`; physical-printer routes,
+production use, real-print control and Orca profile writes remain prohibited.

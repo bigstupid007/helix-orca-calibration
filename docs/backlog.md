@@ -64,7 +64,7 @@ unrelated Orca diagnostic tests remain uncommitted and untouched. Native
 runtime evidence is in [`evidence/issue-2/`](evidence/issue-2/) and the operator
 contract is [`HELIX_DEV_HARNESS.md`](HELIX_DEV_HARNESS.md).
 
-## Active: Issue #4 — Temperature round trip on a qualified Orca nightly
+## Accepted: Issue #4 — mock-only Temperature technical proof of concept
 
 Issue #4 supersedes the deferred interactive Temperature-picker item. Source
 qualification has pinned the successful 2026-10-11 Windows nightly at commit
@@ -80,7 +80,8 @@ events in that exact source.
 - [x] Pass the interactive Windows qualification checklist with a real unsaved
   value, profile switching, normal Temperature preparation, and actual export.
 - [x] After that gate, implement and prove the bounded mock-only round trip.
-- [x] Freeze, independently review, and prepare one PR without merging it.
+- [x] Freeze, independently review, and complete AI Product Preflight.
+- [x] Receive Founder acceptance and explicit governed merge/closeout authority.
 
 Spare command and native GUI access are proven through the founder-approved
 LAN-only worker, including the repaired bounded-pipe regression. The exact
@@ -99,7 +100,7 @@ settings/profile files remain unchanged. The report is in
 has passed at all eleven native sizes and returned 205°C with original-profile
 **not applied** instructions. Duplicate/stale/conflicting results and artifact
 delivery failure/retry are proven. See [the proof](TEMPERATURE_ROUND_TRIP.md).
-PR #5 remains unmerged. Founder Review rejected the earlier navigation and
+Founder Review rejected the earlier navigation and
 simulation experience; that disposition supersedes the earlier AI preflight.
 The navigation/simulation repair passed the native matrix and fresh browser
 operator paths. Founder subsequently confirmed the 205°C return but rejected
@@ -107,7 +108,9 @@ the companion’s diagnostic-first primary screen. Its result-first repair
 retains the working transport and exposes the original profile, live effective
 value, selected temperature, exact manual steps and prominent NOT APPLIED.
 Focused Windows/browser proof, fresh independent review and affected AI
-Product Preflight pass; the candidate is ready for Founder Review. They are tracked in
+Product Preflight pass; Founder accepted the completed mock-only technical proof
+of concept on 2026-10-12 (America/Chicago), authorizing PR #5 merge and Issue #4
+closeout. They are tracked in
 [AI Product Preflight](ISSUE_4_PRODUCT_PREFLIGHT.md), with exact candidate and
 CI identity recorded in the governing Issue checkpoint. Windows qualification
 is complete and has not been restarted for this repair.
@@ -121,6 +124,17 @@ separately isolated mock lifecycle. Qualification UI driving is test evidence,
 not supported product automation. Retain the host-owned modeless-window and
 manual-file-selection fallbacks. The interactive Temperature picker remains a
 separate deferred requirement.
+
+## Future UX polish — deferred after Founder acceptance
+
+Founder explicitly deferred additional UX polish beyond the accepted technical
+proof. A future approved increment may refine the companion's preparation,
+result explanation and manual-update flow, and the mock review experience.
+Retain the result-first facts, prominent NOT APPLIED status, immediate mock
+Finish control, normal Home/Back and active-task return. This entry creates no
+new completion gate or implementation authority. The interactive Temperature
+picker remains separately deferred. No production, hardware or automatic
+profile application is included.
 
 ## Deferred — requires new approval
 

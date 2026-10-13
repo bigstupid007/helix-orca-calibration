@@ -7,7 +7,10 @@ The fixed Windows x64 runtime passed qualification on Spare at
 The original target profiles, saved/edited/effective distinction, unsaved value,
 profile switches, host-owned dock, useful events, normal Temperature export,
 manual byte/hash association, and normal-settings preservation are proven.
-Mock-only integration may proceed under the existing Issue #4 authority.
+The subsequent mock-only round trip is complete and Founder-accepted as a
+technical proof of concept; see [the completion record](ISSUE_4_PRODUCT_PREFLIGHT.md).
+Qualification was not restarted for acceptance or closeout. Hardware, production
+and profile-write restrictions remain in force.
 
 See [`evidence/issue-4/windows/qualification.json`](evidence/issue-4/windows/qualification.json)
 and its eight target-only native frames. Full diagnostic inventories, actual

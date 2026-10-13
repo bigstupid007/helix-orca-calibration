@@ -1,9 +1,14 @@
 # Issue #4 companion Founder Review repair
 
 Status: focused Windows/browser validation, independent review and affected-surface
-AI Product Preflight pass. Ready for Founder Review.
-PR #5 remains unmerged. Founder confirmed the 205°C return but rejected the
-companion's diagnostic-first primary experience. No Founder acceptance is claimed.
+AI Product Preflight pass. Founder accepted Issue #4 and PR #5 on 2026-10-12
+(America/Chicago) as a completed mock-only technical proof of concept, explicitly
+authorizing governed merge and closeout. Accepted review head:
+`36688f5da18abe055a44ec84a99f1584f1cfeca6`; independently reviewed runtime source:
+`2d0b7fe1b2c50b0c0da557a1fbebca2dbfdc8efa`. Further UX polish is deferred in
+[the backlog](backlog.md). Acceptance does not authorize hardware, production,
+profile writes, release or deployment. The defect and review evidence below is
+retained as the accepted candidate's history.
 
 ## Current companion defect closure
 
@@ -80,7 +85,7 @@ and optional save decision, and states NOT APPLIED. Technical artifacts are
 accessible separately. Normal Orca files and accepted Helix sources are preserved.
 No additional broad product review or qualification loop is required.
 
-For Founder Review, unlock Spare and read the already loaded **Temperature
+The accepted Founder Review path was to unlock Spare and read the loaded **Temperature
 calibration** companion. Verify the primary result/instruction card first;
 optional diagnostics need no recovery path. The private native viewer and its
 previously repaired Home/Back/Finish controls remain unchanged. No automatic
@@ -209,7 +214,7 @@ installation/profile changes. Helix remains `--test`, Docker `--network none`,
 with read-only runtime/product/bridge/G-code mounts and a private control socket.
 OSS account/remote safeguards remain mandatory for GitHub mutations.
 
-## Founder Review handoff
+## Accepted Founder Review path — retained for reproduction
 
 Follow [the tested short walkthrough](TEMPERATURE_ROUND_TRIP.md#working-review-path)
 using a fresh private LAN viewer page and the retained isolated Orca companion

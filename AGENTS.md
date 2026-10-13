@@ -134,4 +134,10 @@ without explicit instruction.
 The governing Issue requires one fresh-context read-only independent reviewer
 at the frozen candidate boundary. Use that bounded reviewer under the current
 shared Development System authority; only the lead integrates corrections.
-Keep the PR unmerged and complete AI Product Preflight against its exact head.
+The frozen candidate completed independent review and AI Product Preflight.
+Founder accepted Issue #4 and PR #5 as a completed mock-only technical proof of
+concept on 2026-10-12 (America/Chicago), explicitly authorizing governed merge,
+main verification and Issue closure. This supersedes the prior keep-unmerged
+gate for PR #5 only. Additional UX polish is deferred in `docs/backlog.md`.
+Hardware access, production transport, real-print control, profile writes,
+release and deployment remain prohibited; acceptance grants none of them.
