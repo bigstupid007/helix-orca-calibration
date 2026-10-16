@@ -1,0 +1,59 @@
+{
+  "schema": "helix-orca-issue-6-release-lock/v1",
+  "recorded_at_utc": "2026-10-16T01:45:46Z",
+  "accepted_baseline": {
+    "repository_commit": "b49aa93dc0562f5394ac82b5c8c8f0b0b9b6c709",
+    "helix_version": "v1.1.0-beta.4",
+    "orca_commit": "210bc927bc6fb3d3bf390fdf72e4a2767b5de4b3",
+    "preserved": true
+  },
+  "helix": {
+    "release": "v1.1.0-beta.9",
+    "annotated_tag": "cd9734ccd884784ac7f1aa07e2046b72de2d59e9",
+    "source_commit": "e5cdc5dc523280bc3ead681a4f229bf84dfa726a",
+    "asset": {
+      "id": 642984400,
+      "name": "helixscreen-x86-desktop-v1.1.0-beta.9.tar.gz",
+      "bytes": 76856981,
+      "sha256": "32303ccbad05bf1073cfafd6280fe08e264d838b28f03ca649425d54d7c59f97"
+    },
+    "binary_sha256": "b14f2de86dffbccaf5374ed1d57737bfe1ea0b0b8de2e270a7e0b92e4c3b74a3",
+    "isolated_native": {
+      "status": "passed_startup_plugin_load_and_capture_only",
+      "network": "disabled",
+      "accepted_plugin_loaded": true,
+      "screenshot_sha256": "a7302dda30ed6f38a1300c8bc4c0cd91986435845addd965906343849ec0fcb9",
+      "limitation": "The official x86 desktop artifact was built without mock backends or remote control, so it cannot replace the accepted beta.4 interactive mock matrix."
+    }
+  },
+  "orca": {
+    "workflow": "Build all",
+    "run_id": 38671673715,
+    "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+    "artifact": {
+      "id": 11945987535,
+      "name": "OrcaSlicer_Windows_V2.5.0-dev_x64_portable",
+      "bytes": 224950798,
+      "download_sha256": "728b11b2d84bae6b6f8da71da6d2ef3744060695457c092acc6a96c8643784bc"
+    },
+    "executable_sha256": "e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759",
+    "library_sha256": "3c5b2accbdc7d8ad2eab9cf21705a9b04f2e0be9961cfe3016c7376c6fadc157",
+    "windows_stage": "hash_verified_on_spare",
+    "runtime_status": "pending_isolated_native_qualification"
+  },
+  "official_calibration_bridge": {
+    "source_commit": "e5cdc5dc523280bc3ead681a4f229bf84dfa726a",
+    "main_lua_sha256": "671b6dde36483d24e6791b752c3a1ce7233b7ea98ae902c7b1787270a6244136",
+    "manifest_sha256": "a4c9b49ce1944906132d4f19b111801833658d0aa56098c5e3dbbad98857d5e2",
+    "decision": "reject_unchanged_for_display_only",
+    "reason": "It requests http and moonraker_write and implements print start, print cancel, and result HTTP POST."
+  },
+  "target": {
+    "identity": "owner-confirmed actual Voron on the private LAN",
+    "reported_helix_version": "v1.1.0-beta.9",
+    "moonraker_commit": "d5ee17128bb88434aacdab90c2e9e990e2b64e4a",
+    "read_only_status": "reachable_ready_no_failed_components",
+    "mutation_performed": false
+  }
+}
+
