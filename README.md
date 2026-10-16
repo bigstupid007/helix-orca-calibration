@@ -157,7 +157,7 @@ request/result, display-only transport, release-lock, and evidence checks. Run
 it from the candidate checkout; historical dirty-checkout counts are not the
 candidate's validation result.
 
-## Issue #8 — bidirectional communication candidate
+## Issue #8 — accepted bidirectional communication milestone
 
 [Build Program #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8)
 authorizes one real Temperature request/selection return without printing. The
@@ -183,7 +183,10 @@ approved and was executed through existing owner local access only. See the
 [storage gate](docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md),
 [program](docs/BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md), and
 [operations and exact Founder Review path](docs/TEMPERATURE_COMMUNICATION.md#founder-review).
-[PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9) is the single
-unmerged candidate. The completed relay has exited; the agent prepares another
-bounded live window for a fresh review. Founder acceptance, merge and deployment
-remain open.
+Founder accepted Issue #8 and PR #9 on 2026-10-16 (America/Chicago), after
+reviewing the actual original-profile 220°C / simulated 205°C / NOT APPLIED
+Orca result, and authorized governed merge, main verification and Issue closure.
+[Acceptance and closeout](docs/ISSUE_8_ACCEPTANCE.md) records the precise scope;
+the PR/Issue own final merge and verification state. The completed relay has
+exited. [UX polish remains deferred](docs/backlog.md#deferred-ux-batch-after-the-accepted-bidirectional-proof);
+no printing, automatic profile update, release or broader deployment is authorized.

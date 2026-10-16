@@ -238,7 +238,33 @@ access-mode change, directory-wide link, service or plugin permission.
 The owner applied that exact bridge; authenticated readback and a fresh actual
 round trip, persisted ACK, delivered status, independent review and AI Product
 Preflight are now verified. Preserve the prior request/journal and never
-retarget an expired result. This grants no wider change. Founder acceptance,
-merge and deployment remain open. See
+retarget an expired result. This grants no wider change. Founder acceptance
+and the exact PR #9 merge/closeout authority are recorded below; deployment
+remains excluded. See
 `docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md` and
 `docs/TEMPERATURE_COMMUNICATION.md#founder-review`.
+
+## Issue #8 Founder acceptance and closeout
+
+Founder accepted Issue #8 and PR #9 on 2026-10-16 (America/Chicago) as the
+completed real bidirectional Temperature communication milestone. Founder
+reviewed the completed actual Orca result and confirmed the exact original
+profile/setting, 220°C context, simulated 205°C and NOT APPLIED instructions.
+The same instruction authorizes documentation/deferred-UX reconciliation,
+final safeguards, PR #9 merge, main verification and Issue #8 closure. This
+supersedes the preceding unmerged/acceptance-open restriction for PR #9 only.
+
+Closeout changes documentation only; accepted implementations, captured public
+and private proof, normal Orca profiles and the canonical uncommitted work
+must remain unchanged. Use the established merge-commit method, current green
+checks and exact-head match; verify main in a clean detached worktree rather
+than updating the dirty canonical main checkout. Preserve original evidence
+and branch references; no physical rerun or cleanup is required. Record exact
+merge/main outcome in the existing GitHub work items.
+
+The trusted-LAN limitation, storage-only native permission, owner-only enablement
+and exact approved single-file bridge remain unchanged. No physical printing,
+queue, heating, motion, homing, macros, automatic profile update, firmware,
+service/security/access change, wider exposure, new credentials, release or
+broader printer deployment is authorized. Deferred UX work is backlog only.
+See `docs/ISSUE_8_ACCEPTANCE.md`.

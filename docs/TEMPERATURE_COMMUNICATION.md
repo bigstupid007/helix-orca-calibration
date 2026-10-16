@@ -1,9 +1,11 @@
-# Temperature communication candidate — Issue #8
+# Accepted Temperature communication milestone — Issue #8
 
 The [governing Build Program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md) owns
 scope and the approved existing trusted-LAN boundary. This document describes
-the physically validated candidate and its review/recovery boundary. AI
-validation does not provide Founder acceptance.
+the accepted non-printing implementation and its operating/recovery boundary.
+Founder reviewed and accepted the actual result on 2026-10-16; see
+[acceptance and governed closeout](ISSUE_8_ACCEPTANCE.md). AI validation remains
+a separate historical evidence claim.
 
 ## Generated artifacts and preserved baselines
 
@@ -103,9 +105,10 @@ behavior. Screenshots showing private operational file details remain private.
 
 ## Founder Review
 
-The completed actual 205°C NOT APPLIED panel is left open in the marked,
-isolated October 15 Orca on Spare. It can be reviewed immediately without a
-live relay. If closed, use **New Project** from startup home to enter Prepare,
+Founder reviewed and accepted the completed actual 205°C NOT APPLIED panel in
+the marked, isolated October 15 Orca on Spare. The retained result can be
+reopened without a live relay. The accepted review entry is **New Project**
+from startup home to enter Prepare,
 then **Prepare > application menu next to File > Plugins > expand Helix
 Calibration Context > Play Helix Temperature Communication (no printing)**.
 Version `0.5.0` exposes five capabilities. Close/reopen/restart recovery was
@@ -119,8 +122,9 @@ layers (nozzle_temperature)**, with optional manual instructions referring to
 that exact original filament profile. Review does not include following those
 save instructions.
 
-For a fresh live review, the agent prepares another bounded window before the
-founder presses Send. The previous one-request relay completed and exited; no
+The following is the retained bounded replay procedure, not a closeout action
+or an always-on deployment. For a separately scheduled fresh live review, the
+agent prepares another bounded window before the founder presses Send. The previous one-request relay completed and exited; no
 always-on service is installed. Agent setup rechecks exact runtime/plugin
 hashes, marked data directory, existing SSH worker, owner grant, single-file
 readback, target ready/idle and the already-uploaded file's exact bytes. The
@@ -154,7 +158,9 @@ correlation, expiry, retries, duplicate/stale rejection, recovery, byte identity
 and isolation are already covered by tests, qualified native/Windows evidence
 and the [actual physical proof](evidence/issue-8/physical/qualification.json).
 [AI Product Preflight](ISSUE_8_PRODUCT_PREFLIGHT.md) passes this same path.
-Founder acceptance, merge and deployment remain separate and are not granted.
+Founder acceptance and governed PR #9 merge/main verification/Issue closure
+are now explicit. This does not authorize release, broader deployment, a new
+physical interaction for closeout or deferred UX implementation.
 
 ## Recovery and rollback
 

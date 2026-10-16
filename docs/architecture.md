@@ -198,7 +198,7 @@ Founder accepted Issue #6 and PR #7 on 2026-10-15 (America/Chicago) and
 authorized governed merge and closeout. Receipt and workflow polish is deferred
 until the complete Orca-to-Helix-to-Orca integration functions.
 
-## Issue #8 candidate communication boundary
+## Issue #8 accepted communication boundary
 
 The accepted source trees remain immutable. New generators derive an Orca
 `0.5.0` single-file plugin and beta.9 `orcacal` runtime outside the repository.
@@ -249,3 +249,10 @@ received state may omit that key. Final actual evidence proves the same
 immutable request/result/receipt across both directions and completed delivery
 before expiry. The completed relay exits; this is bounded qualification
 infrastructure, not a new installed service.
+
+Founder accepted the actual original-profile 220°C / simulated 205°C /
+NOT APPLIED result on 2026-10-16 and authorized PR #9 merge/main verification/
+Issue #8 closure. [The acceptance record](ISSUE_8_ACCEPTANCE.md) separates that
+product decision from the prior technical/AI proof. Closeout changes docs only;
+no runtime architecture, transport permission, profile behavior or hardware
+capability changes. Deferred UX is backlog work, with no broader deployment.

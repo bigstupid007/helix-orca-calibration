@@ -2,9 +2,9 @@
 
 Status: **resolved for the explicitly approved owner-run single-file bridge**.
 The owner applied the amendment; authenticated readback, a fresh actual return,
-originating receipt and persisted native ACK are verified. One unmerged
-[PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9) awaits
-Founder Review. [Actual evidence](evidence/issue-8/physical/qualification.json)
+originating receipt and persisted native ACK are verified. Founder accepted
+the actual result and authorized PR #9 governed closeout; see
+[the acceptance record](ISSUE_8_ACCEPTANCE.md). [Actual evidence](evidence/issue-8/physical/qualification.json)
 and [AI Product Preflight](ISSUE_8_PRODUCT_PREFLIGHT.md) record the completed path.
 
 ## Initial deployment finding
@@ -90,5 +90,6 @@ only this exact config-side link after checking its target, preserving native
 data and all request/result/journal evidence. No broad cleanup is authorized.
 The completed bounded relay has exited. A fresh Founder Review uses
 [the documented agent-prepared window](TEMPERATURE_COMMUNICATION.md#founder-review),
-not an expired result under new IDs. Founder acceptance, merge and deployment
-remain open; this approved setup grants none of them.
+not an expired result under new IDs. Founder acceptance now authorizes PR #9
+merge, main verification and Issue closure only. This approved setup and its
+acceptance grant no release, broader deployment or printer/configuration change.

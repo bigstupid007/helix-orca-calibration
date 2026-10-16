@@ -1,9 +1,11 @@
 # Issue #8 AI Product Preflight
 
 Status: **passed for the bounded, non-printing Founder Review path**, 2026-10-16.
-This is AI validation, not Founder acceptance. The governing item is
-[Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8), with
-one unmerged [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9).
+This remains the AI validation record. Founder subsequently reviewed the actual
+completed Orca result and accepted Issue #8 / PR #9 on 2026-10-16; see the
+separate [Founder acceptance and closeout](ISSUE_8_ACCEPTANCE.md). This
+supersedes the former unmerged gate for PR #9 only, not the security or
+no-print/profile-write restrictions.
 
 ## Workflow fidelity
 
@@ -49,7 +51,8 @@ and selection. Persisted native state and the originating Windows panel were
 then independently read back and inspected.
 
 Discoverability through Orca's Plugins capability list and the retained
-preparation controls still deserve Founder judgment. No custom launcher or
+preparation controls remain candidates for the deferred UX batch; they no
+longer block the accepted communication milestone. No custom launcher or
 substitute UI was introduced. The [review path](TEMPERATURE_COMMUNICATION.md#founder-review)
 names the current completed result and the agent-owned setup for a fresh live
 window. The completed relay has exited; this is not an always-on integration.
@@ -105,5 +108,7 @@ was created.
 This pass covers this exact beta.9/October 15 candidate, target and approved
 storage bridge. It does not generalize to other installations or qualify
 printing/application. No print, queue, heat, motion, homing, macro, firmware or
-profile write occurred. Founder judgment of wording, hierarchy, context trust,
-discoverability and navigation remains open. No merge or deployment is authorized.
+profile write occurred. Founder accepted the completed real result screen and
+authorized governed PR #9 merge, main verification and Issue #8 closure.
+Further UX work remains deferred; no release, deployment or broader printer
+action is authorized.

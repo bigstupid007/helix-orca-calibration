@@ -335,6 +335,9 @@ fingerprint matches the fresh 1,429-file baseline. Independent review confirmed
 these private artifact relationships; [public evidence](evidence/issue-8/physical/qualification.json)
 contains sanitized outcomes and artifact digests. Same-path
 [AI Product Preflight](ISSUE_8_PRODUCT_PREFLIGHT.md) passes for Founder Review.
-The bounded relay has exited; Founder acceptance, merge and deployment remain
-open. The existing trusted-LAN limitation and owner-only bridge authority are
-unchanged.
+The bounded relay has exited. Founder subsequently accepted the actual
+completed Orca result and authorized PR #9 merge, main verification and Issue
+closure on 2026-10-16; see [acceptance](ISSUE_8_ACCEPTANCE.md). The existing
+trusted-LAN limitation and owner-only bridge authority are unchanged.
+Documentation-only closeout preserves accepted implementation/evidence and
+defers UX work without authorizing release or broader printer deployment.

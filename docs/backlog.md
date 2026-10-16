@@ -1,6 +1,6 @@
 # Backlog
 
-## Awaiting Founder Review: Issue #8 — real Temperature communication without printing
+## Accepted: Issue #8 — real Temperature communication without printing
 
 The founder approved one real request/selection return using current beta.9
 and qualified October 15 Orca, with all print/heating/motion/profile-write
@@ -20,7 +20,8 @@ strategy and physical security gate.
 - [x] Demonstrate fresh selection -> originating Spare receipt -> persisted native ACK.
 - [x] Complete frozen-candidate independent review and AI Product Preflight.
 - [x] Prepare one unmerged PR with the proven exact Founder Review path.
-- [ ] Founder acceptance; merge/deployment require later explicit authorization.
+- [x] Founder reviewed and accepted the actual original-profile 220°C / simulated 205°C / NOT APPLIED result.
+- [x] Founder authorized documentation reconciliation, final safeguards, PR #9 merge, main verification and Issue #8 closure.
 
 The fresh actual physical return is complete, including originating receipt,
 persisted native ACK and delivered unlock before expiry. The final panel shows
@@ -28,8 +29,10 @@ original 220/220/220°C, simulated 205°C and NOT APPLIED. Source files, ready/i
 state and normal Windows profiles pass final checks. The bounded relay exited;
 see [operations and Founder Review](TEMPERATURE_COMMUNICATION.md#founder-review),
 [preflight](ISSUE_8_PRODUCT_PREFLIGHT.md) and
-[actual evidence](evidence/issue-8/physical/qualification.json). No acceptance,
-merge or deployment is implied.
+[actual evidence](evidence/issue-8/physical/qualification.json).
+[Founder acceptance](ISSUE_8_ACCEPTANCE.md) supersedes the former keep-unmerged
+gate for PR #9 only. The existing PR/Issue record exact closeout results; no
+release, broader deployment or physical operation is authorized.
 
 ## Completed: Issue #1 — Helix calibration hub/detail foundation
 
@@ -176,30 +179,46 @@ Founder accepted the bounded display-only milestone on 2026-10-15
 - [x] Preserve normal Orca profiles, the accepted shell, Issue #4 mock bridge,
   and beta.4 harness.
 
-Acceptance covers the physical receipt only. The real Orca result-return path
-remains mock-only, and no print, queue, heat, motion, automatic profile update,
-service/security change, public access, release, or deployment is accepted.
+Issue #6 acceptance covers the physical receipt only; its result return was
+mock-only at that milestone. Issue #8 separately accepts real non-printing
+selection return. Neither milestone authorizes print, queue, heat, motion,
+automatic profile update, service/security change, public access, release or
+deployment.
 The owned review artifacts remain reversible through the documented rollback.
 
-## Future UX polish — deferred until complete integration works
+## Deferred UX batch after the accepted bidirectional proof
 
-Founder explicitly deferred additional UX polish until the complete
-Orca-to-Helix-to-Orca integration workflow functions. A future approved
-increment may refine the companion's preparation, receipt, result explanation,
-manual-update flow, and mock review experience.
-Retain the result-first facts, prominent NOT APPLIED status, immediate mock
-Finish control, normal Home/Back and active-task return. This entry creates no
-new completion gate or implementation authority. The interactive Temperature
-picker remains separately deferred. No production, hardware or automatic
-profile application is included.
+Issue #8 now supplies the accepted non-printing Orca -> Helix -> Orca
+communication path. The prior dependency on a working result-return path is
+satisfied for this bounded proof; print execution/scoring is not implemented
+or authorized. UX polish remains a single deferred batch for a future approved
+increment, not an unfinished Issue #8 acceptance gate:
+
+- Improve native capability discovery and the preparation/file-association/
+  Send handoff while retaining exact original context and explicit file identity.
+- Clarify owner setup wording, including beta.9's “keep its own data” Storage
+  consent, without broadening plugin permissions or changing upstream by inference.
+- Refine pending/return/acknowledgement, retry and expiry wording; retain the
+  bounded relay distinction and avoid implying an always-on integration.
+- Refine result hierarchy, original versus current context, simulated outcome
+  wording and optional manual-update instructions; keep NOT APPLIED prominent.
+- Review receipt, native Back/active-task return and mock-review consistency
+  while preserving the accepted shell and immediate mock Finish control.
+
+This backlog grants no implementation authority and creates no new Issue or
+completion gate. The interactive Temperature picker/profile browser remains
+separately deferred. No print, measurement/scoring, automatic profile
+application, broader hardware operation or security/access expansion is included.
 
 ## Deferred — requires new approval
 
-- Moonraker coordination or networking beyond the accepted permissionless
-  Issue #6 display-only route.
+- Moonraker coordination/networking beyond the accepted Issue #6 display
+  route and Issue #8 storage-only, correlated non-printing return with its
+  exact owner-approved file bridge and trusted-LAN boundary.
 - G-code generation, modification, or execution, and upload beyond the
   accepted normal Orca Upload-only display request.
-- Print start, monitoring, results, or calibration scoring.
+- Real print start/monitoring, measured calibration results or scoring beyond
+  the accepted simulated, NOT APPLIED Temperature-selection return.
 - Orca preset mutation or writeback.
 - Additional calibration modules beyond a separately approved increment.
 - Picker/profile-browser expansion beyond the bounded Issue #4 flow.

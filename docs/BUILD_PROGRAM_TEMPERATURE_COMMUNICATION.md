@@ -2,12 +2,15 @@
 
 Governing work item: [Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8).
 
-Status: implementation and bounded validation complete; one unmerged
-[PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9) is prepared
-for Founder Review. Actual physical 205°C return, exact originating receipt,
-persisted native ACK, delivered unlock and original NOT APPLIED instructions
-are verified. The owner-approved single-file exposure is applied. No merge,
-service/firmware change or deployment is authorized.
+Status: **Founder accepted the completed real bidirectional Temperature
+communication milestone on 2026-10-16** and authorized PR #9 merge, main
+verification and Issue #8 closure. The actual 205°C return and original
+220°C / NOT APPLIED Orca result are accepted. See
+[the acceptance record](ISSUE_8_ACCEPTANCE.md); final merge/main and closure
+facts belong to the existing PR/Issue closeout records. No release, deployment
+or broader printer action is authorized. This completed Build Program retains
+historical implementation authority below; current closeout authority is the
+acceptance record and repository AGENTS.md.
 
 ## Authority and reconstructed baseline
 
@@ -53,7 +56,7 @@ Freeze one integrated candidate for independent fresh-context read-only technica
 
 ## Founder Review handoff and recovery
 
-Final PR must provide the exact normal entry point on Spare, the named representative calibration, small action sequence on Orca and physical HelixScreen, expected NOT APPLIED original-target result, qualitative judgment prompts, material limitations, and technical matters already proven. Prove that path during AI Product Preflight before presenting it as ready. No merge, release or deployment is authorized. Candidate staging is bounded validation only. Recovery stops transient transport, preserves immutable request/result evidence and removes only owned candidate artifacts using the documented rollback; no broad cleanup or remote enabled-state changes.
+Final PR must provide the exact normal entry point on Spare, the named representative calibration, small action sequence on Orca and physical HelixScreen, expected NOT APPLIED original-target result, qualitative judgment prompts, material limitations, and technical matters already proven. Prove that path during AI Product Preflight before presenting it as ready. The original handoff prohibited merge/release/deployment before acceptance. Founder acceptance now permits PR #9 merge and governed closeout only; release/deployment remain excluded. Candidate staging was bounded validation only. Recovery stops transient transport, preserves immutable request/result evidence and removes only owned candidate artifacts using the documented rollback; no broad cleanup or remote enabled-state changes.
 
 ## Current checkpoint
 
@@ -73,8 +76,10 @@ path. [Sanitized actual evidence](evidence/issue-8/physical/qualification.json)
 retains bindings to private artifacts; the historical failed attempt is labeled
 separately and its expired result was never forwarded. The
 [exact Founder Review path](TEMPERATURE_COMMUNICATION.md#founder-review) includes
-agent-owned setup for a new bounded window. Issue #8 remains the sole governing
-work item and stays open for Founder acceptance; there is one unmerged PR.
+agent-owned setup for a new bounded window. Founder subsequently reviewed and
+accepted the completed Orca result and authorized governed closeout. Issue #8 remains the sole governing work item;
+PR #9 is the single accepted candidate. See [acceptance](ISSUE_8_ACCEPTANCE.md)
+and [deferred UX](backlog.md#deferred-ux-batch-after-the-accepted-bidirectional-proof).
 
 ## Capability checkpoint — 2026-10-16
 
