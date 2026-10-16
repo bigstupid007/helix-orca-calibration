@@ -169,8 +169,10 @@ the beta.4 harness remain unchanged.
 The candidate is in isolated validation. Its storage-only native return requires
 owner consent; the physical hop uses existing trusted-LAN HTTP and is neither
 encrypted nor cryptographically authenticated. The founder explicitly approved
-that existing trusted-LAN boundary for this proof. No new physical event or
-write has occurred yet. This is not a
+that existing trusted-LAN boundary for this proof. All 169 tests, the corrected
+eleven-viewport native matrix and isolated Windows return checks pass. The
+reviewed native files are staged; owner storage consent and the actual physical
+return remain pending. This is not a
 completed physical round trip or a Founder Review-ready result. See the
 [program](docs/BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md) and
 [operation and validation boundary](docs/TEMPERATURE_COMMUNICATION.md).
