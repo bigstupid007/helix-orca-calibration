@@ -67,6 +67,11 @@ class Issue6QualificationTests(unittest.TestCase):
         for relative, digest in display["files"].items():
             self.assertEqual(sha256(ROOT / "integration/helix-orca-display" / relative), digest)
         self.assertEqual(sha256(ROOT / display["client"]["path"]), display["client"]["sha256"])
+        self.assertEqual(
+            display["client"]["rpc_allowlist"],
+            ["server.connection.identify", "connection.send_event"],
+        )
+        self.assertIn("HTTP GET", display["client"]["remote_file_readback"])
         receiver = display["native_upload_receiver"]
         self.assertEqual(sha256(ROOT / receiver["path"]), receiver["sha256"])
         self.assertEqual(display["permissions"], [])

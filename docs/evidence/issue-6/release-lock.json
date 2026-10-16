@@ -202,9 +202,9 @@
       "sha256": "82bc033cd9d54404a54b816385b729bfb84f9db316613090bbdf1ad0412157fd",
       "rpc_allowlist": [
         "server.connection.identify",
-        "server.files.get_file",
         "connection.send_event"
-      ]
+      ],
+      "remote_file_readback": "bounded HTTP GET /server/files/gcodes/<percent-encoded-basename>"
     },
     "native_upload_receiver": {
       "path": "scripts/orca-upload-capture.py",
