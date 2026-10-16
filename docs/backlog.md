@@ -15,14 +15,15 @@ strategy and physical security gate.
 - [x] Complete integrated native eleven-target and isolated Windows request/result evidence.
 - [x] Founder approved the disclosed existing trusted-LAN boundary for this proof.
 - [x] Owner enabled the verified storage-only candidate and observed physical original context and 205°C/Return.
-- [ ] Resolve the production sidecar exposure decision; demonstrate actual selection -> originating Spare return.
+- [x] Founder approved owner-run creation of one real shared directory and one exact file link.
+- [ ] Execute/read back that amendment; demonstrate actual selection -> originating Spare return.
 - [ ] Complete frozen-candidate independent review and AI Product Preflight.
 - [ ] Present one unmerged PR with the proven exact Founder Review path.
 
 Reviewed native files and owner grant are verified. The physical forward route
 and selection were observed, but the return file is outside the existing
 Moonraker config tree; no result reached Spare. The relay is stopped. See the
-[unapproved storage exposure decision](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md).
+[approved owner-run storage exposure](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md).
 No completed round-trip or Founder Review-ready claim is valid.
 
 

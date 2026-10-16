@@ -33,9 +33,9 @@ keeping the plugin’s own data on the screen, up to 256 KB.
 
 **Production return is blocked.** The actual native sidecar path is under the
 install tree, outside this config-root GET. See the
-[unapproved exposure decision](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md). No
-new physical request or configuration workaround is authorized before that
-decision.
+[approved owner-run exposure](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md). No
+new physical request is permitted before the approved single-file bridge
+passes exact authenticated readback. No broader workaround is authorized.
 
 ## Correlation and delivery
 

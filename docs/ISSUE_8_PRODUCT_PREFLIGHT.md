@@ -58,7 +58,7 @@ target-clock lease to original expiry, only shortens stored recovery deadlines,
 requires a nonactive state at every native query gate, and durably persists
 terminal delivery before unlocking Orca. The independent reviewer found no
 remaining material code defect in `fe68605`, conditional on the final matrix
-and evidence verification. All 172 automated tests and branch whitespace checks
+and evidence verification. All 179 automated tests and branch whitespace checks
 pass.
 Retries preserve IDs and can only shorten the lease. Expiry permits explicit
 retirement without silently changing the prior NOT APPLIED instructions.
@@ -114,6 +114,6 @@ passes must not be called a completed production flow.
 
 The discovered automatic retry gap was independently corrected and tested.
 That change does not resolve sidecar reachability. The
-[storage-gate proposal](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) has not been
-approved or applied. A new actual same-path run is required after an explicit
+[storage-gate amendment](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) has now
+been explicitly approved for owner execution, but has not been applied. A new actual same-path run is required after an explicit
 decision, followed by evidence/documentation reconciliation and Founder handoff.

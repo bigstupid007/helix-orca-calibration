@@ -321,8 +321,13 @@ inference from isolated evidence. The relay is stopped; postcheck was idle.
 
 A separate missed-receipt retry gap was corrected: bounded same-request
 redelivery, non-extending leases, restart-persisted five-send cap and exact
-native receipt detection now pass independent review and 172 combined tests.
+native receipt detection now pass independent review and 179 combined tests.
 Native product/companion bytes and their qualifying evidence remain unchanged.
 The [storage exposure gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) records
 the narrow unapplied owner decision. No service, credential, permission or
 configuration change has been inferred or performed.
+
+The founder subsequently approved the exact owner-run single-file exposure.
+The reviewed utility and seven local filesystem checks are in the candidate;
+actual owner execution and authenticated readback remain pending. No new host
+access, permission, service or credential is authorized.

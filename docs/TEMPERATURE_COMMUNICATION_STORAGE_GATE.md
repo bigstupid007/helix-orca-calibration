@@ -1,6 +1,6 @@
 # Issue #8 production storage gate
 
-Status: **blocked deployment capability; no configuration remedy authorized**.
+Status: **single-file exposure approved for owner execution; not yet applied**.
 The one candidate remains [draft PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9).
 The earlier technically reviewed isolated pass does not establish a completed
 physical return or full AI Product Preflight.
@@ -49,7 +49,7 @@ Pinned primary sources:
 - [beta.9 runtime config path](https://github.com/prestonbrown/helixscreen/blob/e5cdc5dc523280bc3ead681a4f229bf84dfa726a/include/runtime_config.h)
 - [beta.9 plugin-host settings path](https://github.com/prestonbrown/helixscreen/blob/e5cdc5dc523280bc3ead681a4f229bf84dfa726a/src/application/printer_session.cpp)
 
-## Narrow proposed amendment — not approved or applied
+## Narrow amendment — approved for owner execution, not yet applied
 
 Permit the owner, using existing local access, to expose **one file**:
 
@@ -66,12 +66,16 @@ link. It must not create a directory-wide link, change access modes, overwrite
 an existing file,
 restart a service or bypass a file-access rejection.
 
-This is still a deployment/configuration and data-exposure change, outside the
-current authority. No approved target SSH path/pin is available. The agent may
-not invent credentials or assume permission to perform it. Owner approval and
-an existing owner execution route are both required before any target change.
+The founder explicitly approved “Approve this owner-run single-file exposure”
+in the program chat. The owner confirmed an existing local terminal and the
+installation directory. This amendment authorizes only the real shared
+`plugin-data` directory and exact file link described above. It does not grant
+the agent new SSH access, credentials, host trust, permissions or service
+changes. Execution remains owner-run; no target mutation has occurred yet.
 
-A local-only proposal was prepared with a default dry run. It checks that the
+The reviewed [owner utility](../scripts/temperature-communication-storage-link.py)
+defaults to a dry run. Seven temporary-filesystem tests and independent review
+cover its boundary. It checks that the
 installation and shared settings refer to the same file, the staged manifest
 is the exact storage-only candidate, and the bounded native JSON belongs to
 the retained proof request. Apply mode would create the real shared `plugin-data` directory if absent
@@ -96,7 +100,7 @@ native file, request, result and journal. No broad cleanup is authorized.
 
 ## Required continuation after a decision
 
-If the owner approves the bounded amendment, first verify actual paths,
+Under the approved bounded amendment, first verify actual paths,
 ownership/readability and exact link identity through the existing owner
 access route. After readback works, explicitly retire any expired proof slot
 and use a fresh originating request. Do not replay an expired result under new

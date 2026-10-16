@@ -2,7 +2,8 @@
 
 Governing work item: [Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8).
 
-Status: draft [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9), blocked at the production storage-exposure decision. Owner enablement and physical forward/selection are observed; no result returned to Spare. No configuration remedy, merge or deployment is authorized.
+Status: draft [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9), awaiting execution/readback of the approved owner-run storage exposure. Owner enablement and physical forward/selection are observed; no result returned to Spare. Only the specific owner-run single-file exposure is now authorized; no merge,
+service/firmware change or deployment is authorized.
 
 ## Authority and reconstructed baseline
 
@@ -52,7 +53,7 @@ Final PR must provide the exact normal entry point on Spare, the named represent
 
 ## Current checkpoint
 
-OSS identity and merged baselines are verified, and canonical dirty work remains preserved. The isolated candidate passes 172 tests, native evidence verification and Windows validation. Receipt-driven relay retries are independently reviewed. The owner enabled the verified storage-only plugin and reported actual original context and 205°C/Return. Production storage resolves under the install tree rather than Moonraker's exposed config tree; no result/inbox/receipt was retrieved. The relay is stopped and the target remains nonactive. [The deployment gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) records the source evidence and narrow unapplied owner proposal. This Issue remains the sole governing work item; full AI Product Preflight and Founder Review remain open.
+OSS identity and merged baselines are verified, and canonical dirty work remains preserved. The isolated candidate passes 179 tests, native evidence verification and Windows validation. Receipt-driven relay retries are independently reviewed. The owner enabled the verified storage-only plugin and reported actual original context and 205°C/Return. Production storage resolves under the install tree rather than Moonraker's exposed config tree; no result/inbox/receipt was retrieved. The relay is stopped and the target remains nonactive. [The deployment gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) records the source evidence and narrow owner-run amendment, now explicitly approved but not yet applied. This Issue remains the sole governing work item; full AI Product Preflight and Founder Review remain open.
 
 ## Capability checkpoint — 2026-10-16
 
@@ -89,5 +90,6 @@ sidecar path is exposed. The actual attempt and pinned installer source
 confirmed the mismatch. Earlier isolated no-material-findings dispositions
 remain historical; they do not override this newly demonstrated deployment
 gate. The receipt retry gap discovered during diagnosis was corrected and
-reviewed without further target events. No directory/file link or alternate
-access permission is authorized by the existing trusted-LAN approval.
+reviewed without further target events. The subsequent explicit owner approval permits only the reviewed real
+directory and one file link; the earlier trusted-LAN approval alone did not
+authorize it. No alternate access permission is granted.

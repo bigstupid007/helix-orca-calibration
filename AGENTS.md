@@ -228,8 +228,14 @@ never label an AI run Founder acceptance.
 
 The Issue #8 physical attempt established forward context and owner 205°C
 selection only. Production sidecar storage lies outside the exposed Moonraker
-config tree. No single-file/directory link, access-mode change, new permission
-or alternate host access is authorized as a workaround. See
-`docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md`; the specific deployment
-exposure decision must precede any further physical request or configuration
-change. Preserve the actual request/journal and never retarget an expired result.
+config tree. The founder subsequently approved owner-run creation of one real
+shared `plugin-data` directory and one `orcacal.json` file link to the existing
+native state, through the existing authenticated trusted-LAN config API.
+`scripts/temperature-communication-storage-link.py` implements only that
+bounded amendment and defaults to a dry run. Existing owner local access is
+required; this grants no agent SSH access, new credential, host-trust bypass,
+access-mode change, directory-wide link, service or plugin permission.
+Verify exact readback before another physical request; preserve the prior
+request/journal and never retarget an expired result. Full return/preflight and
+Founder acceptance remain required. See
+`docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md`.
