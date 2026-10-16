@@ -130,7 +130,7 @@ local function show_receipt(receipt)
     effective_line:set("Original effective: " .. tostring(receipt.current_temperature_c) .. "\u{00B0}C")
     file_line:set(receipt.file .. " \u{00B7} " .. tostring(receipt.file_bytes) .. " bytes")
     hash_line:set("SHA-256 " .. receipt.file_sha256)
-    temperatures_line:set("230\u{00B0}C \u{2192} 190\u{00B0}C \u{00B7} 5\u{00B0}C steps")
+    temperatures_line:set("230\u{00B0}C to 190\u{00B0}C \u{00B7} 5\u{00B0}C steps")
 
     if not overlay_handle then
         overlay_handle = helix.ui.overlay("helix-orca-display__receipt", {

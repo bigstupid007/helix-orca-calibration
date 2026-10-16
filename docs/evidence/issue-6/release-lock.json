@@ -1,6 +1,6 @@
 {
   "schema": "helix-orca-issue-6-release-lock/v1",
-  "recorded_at_utc": "2026-10-16T02:15:00Z",
+  "recorded_at_utc": "2026-10-16T03:37:00Z",
   "accepted_baseline": {
     "repository_commit": "b49aa93dc0562f5394ac82b5c8c8f0b0b9b6c709",
     "helix_version": "v1.1.0-beta.4",
@@ -60,7 +60,7 @@
       "application_version": "2.5.0-dev",
       "build_revision": "6a7763f0",
       "data_isolation": "dedicated datadir and child-only WebView2 storage",
-      "accepted_plugin": "v0.4.0 local activated, permissions empty",
+      "accepted_plugin": "v0.4.0 source preserved; generated v0.4.1 activated locally with empty permissions",
       "context": "Voron 2.4 300 0.4 nozzle / Generic PLA - Voron Rapido - Initial / Voron 0.20 Standard - Fast Quality",
       "saved_temperature_c": 220,
       "unsaved_temperature_c": 217,
@@ -76,7 +76,17 @@
         "name": "temperature-230-190-step5-oct15.gcode",
         "bytes": 3028194,
         "sha256": "94c92b561d249ecba76fe6059af09ab89068d2fcc15a6524f5f12a832d32c387",
-        "ordered_temperature_schedule_c": [230, 225, 220, 215, 210, 205, 200, 195, 190],
+        "ordered_temperature_schedule_c": [
+          230,
+          225,
+          220,
+          215,
+          210,
+          205,
+          200,
+          195,
+          190
+        ],
         "file_selection": "explicit manual chooser fallback"
       },
       "normal_orca_data": {
@@ -86,7 +96,81 @@
         "aggregate_sha256_after": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
         "unchanged": true
       },
-      "excluded": ["upload", "device", "print", "queue", "profile save"]
+      "excluded": [
+        "actual target upload",
+        "print",
+        "queue",
+        "profile save",
+        "hardware control"
+      ],
+      "october15_plugin_derivative": {
+        "generator": "scripts/orca-oct15-plugin.py",
+        "generator_sha256": "6cec86e359815345cf4477289951f671e40ab93d274dade1b5a9456489be5106",
+        "generated_sha256": "7eb76b92928bc93a3592bb362128579d47d49fc4c5c6cf55f16d6575cf6f6999",
+        "change": "Adds only the exact qualified 6a7763f0 build identity; accepted v0.4.0 bytes remain unchanged."
+      },
+      "native_upload_only": {
+        "status": "passed_against_bounded_synthetic_receiver",
+        "native_dialog_actions": [
+          "Upload",
+          "Upload and Print",
+          "Cancel"
+        ],
+        "selected_action": "Upload",
+        "requests": [
+          "GET /server/files/roots",
+          "GET /server/info",
+          "POST /server/files/upload"
+        ],
+        "multipart": {
+          "root": "gcodes",
+          "print": "false"
+        },
+        "forbidden_printer_routes_observed": 0,
+        "transferred_file": {
+          "name": "temperature-230-190-step5-native-upload.gcode",
+          "bytes": 3028246,
+          "sha256": "9a171d5ebb8041e85a3a2a51ef34fbcb1550c1fb14adf7d2bac761be3b528e7e",
+          "ordered_temperature_schedule_c": [
+            230,
+            225,
+            220,
+            215,
+            210,
+            205,
+            200,
+            195,
+            190
+          ]
+        },
+        "first_export_comparison": {
+          "executable_lines_each": 106508,
+          "executable_lines_exact_match": true,
+          "difference_scope": "Generated timestamp and configuration comments; temporary physical fixture identity is distinct from retained original target."
+        },
+        "retained_request": {
+          "request_id": "865addf1ba6ef9c7448e0efdc6121aa4",
+          "sha256": "53bc28467632cf6429b3ac69799d593e071306a279b65cd599ca0b0aef3c8e87",
+          "original_effective_temperature_c": 220,
+          "file_identity_bound": true
+        },
+        "display_request": {
+          "request_id": "f5eb711fa01efc9ad1aa5733e14bfaf9",
+          "sha256": "8b4ca1aef5f08417e1c000bcdc051cac3a133c6444ec972c781a19a8d4c3c87c"
+        },
+        "capture_record_sha256": "820dfbb8893d9f9281ae2d95f535cd544d061aa1b32549b3a547c8653366ec39",
+        "synthetic_response": {
+          "print_started": false,
+          "print_queued": false
+        },
+        "limitation": "The response is from the bounded qualification receiver, not actual Moonraker.",
+        "cleanup": "Isolated project and temporary edits discarded; owned fixture files removed; prior port-8540 viewer restored."
+      },
+      "pinned_source_evidence": {
+        "mainframe_cpp_sha256": "292e6c604782f9fa445e3bd2bc0a4b5ecdaa45a49d9fc714eb339f341d065f39",
+        "plater_cpp_sha256": "8290003e06b12b06a5c239e4d66269dfbc081895c5deb304f3a9b6dbddc8621a",
+        "printhostdialogs_cpp_sha256": "9786c4969dfecd34422b37577c9b038ae3317dad3174ed0cc4ad03bef2bb230b"
+      }
     }
   },
   "official_calibration_bridge": {
@@ -102,6 +186,44 @@
     "moonraker_commit": "d5ee17128bb88434aacdab90c2e9e990e2b64e4a",
     "read_only_status": "reachable_ready_no_failed_components",
     "mutation_performed": false
+  },
+  "display_only_adaptation": {
+    "plugin_id": "helix-orca-display",
+    "event": "helix_orca_display.available.v1",
+    "schema": "helix-orca-display/v1",
+    "permissions": [],
+    "files": {
+      "main.lua": "df4c3b2ee13656c1c812c792310b02f0de612e282c23ed4f9656e7ea4437a8bc",
+      "manifest.json": "58862e5c4e9b67e83cfe16c3f88acbc5a5799ff648e4348bd37b7482e4da1cc0",
+      "ui/helix-orca-display__receipt.xml": "b6e31a3ce999db7b027e791e6f32d1ed9a2a4e8f2e2916c6a6acafe4077a9fb0"
+    },
+    "client": {
+      "path": "scripts/helix-display-request.py",
+      "sha256": "82bc033cd9d54404a54b816385b729bfb84f9db316613090bbdf1ad0412157fd",
+      "rpc_allowlist": [
+        "server.connection.identify",
+        "server.files.get_file",
+        "connection.send_event"
+      ]
+    },
+    "native_upload_receiver": {
+      "path": "scripts/orca-upload-capture.py",
+      "sha256": "719a1e7d59306ed3af84c5f334b9f46e77618e03e75966362a0b2b561a6e3a4e"
+    },
+    "beta9_matrix": {
+      "status": "passed",
+      "network": "none",
+      "viewport_count": 11,
+      "assertions_per_viewport": 7,
+      "screenshot_count": 22,
+      "report_sha256": "454f239f7ea0860dbc3944ccb2aadc736feea885a2ee03693dcc55fce6eedb26"
+    },
+    "actual_target_event_sent": false
+  },
+  "verification": {
+    "unit_tests": 108,
+    "unit_test_status": "passed",
+    "git_diff_check": "passed",
+    "display_matrix_report_sha256": "454f239f7ea0860dbc3944ccb2aadc736feea885a2ee03693dcc55fce6eedb26"
   }
 }
-

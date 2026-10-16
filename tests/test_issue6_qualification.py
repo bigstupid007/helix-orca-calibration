@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import unittest
@@ -11,6 +12,10 @@ GUIDE = ROOT / "docs/ISSUE_6_QUALIFICATION.md"
 WINDOWS_ADAPTER = ROOT / "scripts/orca-oct15-windows-review.py"
 BETA9_QUALIFIER = ROOT / "scripts/helix-beta9-qualify.py"
 DISPLAY_QUALIFIER = ROOT / "scripts/helix-display-qualify.py"
+
+
+def sha256(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 class Issue6QualificationTests(unittest.TestCase):
@@ -55,6 +60,25 @@ class Issue6QualificationTests(unittest.TestCase):
         self.assertIn("No event has been sent to the actual target", guide)
         self.assertIn("no `http` or `moonraker_write`", guide)
         self.assertIn("not a completed real-printer candidate", guide)
+
+    def test_lock_binds_display_candidate_and_nonprinting_native_upload(self):
+        lock = json.loads(LOCK.read_text())
+        display = lock["display_only_adaptation"]
+        for relative, digest in display["files"].items():
+            self.assertEqual(sha256(ROOT / "integration/helix-orca-display" / relative), digest)
+        self.assertEqual(sha256(ROOT / display["client"]["path"]), display["client"]["sha256"])
+        receiver = display["native_upload_receiver"]
+        self.assertEqual(sha256(ROOT / receiver["path"]), receiver["sha256"])
+        self.assertEqual(display["permissions"], [])
+        self.assertFalse(display["actual_target_event_sent"])
+
+        upload = lock["orca"]["native_qualification"]["native_upload_only"]
+        self.assertEqual(upload["selected_action"], "Upload")
+        self.assertEqual(upload["multipart"], {"root": "gcodes", "print": "false"})
+        self.assertEqual(upload["forbidden_printer_routes_observed"], 0)
+        self.assertTrue(upload["first_export_comparison"]["executable_lines_exact_match"])
+        self.assertIn("synthetic", upload["status"])
+        self.assertIn("not actual Moonraker", upload["limitation"])
 
     def test_beta9_qualifier_uses_exact_developer_artifact_and_accepted_harness(self):
         source = BETA9_QUALIFIER.read_text()

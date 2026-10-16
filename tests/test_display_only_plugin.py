@@ -126,6 +126,8 @@ class DisplayOnlyPluginTests(unittest.TestCase):
         self.assertEqual(re.findall(r'helix\.ui\.on\("([^"]+)"', source), ["dismiss"])
         self.assertIn("overlay_handle.close()", source)
         self.assertIn('effective_line:set("Original effective: "', source)
+        self.assertIn('230\\u{00B0}C to 190\\u{00B0}C', source)
+        self.assertNotIn('\\u{2192}', source)
 
 
 if __name__ == "__main__":
