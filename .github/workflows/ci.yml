@@ -25,7 +25,5 @@ jobs:
           python3 scripts/helix_dev.py doctor --static
       - name: Promoted native-evidence integrity
         run: python3 scripts/helix_dev.py verify-evidence docs/evidence/issue-2/native
-      - name: Temperature communication native-evidence integrity
-        run: python3 scripts/temperature-communication-evidence.py verify docs/evidence/issue-8/native
       - name: Whitespace validation
         run: git show --check --format= HEAD

@@ -49,11 +49,17 @@ observed on the corrected candidate.
 
 ## Engineering evidence and limits
 
-Independent technical review identified two material defects in the first
-integrated candidate: late delivery/restart extended the native relative TTL,
-and local Orca commit could release the communication slot before native
-acknowledgement. The consolidated correction binds a target-clock lease to the
-original absolute expiry and persists terminal delivery before unlocking Orca.
+Independent technical review identified four material boundary defects across
+the integrated correction: native relative TTL could extend original expiry,
+local Orca commit could free the slot before native acknowledgement, restart
+recovery could replace a stored lease with a later one, and the native clock
+query ignored the returned printer state. The corrected candidate binds a
+target-clock lease to original expiry, only shortens stored recovery deadlines,
+requires a nonactive state at every native query gate, and durably persists
+terminal delivery before unlocking Orca. The independent reviewer found no
+remaining material code defect in `fe68605`, conditional on the final matrix
+and evidence verification. All 169 automated tests and branch whitespace checks
+pass.
 Retries preserve IDs and can only shorten the lease. Expiry permits explicit
 retirement without silently changing the prior NOT APPLIED instructions.
 
@@ -74,7 +80,8 @@ all eleven viewports and exact storage/selection/ACK artifacts before promotion.
 The normal Windows Orca settings/profile fingerprint still matches the fresh
 program baseline after corrected-companion staging: 1,429 relevant files,
 SHA-256 `41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`.
-A final comparison remains required after the remaining native/physical work.
+A repeat comparison after final isolated Windows validation also matched this
+program baseline. Recheck after the pending physical demonstration.
 
 ## Founder Review gate
 

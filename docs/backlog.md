@@ -12,13 +12,14 @@ strategy and physical security gate.
 - [x] Create one governing GitHub work item and preserve the dirty canonical checkout.
 - [x] Complete independent source-to-workflow fidelity review for the corrected shell extension.
 - [x] Implement and focus-test companion/relay correlation, original context and local recovery.
-- [ ] Complete integrated native eleven-target and Windows request/result evidence.
+- [x] Complete integrated native eleven-target and isolated Windows request/result evidence.
 - [x] Founder approved the disclosed existing trusted-LAN boundary for this proof.
 - [ ] Demonstrate actual physical HelixScreen selection -> originating Spare return.
 - [ ] Complete frozen-candidate independent review and AI Product Preflight.
 - [ ] Present one unmerged PR with the proven exact Founder Review path.
 
-No new physical event or write has occurred. No completed round-trip or
+Reviewed native files are staged and verified; owner storage consent is pending.
+No physical request event has occurred. No completed physical round-trip or
 Founder Review-ready claim may be made while required evidence is missing.
 
 

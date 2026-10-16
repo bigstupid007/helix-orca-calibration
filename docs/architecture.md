@@ -210,7 +210,7 @@ posts poll messages; Python callbacks read/write fixed local artifacts below
 host plugin storage. It opens no network/process/thread and never writes a
 profile.
 
-The proposed bounded route is originating Orca outbox -> existing authenticated
+The bounded route is originating Orca outbox -> existing authenticated
 Spare worker -> transient Moonraker request event -> native Temperature detail
 -> plugin-owned storage -> exact Moonraker config-file GET -> Spare inbox.
 Orca validates and commits the exact result before producing the receipt used
@@ -220,8 +220,16 @@ expiry and immutable first selection are checked independently.
 
 The existing physical HTTP hop relies on trusted-client LAN authorization.
 Correlation and replay checks do not provide encryption or malicious-LAN
-authentication. Physical use awaits the explicit security decision recorded in
+authentication. The founder explicitly approved the existing trusted-LAN
+boundary for this proof, as recorded in
 [Issue #8's program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md). The existing
 SSH worker protects the Spare hop; no new service, port or credential is part
-of this proposal. Details and recovery are in
+of this candidate. Details and recovery are in
 [TEMPERATURE_COMMUNICATION.md](TEMPERATURE_COMMUNICATION.md).
+
+The immutable session is wrapped in a target-eventtime lease. Native receive,
+recovery, Return and ACK requery finite eventtime and nonactive print state; a
+bounded latency charge and remaining-time margin protect deferred writes.
+Retries and restarts may only shorten the stored deadline. Local Orca result
+commit preserves the slot until exact native acknowledgement is confirmed
+and durably recorded, or explicit retirement after original absolute expiry.

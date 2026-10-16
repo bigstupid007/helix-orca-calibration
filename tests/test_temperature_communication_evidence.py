@@ -16,6 +16,9 @@ q = e.q
 
 
 class CommunicationEvidenceVerifierTests(unittest.TestCase):
+    def test_promoted_final_native_capture_integrity(self):
+        e.verify(ROOT / "docs/evidence/issue-8/native")
+
     def fixture(self, root):
         generated = root / 'fixture'
         generated.mkdir()

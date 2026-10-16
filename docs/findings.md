@@ -290,7 +290,8 @@ storage file. No physical-target SSH pin/access was found; the verified SSH
 route is Spare to devbox. The storage/readback option creates no service,
 listener or credential, but the physical hop remains unencrypted HTTP with
 trusted-client source-IP authorization, not per-message cryptographic
-authentication. The founder's security decision is pending.
+authentication. The founder explicitly approved that disclosed existing
+trusted-LAN boundary for this proof.
 
 The new companion was observed in the actual qualified October 15 Windows GUI
 as local version `0.5.0`, with all five capabilities. Its new dock retained
@@ -298,3 +299,12 @@ saved/edited/effective 220/220/220 from native APIs and verified the exact
 previously qualified file through the native chooser. Those observations prove
 only the sampled Windows surfaces; no physical return is claimed. Further
 validation and limitations belong to the [current program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md).
+
+The final corrected candidate passes 169 automated tests and the source-bound
+beta.9 eleven-viewport matrix (33 frames and exact request/lease/result/ACK
+storage). The promoted verifier runs through the unchanged CI unit-test job;
+the accepted workflow and Issue #2 evidence remain byte-compatible. The mock
+query omits eventtime, so its isolated fixture supplies only that synthetic
+clock prerequisite. Actual HTTP clock readback is verified; native production
+clock/return still requires the physical demonstration. Independent review
+found no remaining material code defect after the four recorded corrections.

@@ -24,7 +24,10 @@ Native storage permission needs owner consent in HelixScreen Settings > Plugins.
 The agent may stage reviewed owned files for the bounded proof, but cannot
 write enabled-state or settings remotely. The existing physical plugin folder
 listing contained only the accepted `helix-orca-display`; no `orcacal` folder
-was present at this program's read-only checkpoint. Recheck before staging.
+was present at this program's read-only checkpoint. The reviewed six-file
+candidate was subsequently staged and read back exactly, with the accepted
+display plugin unchanged and printer still idle. Owner enablement/consent is
+pending.
 
 ## Correlation and delivery
 
