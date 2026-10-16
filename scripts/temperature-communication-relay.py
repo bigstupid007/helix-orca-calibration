@@ -61,6 +61,7 @@ MAX_TRANSPORT_ATTEMPTS = 5
 MAX_TEXT_BYTES = 128
 POLL_SECONDS = 1.0
 MIN_LEASE_REMAINING_SECONDS = 2.0
+REQUEST_RECEIPT_GRACE_SECONDS = 1.75
 DELIVERY_PHASES = frozenset((
     "delivering", "waiting_selection", "waiting_companion", "delivered",
     "retrying", "failed",
@@ -681,6 +682,7 @@ class SessionRelay:
     def _storage_session(
         storage: Any, request: dict[str, Any], lease: dict[str, Any],
     ) -> dict[str, Any] | None:
+        validate_lease(request, lease)
         if not isinstance(storage, dict):
             raise RelayError("native storage root is invalid")
         session = storage.get("session")
@@ -693,9 +695,10 @@ class SessionRelay:
             raise RelayError("native storage session is incomplete")
         if session["request"] != request:
             raise RelayError("native storage contains a conflicting request")
-        stored_lease = validate_lease(request, session["lease"])
-        if stored_lease != lease:
-            return None
+        # A deferred duplicate write can still expose an earlier valid lease for
+        # this exact immutable request. Native owns the minimum-deadline merge;
+        # treat the exact request as received without accepting other identities.
+        validate_lease(request, session["lease"])
         if type(session["acknowledged"]) is not bool or type(session["recovery_required"]) is not bool:
             raise RelayError("native storage acknowledgement flags are invalid")
         if session["state"] not in ("received", "queued", "waiting", "returned"):
@@ -704,8 +707,10 @@ class SessionRelay:
 
     def _journal_value(
         self, outbox: dict[str, Any], phase: str, lease: dict[str, Any],
-        result: dict[str, Any] | None = None,
+        result: dict[str, Any] | None = None, request_attempts: int = 0,
     ) -> dict[str, Any]:
+        if type(request_attempts) is not int or not 0 <= request_attempts <= MAX_TRANSPORT_ATTEMPTS:
+            raise RelayError("relay request-attempt journal bound is invalid")
         value = {
             "schema": "helix-orca-temperature-relay-journal/v1",
             "phase": phase,
@@ -715,6 +720,7 @@ class SessionRelay:
             "context_sha256": outbox["payload"]["context_sha256"],
             "file_sha256": outbox["payload"]["file_sha256"],
             "lease": validate_lease(outbox["payload"], lease),
+            "request_attempts": request_attempts,
             "script_sha256": list(dict.fromkeys(getattr(self.spare, "script_hashes", [])))[-16:],
         }
         if result is not None:
@@ -751,6 +757,9 @@ class SessionRelay:
             raise RelayError("relay journal phase is invalid")
         result = prior.get("result") if prior else None
         lease = prior.get("lease") if prior else None
+        request_attempts = prior.get("request_attempts", 0) if prior else 0
+        if type(request_attempts) is not int or not 0 <= request_attempts <= MAX_TRANSPORT_ATTEMPTS:
+            raise RelayError("relay journal request-attempt count is invalid")
         if lease is not None:
             lease = validate_lease(request, lease)
         if result is not None:
@@ -762,51 +771,116 @@ class SessionRelay:
             self._status(request, "waiting_companion")
 
         self._deadline_check(deadline, request)
-        # Every non-complete start sends a fresh, shorter recovery envelope. This
-        # re-proves the original absolute expiry after a relay or native restart.
-        def send_request() -> dict[str, Any]:
-            nonlocal lease
+
+        def prepare_envelope() -> dict[str, Any]:
             self.physical.assert_ready()
             self.physical.verify_file(request)
             self._deadline_check(deadline, request)
             ready = self.physical.assert_ready()
-            envelope = make_wire_envelope(
+            return make_wire_envelope(
                 request, ready.get("eventtime"), self.wall_time(), lease,
             )
-            lease = envelope["lease"]
-            journal.write(self._journal_value(outbox, phase, lease, result))
-            self.physical.send_event(REQUEST_EVENT, envelope)
-            return envelope
 
-        self._physical_call(send_request, deadline, request, "delivering")
-        if phase == "created":
+        receipt_session = None
+        if phase in ("created", "request_sent"):
             phase = "request_sent"
-        assert lease is not None
-        journal.write(self._journal_value(outbox, phase, lease, result))
-        if phase == "request_sent":
-            self._status(request, "waiting_selection")
+            request_status = None
+            while receipt_session is None:
+                if request_attempts >= MAX_TRANSPORT_ATTEMPTS:
+                    # A relay crash can occur after the fifth send but before its
+                    # receipt read. Allow that exact persisted receipt to finish,
+                    # while never emitting an unbudgeted sixth request.
+                    self.sleep(min(
+                        REQUEST_RECEIPT_GRACE_SECONDS,
+                        max(0.0, deadline - self.monotonic()),
+                    ))
+                    self._deadline_check(deadline, request)
+                    storage = self._physical_call(
+                        self.physical.read_native_storage, deadline, request,
+                        "waiting_selection",
+                    )
+                    observed = self._storage_session(storage, request, lease)
+                    if observed is not None and observed["recovery_required"] is False:
+                        receipt_session = observed
+                        break
+                    raise RelayError("native request receipt missing after five bounded deliveries")
+                if request_attempts and request_status != "retrying":
+                    self._status(request, "retrying")
+                    request_status = "retrying"
+                # Every non-complete invocation sends one fresh bounded envelope.
+                # This re-establishes native state after a device restart. Further
+                # sends happen only when the exact native receipt remains absent.
+                envelope = self._physical_call(
+                    prepare_envelope, deadline, request, "delivering",
+                )
+                lease = envelope["lease"]
+                request_attempts += 1
+                journal.write(self._journal_value(
+                    outbox, phase, lease, result, request_attempts,
+                ))
+                try:
+                    self.physical.send_event(REQUEST_EVENT, envelope)
+                    self._status(request, "waiting_selection")
+                    request_status = "waiting_selection"
+                except (TransientRelayError, OSError, TimeoutError):
+                    # Delivery is unknown, not absent. The next loop first waits
+                    # for and checks the exact native receipt before redelivery.
+                    self._status(request, "retrying")
+                    request_status = "retrying"
+                self.sleep(min(
+                    REQUEST_RECEIPT_GRACE_SECONDS,
+                    max(0.0, deadline - self.monotonic()),
+                ))
+                self._deadline_check(deadline, request)
+                storage = self._physical_call(
+                    self.physical.read_native_storage, deadline, request,
+                    "waiting_selection",
+                )
+                observed = self._storage_session(storage, request, lease)
+                if observed is not None and observed["recovery_required"] is False:
+                    receipt_session = observed
+            assert lease is not None
+            if request_status != "waiting_selection":
+                self._status(request, "waiting_selection")
         else:
+            # Preserve the single fresh recovery envelope on a later-phase relay
+            # restart, but do not enter receipt-driven redelivery after selection.
+            envelope = self._physical_call(
+                prepare_envelope, deadline, request, "waiting_companion",
+            )
+            lease = envelope["lease"]
+            journal.write(self._journal_value(
+                outbox, phase, lease, result, request_attempts,
+            ))
+            self._physical_call(
+                lambda: self.physical.send_event(REQUEST_EVENT, envelope),
+                deadline, request, "waiting_companion",
+            )
             self._status(request, "waiting_companion")
 
         if phase == "request_sent":
-            while True:
+            session = receipt_session
+            while session is None or session["result"] is None:
                 self._deadline_check(deadline, request)
                 storage = self._physical_call(
                     self.physical.read_native_storage, deadline, request, "waiting_selection",
                 )
                 session = self._storage_session(storage, request, lease)
-                if session is not None and session["result"] is not None:
-                    result = validate_selection_result(request, session["result"], int(self.wall_time()))
-                    break
-                self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
+                if session is None or session["result"] is None:
+                    self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
+            result = validate_selection_result(request, session["result"], int(self.wall_time()))
             phase = "result_received"
-            journal.write(self._journal_value(outbox, phase, lease, result))
+            journal.write(self._journal_value(
+                outbox, phase, lease, result, request_attempts,
+            ))
 
         if phase in ("result_received", "inbox_written"):
             assert result is not None
             self.spare.write_json("inbox.json", result)
             phase = "inbox_written"
-            journal.write(self._journal_value(outbox, phase, lease, result))
+            journal.write(self._journal_value(
+                outbox, phase, lease, result, request_attempts,
+            ))
             self._status(request, "waiting_companion")
 
         if phase == "inbox_written":
@@ -820,7 +894,9 @@ class SessionRelay:
                     break
                 self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
             phase = "receipt_received"
-            journal.write(self._journal_value(outbox, phase, lease, result))
+            journal.write(self._journal_value(
+                outbox, phase, lease, result, request_attempts,
+            ))
 
         if phase in ("receipt_received", "ack_sent"):
             assert result is not None
@@ -833,7 +909,9 @@ class SessionRelay:
 
             self._physical_call(send_ack, deadline, request, "waiting_companion")
             phase = "ack_sent"
-            journal.write(self._journal_value(outbox, phase, lease, result))
+            journal.write(self._journal_value(
+                outbox, phase, lease, result, request_attempts,
+            ))
 
         while True:
             self._deadline_check(deadline, request)
@@ -844,7 +922,9 @@ class SessionRelay:
             if session is not None and session["result"] == result and session["acknowledged"] is True:
                 break
             self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
-        journal.write(self._journal_value(outbox, "complete", lease, result))
+        journal.write(self._journal_value(
+            outbox, "complete", lease, result, request_attempts,
+        ))
         self._status(request, "delivered")
         return {
             "request_id": request["request_id"],

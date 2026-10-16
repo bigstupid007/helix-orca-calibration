@@ -115,6 +115,9 @@ class FakePhysical:
         self.send_failures = 0
         self.send_attempts = []
         self.lease = None
+        self.drop_request_events = 0
+        self.storage_lease_override = None
+        self.recovery_required = False
 
     def assert_ready(self):
         self.ready_checks += 1
@@ -133,8 +136,12 @@ class FakePhysical:
         if event == relay.REQUEST_EVENT:
             structural_now = data["session"]["expires_at"] - data["session"]["ttl_seconds"]
             relay.validate_wire_envelope(data, structural_now)
+            if self.drop_request_events:
+                self.drop_request_events -= 1
+                return
             self.lease = json.loads(json.dumps(data["lease"]))
             self.request_seen = True
+            self.recovery_required = False
         elif event == relay.ACK_EVENT:
             self.acknowledged = True
 
@@ -147,10 +154,10 @@ class FakePhysical:
         return {
             "session": {
                 "request": self.request,
-                "lease": self.lease,
+                "lease": self.storage_lease_override or self.lease,
                 "result": self.result,
                 "acknowledged": self.acknowledged,
-                "recovery_required": not self.acknowledged,
+                "recovery_required": self.recovery_required,
                 "state": "returned" if self.result else "waiting",
                 "completed_request_ids": [],
             }
@@ -270,7 +277,7 @@ class RelayContractTests(unittest.TestCase):
         self.assertNotIn("target", journal)
         self.assertNotIn("api_key", json.dumps(journal))
 
-    def test_recovery_resends_only_the_same_request_after_rechecking_file(self):
+    def test_restart_sends_fresh_recovery_before_accepting_existing_receipt(self):
         clock = FakeClock()
         outbox = valid_outbox(int(clock.wall))
         spare = FakeSpare(outbox)
@@ -283,17 +290,19 @@ class RelayContractTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(relay.RelayError, "five bounded attempts"):
                 worker.run()
+            physical.recovery_required = True
             result = worker.run()
 
         requests = [data for event, data in physical.events if event == relay.REQUEST_EVENT]
         self.assertEqual("complete", result["state"])
         self.assertEqual(2, len(requests))
-        self.assertEqual(requests[0]["session"], requests[1]["session"])
+        self.assertTrue(all(outbox["payload"] == item["session"] for item in requests))
         self.assertLessEqual(
             requests[1]["lease"]["expires_eventtime"],
             requests[0]["lease"]["expires_eventtime"],
         )
         self.assertEqual([outbox["payload"], outbox["payload"]], physical.file_checks)
+        self.assertFalse(physical.recovery_required)
 
     def test_transient_send_reconnects_at_most_five_times_with_identical_request(self):
         clock = FakeClock()
@@ -316,14 +325,53 @@ class RelayContractTests(unittest.TestCase):
         self.assertEqual(2, phases.count("retrying"))
         self.assertEqual("delivered", phases[-1])
 
-    def test_fifth_transient_attempt_fails_with_static_delivery_status(self):
+    def test_server_ok_without_native_receipt_redelivers_then_stops_on_receipt(self):
         clock = FakeClock()
         outbox = valid_outbox(int(clock.wall))
         spare = FakeSpare(outbox)
         physical = FakePhysical(outbox["payload"])
-        physical.send_failures = relay.MAX_TRANSPORT_ATTEMPTS
+        physical.drop_request_events = 2
         with tempfile.TemporaryDirectory() as temp:
-            with self.assertRaisesRegex(relay.RelayError, "five bounded attempts"):
+            result = relay.SessionRelay(
+                physical, spare, Path(temp), clock.time, clock.monotonic,
+                clock.sleep, poll_seconds=0.01,
+            ).run()
+        requests = [data for event, data in physical.events if event == relay.REQUEST_EVENT]
+        self.assertEqual("complete", result["state"])
+        self.assertEqual(3, len(requests))
+        self.assertTrue(all(item["session"] == outbox["payload"] for item in requests))
+        expiries = [item["lease"]["expires_eventtime"] for item in requests]
+        self.assertEqual(expiries, sorted(expiries, reverse=True))
+        self.assertGreaterEqual(clock.mono, 3 * relay.REQUEST_RECEIPT_GRACE_SECONDS)
+        self.assertEqual(relay.ACK_EVENT, physical.events[-1][0])
+        self.assertIn("inbox.json", spare.files)
+
+    def test_older_valid_persisted_lease_is_receipt_not_conflict_or_redelivery(self):
+        clock = FakeClock()
+        outbox = valid_outbox(int(clock.wall))
+        spare = FakeSpare(outbox)
+        physical = FakePhysical(outbox["payload"])
+        physical.storage_lease_override = {
+            "issued_eventtime": 900.0,
+            "expires_eventtime": 1400.0,
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            result = relay.SessionRelay(
+                physical, spare, Path(temp), clock.time, clock.monotonic,
+                clock.sleep, poll_seconds=0.01,
+            ).run()
+        requests = [event for event, _ in physical.events if event == relay.REQUEST_EVENT]
+        self.assertEqual("complete", result["state"])
+        self.assertEqual(1, len(requests))
+
+    def test_fifth_server_ok_without_receipt_fails_with_static_delivery_status(self):
+        clock = FakeClock()
+        outbox = valid_outbox(int(clock.wall))
+        spare = FakeSpare(outbox)
+        physical = FakePhysical(outbox["payload"])
+        physical.drop_request_events = relay.MAX_TRANSPORT_ATTEMPTS
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertRaisesRegex(relay.RelayError, "five bounded deliveries"):
                 relay.SessionRelay(
                     physical, spare, Path(temp), clock.time, clock.monotonic,
                     clock.sleep, poll_seconds=0.01,
@@ -332,6 +380,36 @@ class RelayContractTests(unittest.TestCase):
         delivery = spare.files["delivery.json"]
         self.assertEqual(relay.make_delivery(outbox["payload"], "failed"), delivery)
         self.assertNotIn("error", delivery)
+
+    def test_restart_at_delivery_cap_accepts_receipt_without_sixth_request(self):
+        clock = FakeClock()
+        outbox = valid_outbox(int(clock.wall))
+        spare = FakeSpare(outbox)
+        physical = FakePhysical(outbox["payload"])
+        physical.drop_request_events = relay.MAX_TRANSPORT_ATTEMPTS
+        with tempfile.TemporaryDirectory() as temp:
+            worker = relay.SessionRelay(
+                physical, spare, Path(temp), clock.time, clock.monotonic,
+                clock.sleep, poll_seconds=0.01,
+            )
+            with self.assertRaisesRegex(relay.RelayError, "five bounded deliveries"):
+                worker.run()
+            last_envelope = physical.send_attempts[-1][1]
+            physical.request_seen = True
+            physical.lease = last_envelope["lease"]
+            physical.recovery_required = False
+            requests_before_restart = len([
+                event for event, _ in physical.send_attempts if event == relay.REQUEST_EVENT
+            ])
+            result = worker.run()
+
+        self.assertEqual("complete", result["state"])
+        requests_after_restart = len([
+            event for event, _ in physical.send_attempts if event == relay.REQUEST_EVENT
+        ])
+        self.assertEqual(requests_before_restart, requests_after_restart)
+        self.assertEqual(relay.MAX_TRANSPORT_ATTEMPTS, requests_before_restart)
+        self.assertEqual(relay.ACK_EVENT, physical.events[-1][0])
 
     def test_operator_can_start_relay_before_outbox_exists(self):
         clock = FakeClock()
@@ -344,7 +422,7 @@ class RelayContractTests(unittest.TestCase):
                 clock.sleep, poll_seconds=1,
             ).run()
         self.assertEqual("complete", result["state"])
-        self.assertEqual(3, clock.mono)
+        self.assertEqual(3 + relay.REQUEST_RECEIPT_GRACE_SECONDS, clock.mono)
 
     def test_missing_outbox_wait_is_bounded_by_session_deadline(self):
         clock = FakeClock()
