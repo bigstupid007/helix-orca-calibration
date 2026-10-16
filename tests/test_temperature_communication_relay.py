@@ -114,10 +114,11 @@ class FakePhysical:
         self.read_failures = 0
         self.send_failures = 0
         self.send_attempts = []
+        self.lease = None
 
     def assert_ready(self):
         self.ready_checks += 1
-        return {"print_state": "standby"}
+        return {"print_state": "standby", "eventtime": 1000.0 + self.ready_checks}
 
     def verify_file(self, payload):
         self.file_checks.append(json.loads(json.dumps(payload)))
@@ -130,6 +131,9 @@ class FakePhysical:
             raise relay.TransientRelayError("simulated transient send failure")
         self.events.append((event, json.loads(json.dumps(data))))
         if event == relay.REQUEST_EVENT:
+            structural_now = data["session"]["expires_at"] - data["session"]["ttl_seconds"]
+            relay.validate_wire_envelope(data, structural_now)
+            self.lease = json.loads(json.dumps(data["lease"]))
             self.request_seen = True
         elif event == relay.ACK_EVENT:
             self.acknowledged = True
@@ -143,6 +147,7 @@ class FakePhysical:
         return {
             "session": {
                 "request": self.request,
+                "lease": self.lease,
                 "result": self.result,
                 "acknowledged": self.acknowledged,
                 "recovery_required": not self.acknowledged,
@@ -165,6 +170,40 @@ class RelayContractTests(unittest.TestCase):
         delivery = relay.make_delivery(box["payload"], "waiting_selection")
         self.assertEqual(5, len(delivery))
         self.assertIs(relay.validate_delivery(box["payload"], delivery), delivery)
+        envelope = relay.make_wire_envelope(box["payload"], 50.0, 1_800_000_000.0)
+        self.assertEqual({"session", "lease"}, set(envelope))
+        self.assertEqual(50.0, envelope["lease"]["issued_eventtime"])
+        self.assertEqual(650.0, envelope["lease"]["expires_eventtime"])
+        self.assertIs(relay.validate_wire_envelope(envelope, 1_800_000_000), envelope)
+
+    def test_recovery_lease_can_only_shorten_and_too_little_time_fails(self):
+        box = valid_outbox()
+        request = box["payload"]
+        first = relay.make_wire_envelope(request, 50.0, 1_800_000_000.0)
+        second = relay.make_wire_envelope(
+            request, 60.0, 1_800_000_001.0, first["lease"],
+        )
+        self.assertEqual(
+            first["lease"]["expires_eventtime"],
+            second["lease"]["expires_eventtime"],
+        )
+        with self.assertRaisesRegex(relay.RelayError, "lease duration"):
+            relay.make_wire_envelope(request, 100.0, request["expires_at"] - 2.0)
+
+    def test_late_request_never_emits_and_reports_static_failure(self):
+        clock = FakeClock()
+        outbox = valid_outbox(int(clock.wall))
+        outbox["payload"]["expires_at"] = int(clock.wall) + 2
+        spare = FakeSpare(outbox)
+        physical = FakePhysical(outbox["payload"])
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertRaisesRegex(relay.RelayError, "lease duration"):
+                relay.SessionRelay(
+                    physical, spare, Path(temp), clock.time, clock.monotonic,
+                    clock.sleep, poll_seconds=0.01,
+                ).run()
+        self.assertEqual([], physical.send_attempts)
+        self.assertEqual("failed", spare.files["delivery.json"]["phase"])
 
     def test_contract_rejects_extra_stale_conflicting_and_unprepared_values(self):
         box = valid_outbox()
@@ -249,7 +288,11 @@ class RelayContractTests(unittest.TestCase):
         requests = [data for event, data in physical.events if event == relay.REQUEST_EVENT]
         self.assertEqual("complete", result["state"])
         self.assertEqual(2, len(requests))
-        self.assertEqual(requests[0], requests[1])
+        self.assertEqual(requests[0]["session"], requests[1]["session"])
+        self.assertLessEqual(
+            requests[1]["lease"]["expires_eventtime"],
+            requests[0]["lease"]["expires_eventtime"],
+        )
         self.assertEqual([outbox["payload"], outbox["payload"]], physical.file_checks)
 
     def test_transient_send_reconnects_at_most_five_times_with_identical_request(self):
@@ -266,7 +309,9 @@ class RelayContractTests(unittest.TestCase):
         request_attempts = [data for event, data in physical.send_attempts if event == relay.REQUEST_EVENT]
         self.assertEqual("complete", result["state"])
         self.assertEqual(3, len(request_attempts))
-        self.assertTrue(all(value == outbox["payload"] for value in request_attempts))
+        self.assertTrue(all(value["session"] == outbox["payload"] for value in request_attempts))
+        expiries = [value["lease"]["expires_eventtime"] for value in request_attempts]
+        self.assertEqual(expiries, sorted(expiries, reverse=True))
         phases = [value["phase"] for name, value in spare.writes if name == "delivery.json"]
         self.assertEqual(2, phases.count("retrying"))
         self.assertEqual("delivered", phases[-1])
@@ -364,6 +409,29 @@ class RelayContractTests(unittest.TestCase):
 
 
 class AdapterBoundaryTests(unittest.TestCase):
+    def test_ready_query_requires_production_eventtime(self):
+        adapter = relay.PhysicalAdapter(
+            "http://192.168.1.10", "192.168.1.10", "v0",
+        )
+
+        def missing(path, limit=relay.MAX_STORAGE_BYTES, allow_not_found=False):
+            if path == "/server/info":
+                return {"result": {"moonraker_version": "v0", "klippy_state": "ready"}}
+            return {"result": {"status": {"print_stats": {"state": "standby"}}}}
+
+        adapter._json_get = missing
+        with self.assertRaisesRegex(relay.RelayError, "eventtime"):
+            adapter.assert_ready()
+
+        def complete(path, limit=relay.MAX_STORAGE_BYTES, allow_not_found=False):
+            value = missing(path, limit, allow_not_found)
+            if path != "/server/info":
+                value["result"]["eventtime"] = 123.5
+            return value
+
+        adapter._json_get = complete
+        self.assertEqual(123.5, adapter.assert_ready()["eventtime"])
+
     def test_native_storage_404_is_pending_but_auth_and_other_errors_fail(self):
         class Opener:
             def __init__(self, status):
@@ -427,7 +495,9 @@ class AdapterBoundaryTests(unittest.TestCase):
             "ok",
             websocket.rpc(1, relay.SEND_METHOD, {
                 "event": relay.REQUEST_EVENT,
-                "data": valid_outbox(int(time.time()))["payload"],
+                "data": relay.make_wire_envelope(
+                    valid_outbox(int(time.time()))["payload"], 10.0, time.time(),
+                ),
             }),
         )
         for method, params in (

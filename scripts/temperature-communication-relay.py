@@ -60,6 +60,7 @@ MAX_CALL_SECONDS = 60
 MAX_TRANSPORT_ATTEMPTS = 5
 MAX_TEXT_BYTES = 128
 POLL_SECONDS = 1.0
+MIN_LEASE_REMAINING_SECONDS = 2.0
 DELIVERY_PHASES = frozenset((
     "delivering", "waiting_selection", "waiting_companion", "delivered",
     "retrying", "failed",
@@ -301,6 +302,55 @@ def validate_delivery(request: dict[str, Any], value: Any) -> dict[str, Any]:
     return value
 
 
+def validate_lease(request: dict[str, Any], value: Any) -> dict[str, int | float]:
+    if not isinstance(value, dict) or set(value) != {"issued_eventtime", "expires_eventtime"}:
+        raise RelayError("lease keys do not match the exact v1 contract")
+    issued = value["issued_eventtime"]
+    expires = value["expires_eventtime"]
+    for name, number in (("issued_eventtime", issued), ("expires_eventtime", expires)):
+        if isinstance(number, bool) or not isinstance(number, (int, float)) or not math.isfinite(number) or number < 0:
+            raise RelayError(f"{name} is outside the finite lease bound")
+    duration = expires - issued
+    if not MIN_LEASE_REMAINING_SECONDS < duration <= request["ttl_seconds"]:
+        raise RelayError("lease duration is outside the current request bound")
+    return value
+
+
+def make_wire_envelope(
+    request: dict[str, Any], eventtime: Any, walltime_after_response: Any,
+    previous_lease: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    validate_forward_payload(request, int(walltime_after_response))
+    if (
+        isinstance(eventtime, bool) or not isinstance(eventtime, (int, float))
+        or not math.isfinite(eventtime) or eventtime < 0
+        or isinstance(walltime_after_response, bool)
+        or not isinstance(walltime_after_response, (int, float))
+        or not math.isfinite(walltime_after_response)
+    ):
+        raise RelayError("Moonraker eventtime or relay wall time is invalid")
+    remaining = max(0.0, request["expires_at"] - walltime_after_response)
+    expires_eventtime = eventtime + remaining
+    if previous_lease is not None:
+        validate_lease(request, previous_lease)
+        expires_eventtime = min(expires_eventtime, previous_lease["expires_eventtime"])
+    lease = {
+        "issued_eventtime": eventtime,
+        "expires_eventtime": expires_eventtime,
+    }
+    validate_lease(request, lease)
+    return {"session": request, "lease": lease}
+
+
+def validate_wire_envelope(value: Any, now: int | None = None) -> dict[str, Any]:
+    if not isinstance(value, dict) or set(value) != {"session", "lease"}:
+        raise RelayError("wire request keys do not match the exact lease envelope")
+    session = value["session"]
+    validate_forward_payload(session, now)
+    validate_lease(session, value["lease"])
+    return value
+
+
 class _NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req: Any, fp: Any, code: int, msg: str, headers: Any, newurl: str) -> None:
         return None
@@ -320,7 +370,7 @@ def relay_websocket_class(display: Any) -> type:
                     raise RelayError("send-event parameters are outside the Temperature relay contract")
                 event = params.get("event")
                 if event == REQUEST_EVENT:
-                    validate_forward_payload(params.get("data"))
+                    validate_wire_envelope(params.get("data"))
                 elif event == ACK_EVENT:
                     data = params.get("data")
                     if not isinstance(data, dict) or set(data) != _result_keys() or data.get("schema") != ACK_SCHEMA:
@@ -396,15 +446,26 @@ class PhysicalAdapter:
         except (json.JSONDecodeError, UnicodeDecodeError) as exc:
             raise RelayError("bounded HTTP response is not JSON") from exc
 
-    def assert_ready(self) -> dict[str, str]:
+    def assert_ready(self) -> dict[str, Any]:
         info = self._json_get("/server/info").get("result", {})
         if info.get("moonraker_version") != self.expected_version or info.get("klippy_state") != "ready":
             raise RelayError("Moonraker identity/readiness preflight failed")
         query = self._json_get("/printer/objects/query?print_stats").get("result", {})
         state = query.get("status", {}).get("print_stats", {}).get("state")
+        eventtime = query.get("eventtime")
         if state not in IDLE_STATES:
             raise RelayError("printer is not in an allowed non-active state")
-        return {"moonraker_version": self.expected_version, "klippy_state": "ready", "print_state": state}
+        if (
+            isinstance(eventtime, bool) or not isinstance(eventtime, (int, float))
+            or not math.isfinite(eventtime) or eventtime < 0
+        ):
+            raise RelayError("Moonraker readiness response omitted finite eventtime")
+        return {
+            "moonraker_version": self.expected_version,
+            "klippy_state": "ready",
+            "print_state": state,
+            "eventtime": eventtime,
+        }
 
     def verify_file(self, payload: dict[str, Any]) -> dict[str, Any]:
         request = Request(
@@ -617,7 +678,9 @@ class SessionRelay:
         raise AssertionError("unreachable bounded retry loop")
 
     @staticmethod
-    def _storage_session(storage: Any, request: dict[str, Any]) -> dict[str, Any] | None:
+    def _storage_session(
+        storage: Any, request: dict[str, Any], lease: dict[str, Any],
+    ) -> dict[str, Any] | None:
         if not isinstance(storage, dict):
             raise RelayError("native storage root is invalid")
         session = storage.get("session")
@@ -625,11 +688,14 @@ class SessionRelay:
             return None
         if not isinstance(session, dict):
             raise RelayError("native storage session is invalid")
-        required = {"request", "result", "acknowledged", "recovery_required", "state"}
+        required = {"request", "lease", "result", "acknowledged", "recovery_required", "state"}
         if not required.issubset(session):
             raise RelayError("native storage session is incomplete")
         if session["request"] != request:
             raise RelayError("native storage contains a conflicting request")
+        stored_lease = validate_lease(request, session["lease"])
+        if stored_lease != lease:
+            return None
         if type(session["acknowledged"]) is not bool or type(session["recovery_required"]) is not bool:
             raise RelayError("native storage acknowledgement flags are invalid")
         if session["state"] not in ("received", "queued", "waiting", "returned"):
@@ -637,7 +703,8 @@ class SessionRelay:
         return session
 
     def _journal_value(
-        self, outbox: dict[str, Any], phase: str, result: dict[str, Any] | None = None,
+        self, outbox: dict[str, Any], phase: str, lease: dict[str, Any],
+        result: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         value = {
             "schema": "helix-orca-temperature-relay-journal/v1",
@@ -647,6 +714,7 @@ class SessionRelay:
             "origin_id": outbox["payload"]["origin_id"],
             "context_sha256": outbox["payload"]["context_sha256"],
             "file_sha256": outbox["payload"]["file_sha256"],
+            "lease": validate_lease(outbox["payload"], lease),
             "script_sha256": list(dict.fromkeys(getattr(self.spare, "script_hashes", [])))[-16:],
         }
         if result is not None:
@@ -682,6 +750,9 @@ class SessionRelay:
         if phase not in self.PHASES:
             raise RelayError("relay journal phase is invalid")
         result = prior.get("result") if prior else None
+        lease = prior.get("lease") if prior else None
+        if lease is not None:
+            lease = validate_lease(request, lease)
         if result is not None:
             result = validate_selection_result(request, result, int(self.wall_time()))
         if phase == "complete":
@@ -691,20 +762,31 @@ class SessionRelay:
             self._status(request, "waiting_companion")
 
         self._deadline_check(deadline, request)
-        if phase in ("created", "request_sent"):
-            # A request_sent replay is recovery: re-prove identity, idle state, and
-            # exact G-code, then resend the same immutable request idempotently.
-            def send_request() -> None:
-                self.physical.assert_ready()
-                self.physical.verify_file(request)
-                self._deadline_check(deadline, request)
-                self.physical.assert_ready()
-                self.physical.send_event(REQUEST_EVENT, request)
+        # Every non-complete start sends a fresh, shorter recovery envelope. This
+        # re-proves the original absolute expiry after a relay or native restart.
+        def send_request() -> dict[str, Any]:
+            nonlocal lease
+            self.physical.assert_ready()
+            self.physical.verify_file(request)
+            self._deadline_check(deadline, request)
+            ready = self.physical.assert_ready()
+            envelope = make_wire_envelope(
+                request, ready.get("eventtime"), self.wall_time(), lease,
+            )
+            lease = envelope["lease"]
+            journal.write(self._journal_value(outbox, phase, lease, result))
+            self.physical.send_event(REQUEST_EVENT, envelope)
+            return envelope
 
-            self._physical_call(send_request, deadline, request, "delivering")
+        self._physical_call(send_request, deadline, request, "delivering")
+        if phase == "created":
             phase = "request_sent"
-            journal.write(self._journal_value(outbox, phase))
+        assert lease is not None
+        journal.write(self._journal_value(outbox, phase, lease, result))
+        if phase == "request_sent":
             self._status(request, "waiting_selection")
+        else:
+            self._status(request, "waiting_companion")
 
         if phase == "request_sent":
             while True:
@@ -712,19 +794,19 @@ class SessionRelay:
                 storage = self._physical_call(
                     self.physical.read_native_storage, deadline, request, "waiting_selection",
                 )
-                session = self._storage_session(storage, request)
+                session = self._storage_session(storage, request, lease)
                 if session is not None and session["result"] is not None:
                     result = validate_selection_result(request, session["result"], int(self.wall_time()))
                     break
                 self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
             phase = "result_received"
-            journal.write(self._journal_value(outbox, phase, result))
+            journal.write(self._journal_value(outbox, phase, lease, result))
 
         if phase in ("result_received", "inbox_written"):
             assert result is not None
             self.spare.write_json("inbox.json", result)
             phase = "inbox_written"
-            journal.write(self._journal_value(outbox, phase, result))
+            journal.write(self._journal_value(outbox, phase, lease, result))
             self._status(request, "waiting_companion")
 
         if phase == "inbox_written":
@@ -738,7 +820,7 @@ class SessionRelay:
                     break
                 self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
             phase = "receipt_received"
-            journal.write(self._journal_value(outbox, phase, result))
+            journal.write(self._journal_value(outbox, phase, lease, result))
 
         if phase in ("receipt_received", "ack_sent"):
             assert result is not None
@@ -751,18 +833,18 @@ class SessionRelay:
 
             self._physical_call(send_ack, deadline, request, "waiting_companion")
             phase = "ack_sent"
-            journal.write(self._journal_value(outbox, phase, result))
+            journal.write(self._journal_value(outbox, phase, lease, result))
 
         while True:
             self._deadline_check(deadline, request)
             storage = self._physical_call(
                 self.physical.read_native_storage, deadline, request, "waiting_companion",
             )
-            session = self._storage_session(storage, request)
+            session = self._storage_session(storage, request, lease)
             if session is not None and session["result"] == result and session["acknowledged"] is True:
                 break
             self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
-        journal.write(self._journal_value(outbox, "complete", result))
+        journal.write(self._journal_value(outbox, "complete", lease, result))
         self._status(request, "delivered")
         return {
             "request_id": request["request_id"],
