@@ -62,11 +62,11 @@ Exact beta.9 source at `e5cdc5dc523280bc3ead681a4f229bf84dfa726a` proves that na
 
 Provisional least-privilege option: separate storage-only candidate native plugin; retrieve only its result file through the existing config-root file-readback route; relay to Spare using the verified existing SSH worker. Preserve every accepted plugin and mock/harness byte. Do not add HTTP, G-code or Moonraker-write permissions.
 
-The existing physical HTTP/WebSocket hop is unencrypted and does not cryptographically authenticate individual results. Strict request/origin/file/context checks, nonces, expiry and idempotency protect against accidental misdelivery, not a malicious LAN participant. The founder has been asked whether that existing trusted-LAN boundary is acceptable for this proof or whether the physical hop must be encrypted/authenticated. Physical implementation/validation that depends on this security choice remains gated; elapsed time is not approval.
+The existing physical HTTP/WebSocket hop is unencrypted and does not cryptographically authenticate individual results. Strict request/origin/file/context checks, nonces, expiry and idempotency protect against accidental misdelivery, not a malicious LAN participant. The founder explicitly answered “Use existing trusted-LAN boundary for this proof” in the program chat after this limitation was disclosed. The bounded physical proof may proceed using that existing boundary; no encryption, new credentials or additional service is authorized.
 
 ## Independent specification-fidelity disposition
 
-A separate fresh-context GPT-5.6 Sol / High reviewer read the raw founder excerpts, supplied workflow playback and proposed mechanics. Disposition: pass for the corrected scope, subject to the pending physical-transport security choice. The initial proposal for a separate native plugin/shell was corrected before implementation. Generate a beta.9 derivative of the accepted `orcacal` identity, registry, chooser and Temperature detail. Bind the original request context and add the fixed simulated choice/Return inside that existing detail; preserve inherited Back and the inactive Start-toast flow. Preserve accepted source and the separate Issue #6 receipt plugin/namespace byte-for-byte. Storage-only owner consent is setup; no extra recurring copy/transport action is approved.
+A separate fresh-context GPT-5.6 Sol / High reviewer read the raw founder excerpts, supplied workflow playback and proposed mechanics. Disposition: pass for the corrected scope, with the physical-transport trust choice subsequently approved by the founder. The initial proposal for a separate native plugin/shell was corrected before implementation. Generate a beta.9 derivative of the accepted `orcacal` identity, registry, chooser and Temperature detail. Bind the original request context and add the fixed simulated choice/Return inside that existing detail; preserve inherited Back and the inactive Start-toast flow. Preserve accepted source and the separate Issue #6 receipt plugin/namespace byte-for-byte. Storage-only owner consent is setup; no extra recurring copy/transport action is approved.
 
 Raw source -> proposed behavior -> disposition:
 
@@ -75,7 +75,7 @@ Raw source -> proposed behavior -> disposition:
 - Result returns to originating Orca -> automatic bounded artifact relay plus UI-callback inbox consumption -> preserved; internal correlation/retry adds no human work.
 - Original profile/setting/value and NOT APPLIED -> immutable saved/edited/effective target, profile-switch notice and manual instructions -> preserved.
 - Preserve shell/display/mock proof -> generate derivatives, leave original sources unchanged -> preserved after correction.
-- Secure path with existing access -> storage-only and existing LAN/SSH paths are supported, but the physical LAN hop lacks encryption/per-message authentication -> unresolved material security boundary.
+- Secure path with existing access -> storage-only and existing LAN/SSH paths are supported, but the physical LAN hop lacks encryption/per-message authentication -> disclosed existing trusted-LAN boundary explicitly approved for this proof.
 
 The reviewer also confirmed that Moonraker's `connection.send_event` is available only to a connection identified as `agent`; HelixScreen's connection is not such an agent. Broad `moonraker_write` would therefore not by itself supply a supported native return-event API.
 

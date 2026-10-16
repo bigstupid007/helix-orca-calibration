@@ -13,7 +13,7 @@ strategy and physical security gate.
 - [x] Complete independent source-to-workflow fidelity review for the corrected shell extension.
 - [x] Implement and focus-test companion/relay correlation, original context and local recovery.
 - [ ] Complete integrated native eleven-target and Windows request/result evidence.
-- [ ] Resolve the explicit trusted-LAN versus encrypted physical-hop security decision.
+- [x] Founder approved the disclosed existing trusted-LAN boundary for this proof.
 - [ ] Demonstrate actual physical HelixScreen selection -> originating Spare return.
 - [ ] Complete frozen-candidate independent review and AI Product Preflight.
 - [ ] Present one unmerged PR with the proven exact Founder Review path.

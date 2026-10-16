@@ -1,7 +1,7 @@
 # Temperature communication candidate — Issue #8
 
 The [governing Build Program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md) owns
-scope and the outstanding physical security decision. This document describes
+scope and the approved existing trusted-LAN boundary. This document describes
 the candidate and its review/recovery boundary. It is not physical acceptance.
 
 ## Generated artifacts and preserved baselines
@@ -21,7 +21,7 @@ side-loaded dependency-free `.py`. Existing capabilities stay available.
 No original source or prior evidence is overwritten.
 
 Native storage permission needs owner consent in HelixScreen Settings > Plugins.
-The agent may stage reviewed owned files after the security gate, but cannot
+The agent may stage reviewed owned files for the bounded proof, but cannot
 write enabled-state or settings remotely. The existing physical plugin folder
 listing contained only the accepted `helix-orca-display`; no `orcacal` folder
 was present at this program's read-only checkpoint. Recheck before staging.
@@ -41,14 +41,16 @@ bytes, and sends only the separate request event. It reads only the native
 plugin's fixed storage JSON file. The native selection is never invented by
 the relay. Orca validates/commits the selection, writes a correlated receipt,
 and only then may the relay send the native acknowledgement. A native storage
-call alone is not delivery proof. State/outbox/inbox/receipt/status contracts
+call alone is not delivery proof. The slot remains locked after local result
+commit until exact native delivery is confirmed, or the original absolute
+expiry permits an explicit new calibration. State/outbox/inbox/receipt/status contracts
 are documented in [the integration contract](../integration/temperature-communication/README.md).
 
 The physical hop is existing private-LAN HTTP. Host equality, strict schema,
 context/file binding, nonces, expiry and replay guards do not encrypt it or
-protect against a malicious LAN observer. The explicit security question in
-the governing Issue remains unresolved; do not execute the relay physically
-without that decision. No credential, service or port is created by this code.
+protect against a malicious LAN participant. After disclosure, the founder
+explicitly approved “Use existing trusted-LAN boundary for this proof.”
+No credential, service or port is created by this code.
 
 ## Isolation and validation
 
@@ -65,7 +67,11 @@ in the existing pinned test image with no container network, read-only runtime
 and plugin mounts and a private control socket. It preserves the ordinary
 beta.4 harness. Generated screenshots and reports stay in XDG state until a
 complete passing candidate-bound report can be promoted. Fixture-triggered
-native UI is isolated evidence, never a physical transport claim.
+native UI is isolated evidence, never a physical transport claim. The exact
+beta.9 mock omits `eventtime` from its read-only query response; the generated
+qualification fixture supplies only that clock prerequisite, labels it
+synthetic and binds its bytes in the report. Production clock support must be
+proved separately on the actual target.
 
 Windows validation uses only the previously marked isolated October 15 Orca
 data directory, hash-pinned executable/DLL and child-only WebView2 storage.
@@ -83,6 +89,7 @@ behavior. Screenshots showing private operational file details remain private.
 
 ## Review path and readiness gate
 
+From Orca’s startup home screen, choose **New Project** to enter Prepare.
 The observed Windows entry is **Prepare > application menu next to File >
 Plugins > expand Helix Calibration Context > Play Helix Temperature
 Communication (no printing)**. Version `0.5.0` exposes five capabilities.
@@ -100,7 +107,7 @@ context trust and native navigation. No saving, printing or hardware control
 is part of review.
 
 That complete scenario is **not yet a Founder Review handoff**. Required
-physical evidence and the security decision remain open. AI Product Preflight
+physical evidence remains open. AI Product Preflight
 must prove the same real path before the PR is presented as ready. Automated,
 fixture and AI inspection cannot provide founder acceptance.
 

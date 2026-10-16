@@ -210,9 +210,11 @@ local artifact I/O below host-provided storage during supported UI callbacks;
 it has no networking, process execution, background threads or profile writes.
 Only an originating-companion committed receipt may acknowledge delivery.
 
-The physical-hop security decision remains pending: existing trusted-LAN HTTP
-is not encrypted or per-message cryptographically authenticated. No new
-physical event/write may occur until that boundary is explicitly resolved.
+The founder explicitly approved “Use existing trusted-LAN boundary for this
+proof” in the program chat. Existing physical-hop HTTP remains unencrypted and
+without per-message cryptographic authentication; correlation protects against
+accidental misdelivery, not a malicious LAN participant. This approval permits
+the bounded physical proof through existing access.
 New credentials/services, security/configuration changes, unknown-host bypass,
 print/queue/heat/motion/homing/macros, firmware, profile writes, public access,
 merge, release and deployment remain outside this candidate's authority.

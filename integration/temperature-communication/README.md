@@ -31,6 +31,16 @@ target and its digest. The result contains exactly `schema`, `simulation_only`,
 `not_applied`, `request_id`, `origin_id`, `context_sha256`, `file_sha256`,
 `file`, `file_bytes`, `setting`, and `value`. Receipt fields are identical.
 
+The wire request wraps that unchanged session in exactly
+`{session, lease: {issued_eventtime, expires_eventtime}}`. The relay derives the
+lease from the existing read-only Moonraker query's monotonic `eventtime` and
+the original absolute expiry, using wall time after the response. Reconnects
+and retries can only shorten its deadline. Native storage retains the original
+session as `request` and the lease separately; no clock metadata changes the
+original context digest or selection/receipt schemas. Missing or malformed
+clock data fails closed. Native recovery must validate a fresh correlated
+lease before selection is available again.
+
 The reusable API is:
 
 - `validate_forward_payload`, `validate_outbox`, `validate_selection_result`,
