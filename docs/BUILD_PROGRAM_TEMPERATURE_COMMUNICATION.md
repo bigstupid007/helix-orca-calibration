@@ -2,7 +2,7 @@
 
 Governing work item: [Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8).
 
-Status: technically reviewed draft [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9), with CI passing. Owner storage consent, actual physical return and full AI Product Preflight remain open. One governing Issue, one candidate PR, no merge or deployment before Founder acceptance.
+Status: draft [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9), blocked at the production storage-exposure decision. Owner enablement and physical forward/selection are observed; no result returned to Spare. No configuration remedy, merge or deployment is authorized.
 
 ## Authority and reconstructed baseline
 
@@ -52,7 +52,7 @@ Final PR must provide the exact normal entry point on Spare, the named represent
 
 ## Current checkpoint
 
-OSS identity and merged baselines are verified, and canonical dirty work remains preserved. The integrated candidate passes 169 tests and branch whitespace checks. Independent review found no remaining material code defect in `fe68605` after expiry, delivery-lock, recovery-deadline and native idle-state corrections. The fresh corrected eleven-viewport matrix is promoted and verified; reviewed native files are staged without remote enablement. Owner storage consent, physical proof and full AI Product Preflight remain open. This Issue remains the sole governing work item.
+OSS identity and merged baselines are verified, and canonical dirty work remains preserved. The isolated candidate passes 172 tests, native evidence verification and Windows validation. Receipt-driven relay retries are independently reviewed. The owner enabled the verified storage-only plugin and reported actual original context and 205°C/Return. Production storage resolves under the install tree rather than Moonraker's exposed config tree; no result/inbox/receipt was retrieved. The relay is stopped and the target remains nonactive. [The deployment gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) records the source evidence and narrow unapplied owner proposal. This Issue remains the sole governing work item; full AI Product Preflight and Founder Review remain open.
 
 ## Capability checkpoint — 2026-10-16
 
@@ -80,3 +80,14 @@ Raw source -> proposed behavior -> disposition:
 The reviewer also confirmed that Moonraker's `connection.send_event` is available only to a connection identified as `agent`; HelixScreen's connection is not such an agent. Broad `moonraker_write` would therefore not by itself supply a supported native return-event API.
 
 Implementation work is partitioned into independent native-derivative, companion/protocol and relay slices with separate worktrees, one writer each, GPT-5.6 Sol / Medium workers and lead-only integration. No physical use or product-readiness claim is authorized by isolated evidence.
+
+## Physical capability correction
+
+The initial storage/readback hypothesis omitted beta.9’s per-file settings
+symlink deployment. The passing isolated layout does not prove the production
+sidecar path is exposed. The actual attempt and pinned installer source
+confirmed the mismatch. Earlier isolated no-material-findings dispositions
+remain historical; they do not override this newly demonstrated deployment
+gate. The receipt retry gap discovered during diagnosis was corrected and
+reviewed without further target events. No directory/file link or alternate
+access permission is authorized by the existing trusted-LAN approval.

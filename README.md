@@ -166,13 +166,20 @@ Temperature detail, a self-contained October 15 Orca companion derivative, and
 a bounded relay using existing access. Accepted Issue #1, #4 and #6 sources and
 the beta.4 harness remain unchanged.
 
-The candidate is in isolated validation. Its storage-only native return requires
-owner consent; the physical hop uses existing trusted-LAN HTTP and is neither
-encrypted nor cryptographically authenticated. The founder explicitly approved
-that existing trusted-LAN boundary for this proof. All 169 tests, the corrected
-eleven-viewport native matrix and isolated Windows return checks pass. The
-reviewed native files are staged; owner storage consent and the actual physical
-return remain pending. This is not a
-completed physical round trip or a Founder Review-ready result. See the
-[program](docs/BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md) and
-[operation and validation boundary](docs/TEMPERATURE_COMMUNICATION.md).
+The candidate passes 172 tests, corrected eleven-viewport native evidence,
+isolated Windows validation and reviewed receipt-driven retry/recovery. The
+owner enabled the exact storage-only plugin and observed the original context
+and simulated 205°C/Return on the actual screen. **The physical return is
+blocked:** beta.9 writes its sidecar under the install tree, outside the
+Moonraker config route assumed by the relay. No result or receipt reached Spare.
+The relay is stopped; no configuration remedy is authorized or applied.
+
+The founder approved the disclosed trusted-LAN boundary, which remains
+unencrypted and without per-message cryptographic authentication. A narrowly
+reviewed proposal would create one real shared directory and one file link,
+exposing only `orcacal.json` through the existing config API; this needs a new
+explicit owner decision and existing owner access. See the
+[storage gate](docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md),
+[program](docs/BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md), and
+[operations](docs/TEMPERATURE_COMMUNICATION.md). PR #9 remains draft; full AI
+Product Preflight, Founder Review, merge and deployment are not complete.

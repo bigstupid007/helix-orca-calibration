@@ -225,3 +225,11 @@ those surfaces. Preserve private target data and disclose isolated versus
 physical evidence honestly. One fresh-context independent candidate review, AI
 Product Preflight, reconciled documentation and one unmerged PR are required;
 never label an AI run Founder acceptance.
+
+The Issue #8 physical attempt established forward context and owner 205°C
+selection only. Production sidecar storage lies outside the exposed Moonraker
+config tree. No single-file/directory link, access-mode change, new permission
+or alternate host access is authorized as a workaround. See
+`docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md`; the specific deployment
+exposure decision must precede any further physical request or configuration
+change. Preserve the actual request/journal and never retarget an expired result.

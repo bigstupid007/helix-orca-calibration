@@ -14,13 +14,16 @@ strategy and physical security gate.
 - [x] Implement and focus-test companion/relay correlation, original context and local recovery.
 - [x] Complete integrated native eleven-target and isolated Windows request/result evidence.
 - [x] Founder approved the disclosed existing trusted-LAN boundary for this proof.
-- [ ] Demonstrate actual physical HelixScreen selection -> originating Spare return.
+- [x] Owner enabled the verified storage-only candidate and observed physical original context and 205°C/Return.
+- [ ] Resolve the production sidecar exposure decision; demonstrate actual selection -> originating Spare return.
 - [ ] Complete frozen-candidate independent review and AI Product Preflight.
 - [ ] Present one unmerged PR with the proven exact Founder Review path.
 
-Reviewed native files are staged and verified; owner storage consent is pending.
-No physical request event has occurred. No completed physical round-trip or
-Founder Review-ready claim may be made while required evidence is missing.
+Reviewed native files and owner grant are verified. The physical forward route
+and selection were observed, but the return file is outside the existing
+Moonraker config tree; no result reached Spare. The relay is stopped. See the
+[unapproved storage exposure decision](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md).
+No completed round-trip or Founder Review-ready claim is valid.
 
 
 ## Completed: Issue #1 — Helix calibration hub/detail foundation

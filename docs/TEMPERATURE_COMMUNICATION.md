@@ -27,7 +27,15 @@ listing contained only the accepted `helix-orca-display`; no `orcacal` folder
 was present at this program's read-only checkpoint. The reviewed six-file
 candidate was subsequently staged and read back exactly, with the accepted
 display plugin unchanged and printer still idle. Owner enablement/consent is
-pending.
+complete: read-only verification found exactly the reviewed version and Storage
+grant. The owner reported no literal Storage label; beta.9 describes it as
+keeping the plugin’s own data on the screen, up to 256 KB.
+
+**Production return is blocked.** The actual native sidecar path is under the
+install tree, outside this config-root GET. See the
+[unapproved exposure decision](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md). No
+new physical request or configuration workaround is authorized before that
+decision.
 
 ## Correlation and delivery
 
@@ -110,7 +118,7 @@ context trust and native navigation. No saving, printing or hardware control
 is part of review.
 
 That complete scenario is **not yet a Founder Review handoff**. Required
-physical evidence remains open. AI Product Preflight
+the actual physical return remains blocked at the deployment decision. AI Product Preflight
 must prove the same real path before the PR is presented as ready. Automated,
 fixture and AI inspection cannot provide founder acceptance.
 
@@ -130,3 +138,18 @@ needed. Physical rollback, if staging is later authorized, first requires the
 owner to disable the generated `orcacal` candidate, then removal only of its
 owned exact files/folder. Do not touch the accepted display plugin or printer
 settings, services or firmware.
+
+## Actual physical attempt and continuation
+
+The owner observed original context and simulated 205°C/Return on the physical
+screen. The relay’s GET remained 404 because the production installer links
+settings.json individually and leaves plugin-data in the install tree. No
+returned bytes, companion inbox/receipt or persisted ACK were observed. The
+relay is stopped and its immutable request/journal is retained. This is partial
+forward evidence, not a completed round trip.
+
+Automatic receipt-driven retry is now bounded to five persisted deliveries
+across relay restarts. It rechecks ready/idle state and exact file bytes, only
+shortens the lease, and stops repeated request delivery on an exact recovered
+native session. These isolated tests do not resolve the production exposure
+gate. Do not replay an expired result under a new origin after any amendment.

@@ -308,3 +308,21 @@ query omits eventtime, so its isolated fixture supplies only that synthetic
 clock prerequisite. Actual HTTP clock readback is verified; native production
 clock/return still requires the physical demonstration. Independent review
 found no remaining material code defect after the four recorded corrections.
+
+## Issue #8 actual production storage blocker
+
+The owner enabled the exact storage-only grant and observed original context
+and simulated 205°C/Return on the physical screen. No sidecar, originating
+inbox/receipt or native ACK was retrieved through the approved route. Pinned
+beta.9 deployment source confirms that settings.json is a file symlink, while
+plugin-data stays under the install tree. This supersedes the initial assumed
+production storage reachability and any broad no-material-findings/readiness
+inference from isolated evidence. The relay is stopped; postcheck was idle.
+
+A separate missed-receipt retry gap was corrected: bounded same-request
+redelivery, non-extending leases, restart-persisted five-send cap and exact
+native receipt detection now pass independent review and 172 combined tests.
+Native product/companion bytes and their qualifying evidence remain unchanged.
+The [storage exposure gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) records
+the narrow unapplied owner decision. No service, credential, permission or
+configuration change has been inferred or performed.

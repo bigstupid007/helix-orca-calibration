@@ -1,6 +1,6 @@
 # Issue #8 AI Product Preflight
 
-Status: in progress. This record does not provide Founder acceptance or a
+Status: blocked at production storage exposure. This record does not provide Founder acceptance or a
 completed physical return claim. The governing item is
 [Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8).
 
@@ -58,7 +58,7 @@ target-clock lease to original expiry, only shortens stored recovery deadlines,
 requires a nonactive state at every native query gate, and durably persists
 terminal delivery before unlocking Orca. The independent reviewer found no
 remaining material code defect in `fe68605`, conditional on the final matrix
-and evidence verification. All 169 automated tests and branch whitespace checks
+and evidence verification. All 172 automated tests and branch whitespace checks
 pass.
 Retries preserve IDs and can only shorten the lease. Expiry permits explicit
 retirement without silently changing the prior NOT APPLIED instructions.
@@ -76,15 +76,17 @@ and cannot establish the final candidate. One capture also overlapped a source
 edit; it is excluded from promotion. The final capture snapshots sources before execution, rejects source/fixture
 changes before report publication, and has passed verification and promotion
 for all eleven viewports, 33 frames and exact storage/selection/ACK artifacts.
-Independent final review of `bc9c507` found no remaining material correctness,
+At the isolated checkpoint, independent review of `bc9c507` found no remaining
+material correctness,
 security, recovery, fidelity or evidence finding; it qualifies a draft PR only.
+The later production finding below supersedes any readiness inference.
 CI passes on [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9).
 
 The normal Windows Orca settings/profile fingerprint still matches the fresh
 program baseline after corrected-companion staging: 1,429 relevant files,
 SHA-256 `41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`.
-A repeat comparison after final isolated Windows validation also matched this
-program baseline. Recheck after the pending physical demonstration.
+Repeat comparisons after final isolated Windows validation and the stopped
+physical forward attempt both matched this program baseline.
 
 ## Founder Review gate
 
@@ -98,3 +100,20 @@ Founder judgment concerns discoverability, wording, hierarchy, context trust,
 and navigation. Automated tests, AI inspection, isolated screenshots and owner
 physical observations do not replace Founder acceptance. No merge or deployment
 is authorized by this preflight.
+
+## Superseding actual production finding
+
+The owner-enabled Storage grant was verified read-only. Actual original
+context and simulated 205°C/Return were reported by the owner on the real
+screen. The native sidecar remains outside the Moonraker config tree because
+beta.9’s installer links the settings file individually. No result or receipt
+reached Spare; no persisted native ACK or delivered unlock was observed.
+The relay is stopped, target is nonactive, and the physical return/full same-
+path preflight is blocked. Earlier technically reviewed isolation and draft CI
+passes must not be called a completed production flow.
+
+The discovered automatic retry gap was independently corrected and tested.
+That change does not resolve sidecar reachability. The
+[storage-gate proposal](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) has not been
+approved or applied. A new actual same-path run is required after an explicit
+decision, followed by evidence/documentation reconciliation and Founder handoff.
