@@ -25,6 +25,8 @@
                     bind_text="helix-orca-display__filament_line"/>
         <text_small name="helix-orca-display__process_line" width="100%" long_mode="wrap"
                     bind_text="helix-orca-display__process_line"/>
+        <text_small name="helix-orca-display__effective_line" width="100%" long_mode="wrap"
+                    bind_text="helix-orca-display__effective_line"/>
         <text_small name="helix-orca-display__temperatures_line" width="100%" long_mode="wrap"
                     bind_text="helix-orca-display__temperatures_line"/>
       </ui_card>

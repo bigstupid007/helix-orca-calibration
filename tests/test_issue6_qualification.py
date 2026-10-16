@@ -10,6 +10,7 @@ LAUNCHER = ROOT / "scripts/orca-oct15-qualify.ps1"
 GUIDE = ROOT / "docs/ISSUE_6_QUALIFICATION.md"
 WINDOWS_ADAPTER = ROOT / "scripts/orca-oct15-windows-review.py"
 BETA9_QUALIFIER = ROOT / "scripts/helix-beta9-qualify.py"
+DISPLAY_QUALIFIER = ROOT / "scripts/helix-display-qualify.py"
 
 
 class Issue6QualificationTests(unittest.TestCase):
@@ -91,6 +92,16 @@ class Issue6QualificationTests(unittest.TestCase):
         accepted = (ROOT / "scripts/orca-windows-ui.ps1").read_text()
         self.assertIn("HelixOrcaCalibration\\issue-4-nightly-210bc927", accepted)
         self.assertNotIn("issue-6-nightly-6a7763f", accepted)
+
+    def test_display_qualifier_is_test_only_and_network_disabled(self):
+        source = DISPLAY_QUALIFIER.read_text()
+        self.assertIn("accepted.VIEWPORTS", source)
+        self.assertIn("candidate_plugin_files", source)
+        self.assertIn("qualification_sources", source)
+        self.assertIn("extra-key-rejected-without-overlay", source)
+        self.assertIn("dismiss-closes-receipt", source)
+        self.assertNotIn("printer.print", source)
+        self.assertNotIn("gcode.script", source)
 
 
 if __name__ == "__main__":

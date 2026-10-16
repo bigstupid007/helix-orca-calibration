@@ -67,7 +67,12 @@ class DisplayOnlyPluginTests(unittest.TestCase):
             'bounded_text(data.process)',
             'data.nozzle_mm < 0.05',
             'data.nozzle_mm > 2',
+            'finite_number(data.current_temperature_c)',
+            'data.current_temperature_c < 0',
+            'data.current_temperature_c > 500',
             'exact_temperatures(data.temperatures)',
+            'key_count ~= 12',
+            'not PAYLOAD_KEYS[key]',
         ):
             self.assertIn(marker, validate_body)
         self.assertIn('value:match("^[0-9a-f]+$")', source)
@@ -110,6 +115,7 @@ class DisplayOnlyPluginTests(unittest.TestCase):
             "helix-orca-display__printer_line",
             "helix-orca-display__filament_line",
             "helix-orca-display__process_line",
+            "helix-orca-display__effective_line",
             "helix-orca-display__file_line",
             "helix-orca-display__hash_line",
             "helix-orca-display__temperatures_line",
@@ -119,6 +125,7 @@ class DisplayOnlyPluginTests(unittest.TestCase):
         source = SOURCE.read_text(encoding="utf-8")
         self.assertEqual(re.findall(r'helix\.ui\.on\("([^"]+)"', source), ["dismiss"])
         self.assertIn("overlay_handle.close()", source)
+        self.assertIn('effective_line:set("Original effective: "', source)
 
 
 if __name__ == "__main__":
