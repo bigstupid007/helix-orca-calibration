@@ -159,7 +159,16 @@ class DisplayRequestTests(unittest.TestCase):
         self.assertIn('state not in IDLE_STATES', source)
         self.assertIn('method not in RPC_METHODS', source)
         self.assertIn('verify_remote_file(', source)
+        self.assertIn('signal.setitimer(signal.ITIMER_REAL, SEND_LIFETIME_SECONDS)', source)
         self.assertNotIn('MOONRAKER_API_KEY', source)
+
+    def test_handshake_and_rpc_reads_share_one_deadline(self):
+        source = SCRIPT.read_text(encoding="utf-8")
+        handshake = source[source.index("    def _read_until"):source.index("    def _read_exact")]
+        exact = source[source.index("    def _read_exact"):source.index("    def send_frame")]
+        for body in (handshake, exact):
+            self.assertIn("self.deadline - time.monotonic()", body)
+            self.assertIn("self.sock.settimeout(min(5, remaining))", body)
 
     def test_socketpair_proves_masked_two_rpc_exchange_and_close(self):
         client, server = socket.socketpair()

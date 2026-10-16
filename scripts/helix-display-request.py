@@ -11,6 +11,7 @@ import math
 import os
 from pathlib import Path
 import secrets
+import signal
 import socket
 import struct
 import sys
@@ -34,6 +35,7 @@ QUALIFIED_RUNTIME = {"version": "2.5.0-dev", "build": "6a7763f0"}
 RPC_METHODS = {IDENTIFY_METHOD, SEND_METHOD}
 MAX_IGNORED_FRAMES = 16
 RPC_LIFETIME_SECONDS = 10
+SEND_LIFETIME_SECONDS = 30
 
 
 class DisplayRequestError(RuntimeError):
@@ -263,6 +265,10 @@ class WebSocket:
     def _read_until(self, marker: bytes, limit: int) -> bytes:
         value = self.buffer
         while marker not in value:
+            remaining = self.deadline - time.monotonic()
+            if remaining <= 0:
+                raise DisplayRequestError("short-lived WebSocket deadline exceeded")
+            self.sock.settimeout(min(5, remaining))
             chunk = self.sock.recv(4096)
             if not chunk or len(value) + len(chunk) > limit:
                 raise DisplayRequestError("bounded WebSocket read failed")
@@ -395,7 +401,20 @@ def main() -> int:
     emit.add_argument("--confirm-display-only", required=True)
     emit.add_argument("--api-key-env")
     args = parser.parse_args()
-    value = prepare(args) if args.command == "prepare" else send(args)
+    if args.command == "prepare":
+        value = prepare(args)
+    else:
+        def deadline_exceeded(_signum: int, _frame: Any) -> None:
+            raise DisplayRequestError("display-only send exceeded its total deadline")
+
+        previous = signal.getsignal(signal.SIGALRM)
+        signal.signal(signal.SIGALRM, deadline_exceeded)
+        signal.setitimer(signal.ITIMER_REAL, SEND_LIFETIME_SECONDS)
+        try:
+            value = send(args)
+        finally:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, previous)
     print(json.dumps(value, indent=2, sort_keys=True))
     return 0
 
