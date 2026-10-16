@@ -32,6 +32,7 @@ SESSION_SCHEMA = "helix-orca-temperature-session/v1"
 SELECTION_SCHEMA = "helix-orca-temperature-selection/v1"
 ACK_SCHEMA = "helix-orca-temperature-ack/v1"
 OUTBOX_SCHEMA = "helix-orca-temperature-outbox/v1"
+DELIVERY_SCHEMA = "helix-orca-temperature-delivery/v1"
 CHOICES = [230, 225, 220, 215, 210, 205, 200, 195, 190]
 SETTING = "nozzle_temperature"
 
@@ -56,12 +57,21 @@ MAX_STORAGE_BYTES = 256 * 1024
 MAX_FILE_BYTES = 20_000_000
 MAX_SESSION_SECONDS = 900
 MAX_CALL_SECONDS = 60
+MAX_TRANSPORT_ATTEMPTS = 5
 MAX_TEXT_BYTES = 128
 POLL_SECONDS = 1.0
+DELIVERY_PHASES = frozenset((
+    "delivering", "waiting_selection", "waiting_companion", "delivered",
+    "retrying", "failed",
+))
 
 
 class RelayError(RuntimeError):
     pass
+
+
+class TransientRelayError(RelayError):
+    """A bounded transport failure that may be retried with identical data."""
 
 
 def _load(name: str, path: Path) -> Any:
@@ -268,6 +278,29 @@ def validate_ack(
     return value
 
 
+def make_delivery(request: dict[str, Any], phase: str) -> dict[str, Any]:
+    validate_forward_payload(request, request["expires_at"] - request["ttl_seconds"])
+    if phase not in DELIVERY_PHASES:
+        raise RelayError("delivery phase is outside the exact v1 contract")
+    return {
+        "schema": DELIVERY_SCHEMA,
+        "request_id": request["request_id"],
+        "origin_id": request["origin_id"],
+        "context_sha256": request["context_sha256"],
+        "phase": phase,
+    }
+
+
+def validate_delivery(request: dict[str, Any], value: Any) -> dict[str, Any]:
+    expected_keys = {"schema", "request_id", "origin_id", "context_sha256", "phase"}
+    if not isinstance(value, dict) or set(value) != expected_keys:
+        raise RelayError("delivery keys do not match the exact v1 contract")
+    expected = make_delivery(request, value.get("phase"))
+    if value != expected:
+        raise RelayError("delivery identity differs from the current request")
+    return value
+
+
 class _NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, req: Any, fp: Any, code: int, msg: str, headers: Any, newurl: str) -> None:
         return None
@@ -343,12 +376,18 @@ class PhysicalAdapter:
             headers["X-Api-Key"] = self.api_key
         return headers
 
-    def _json_get(self, path: str, limit: int = MAX_STORAGE_BYTES) -> Any:
+    def _json_get(
+        self, path: str, limit: int = MAX_STORAGE_BYTES, allow_not_found: bool = False,
+    ) -> Any:
         request = Request(self.base_url + path, headers=self._headers("application/json"))
         try:
             with self.opener.open(request, timeout=5) as response:
                 data = response.read(limit + 1)
         except HTTPError as exc:
+            if allow_not_found and exc.code == 404:
+                return None
+            if 500 <= exc.code <= 599:
+                raise TransientRelayError("bounded HTTP GET encountered a transient server failure") from exc
             raise RelayError(f"bounded HTTP GET failed with status {exc.code}") from exc
         if len(data) > limit:
             raise RelayError("bounded HTTP response exceeds its limit")
@@ -385,20 +424,23 @@ class PhysicalAdapter:
                         raise RelayError("target G-code exceeds the retained size")
                     digest.update(chunk)
         except HTTPError as exc:
+            if 500 <= exc.code <= 599:
+                raise TransientRelayError("G-code readback encountered a transient server failure") from exc
             raise RelayError(f"bounded G-code readback failed with status {exc.code}") from exc
         if size != payload["file_bytes"] or digest.hexdigest() != payload["file_sha256"]:
             raise RelayError("target G-code bytes differ from the retained request")
         return {"bytes": size, "sha256": digest.hexdigest()}
 
     def read_native_storage(self) -> Any:
-        return self._json_get(STORAGE_PATH, MAX_STORAGE_BYTES)
+        value = self._json_get(STORAGE_PATH, MAX_STORAGE_BYTES, allow_not_found=True)
+        return {} if value is None else value
 
     def send_event(self, event: str, data: dict[str, Any]) -> None:
         if event not in EVENTS:
             raise RelayError("event is outside the Temperature relay namespace")
         parsed = urlparse(self.base_url)
-        connection = self.ws_type(parsed.hostname, parsed.port or 80, "/websocket")
         try:
+            connection = self.ws_type(parsed.hostname, parsed.port or 80, "/websocket")
             identify = {
                 "client_name": "helix-orca-temperature-relay",
                 "version": "0.1.0",
@@ -410,8 +452,16 @@ class PhysicalAdapter:
             connection.rpc(1, IDENTIFY_METHOD, identify)
             if connection.rpc(2, SEND_METHOD, {"event": event, "data": data}) != "ok":
                 raise RelayError("Moonraker did not acknowledge the Temperature event")
+        except self.display.DisplayRequestError as exc:
+            message = str(exc).casefold()
+            if any(marker in message for marker in (
+                "deadline", "closed", "read failed", "before reply", "handshake failed",
+            )):
+                raise TransientRelayError("transient WebSocket transport failure") from exc
+            raise RelayError("Moonraker rejected the Temperature WebSocket exchange") from exc
         finally:
-            connection.close()
+            if "connection" in locals():
+                connection.close()
 
 
 class SpareAdapter:
@@ -542,6 +592,30 @@ class SessionRelay:
         if int(self.wall_time()) >= request["expires_at"]:
             raise RelayError("relay request expired before delivery completed")
 
+    def _session_deadline_check(self, deadline: float) -> None:
+        if self.monotonic() >= deadline:
+            raise RelayError("relay session exceeded its 900-second total deadline")
+
+    def _status(self, request: dict[str, Any], phase: str) -> None:
+        self.spare.write_json("delivery.json", make_delivery(request, phase))
+
+    def _physical_call(
+        self, operation: Any, deadline: float, request: dict[str, Any],
+        active_phase: str,
+    ) -> Any:
+        for attempt in range(1, MAX_TRANSPORT_ATTEMPTS + 1):
+            self._deadline_check(deadline, request)
+            try:
+                return operation()
+            except (TransientRelayError, OSError, TimeoutError) as exc:
+                if attempt == MAX_TRANSPORT_ATTEMPTS:
+                    raise RelayError("physical transport failed after five bounded attempts") from exc
+                self._status(request, "retrying")
+                self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
+                self._deadline_check(deadline, request)
+                self._status(request, active_phase)
+        raise AssertionError("unreachable bounded retry loop")
+
     @staticmethod
     def _storage_session(storage: Any, request: dict[str, Any]) -> dict[str, Any] | None:
         if not isinstance(storage, dict):
@@ -579,13 +653,25 @@ class SessionRelay:
             value["result"] = result
         return value
 
-    def run(self) -> dict[str, Any]:
-        started = self.monotonic()
-        deadline = started + MAX_SESSION_SECONDS
-        outbox = self.spare.read_json("outbox.json", MAX_REQUEST_BYTES)
-        if outbox is None:
-            raise RelayError("originating companion outbox is unavailable")
-        outbox = validate_outbox(outbox, int(self.wall_time()))
+    def _wait_for_outbox(self, deadline: float) -> dict[str, Any]:
+        transient_attempts = 0
+        while True:
+            self._session_deadline_check(deadline)
+            try:
+                outbox = self.spare.read_json("outbox.json", MAX_REQUEST_BYTES)
+                transient_attempts = 0
+            except (OSError, TimeoutError) as exc:
+                transient_attempts += 1
+                if transient_attempts >= MAX_TRANSPORT_ATTEMPTS:
+                    raise RelayError("originating companion transport failed after five bounded attempts") from exc
+                outbox = None
+            if outbox is not None:
+                return validate_outbox(outbox, int(self.wall_time()))
+            self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
+
+    def _run_validated(
+        self, outbox: dict[str, Any], deadline: float,
+    ) -> dict[str, Any]:
         request = outbox["payload"]
         journal = Journal(self.journal_root, request["request_id"])
         prior = journal.read()
@@ -599,24 +685,34 @@ class SessionRelay:
         if result is not None:
             result = validate_selection_result(request, result, int(self.wall_time()))
         if phase == "complete":
+            self._status(request, "delivered")
             return {"request_id": request["request_id"], "state": "complete", "recovered": True}
+        if phase in ("result_received", "inbox_written", "receipt_received", "ack_sent"):
+            self._status(request, "waiting_companion")
 
         self._deadline_check(deadline, request)
         if phase in ("created", "request_sent"):
             # A request_sent replay is recovery: re-prove identity, idle state, and
             # exact G-code, then resend the same immutable request idempotently.
-            self.physical.assert_ready()
-            self.physical.verify_file(request)
-            self._deadline_check(deadline, request)
-            self.physical.assert_ready()
-            self.physical.send_event(REQUEST_EVENT, request)
+            def send_request() -> None:
+                self.physical.assert_ready()
+                self.physical.verify_file(request)
+                self._deadline_check(deadline, request)
+                self.physical.assert_ready()
+                self.physical.send_event(REQUEST_EVENT, request)
+
+            self._physical_call(send_request, deadline, request, "delivering")
             phase = "request_sent"
             journal.write(self._journal_value(outbox, phase))
+            self._status(request, "waiting_selection")
 
         if phase == "request_sent":
             while True:
                 self._deadline_check(deadline, request)
-                session = self._storage_session(self.physical.read_native_storage(), request)
+                storage = self._physical_call(
+                    self.physical.read_native_storage, deadline, request, "waiting_selection",
+                )
+                session = self._storage_session(storage, request)
                 if session is not None and session["result"] is not None:
                     result = validate_selection_result(request, session["result"], int(self.wall_time()))
                     break
@@ -629,6 +725,7 @@ class SessionRelay:
             self.spare.write_json("inbox.json", result)
             phase = "inbox_written"
             journal.write(self._journal_value(outbox, phase, result))
+            self._status(request, "waiting_companion")
 
         if phase == "inbox_written":
             while True:
@@ -647,18 +744,26 @@ class SessionRelay:
             assert result is not None
             ack = make_ack(result)
             self._deadline_check(deadline, request)
-            self.physical.assert_ready()
-            self.physical.send_event(ACK_EVENT, ack)
+
+            def send_ack() -> None:
+                self.physical.assert_ready()
+                self.physical.send_event(ACK_EVENT, ack)
+
+            self._physical_call(send_ack, deadline, request, "waiting_companion")
             phase = "ack_sent"
             journal.write(self._journal_value(outbox, phase, result))
 
         while True:
             self._deadline_check(deadline, request)
-            session = self._storage_session(self.physical.read_native_storage(), request)
+            storage = self._physical_call(
+                self.physical.read_native_storage, deadline, request, "waiting_companion",
+            )
+            session = self._storage_session(storage, request)
             if session is not None and session["result"] == result and session["acknowledged"] is True:
                 break
             self.sleep(min(self.poll_seconds, max(0.0, deadline - self.monotonic())))
         journal.write(self._journal_value(outbox, "complete", result))
+        self._status(request, "delivered")
         return {
             "request_id": request["request_id"],
             "origin_id": request["origin_id"],
@@ -666,6 +771,20 @@ class SessionRelay:
             "value": result["value"],
             "not_applied": True,
         }
+
+    def run(self) -> dict[str, Any]:
+        deadline = self.monotonic() + MAX_SESSION_SECONDS
+        outbox = self._wait_for_outbox(deadline)
+        request = outbox["payload"]
+        self._status(request, "delivering")
+        try:
+            return self._run_validated(outbox, deadline)
+        except (RelayError, OSError, ValueError, json.JSONDecodeError):
+            try:
+                self._status(request, "failed")
+            except (RelayError, OSError, ValueError, json.JSONDecodeError):
+                pass
+            raise
 
 
 def default_journal_root() -> Path:

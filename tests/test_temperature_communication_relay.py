@@ -4,6 +4,7 @@ from pathlib import Path
 import tempfile
 import time
 import unittest
+from urllib.error import HTTPError
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -82,12 +83,16 @@ class FakeClock:
 
 
 class FakeSpare:
-    def __init__(self, outbox):
-        self.files = {"outbox.json": outbox}
+    def __init__(self, outbox, outbox_delay=0):
+        self.files = {"outbox.json": outbox} if outbox is not None else {}
+        self.outbox_delay = outbox_delay
         self.script_hashes = ["b" * 64]
         self.writes = []
 
     def read_json(self, name, limit=relay.MAX_REQUEST_BYTES):
+        if name == "outbox.json" and self.outbox_delay:
+            self.outbox_delay -= 1
+            return None
         return self.files.get(name)
 
     def write_json(self, name, value):
@@ -107,6 +112,8 @@ class FakePhysical:
         self.acknowledged = False
         self.request_seen = False
         self.read_failures = 0
+        self.send_failures = 0
+        self.send_attempts = []
 
     def assert_ready(self):
         self.ready_checks += 1
@@ -117,6 +124,10 @@ class FakePhysical:
         return {"bytes": payload["file_bytes"], "sha256": payload["file_sha256"]}
 
     def send_event(self, event, data):
+        self.send_attempts.append((event, json.loads(json.dumps(data))))
+        if self.send_failures:
+            self.send_failures -= 1
+            raise relay.TransientRelayError("simulated transient send failure")
         self.events.append((event, json.loads(json.dumps(data))))
         if event == relay.REQUEST_EVENT:
             self.request_seen = True
@@ -126,7 +137,7 @@ class FakePhysical:
     def read_native_storage(self):
         if self.read_failures:
             self.read_failures -= 1
-            raise relay.RelayError("simulated physical read failure")
+            raise relay.TransientRelayError("simulated physical read failure")
         if not self.request_seen:
             return {}
         return {
@@ -151,6 +162,9 @@ class RelayContractTests(unittest.TestCase):
         self.assertEqual(set(ack), relay._result_keys())
         self.assertEqual(11, len(ack))
         self.assertIs(relay.validate_ack(box["payload"], ack, 1_800_000_000), ack)
+        delivery = relay.make_delivery(box["payload"], "waiting_selection")
+        self.assertEqual(5, len(delivery))
+        self.assertIs(relay.validate_delivery(box["payload"], delivery), delivery)
 
     def test_contract_rejects_extra_stale_conflicting_and_unprepared_values(self):
         box = valid_outbox()
@@ -197,7 +211,14 @@ class RelayContractTests(unittest.TestCase):
 
         self.assertEqual("complete", result["state"])
         self.assertEqual(205, result["value"])
-        self.assertEqual(["inbox.json"], [name for name, _ in spare.writes])
+        self.assertEqual(
+            ["delivery.json", "delivery.json", "inbox.json", "delivery.json", "delivery.json"],
+            [name for name, _ in spare.writes],
+        )
+        self.assertEqual(
+            ["delivering", "waiting_selection", "waiting_companion", "delivered"],
+            [value["phase"] for name, value in spare.writes if name == "delivery.json"],
+        )
         self.assertEqual(
             [relay.REQUEST_EVENT, relay.ACK_EVENT],
             [event for event, _ in physical.events],
@@ -215,13 +236,13 @@ class RelayContractTests(unittest.TestCase):
         outbox = valid_outbox(int(clock.wall))
         spare = FakeSpare(outbox)
         physical = FakePhysical(outbox["payload"])
-        physical.read_failures = 1
+        physical.read_failures = relay.MAX_TRANSPORT_ATTEMPTS
         with tempfile.TemporaryDirectory() as temp:
             worker = relay.SessionRelay(
                 physical, spare, Path(temp), clock.time, clock.monotonic,
                 clock.sleep, poll_seconds=0.01,
             )
-            with self.assertRaisesRegex(relay.RelayError, "simulated"):
+            with self.assertRaisesRegex(relay.RelayError, "five bounded attempts"):
                 worker.run()
             result = worker.run()
 
@@ -231,11 +252,72 @@ class RelayContractTests(unittest.TestCase):
         self.assertEqual(requests[0], requests[1])
         self.assertEqual([outbox["payload"], outbox["payload"]], physical.file_checks)
 
+    def test_transient_send_reconnects_at_most_five_times_with_identical_request(self):
+        clock = FakeClock()
+        outbox = valid_outbox(int(clock.wall))
+        spare = FakeSpare(outbox)
+        physical = FakePhysical(outbox["payload"])
+        physical.send_failures = 2
+        with tempfile.TemporaryDirectory() as temp:
+            result = relay.SessionRelay(
+                physical, spare, Path(temp), clock.time, clock.monotonic,
+                clock.sleep, poll_seconds=0.01,
+            ).run()
+        request_attempts = [data for event, data in physical.send_attempts if event == relay.REQUEST_EVENT]
+        self.assertEqual("complete", result["state"])
+        self.assertEqual(3, len(request_attempts))
+        self.assertTrue(all(value == outbox["payload"] for value in request_attempts))
+        phases = [value["phase"] for name, value in spare.writes if name == "delivery.json"]
+        self.assertEqual(2, phases.count("retrying"))
+        self.assertEqual("delivered", phases[-1])
+
+    def test_fifth_transient_attempt_fails_with_static_delivery_status(self):
+        clock = FakeClock()
+        outbox = valid_outbox(int(clock.wall))
+        spare = FakeSpare(outbox)
+        physical = FakePhysical(outbox["payload"])
+        physical.send_failures = relay.MAX_TRANSPORT_ATTEMPTS
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertRaisesRegex(relay.RelayError, "five bounded attempts"):
+                relay.SessionRelay(
+                    physical, spare, Path(temp), clock.time, clock.monotonic,
+                    clock.sleep, poll_seconds=0.01,
+                ).run()
+        self.assertEqual(relay.MAX_TRANSPORT_ATTEMPTS, len(physical.send_attempts))
+        delivery = spare.files["delivery.json"]
+        self.assertEqual(relay.make_delivery(outbox["payload"], "failed"), delivery)
+        self.assertNotIn("error", delivery)
+
+    def test_operator_can_start_relay_before_outbox_exists(self):
+        clock = FakeClock()
+        outbox = valid_outbox(int(clock.wall))
+        spare = FakeSpare(outbox, outbox_delay=3)
+        physical = FakePhysical(outbox["payload"])
+        with tempfile.TemporaryDirectory() as temp:
+            result = relay.SessionRelay(
+                physical, spare, Path(temp), clock.time, clock.monotonic,
+                clock.sleep, poll_seconds=1,
+            ).run()
+        self.assertEqual("complete", result["state"])
+        self.assertEqual(3, clock.mono)
+
+    def test_missing_outbox_wait_is_bounded_by_session_deadline(self):
+        clock = FakeClock()
+        spare = FakeSpare(None)
+        with tempfile.TemporaryDirectory() as temp:
+            with self.assertRaisesRegex(relay.RelayError, "900-second"):
+                relay.SessionRelay(
+                    object(), spare, Path(temp), clock.time, clock.monotonic,
+                    clock.sleep, poll_seconds=60,
+                ).run()
+        self.assertEqual(900, clock.mono)
+        self.assertNotIn("delivery.json", spare.files)
+
     def test_conflicting_recovery_outbox_fails_closed(self):
         clock = FakeClock()
         outbox = valid_outbox(int(clock.wall))
         physical = FakePhysical(outbox["payload"])
-        physical.read_failures = 1
+        physical.read_failures = relay.MAX_TRANSPORT_ATTEMPTS
         spare = FakeSpare(outbox)
         with tempfile.TemporaryDirectory() as temp:
             worker = relay.SessionRelay(
@@ -282,6 +364,27 @@ class RelayContractTests(unittest.TestCase):
 
 
 class AdapterBoundaryTests(unittest.TestCase):
+    def test_native_storage_404_is_pending_but_auth_and_other_errors_fail(self):
+        class Opener:
+            def __init__(self, status):
+                self.status = status
+
+            def open(self, request, timeout):
+                raise HTTPError(request.full_url, self.status, "test", {}, None)
+
+        adapter = relay.PhysicalAdapter(
+            "http://192.168.1.10", "192.168.1.10", "v0",
+        )
+        adapter.opener = Opener(404)
+        self.assertEqual({}, adapter.read_native_storage())
+        for status in (401, 403):
+            adapter.opener = Opener(status)
+            with self.subTest(status=status), self.assertRaises(relay.RelayError):
+                adapter.read_native_storage()
+        adapter.opener = Opener(503)
+        with self.assertRaises(relay.TransientRelayError):
+            adapter.read_native_storage()
+
     def test_physical_origin_requires_exact_private_ip_and_no_url_credentials(self):
         for url, host in (
             ("http://printer.local", "printer.local"),
