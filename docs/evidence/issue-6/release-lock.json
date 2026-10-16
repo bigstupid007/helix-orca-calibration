@@ -216,7 +216,9 @@
       "viewport_count": 11,
       "assertions_per_viewport": 7,
       "screenshot_count": 22,
-      "report_sha256": "454f239f7ea0860dbc3944ccb2aadc736feea885a2ee03693dcc55fce6eedb26"
+      "report_sha256": "454f239f7ea0860dbc3944ccb2aadc736feea885a2ee03693dcc55fce6eedb26",
+      "fixture_file_sha256": "94c92b561d249ecba76fe6059af09ab89068d2fcc15a6524f5f12a832d32c387",
+      "limitation": "Offline UI fixture only; it is not the later native upload artifact or an actual target event."
     },
     "actual_target_event_sent": false
   },
