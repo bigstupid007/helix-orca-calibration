@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$OrcaDir,
+    [Parameter(Mandatory = $true)][string]$QualifiedPluginSource,
     [string]$DataDir,
     [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)
 )
@@ -11,6 +12,8 @@ Set-StrictMode -Version Latest
 $ExpectedCommit = '6a7763f08d1a175a464a00ce13f0b5a815662fc4'
 $ExpectedExeSha256 = 'e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759'
 $ExpectedDllSha256 = '3c5b2accbdc7d8ad2eab9cf21705a9b04f2e0be9961cfe3016c7376c6fadc157'
+$ExpectedAcceptedPluginSha256 = '8f0269e6510ca11848144c14fc2c42a33ea288e8dd1bfa7bd1e5789636bf3d52'
+$ExpectedQualifiedPluginSha256 = '7eb76b92928bc93a3592bb362128579d47d49fc4c5c6cf55f16d6575cf6f6999'
 $MarkerName = '.helix-orca-issue-6-oct15-qualification'
 
 function Resolve-FullPath([string]$Path) {
@@ -27,10 +30,12 @@ $OrcaDir = Resolve-FullPath $OrcaDir
 $RepositoryRoot = Resolve-FullPath $RepositoryRoot
 $ExePath = Join-Path $OrcaDir 'orca-slicer.exe'
 $DllPath = Join-Path $OrcaDir 'OrcaSlicer.dll'
-$PluginSource = Join-Path $RepositoryRoot 'plugin\helix_calibration.py'
+$AcceptedPluginSource = Join-Path $RepositoryRoot 'plugin\helix_calibration.py'
+$QualifiedPluginSource = Resolve-FullPath $QualifiedPluginSource
 Assert-FileHash $ExePath $ExpectedExeSha256
 Assert-FileHash $DllPath $ExpectedDllSha256
-if (-not (Test-Path -LiteralPath $PluginSource -PathType Leaf)) { throw "Qualification plugin is missing: $PluginSource" }
+Assert-FileHash $AcceptedPluginSource $ExpectedAcceptedPluginSha256
+Assert-FileHash $QualifiedPluginSource $ExpectedQualifiedPluginSha256
 
 if ([string]::IsNullOrWhiteSpace($DataDir)) {
     if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) { throw 'LOCALAPPDATA is unavailable; pass an isolated -DataDir.' }
@@ -58,7 +63,7 @@ $PluginDir = Join-Path $InputDir 'plugin'
 $OutputDir = Join-Path $DataDir 'qualification-output'
 New-Item -ItemType Directory -Path $PluginDir -Force | Out-Null
 New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
-Copy-Item -LiteralPath $PluginSource -Destination (Join-Path $PluginDir 'helix_calibration.py') -Force
+Copy-Item -LiteralPath $QualifiedPluginSource -Destination (Join-Path $PluginDir 'helix_calibration.py') -Force
 $ProfileSource = Join-Path $RepositoryRoot 'testdata\orca-profiles'
 $ProfileDestination = Join-Path $InputDir 'orca-profiles'
 if (-not (Test-Path -LiteralPath $ProfileSource -PathType Container)) { throw "Qualification profiles are missing: $ProfileSource" }
@@ -69,7 +74,8 @@ $WebViewDir = Join-Path $DataDir 'webview2'
 $Record = @{
     schema='helix-orca-oct15-launch/v1'; recorded_at_utc=[DateTime]::UtcNow.ToString('o')
     source_commit=$ExpectedCommit; executable=$ExePath; executable_sha256=$ExpectedExeSha256
-    library_sha256=$ExpectedDllSha256; data_dir=$DataDir; plugin_sha256=(Get-FileHash $PluginSource -Algorithm SHA256).Hash.ToLowerInvariant()
+    library_sha256=$ExpectedDllSha256; data_dir=$DataDir
+    accepted_plugin_sha256=$ExpectedAcceptedPluginSha256; plugin_sha256=$ExpectedQualifiedPluginSha256
     output_dir=$OutputDir; arguments=@('--datadir',$DataDir); webview2_user_data_folder=$WebViewDir
 }
 $Record | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $DataDir 'qualification-launch.json') -Encoding utf8
@@ -82,4 +88,3 @@ $Start.UseShellExecute = $false
 $Start.EnvironmentVariables['WEBVIEW2_USER_DATA_FOLDER'] = $WebViewDir
 $Process = [Diagnostics.Process]::Start($Start)
 Write-Host "Started isolated October 15 Orca process $($Process.Id) for $ExpectedCommit."
-

@@ -36,12 +36,17 @@ class Issue6QualificationTests(unittest.TestCase):
             "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
             "e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759",
             "3c5b2accbdc7d8ad2eab9cf21705a9b04f2e0be9961cfe3016c7376c6fadc157",
+            "8f0269e6510ca11848144c14fc2c42a33ea288e8dd1bfa7bd1e5789636bf3d52",
+            "7eb76b92928bc93a3592bb362128579d47d49fc4c5c6cf55f16d6575cf6f6999",
             ".helix-orca-issue-6-oct15-qualification",
             "issue-6-nightly-6a7763f",
             "WEBVIEW2_USER_DATA_FOLDER",
         ):
             self.assertIn(value, source)
         self.assertIn("Refusing non-empty unmarked data directory", source)
+        self.assertIn("[Parameter(Mandatory = $true)][string]$QualifiedPluginSource", source)
+        self.assertIn("Copy-Item -LiteralPath $QualifiedPluginSource", source)
+        self.assertIn("accepted_plugin_sha256=$ExpectedAcceptedPluginSha256", source)
         self.assertNotIn("Invoke-WebRequest", source)
         self.assertNotIn("Start-Job", source)
 
