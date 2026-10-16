@@ -320,6 +320,7 @@ class TemperatureCommunicationState:
         self.result = None
         self.instructions = None
         self.delivery_phase = None
+        self.delivery_delivered = False
         self.recovery_error = None
         self._recover()
 
@@ -337,12 +338,20 @@ class TemperatureCommunicationState:
             "payload": self.payload,
             "result": self.result,
             "instructions": self.instructions,
+            "delivery_delivered": self.delivery_delivered,
         }
 
     def _validate_snapshot(self, value):
-        _exact_keys(value, ("schema", "target", "file", "origin_id", "payload", "result", "instructions"), "local state")
+        required = {"schema", "target", "file", "origin_id", "payload", "result", "instructions"}
+        allowed_key_sets = (required, required | {"delivery_delivered"})
+        if not isinstance(value, dict) or set(value) not in allowed_key_sets:
+            raise CommunicationProtocolError("Malformed local state fields.")
+        value = dict(value)
+        value.setdefault("delivery_delivered", False)  # Safe migration from the first candidate state.
         if value["schema"] != STATE_SCHEMA or not isinstance(value["target"], dict):
             raise CommunicationProtocolError("Invalid local state.")
+        if type(value["delivery_delivered"]) is not bool:
+            raise CommunicationProtocolError("Invalid local delivery completion state.")
         _hex(value["origin_id"], HEX32, "origin ID")
         if value["file"] is not None:
             self._validate_file_descriptor(value["file"])
@@ -368,6 +377,8 @@ class TemperatureCommunicationState:
                 raise CommunicationProtocolError("Local instructions mismatch.")
         elif value["instructions"] is not None:
             raise CommunicationProtocolError("Instructions have no committed result.")
+        if value["delivery_delivered"] and value["result"] is None:
+            raise CommunicationProtocolError("Delivered state has no committed result.")
         return value
 
     @staticmethod
@@ -392,8 +403,10 @@ class TemperatureCommunicationState:
             return
         try:
             value = self._validate_snapshot(bounded_read_json(path))
-            for key in ("target", "file", "origin_id", "payload", "result", "instructions"):
+            for key in ("target", "file", "origin_id", "payload", "result", "instructions", "delivery_delivered"):
                 setattr(self, key, value[key])
+            if self.delivery_delivered:
+                self.delivery_phase = "delivered"
             if self.result is not None:
                 atomic_write_json(self._path("receipt.json"), make_ack(self.result))
         except Exception as exc:
@@ -404,16 +417,16 @@ class TemperatureCommunicationState:
 
     def start_new(self, target):
         # This explicit user action is the only operation that abandons a pending request.
-        if (self.payload is not None and self.result is None
-                and self.payload["expires_at"] > int(self.now())):
+        if not self.can_start_new():
             raise CommunicationProtocolError(
-                "The current request is still pending. Retry it or wait for its result/expiry before starting a new calibration."
+                "The current communication slot is still active. Wait for acknowledgement or expiry before starting a new calibration."
             )
         copied = json.loads(canonical_json(target))
         origin_id = secrets.token_hex(16)
         self.target, self.file, self.origin_id = copied, None, origin_id
         self.payload = self.result = self.instructions = None
         self.delivery_phase = None
+        self.delivery_delivered = False
         self.recovery_error = None
         self.directory.mkdir(parents=True, exist_ok=True)
         for name in ("outbox.json", "inbox.json", "receipt.json", "delivery.json"):
@@ -483,13 +496,30 @@ class TemperatureCommunicationState:
     def poll_delivery(self):
         if self.payload is None:
             return None
+        if self.delivery_delivered:
+            self.delivery_phase = "delivered"
+            return DELIVERY_MESSAGES["delivered"]
         path = self._path("delivery.json")
         if not path.exists():
             return None
         delivery = validate_delivery(self.payload, bounded_read_json(path))
+        previous_phase = self.delivery_phase
         self.delivery_phase = delivery["phase"]
+        if self.delivery_phase == "delivered":
+            if self.result is None:
+                self.delivery_phase = previous_phase
+                raise CommunicationProtocolError("Delivered status has no committed local result.")
+            self.delivery_delivered = True
+            try:
+                self._persist()
+            except Exception:
+                self.delivery_phase = previous_phase
+                self.delivery_delivered = False
+                raise
         return DELIVERY_MESSAGES[self.delivery_phase]
 
     def is_expired(self):
-        return (self.payload is not None and self.result is None
-                and self.payload["expires_at"] <= int(self.now()))
+        return self.payload is not None and self.payload["expires_at"] <= int(self.now())
+
+    def can_start_new(self):
+        return self.payload is None or self.delivery_delivered or self.is_expired()

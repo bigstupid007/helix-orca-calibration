@@ -138,7 +138,7 @@ class ProtocolTests(unittest.TestCase):
             state.start_new(target()); state.select_file(FILE, file_validator); state.send()
             old = selection(state.payload)
             old_origin = state.origin_id
-            with self.assertRaisesRegex(protocol.CommunicationProtocolError, "still pending"):
+            with self.assertRaisesRegex(protocol.CommunicationProtocolError, "still active"):
                 state.start_new(target())
             current[0] = 1900
             state.start_new(target())
@@ -255,6 +255,81 @@ class ProtocolTests(unittest.TestCase):
                 state.poll_delivery()
             self.assertEqual(state.instructions, instructions)
 
+    def test_receipt_before_native_ack_keeps_slot_locked_across_restart(self):
+        with tempfile.TemporaryDirectory() as root:
+            state = protocol.TemperatureCommunicationState(root, now=lambda: 1000)
+            state.start_new(target()); state.select_file(FILE, file_validator); state.send()
+            directory = Path(root) / "communication"
+            protocol.atomic_write_json(directory / "inbox.json", selection(state.payload))
+            state.poll_inbox()
+            instructions = copy.deepcopy(state.instructions)
+            self.assertTrue((directory / "receipt.json").exists())
+            self.assertFalse(state.can_start_new())
+            with self.assertRaisesRegex(protocol.CommunicationProtocolError, "still active"):
+                state.start_new(target())
+            self.assertTrue((directory / "outbox.json").exists())
+            self.assertTrue((directory / "inbox.json").exists())
+            self.assertTrue((directory / "receipt.json").exists())
+
+            protocol.atomic_write_json(directory / "delivery.json", delivery(state.payload, "waiting_companion"))
+            state.poll_delivery()
+            self.assertFalse(state.can_start_new())
+            recovered = protocol.TemperatureCommunicationState(root, now=lambda: 1000)
+            self.assertFalse(recovered.can_start_new())
+            self.assertEqual(recovered.instructions, instructions)
+
+            protocol.atomic_write_json(directory / "delivery.json", delivery(state.payload, "delivered"))
+            recovered.poll_delivery()
+            self.assertTrue(recovered.delivery_delivered)
+            self.assertTrue(recovered.can_start_new())
+            self.assertEqual(recovered.instructions, instructions)
+            terminal = protocol.TemperatureCommunicationState(root, now=lambda: 1000)
+            self.assertTrue(terminal.delivery_delivered)
+            self.assertTrue(terminal.can_start_new())
+            protocol.atomic_write_json(directory / "delivery.json", delivery(state.payload, "failed"))
+            self.assertEqual(terminal.poll_delivery(), protocol.DELIVERY_MESSAGES["delivered"])
+            self.assertEqual(terminal.instructions, instructions)
+
+    def test_delivered_does_not_unlock_when_terminal_commit_fails(self):
+        with tempfile.TemporaryDirectory() as root:
+            state = protocol.TemperatureCommunicationState(root, now=lambda: 1000)
+            state.start_new(target()); state.select_file(FILE, file_validator); state.send()
+            directory = Path(root) / "communication"
+            protocol.atomic_write_json(directory / "inbox.json", selection(state.payload)); state.poll_inbox()
+            protocol.atomic_write_json(directory / "delivery.json", delivery(state.payload, "delivered"))
+            real_persist = state._persist
+            state._persist = lambda: (_ for _ in ()).throw(OSError("injected terminal-state failure"))
+            try:
+                with self.assertRaises(OSError):
+                    state.poll_delivery()
+            finally:
+                state._persist = real_persist
+            self.assertFalse(state.delivery_delivered)
+            self.assertFalse(state.can_start_new())
+            self.assertEqual(state.instructions["status"], "NOT APPLIED")
+
+    def test_delivered_before_local_result_cannot_unlock_slot(self):
+        with tempfile.TemporaryDirectory() as root:
+            state = protocol.TemperatureCommunicationState(root, now=lambda: 1000)
+            state.start_new(target()); state.select_file(FILE, file_validator); state.send()
+            protocol.atomic_write_json(Path(root) / "communication/delivery.json", delivery(state.payload, "delivered"))
+            with self.assertRaisesRegex(protocol.CommunicationProtocolError, "no committed"):
+                state.poll_delivery()
+            self.assertFalse(state.delivery_delivered)
+            self.assertFalse(state.can_start_new())
+
+    def test_old_state_without_terminal_field_recovers_locked(self):
+        with tempfile.TemporaryDirectory() as root:
+            state = protocol.TemperatureCommunicationState(root, now=lambda: 1000)
+            state.start_new(target()); state.select_file(FILE, file_validator); state.send()
+            path = Path(root) / "communication/state.json"
+            old = json.loads(path.read_text()); old.pop("delivery_delivered")
+            protocol.atomic_write_json(path, old)
+            recovered = protocol.TemperatureCommunicationState(root, now=lambda: 1000)
+            self.assertIsNone(recovered.recovery_error)
+            self.assertFalse(recovered.delivery_delivered)
+            self.assertFalse(recovered.can_start_new())
+
     def test_expiry_is_visible_without_clearing_pending_state(self):
         current = [1000]
         with tempfile.TemporaryDirectory() as root:
@@ -266,8 +341,29 @@ class ProtocolTests(unittest.TestCase):
             current[0] = 1900
             self.assertTrue(state.is_expired())
             self.assertEqual(state.payload["request_id"], request_id)
+            self.assertTrue(state.can_start_new())
             state.start_new(target())
             self.assertNotEqual(state.origin_id, origin_id)
+
+    def test_expiry_allows_explicit_retirement_without_silent_result_mutation(self):
+        current = [1000]
+        with tempfile.TemporaryDirectory() as root:
+            state = protocol.TemperatureCommunicationState(root, now=lambda: current[0])
+            state.start_new(target()); state.select_file(FILE, file_validator); state.send()
+            directory = Path(root) / "communication"
+            protocol.atomic_write_json(directory / "inbox.json", selection(state.payload)); state.poll_inbox()
+            result = copy.deepcopy(state.result)
+            instructions = copy.deepcopy(state.instructions)
+            self.assertFalse(state.can_start_new())
+            current[0] = state.payload["expires_at"]
+            self.assertTrue(state.can_start_new())
+            self.assertEqual(state.result, result)
+            self.assertEqual(state.instructions, instructions)
+            self.assertTrue((directory / "receipt.json").exists())
+            state.start_new(target())
+            self.assertIsNone(state.result)
+            self.assertIsNone(state.instructions)
+            self.assertFalse((directory / "receipt.json").exists())
 
 
 class GeneratedCompanionTests(unittest.TestCase):

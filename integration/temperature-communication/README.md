@@ -49,7 +49,16 @@ the last validated status, pending target, or committed result instructions.
 
 State is flushed before an outbox is published. A validated result is flushed
 to canonical local state before `receipt.json` is written. Retry reuses the
-same immutable request. Only the user's **Keep original profile** action starts
-a new origin and clears prior communication artifacts. Expired, stale,
-mismatched, malformed, and conflicting returns are rejected without changing
-the committed result or writing a receipt.
+same immutable request. A locally committed result does not free the live
+communication slot: the panel keeps polling until the relay's exact correlated
+`delivered` phase proves the native acknowledgement was persisted. That
+terminal fact is stored in canonical local state and cannot regress due to a
+later waiting, retry, or failure artifact.
+
+Only the user's **Keep original profile** action starts a new origin and clears
+prior communication artifacts. It is locked while the slot is unexpired and
+not delivered, including after local result commit. At the original absolute
+expiry, the user may explicitly retire that slot and begin another; expiry
+never silently clears or mutates the old request, receipt, or NOT APPLIED
+instructions. Stale, mismatched, malformed, and conflicting returns are
+rejected without changing the committed result or writing a new receipt.
