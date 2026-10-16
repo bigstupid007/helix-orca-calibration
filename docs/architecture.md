@@ -237,7 +237,8 @@ and durably recorded, or explicit retirement after original absolute expiry.
 The production attempt exposed a deployment mismatch: beta.9 links the settings
 file individually, so native storage remains under installation config while
 the relay reads printer-data config. No physical result returned. The proposed
-single-file exposure is outside current authority; see the
+single-file exposure is now approved for owner execution using existing local
+access; it has not yet been applied. See the
 [storage gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md). Receipt-driven relay
 redelivery is bounded across restart and stops on exact native persistence,
 but it cannot make an unexposed file reachable.
