@@ -107,6 +107,55 @@ needed. Do not author or branch on Windows or broaden this access envelope.
 The first local worker launch is owner-only when no execution route exists;
 the agent owns subsequent setup, qualification, and evidence collection.
 
+## Issue #6 display-only private-LAN increment
+
+[Issue #6](https://github.com/bigstupid007/helix-orca-calibration/issues/6)
+authorizes a narrow increment beyond Issue #4 for the owner-confirmed Voron on
+the existing private LAN. It permits normal Orca preparation and **Upload**
+file transfer, a permissionless HelixScreen display plugin, and one transient
+Moonraker agent event whose only effect is a receipt that the user can dismiss.
+It does not permit Upload and Print, print start or queue, heat, motion, homing,
+macros, calibration completion claims, result application, profile writeback,
+firmware or service changes, Moonraker configuration changes, new credentials,
+unknown-host trust bypass, public access, or production deployment.
+
+Keep the Issue #4 mock bridge, event namespace, artifacts, and beta.4 harness
+unchanged. The physical display path uses plugin ID `helix-orca-display`, event
+`helix_orca_display.available.v1`, schema `helix-orca-display/v1`, and required
+`display_only: true`. It must never emit `helixcal.*`. The plugin has no
+permissions, widgets, settings, print controls, or network calls. It displays
+the retained original Orca context, exact transferred file identity, original
+effective temperature, prepared range, and request-scoped
+`Received · not printed · not applied` state, with Dismiss as its only action.
+
+Before an actual display event, use normal Orca's explicit Upload-only action,
+prove `print=false` and no printer-start route, read the uploaded file back,
+and bind those exact bytes through the native retained-context file chooser.
+Recheck target identity and idle print state immediately before transfer/event.
+Stage only the uniquely owned plugin folder through HelixScreen's supported
+`config/helixscreen/plugins/<id>/` route. HelixScreen never auto-enables a new
+plugin; the owner enables it on the physical screen. Rollback removes only that
+owned folder after the plugin is disabled. Do not write Helix enabled-state or
+printer configuration files remotely.
+
+Before founder acceptance, keep the Issue #6 candidate unmerged. Freeze one
+bounded candidate, obtain a fresh-context read-only GPT-5.6 Sol / High review,
+resolve material findings, and leave one guided-review pull request. Exact
+Windows and physical-screen observations are required for the surfaces they
+claim; Linux/source evidence cannot be relabeled as Windows or hardware
+qualification.
+
+Founder accepted Issue #6 and PR #7 on 2026-10-15 (America/Chicago) as the
+completed display-only real-HelixScreen milestone and explicitly authorized
+governed merge, main verification, and Issue closure. This supersedes the
+prior keep-unmerged gate for PR #7 only. Acceptance covers normal Orca
+Upload-only transfer, exact file/context binding, the permissionless display
+plugin, one transient receipt event, and owner-observed Dismiss. It does not
+authorize a real result-return path, print, queue, heating, motion, profile
+writeback, service/security changes, public access, release, or deployment.
+Visual polish is deferred until the complete integration workflow functions;
+the accepted shell, profiles, and mock harness remain preserved.
+
 ## OSS safety before GitHub changes
 
 No GitHub mutation is implied by an implementation request. Before any future

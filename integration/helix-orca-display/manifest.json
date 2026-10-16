@@ -1,0 +1,11 @@
+{
+  "id": "helix-orca-display",
+  "name": "Helix Orca Display",
+  "version": "0.1.0",
+  "author": "Helix-Orca Calibration",
+  "description": "Display-only receipt for a validated Orca Temperature calibration request.",
+  "helix_version": ">=1.1.0-beta.9",
+  "permissions": [],
+  "widgets": [],
+  "settings": []
+}

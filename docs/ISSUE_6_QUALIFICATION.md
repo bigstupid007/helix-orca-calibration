@@ -1,0 +1,71 @@
+# Issue #6 release and display-only qualification
+
+## Current disposition
+
+This document records the frozen pre-target code, isolated qualification, and
+later physical display proof for [Issue #6](https://github.com/bigstupid007/helix-orca-calibration/issues/6).
+The frozen checkpoint described itself as “not a completed real-printer
+candidate”; founder acceptance now supersedes that candidate-state restriction
+for PR #7 only. It remains bounded physical-display evidence rather than broad
+hardware proof. It preserves the accepted beta.4 harness, October 11 Orca
+runtime, normal Orca installation and profiles, and all Issue #4 evidence.
+Exact new pins and the observations available at that freeze are locked in
+[`evidence/issue-6/release-lock.json`](evidence/issue-6/release-lock.json); its
+pre-target mutation fields are historical snapshot evidence rather than the
+current physical status.
+
+After independent code review, the approved non-printing preparation advanced through normal Orca upload-only verification, exact file/context binding, and staging of the reviewed permissionless display plugin. The owner enabled that plugin, one display-only event was acknowledged, and the owner confirmed that the expected receipt appeared and Dismiss closed it. Target-specific identifiers, file details, responses and observations remain in private qualification state. This achieves the physical display gate only: it does not qualify print, heat, motion or other hardware behavior, and the Orca result-return path remains mock-only. The public, generic progress record began at [Issue #6's preparation checkpoint](https://github.com/bigstupid007/helix-orca-calibration/issues/6#issuecomment-6208213563).
+
+The beta.9 official x86 desktop artifact passed network-disconnected startup, accepted `orcacal` plugin loading, native Home placement, and timed screenshot capture. Its release build reports no mock backends and no remote-control support. The exact upstream developer artifact from successful Build run `38685014257` passed all 15 accepted assertions at each of the 11 target viewports in network-disabled, read-only containers. That artifact came from the same workflow that runs `smoke-headless` before upload, so a 64-minute local source build and 150-minute test build were unnecessary. The accepted beta.4 plugin and harness remain unchanged.
+
+The October 15 Windows portable archive, executable, and main DLL were independently hash-verified on Spare in a dedicated Issue #6 directory. Native qualification used [`scripts/orca-oct15-qualify.ps1`](../scripts/orca-oct15-qualify.ps1), a distinct `--datadir`, and child-only WebView2 storage. The actual Windows GUI reported `2.5.0-dev` at revision `6a7763f0`, loaded the source-derived `0.4.1` local plugin with empty permissions, distinguished saved 220 °C from an unsaved 217 °C edit, restored the saved state without writing it, and completed the normal Temperature prepare, slice, export, and explicit file-selection path. The first 3,028,194-byte export has SHA-256 `94c92b561d249ecba76fe6059af09ab89068d2fcc15a6524f5f12a832d32c387` and the ordered 230–190 °C schedule in 5 °C steps.
+
+Native upload qualification then used an owned physical-printer fixture pointing only at a bounded Moonraker-shaped receiver on the already allocated devbox port. Orca's source and native dialog independently distinguish **Upload** from **Upload and Print**. The first upload was rejected closed because selecting the fixture and re-slicing changed the file identity. The captured 3,028,246-byte file has SHA-256 `9a171d5ebb8041e85a3a2a51ef34fbcb1550c1fb14adf7d2bac761be3b528e7e`; its 106,508 executable lines exactly match the first export, while generated/configuration comments identify the temporary fixture separately from the retained original target. The native plugin then associated those exact bytes with the original Voron/Rapido/Fast Quality context and effective 220 °C value. A clean retry produced one `POST /server/files/upload` with `root=gcodes` and `print=false`, after the two required read calls, with no `/printer/*` request. The fixture files and temporary edits were removed, Orca exited without saving the project or presets, and the normal Orca data tree still matched the same 1,429-file session baseline and aggregate SHA-256.
+
+## Compatibility decisions
+
+Beta.9 is compatible with the accepted permissionless `orcacal` manifest (`helix_version >=1.1.0-beta.4`) over the isolated surfaces that were exercised. The plugin loaded unchanged and passed the accepted interactive shell matrix. The separate display-only adaptation also passed receipt and Dismiss behavior in the final network-disabled beta.9 matrix.
+
+The newer official Calibration Bridge is rejected unchanged. Its manifest requests `http` and `moonraker_write`; its handlers can start and cancel a print and POST a result to a companion URL. Issue #6 permits a repository-owned adaptation, but only the event validation, finite-number checks, bounded choices, overlay updates and display state may be reused. The adapted manifest must have no `http` or `moonraker_write`, and the implementation must contain no print start/cancel, G-code, heating, motion, macro, queue or result-network call.
+
+The October 15 Orca source is 150 commits beyond the accepted baseline. Source comparison found no changes under the plugin host, Calibration GUI, Send-to-Printer, or Plugins UI surfaces used by Issue #4. General fixes include cloud-plugin TLS verification and a G-code-file-open crash fix. The accepted `0.4.0` plugin bytes remain unchanged; [`scripts/orca-oct15-plugin.py`](../scripts/orca-oct15-plugin.py) generates the bounded `0.4.1` derivative by adding only the exact October 15 build identity. The native Windows run proved the read-only plugin, original/saved/edited context distinctions, ordinary Temperature preparation/export, explicit file fallback, and native Upload-only request shape. This qualifies the sampled surfaces, not every change in the newer Orca build.
+
+For replay, generate the derivative with `python3 scripts/orca-oct15-plugin.py <private-output>` on devbox, verify SHA-256 `7eb76b92928bc93a3592bb362128579d47d49fc4c5c6cf55f16d6575cf6f6999`, and transfer it through the approved Spare worker. Pass that file as `-QualifiedPluginSource` to `scripts/orca-oct15-qualify.ps1`; the launcher separately verifies the unchanged accepted `0.4.0` source and refuses any derivative other than the exact qualified bytes before staging it in the isolated data directory.
+
+The Orca panel retains its original calibration context per panel cycle. After any preparation or print-host change, replay must restore the qualified original selection, choose **Keep original profile** again, and then reselect the exact uploaded readback. Refresh does not replace an already retained target. Subsequent physical preparation exercised this reset and rejected the stale fixture-bound retention rather than using or relabeling it.
+
+## Supported transient event path
+
+The actual target reports Moonraker `v0.10.0-31-gd5ee171`; exact upstream commit `d5ee17128bb88434aacdab90c2e9e990e2b64e4a` matches the observed short revision. Its `connection.send_event` endpoint is WebSocket-only and accepts only a connection identified as `type: agent`. Registration is in-memory, the event becomes `notify_agent_event` for connected clients, and the agent is removed on disconnect. A short-lived client therefore needs no service, plugin, Moonraker configuration, new credential or persistent registration when the existing trusted-LAN authorization applies.
+
+“No event has been sent to the actual target” was the frozen release-lock boundary. After review and owner enablement, the client sent exactly one event through the display adaptation's separate `helix_orca_display.available.v1` namespace, with schema `helix-orca-display/v1` and required `display_only: true`; it did not emit an official `helixcal.*` event. The owner confirmed the expected request-scoped `Received · not printed · not applied` receipt, original effective temperature, prepared 230–190 °C range and Dismiss behavior. The receipt carries the original effective profile temperature separately from the prepared range, preserving the saved/edited context distinction. Offline tests prove strict byte/case schema parity, nine-band file binding, Dismiss, a total transport deadline, bounded WebSocket frames, bounded HTTP file readback, and a WebSocket RPC allowlist containing only `server.connection.identify` and `connection.send_event`. The final network-disabled beta.9 display run passed seven receipt assertions at all 11 target viewports and retained 22 screenshots; its report SHA-256 is `454f239f7ea0860dbc3944ccb2aadc736feea885a2ee03693dcc55fce6eedb26`. That UI fixture deliberately uses the earlier qualified `94c92b…` file identity; it proves rendering and actions rather than the later physical delivery. The receipt uses font-supported `230°C to 190°C` text.
+
+## Native and target boundary
+
+At the frozen pre-target checkpoint, read-only exact-host calls established that the owner-confirmed target was reachable, Klippy was ready, Moonraker had no failed components, and no companion agent was persistently registered. The owner reported beta.9 installed. Subsequent approved preparation used the reviewed upload-only and permissionless-plugin path while keeping target-specific evidence private. Exactly one transient display-only event was acknowledged; a read-only post-event check found the printer still nonactive and the transient client disconnected. No service restart, security/configuration change, print, queue, heat, motion, homing, macro or profile writeback occurred.
+
+The official desktop screenshot SHA-256 is `a7302dda30ed6f38a1300c8bc4c0cd91986435845addd965906343849ec0fcb9`. It is retained in private temporary evidence because the release artifact cannot produce the complete interactive matrix.
+
+The required physical procedure was deliberately ordered: verify target identity and idle print state; use normal Orca plate **Upload** only; require Moonraker to report that the upload neither started nor queued a print; read the uploaded file back; bind those exact bytes through the native retained-context chooser; stage only the reviewed permissionless plugin; have the owner enable it in HelixScreen Settings; send one transient display-only event; and observe receipt and Dismiss. Those steps passed, with details retained privately. The permissionless plugin and owned uploaded file remain in place for founder review; their exact rollback is documented and ready. A loaded G-code viewer cannot substitute for normal transfer because the pinned Orca source disables its send path. No custom uploader replaces Orca.
+
+## Independent review disposition
+
+The required independent GPT-5.6 Sol / High review found no material issue in frozen implementation commit `5c082483b068e904c9981e07f17144aacc6343fb`. The reviewer independently confirmed the 108-test pass, clean branch-range whitespace check, preservation of the accepted beta.4 and Issue #4 bytes, release-lock hashes, 11-viewport display report, permissionless receipt-only action surface, bounded client transport, exact-file receiver boundary, and exact generated October 15 plugin staging.
+
+The independent sign-off covers the frozen code and isolated qualification evidence; it did not independently reproduce the later physical preparation. The owner-observed receipt and Dismiss behavior now provide physical display evidence for this bounded request. They are not print, heating, motion, measurement or broader hardware proof. Result return into Orca remains the accepted mock-only proof, and rollback of the owned review artifacts remains ready rather than completed.
+
+## Founder acceptance and closeout
+
+Founder accepted Issue #6 and PR #7 on 2026-10-15 (America/Chicago) as the
+completed display-only real-HelixScreen milestone and explicitly authorized
+governed merge, main verification, and Issue closure. The physical receipt and
+Dismiss observation satisfy this milestone; target-specific operational
+evidence remains private.
+
+Acceptance does not expand the qualified behavior. Real result return into
+Orca remains mock-only. Print, queue, heating, motion, homing, macros,
+measurement, profile writeback, service or security changes, public access,
+release, and deployment remain outside the accepted scope. Visual polish is
+deferred until the complete Orca-to-Helix-to-Orca integration workflow
+functions. The accepted shell, normal profiles, Issue #4 mock bridge, and
+beta.4 harness remain preserved.

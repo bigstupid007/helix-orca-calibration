@@ -1,0 +1,231 @@
+{
+  "schema": "helix-orca-issue-6-release-lock/v1",
+  "recorded_at_utc": "2026-10-16T03:37:00Z",
+  "accepted_baseline": {
+    "repository_commit": "b49aa93dc0562f5394ac82b5c8c8f0b0b9b6c709",
+    "helix_version": "v1.1.0-beta.4",
+    "orca_commit": "210bc927bc6fb3d3bf390fdf72e4a2767b5de4b3",
+    "preserved": true
+  },
+  "helix": {
+    "release": "v1.1.0-beta.9",
+    "annotated_tag": "cd9734ccd884784ac7f1aa07e2046b72de2d59e9",
+    "source_commit": "e5cdc5dc523280bc3ead681a4f229bf84dfa726a",
+    "asset": {
+      "id": 642984400,
+      "name": "helixscreen-x86-desktop-v1.1.0-beta.9.tar.gz",
+      "bytes": 76856981,
+      "sha256": "32303ccbad05bf1073cfafd6280fe08e264d838b28f03ca649425d54d7c59f97"
+    },
+    "binary_sha256": "b14f2de86dffbccaf5374ed1d57737bfe1ea0b0b8de2e270a7e0b92e4c3b74a3",
+    "isolated_native": {
+      "status": "passed_startup_plugin_load_and_capture_only",
+      "network": "disabled",
+      "accepted_plugin_loaded": true,
+      "screenshot_sha256": "a7302dda30ed6f38a1300c8bc4c0cd91986435845addd965906343849ec0fcb9",
+      "limitation": "The official x86 desktop artifact was built without mock backends or remote control, so it cannot replace the accepted beta.4 interactive mock matrix."
+    },
+    "developer_artifact": {
+      "workflow": "Build",
+      "run_id": 38685014257,
+      "artifact_id": 11955517186,
+      "name": "helix-screen-ubuntu-22.04",
+      "bytes": 66705493,
+      "archive_sha256": "494826250f5b38020a8a06673bc58cad3da9370f607523babf4163499b8c1ba1",
+      "binary_sha256": "e21a5a8ce2c3a7dfcc21f56d3c19b2ba31528be00313929f671b66197e3e4704",
+      "status": "passed_accepted_eleven_target_interactive_matrix",
+      "container_network": "none",
+      "viewport_count": 11,
+      "assertions_per_viewport": 15,
+      "screenshot_count": 44,
+      "accepted_plugin_preserved": true,
+      "qualification_route": "Exact successful upstream workflow artifact was used because the same workflow runs smoke-headless before upload; no local source build was required."
+    }
+  },
+  "orca": {
+    "workflow": "Build all",
+    "run_id": 38671673715,
+    "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+    "artifact": {
+      "id": 11945987535,
+      "name": "OrcaSlicer_Windows_V2.5.0-dev_x64_portable",
+      "bytes": 224950798,
+      "download_sha256": "728b11b2d84bae6b6f8da71da6d2ef3744060695457c092acc6a96c8643784bc"
+    },
+    "executable_sha256": "e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759",
+    "library_sha256": "3c5b2accbdc7d8ad2eab9cf21705a9b04f2e0be9961cfe3016c7376c6fadc157",
+    "windows_stage": "hash_verified_and_run_on_spare",
+    "runtime_status": "passed_isolated_native_preparation_and_export",
+    "native_qualification": {
+      "application_version": "2.5.0-dev",
+      "build_revision": "6a7763f0",
+      "data_isolation": "dedicated datadir and child-only WebView2 storage",
+      "accepted_plugin": "v0.4.0 source preserved; generated v0.4.1 activated locally with empty permissions",
+      "context": "Voron 2.4 300 0.4 nozzle / Generic PLA - Voron Rapido - Initial / Voron 0.20 Standard - Fast Quality",
+      "saved_temperature_c": 220,
+      "unsaved_temperature_c": 217,
+      "unsaved_edit_detected": true,
+      "temperature_preparation": {
+        "start_c": 230,
+        "end_c": 190,
+        "step_c": 5,
+        "auto_scale": true,
+        "sliced": true
+      },
+      "export": {
+        "name": "temperature-230-190-step5-oct15.gcode",
+        "bytes": 3028194,
+        "sha256": "94c92b561d249ecba76fe6059af09ab89068d2fcc15a6524f5f12a832d32c387",
+        "ordered_temperature_schedule_c": [
+          230,
+          225,
+          220,
+          215,
+          210,
+          205,
+          200,
+          195,
+          190
+        ],
+        "file_selection": "explicit manual chooser fallback"
+      },
+      "normal_orca_data": {
+        "files_before": 1429,
+        "files_after": 1429,
+        "aggregate_sha256_before": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+        "aggregate_sha256_after": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+        "unchanged": true
+      },
+      "excluded": [
+        "actual target upload",
+        "print",
+        "queue",
+        "profile save",
+        "hardware control"
+      ],
+      "october15_plugin_derivative": {
+        "generator": "scripts/orca-oct15-plugin.py",
+        "generator_sha256": "6cec86e359815345cf4477289951f671e40ab93d274dade1b5a9456489be5106",
+        "generated_sha256": "7eb76b92928bc93a3592bb362128579d47d49fc4c5c6cf55f16d6575cf6f6999",
+        "change": "Adds only the exact qualified 6a7763f0 build identity; accepted v0.4.0 bytes remain unchanged."
+      },
+      "native_upload_only": {
+        "status": "passed_against_bounded_synthetic_receiver",
+        "native_dialog_actions": [
+          "Upload",
+          "Upload and Print",
+          "Cancel"
+        ],
+        "selected_action": "Upload",
+        "requests": [
+          "GET /server/files/roots",
+          "GET /server/info",
+          "POST /server/files/upload"
+        ],
+        "multipart": {
+          "root": "gcodes",
+          "print": "false"
+        },
+        "forbidden_printer_routes_observed": 0,
+        "transferred_file": {
+          "name": "temperature-230-190-step5-native-upload.gcode",
+          "bytes": 3028246,
+          "sha256": "9a171d5ebb8041e85a3a2a51ef34fbcb1550c1fb14adf7d2bac761be3b528e7e",
+          "ordered_temperature_schedule_c": [
+            230,
+            225,
+            220,
+            215,
+            210,
+            205,
+            200,
+            195,
+            190
+          ]
+        },
+        "first_export_comparison": {
+          "executable_lines_each": 106508,
+          "executable_lines_exact_match": true,
+          "difference_scope": "Generated timestamp and configuration comments; temporary physical fixture identity is distinct from retained original target."
+        },
+        "retained_request": {
+          "request_id": "865addf1ba6ef9c7448e0efdc6121aa4",
+          "sha256": "53bc28467632cf6429b3ac69799d593e071306a279b65cd599ca0b0aef3c8e87",
+          "original_effective_temperature_c": 220,
+          "file_identity_bound": true
+        },
+        "display_request": {
+          "request_id": "f5eb711fa01efc9ad1aa5733e14bfaf9",
+          "sha256": "8b4ca1aef5f08417e1c000bcdc051cac3a133c6444ec972c781a19a8d4c3c87c"
+        },
+        "capture_record_sha256": "820dfbb8893d9f9281ae2d95f535cd544d061aa1b32549b3a547c8653366ec39",
+        "synthetic_response": {
+          "print_started": false,
+          "print_queued": false
+        },
+        "limitation": "The response is from the bounded qualification receiver, not actual Moonraker.",
+        "cleanup": "Isolated project and temporary edits discarded; owned fixture files removed; prior port-8540 viewer restored."
+      },
+      "pinned_source_evidence": {
+        "mainframe_cpp_sha256": "292e6c604782f9fa445e3bd2bc0a4b5ecdaa45a49d9fc714eb339f341d065f39",
+        "plater_cpp_sha256": "8290003e06b12b06a5c239e4d66269dfbc081895c5deb304f3a9b6dbddc8621a",
+        "printhostdialogs_cpp_sha256": "9786c4969dfecd34422b37577c9b038ae3317dad3174ed0cc4ad03bef2bb230b"
+      }
+    }
+  },
+  "official_calibration_bridge": {
+    "source_commit": "e5cdc5dc523280bc3ead681a4f229bf84dfa726a",
+    "main_lua_sha256": "671b6dde36483d24e6791b752c3a1ce7233b7ea98ae902c7b1787270a6244136",
+    "manifest_sha256": "a4c9b49ce1944906132d4f19b111801833658d0aa56098c5e3dbbad98857d5e2",
+    "decision": "reject_unchanged_for_display_only",
+    "reason": "It requests http and moonraker_write and implements print start, print cancel, and result HTTP POST."
+  },
+  "target": {
+    "identity": "owner-confirmed actual Voron on the private LAN",
+    "reported_helix_version": "v1.1.0-beta.9",
+    "moonraker_commit": "d5ee17128bb88434aacdab90c2e9e990e2b64e4a",
+    "read_only_status": "reachable_ready_no_failed_components",
+    "mutation_performed": false
+  },
+  "display_only_adaptation": {
+    "plugin_id": "helix-orca-display",
+    "event": "helix_orca_display.available.v1",
+    "schema": "helix-orca-display/v1",
+    "permissions": [],
+    "files": {
+      "main.lua": "df4c3b2ee13656c1c812c792310b02f0de612e282c23ed4f9656e7ea4437a8bc",
+      "manifest.json": "58862e5c4e9b67e83cfe16c3f88acbc5a5799ff648e4348bd37b7482e4da1cc0",
+      "ui/helix-orca-display__receipt.xml": "b6e31a3ce999db7b027e791e6f32d1ed9a2a4e8f2e2916c6a6acafe4077a9fb0"
+    },
+    "client": {
+      "path": "scripts/helix-display-request.py",
+      "sha256": "82bc033cd9d54404a54b816385b729bfb84f9db316613090bbdf1ad0412157fd",
+      "rpc_allowlist": [
+        "server.connection.identify",
+        "connection.send_event"
+      ],
+      "remote_file_readback": "bounded HTTP GET /server/files/gcodes/<percent-encoded-basename>"
+    },
+    "native_upload_receiver": {
+      "path": "scripts/orca-upload-capture.py",
+      "sha256": "719a1e7d59306ed3af84c5f334b9f46e77618e03e75966362a0b2b561a6e3a4e"
+    },
+    "beta9_matrix": {
+      "status": "passed",
+      "network": "none",
+      "viewport_count": 11,
+      "assertions_per_viewport": 7,
+      "screenshot_count": 22,
+      "report_sha256": "454f239f7ea0860dbc3944ccb2aadc736feea885a2ee03693dcc55fce6eedb26",
+      "fixture_file_sha256": "94c92b561d249ecba76fe6059af09ab89068d2fcc15a6524f5f12a832d32c387",
+      "limitation": "Offline UI fixture only; it is not the later native upload artifact or an actual target event."
+    },
+    "actual_target_event_sent": false
+  },
+  "verification": {
+    "unit_tests": 108,
+    "unit_test_status": "passed",
+    "git_diff_check": "passed",
+    "display_matrix_report_sha256": "454f239f7ea0860dbc3944ccb2aadc736feea885a2ee03693dcc55fce6eedb26"
+  }
+}
