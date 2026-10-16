@@ -1,4 +1,4 @@
-import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import unittest
@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "docs/evidence/issue-6/release-lock.json"
 LAUNCHER = ROOT / "scripts/orca-oct15-qualify.ps1"
 GUIDE = ROOT / "docs/ISSUE_6_QUALIFICATION.md"
+WINDOWS_ADAPTER = ROOT / "scripts/orca-oct15-windows-review.py"
+BETA9_QUALIFIER = ROOT / "scripts/helix-beta9-qualify.py"
 
 
 class Issue6QualificationTests(unittest.TestCase):
@@ -45,13 +47,48 @@ class Issue6QualificationTests(unittest.TestCase):
         self.assertEqual(manifest["permissions"], [])
         self.assertEqual(manifest["helix_version"], ">=1.1.0-beta.4")
 
-    def test_checkpoint_does_not_claim_runtime_or_target_completion(self):
+    def test_checkpoint_records_runtime_but_not_target_completion(self):
         lock = json.loads(LOCK.read_text())
-        self.assertEqual(lock["orca"]["runtime_status"], "pending_isolated_native_qualification")
+        self.assertEqual(lock["orca"]["runtime_status"], "passed_isolated_native_preparation_and_export")
         guide = " ".join(GUIDE.read_text().split())
         self.assertIn("No event has been sent to the actual target", guide)
         self.assertIn("no `http` or `moonraker_write`", guide)
         self.assertIn("not a completed real-printer candidate", guide)
+
+    def test_beta9_qualifier_uses_exact_developer_artifact_and_accepted_harness(self):
+        source = BETA9_QUALIFIER.read_text()
+        for value in (
+            "38685014257",
+            "11955517186",
+            "494826250f5b38020a8a06673bc58cad3da9370f607523babf4163499b8c1ba1",
+            "e21a5a8ce2c3a7dfcc21f56d3c19b2ba31528be00313929f671b66197e3e4704",
+            "accepted.run_viewport",
+            '"container_network": "none"',
+            "accepted._plugin_hashes()",
+        ):
+            self.assertIn(value, source)
+        self.assertNotIn("git clone", source)
+        self.assertNotIn("make -j", source)
+
+    def test_windows_adapter_pins_process_storage_and_digest(self):
+        spec = importlib.util.spec_from_file_location("issue6_windows", WINDOWS_ADAPTER)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        source = module.issue6_ui_source()
+        self.assertIn("HelixOrcaCalibration\\issue-6-oct15-6a7763f", source)
+        self.assertIn("HelixOrcaCalibration\\issue-6-nightly-6a7763f", source)
+        self.assertIn("runtime\\orca-slicer.exe", source)
+        self.assertIn(
+            "e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759",
+            source,
+        )
+        self.assertIn("October 15 executable digest mismatch", source)
+        self.assertNotIn("issue-4-nightly-210bc927", source)
+
+    def test_windows_adapter_does_not_change_accepted_ui_driver(self):
+        accepted = (ROOT / "scripts/orca-windows-ui.ps1").read_text()
+        self.assertIn("HelixOrcaCalibration\\issue-4-nightly-210bc927", accepted)
+        self.assertNotIn("issue-6-nightly-6a7763f", accepted)
 
 
 if __name__ == "__main__":
