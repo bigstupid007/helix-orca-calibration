@@ -129,7 +129,7 @@ def seed_settings(config_dir: Path) -> None:
             {"col": 0, "colspan": 3, "enabled": True, "id": "helix-orca-display__invalid-tile", "row": 0, "rowspan": 2},
             {"col": 3, "colspan": 3, "enabled": True, "id": "helix-orca-display__valid-tile", "row": 0, "rowspan": 2},
         ]}]}}
-    accepted.json_write(config_dir / "settings.json", settings)
+    accepted.json_write(config_dir / "settings-test.json", settings)
 
 
 def wait_ready(name: str) -> None:
