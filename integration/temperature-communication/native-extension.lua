@@ -13,6 +13,7 @@ local MAX_TOMBSTONES = 16
 local RETURN_SAFETY_SECONDS = 2
 local QUERY_TIMEOUT_MS = 1000
 local QUERY_LATENCY_SECONDS = QUERY_TIMEOUT_MS / 1000
+local IDLE_PRINT_STATES = {standby=true, complete=true, cancelled=true}
 
 local REQUEST_KEYS = {
     schema=true, simulation_only=true, not_applied=true, request_id=true,
@@ -292,7 +293,10 @@ local function query_eventtime(generation)
     if operation_generation ~= generation then return nil end
     local result = type(response) == "table" and response.result or nil
     local current = type(result) == "table" and result.eventtime or nil
-    if not finite_number(current) then return nil end
+    local status = type(result) == "table" and result.status or nil
+    local print_stats = type(status) == "table" and status.print_stats or nil
+    local state = type(print_stats) == "table" and print_stats.state or nil
+    if not finite_number(current) or not IDLE_PRINT_STATES[state] then return nil end
     -- Moonraker samples eventtime before returning. Charge the full bounded
     -- query latency so delayed callbacks shorten rather than extend the lease.
     return current + QUERY_LATENCY_SECONDS
@@ -365,7 +369,6 @@ local function on_temperature_request(_, data)
             tc_status:set("Rejected expired request recovery")
             return
         end
-        local recovering = temperature_session.recovery_required
         local generation = next_operation()
         local current = query_eventtime(generation)
         if generation ~= operation_generation then return end
@@ -373,18 +376,14 @@ local function on_temperature_request(_, data)
             tc_status:set("Rejected request without a live Moonraker lease")
             return
         end
-        if recovering then
-            temperature_session.lease = lease
-        else
-            temperature_session.lease = {
-                issued_eventtime=lease.issued_eventtime,
-                expires_eventtime=math.min(temperature_session.lease.expires_eventtime,
-                                           lease.expires_eventtime),
-            }
-            if not clock_is_live(temperature_session.lease, current) then
-                expire_session()
-                return
-            end
+        temperature_session.lease = {
+            issued_eventtime=lease.issued_eventtime,
+            expires_eventtime=math.min(temperature_session.lease.expires_eventtime,
+                                       lease.expires_eventtime),
+        }
+        if not clock_is_live(temperature_session.lease, current) then
+            expire_session()
+            return
         end
         temperature_session.recovery_required = false
         persist_session()

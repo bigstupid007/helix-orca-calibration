@@ -136,7 +136,6 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
             'tc_status:set("Rejected conflicting request identity")',
             'tc_status:set("Busy with an earlier Temperature request")',
             "temperature_session.recovery_required = false",
-            "temperature_session.lease = lease",
             "temperature_session.result.value ~= value",
             'tc_status:set("First selection is immutable; waiting for its acknowledgement")',
             "data.value ~= temperature_session.result.value",
@@ -154,8 +153,8 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
 
         duplicate = source[source.index("if temperature_session and same_request"):
                            source.index("if temperature_session and same_identity")]
-        self.assertIn("local recovering = temperature_session.recovery_required", duplicate)
         self.assertIn("math.min(temperature_session.lease.expires_eventtime", duplicate)
+        self.assertNotIn("temperature_session.lease = lease", duplicate)
         self.assertIn("arm_expiry(current)", duplicate)
         expired_gate = source[source.index("if temperature_session and not temperature_session.acknowledged"):
                               source.index("local candidate = new_session")]
@@ -229,6 +228,10 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
         self.assertIn("local QUERY_TIMEOUT_MS = 1000", source)
         self.assertIn("return current + QUERY_LATENCY_SECONDS", source)
         self.assertIn("if operation_generation == generation then next_operation() end", source)
+        self.assertIn("local IDLE_PRINT_STATES = {standby=true, complete=true, cancelled=true}", source)
+        self.assertIn("result.status", source)
+        self.assertIn("status.print_stats", source)
+        self.assertIn("not IDLE_PRINT_STATES[state]", source)
         restore = source[source.index("local function restore_session"):source.index("\nrestore_session()")]
         self.assertIn("recovery_required=not stored_expired", restore)
         self.assertNotIn("query_eventtime", restore)
@@ -314,6 +317,7 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
             'parser.add_argument("--clock-failure-proof"',
             '"restart enabled selection before lease recovery"',
             '"validated exact recovery did not enable selection"',
+            '"non-idle query state accepted a request"',
             '"missing query clock accepted a request"',
             '"delayed expired envelope opened native UI"',
         ):

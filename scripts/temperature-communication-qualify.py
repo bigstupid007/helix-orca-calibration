@@ -130,15 +130,19 @@ def state_root() -> Path:
 
 
 def make_fixture(root: Path, envelope: dict | None = None,
-                 eventtime: float = FIXTURE_EVENTTIME) -> Path:
+                 eventtime: float = FIXTURE_EVENTTIME,
+                 recovery_envelope: dict | None = None) -> Path:
     plugin_root = root / "plugins"
     target = plugin_root / "orcacal"
     generator.generate(target)
-    request = json.dumps(envelope or VALID_ENVELOPE, separators=(",", ":"))
+    selected_envelope = envelope or VALID_ENVELOPE
+    request = json.dumps(selected_envelope, separators=(",", ":"))
+    recovery = json.dumps(recovery_envelope or selected_envelope, separators=(",", ":"))
     ack = json.dumps(VALID_ACK, separators=(",", ":"))
     hook = f"""
 local qualification_eventtime = {eventtime!r}
 local qualification_clock_missing = false
+local qualification_state_override = nil
 local qualification_real_call = helix.moonraker.call
 helix.moonraker.call = function(method, params)
     local response, err = qualification_real_call(method, params)
@@ -152,16 +156,25 @@ helix.moonraker.call = function(method, params)
         else
             response.result.eventtime = qualification_eventtime
         end
+        if qualification_state_override then
+            response.result.status = response.result.status or {{}}
+            response.result.status.print_stats = response.result.status.print_stats or {{}}
+            response.result.status.print_stats.state = qualification_state_override
+        end
     end
     return response, err
 end
 local qualification_request = helix.json.decode([==[{request}]==])
+local qualification_recovery = helix.json.decode([==[{recovery}]==])
 local qualification_ack = helix.json.decode([==[{ack}]==])
 helix.ui.on("qualify_request", function()
     on_temperature_request("qualification", qualification_request)
 end)
 helix.ui.on("qualify_ack", function()
     on_temperature_ack("qualification", qualification_ack)
+end)
+helix.ui.on("qualify_recovery", function()
+    on_temperature_request("qualification", qualification_recovery)
 end)
 helix.ui.on("qualify_expire", function()
     qualification_eventtime = qualification_request.lease.expires_eventtime
@@ -171,6 +184,10 @@ helix.ui.on("qualify_clock_missing", function()
 end)
 helix.ui.on("qualify_clock_restore", function()
     qualification_clock_missing = false
+    qualification_state_override = nil
+end)
+helix.ui.on("qualify_nonidle", function()
+    qualification_state_override = "printing"
 end)
 """
     with (target / "main.lua").open("a", encoding="utf-8") as handle:
@@ -187,6 +204,10 @@ end)
          "description": "Test-only missing clock trigger", "component": "orcacal__qualify-clock-missing", "colspan": 3, "rowspan": 2},
         {"id": "orcacal__qualify-clock-restore", "name": "Restore lease clock", "icon": "refresh",
          "description": "Test-only clock restore trigger", "component": "orcacal__qualify-clock-restore", "colspan": 3, "rowspan": 2},
+        {"id": "orcacal__qualify-nonidle", "name": "Set non-idle state", "icon": "printer",
+         "description": "Test-only non-idle query response", "component": "orcacal__qualify-nonidle", "colspan": 3, "rowspan": 2},
+        {"id": "orcacal__qualify-recovery", "name": "Inject recovery", "icon": "download",
+         "description": "Test-only recovery envelope", "component": "orcacal__qualify-recovery", "colspan": 3, "rowspan": 2},
     ])
     (target / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     for suffix, action, label in (
@@ -195,6 +216,8 @@ end)
         ("expire", "qualify_expire", "Advance lease clock"),
         ("clock-missing", "qualify_clock_missing", "Hide lease clock"),
         ("clock-restore", "qualify_clock_restore", "Restore lease clock"),
+        ("nonidle", "qualify_nonidle", "Set non-idle state"),
+        ("recovery", "qualify_recovery", "Inject recovery"),
     ):
         component = f"orcacal__qualify-{suffix}"
         (target / "ui" / f"{component}.xml").write_text(
@@ -222,6 +245,8 @@ def seed_settings(config_dir: Path) -> None:
         {"col": 0, "colspan": 4, "enabled": True, "id": "orcacal__qualify-expire", "row": 2, "rowspan": 2},
         {"col": 4, "colspan": 4, "enabled": True, "id": "orcacal__qualify-clock-missing", "row": 2, "rowspan": 2},
         {"col": 8, "colspan": 4, "enabled": True, "id": "orcacal__qualify-clock-restore", "row": 2, "rowspan": 2},
+        {"col": 0, "colspan": 4, "enabled": True, "id": "orcacal__qualify-nonidle", "row": 4, "rowspan": 2},
+        {"col": 4, "colspan": 4, "enabled": True, "id": "orcacal__qualify-recovery", "row": 4, "rowspan": 2},
     ]
     widgets.extend({"col": -1, "colspan": 1, "enabled": False, "id": widget_id,
                     "row": -1, "rowspan": 1} for widget_id in accepted.BETA4_DEFAULT_HOME_WIDGETS)

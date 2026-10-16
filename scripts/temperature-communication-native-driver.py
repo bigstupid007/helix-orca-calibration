@@ -91,7 +91,16 @@ def run(payload: Path, output: Path, result_output: Path, viewport_label: str, v
     qualification.VALID_REQUEST = request
     qualification.VALID_ACK = dict(expected_result, schema="helix-orca-temperature-ack/v1")
     eventtime = lease["issued_eventtime"] + 0.25
-    plugin_root = qualification.make_fixture(fixture, envelope=envelope, eventtime=eventtime)
+    recovery_envelope = json.loads(json.dumps(envelope))
+    if recovery_proof:
+        maximum = lease["issued_eventtime"] + request["ttl_seconds"]
+        recovery_envelope["lease"]["expires_eventtime"] = min(
+            maximum, lease["expires_eventtime"] + 10.0)
+        if recovery_envelope["lease"]["expires_eventtime"] <= lease["expires_eventtime"]:
+            raise DriverError("recovery proof requires room for a longer valid inbound lease")
+    plugin_root = qualification.make_fixture(
+        fixture, envelope=envelope, eventtime=eventtime,
+        recovery_envelope=recovery_envelope)
     label, width, height, layout, dpi = entry
     name = f"temperature-origin-{os.getpid()}"
     accepted._remove_container(name)
@@ -100,11 +109,18 @@ def run(payload: Path, output: Path, result_output: Path, viewport_label: str, v
     try:
         qualification.wait_ready(name)
         if clock_failure_proof:
+            storage = output / "config/plugin-data/orcacal.json"
+            qualification.tap(name, "orcacal__qualify-nonidle", width, height)
+            qualification.tap(name, "orcacal__qualify-recovery", width, height)
+            if accepted.ctl(name, "current").get("overlays") != []:
+                raise DriverError("non-idle query state accepted a request")
+            if storage.exists() and "session" in json.loads(storage.read_text(encoding="utf-8")):
+                raise DriverError("non-idle query state persisted a request")
+            qualification.tap(name, "orcacal__qualify-clock-restore", width, height)
             qualification.tap(name, "orcacal__qualify-clock-missing", width, height)
             qualification.tap(name, "orcacal__qualify-request", width, height)
             if accepted.ctl(name, "current").get("overlays") != []:
                 raise DriverError("missing query clock accepted a request")
-            storage = output / "config/plugin-data/orcacal.json"
             if storage.exists() and "session" in json.loads(storage.read_text(encoding="utf-8")):
                 raise DriverError("missing query clock persisted a request")
             qualification.tap(name, "orcacal__qualify-clock-restore", width, height)
@@ -118,7 +134,8 @@ def run(payload: Path, output: Path, result_output: Path, viewport_label: str, v
                 "container_network": "none", "viewport": f"{width}x{height}",
                 "clock_fixture": dict(qualification.SYNTHETIC_CLOCK,
                                       eventtime=eventtime),
-                "assertions": ["missing-clock-failed-closed", "delayed-envelope-rejected"],
+                "assertions": ["non-idle-state-failed-closed",
+                               "missing-clock-failed-closed", "delayed-envelope-rejected"],
             }
             (output / "report.json").write_text(
                 json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -144,7 +161,13 @@ def run(payload: Path, output: Path, result_output: Path, viewport_label: str, v
             qualification.tap(name, "orcacal__temperature_choice", width, height)
             if accepted.ctl(name, "get", "orcacal__tc_choice_on").get("value") != 1:
                 raise DriverError("validated exact recovery did not enable selection")
-            pre_assertions.extend(("restart-disabled-selection", "exact-recovery-revalidated-clock"))
+            time.sleep(0.7)
+            recovered = json.loads(
+                (output / "config/plugin-data/orcacal.json").read_text(encoding="utf-8"))["session"]
+            if recovered.get("lease") != lease:
+                raise DriverError("recovery envelope extended the stored lease expiry")
+            pre_assertions.extend(("restart-disabled-selection", "exact-recovery-revalidated-clock",
+                                   "recovery-expiry-did-not-extend"))
         detail = accepted.ctl(name, "ls", "orcacal__temperature")
         for widget in ("orcacal__request_printer", "orcacal__request_values",
                        "orcacal__request_file", "orcacal__request_hash",
