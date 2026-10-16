@@ -2,7 +2,8 @@
 
 The [governing Build Program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md) owns
 scope and the approved existing trusted-LAN boundary. This document describes
-the candidate and its review/recovery boundary. It is not physical acceptance.
+the physically validated candidate and its review/recovery boundary. AI
+validation does not provide Founder acceptance.
 
 ## Generated artifacts and preserved baselines
 
@@ -33,7 +34,8 @@ keeping the plugin’s own data on the screen, up to 256 KB.
 
 The initial deployed sidecar location was outside the config-root GET. The
 owner has since applied the explicitly approved real directory and exact file
-link. Authenticated GET now matches the native data and fresh receipt; see the
+link. Authenticated GET now matches the fresh native request, returned result
+and persisted acknowledgement; see the
 [storage bridge](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md). No broader
 configuration or access change is authorized.
 
@@ -82,7 +84,8 @@ native UI is isolated evidence, never a physical transport claim. The exact
 beta.9 mock omits `eventtime` from its read-only query response; the generated
 qualification fixture supplies only that clock prerequisite, labels it
 synthetic and binds its bytes in the report. Production clock support must be
-proved separately on the actual target.
+proved separately on the actual target; the completed physical round trip
+provides that separate native clock/idle-gate observation.
 
 Windows validation uses only the previously marked isolated October 15 Orca
 data directory, hash-pinned executable/DLL and child-only WebView2 storage.
@@ -98,28 +101,60 @@ at the approved native point and avoids topmost changes that dismiss Orca's
 transient menus. It is qualification infrastructure, not shipping product
 behavior. Screenshots showing private operational file details remain private.
 
-## Review path and readiness gate
+## Founder Review
 
-From Orca’s startup home screen, choose **New Project** to enter Prepare.
-The observed Windows entry is **Prepare > application menu next to File >
-Plugins > expand Helix Calibration Context > Play Helix Temperature
-Communication (no printing)**. Version `0.5.0` exposes five capabilities.
-The right-hand Orca-owned panel has **Keep original profile**, the exact file
-chooser, and **Send request**. The agent has exercised entry, original-context
-capture and exact native file association on Spare.
+The completed actual 205°C NOT APPLIED panel is left open in the marked,
+isolated October 15 Orca on Spare. It can be reviewed immediately without a
+live relay. If closed, use **New Project** from startup home to enter Prepare,
+then **Prepare > application menu next to File > Plugins > expand Helix
+Calibration Context > Play Helix Temperature Communication (no printing)**.
+Version `0.5.0` exposes five capabilities. Close/reopen/restart recovery was
+validated; opening this capability recovers the retained original result.
 
-The intended complete review scenario is: retain the named original context
-and exact prepared file on Spare; Send; see that context in the existing native
-Helix Temperature detail; select a simulated 205°C and Return; see the same
-original profile, exact setting, separate original values, selected value and
-NOT APPLIED instructions in Orca. The relay/receipt mechanics are agent-owned;
-the founder should judge discoverability, naturalness, wording, hierarchy,
-context trust and native navigation. No saving, printing or hardware control
-is part of review.
+Representative context: **Voron Voron 2.4 300 0.4 nozzle**, **Voron 0.20 Standard -
+Fast Quality**, **Generic PLA - Voron Rapido - Initial**, 0.4 mm nozzle, and
+separate saved/edited/effective **220/220/220°C**. The result card must show
+**205°C**, **NOT APPLIED**, and **Filament > Print temperature > Nozzle > Other
+layers (nozzle_temperature)**, with optional manual instructions referring to
+that exact original filament profile. Review does not include following those
+save instructions.
 
-That complete scenario is **not yet a Founder Review handoff**. The fresh actual physical return is still in progress. AI Product Preflight
-must prove the same real path before the PR is presented as ready. Automated,
-fixture and AI inspection cannot provide founder acceptance.
+For a fresh live review, the agent prepares another bounded window before the
+founder presses Send. The previous one-request relay completed and exited; no
+always-on service is installed. Agent setup rechecks exact runtime/plugin
+hashes, marked data directory, existing SSH worker, owner grant, single-file
+readback, target ready/idle and the already-uploaded file's exact bytes. The
+agent preserves the completed artifacts, then uses the panel's **Keep original
+profile** and native **Choose File** controls to associate the same private
+prepared export, using the retained private setup record. No re-slicing,
+upload, profile write or infrastructure change is needed. The exact
+operational file identity/location remains private; the founder receives a
+prepared panel, not a file-search task or transport commands.
+
+The live sequence is:
+
+1. In that prepared Orca panel, confirm the original context and click **Send
+   request**. The agent starts the reviewed one-request relay against that exact
+   outbox and retains its journal. Complete the interaction inside the original
+   900-second request lifetime; restarting cannot extend it.
+2. On the actual HelixScreen's automatically opened **Temperature** detail,
+   confirm the original context, choose simulated **205°C**, and tap **Return
+   selection**. Native Back remains available; Start remains the accepted
+   inactive toast and is not part of this flow.
+3. In the same originating Orca panel, observe automatic **205°C / NOT
+   APPLIED** instructions for the exact original profile and setting, with
+   saved/edited/effective values unchanged. There is no result-file operation,
+   Save, print, heat, motion or hardware action. The agent verifies exact Spare
+   receipt, persisted native ACK, delivered status, idle postchecks and normal
+   profile preservation before declaring that new run complete.
+
+Judge discoverability, wording, hierarchy, context trust, the distinction
+between original and current values, and native navigation. Technical
+correlation, expiry, retries, duplicate/stale rejection, recovery, byte identity
+and isolation are already covered by tests, qualified native/Windows evidence
+and the [actual physical proof](evidence/issue-8/physical/qualification.json).
+[AI Product Preflight](ISSUE_8_PRODUCT_PREFLIGHT.md) passes this same path.
+Founder acceptance, merge and deployment remain separate and are not granted.
 
 ## Recovery and rollback
 
@@ -133,22 +168,30 @@ For Windows rollback, close only the isolated Orca through its normal UI,
 verify the marked data directory and candidate source hash, and restore only
 its retained hash-verified `0.4.1` source. Preserve normal Orca and all normal
 profiles. Candidate test state remains private evidence; no broad deletion is
-needed. Physical rollback, if staging is later authorized, first requires the
-owner to disable the generated `orcacal` candidate, then removal only of its
-owned exact files/folder. Do not touch the accepted display plugin or printer
+needed. Physical rollback first requires the owner to disable the generated `orcacal`
+candidate, then removal only of its hash-verified owned exact files/folder.
+The owner may remove only the approved config-side link after verifying its
+exact target, preserving native state and the accepted display plugin. This
+is not permission to remove unrelated files or alter host configuration. Do not touch the accepted display plugin or printer
 settings, services or firmware.
 
-## Actual physical attempt and continuation
+## Completed physical qualification
 
-The owner observed original context and simulated 205°C/Return on the physical
-screen. The relay’s GET remained 404 because the production installer links
-settings.json individually and leaves plugin-data in the install tree. No
-returned bytes, companion inbox/receipt or persisted ACK were observed. The
-relay is stopped and its immutable request/journal is retained. This is partial
-forward evidence, not a completed round trip.
+The first actual attempt exposed beta.9's install-side storage path and is
+retained as historical partial evidence. The owner then approved and applied
+only the reviewed exact file bridge. The old expired result was read back but
+never forwarded. A fresh originating request completed the actual path under
+its original IDs, including exact native result/inbox/receipt, persisted native
+ACK and delivered unlock before expiry. The owner's physical context/205°C/
+Return observation and independently retrieved native/Spare artifacts establish
+this completion; the final actual Windows panel was inspected separately.
 
-Automatic receipt-driven retry is now bounded to five persisted deliveries
-across relay restarts. It rechecks ready/idle state and exact file bytes, only
-shortens the lease, and stops repeated request delivery on an exact recovered
-native session. These isolated tests do not resolve the production exposure
-gate. Do not replay an expired result under a new origin after any amendment.
+Same-request recovery used two deliveries. Automatic receipt-driven retry is
+bounded to five persisted sends across restart, rechecks ready/idle and exact
+file bytes, and only shortens the lease. An exact recovered native receipt
+stops repeated sends. A pending Lua nil result may be omitted only in
+unacknowledged received state. Selected/acknowledged states require the result.
+Final checks found all nine native/display files unchanged, target ready in
+standby and normal Windows profile/settings fingerprint unchanged. The relay
+exited successfully and is not running. Preserve these artifacts; another
+review uses a new explicit origin, never a relabeled expired result.

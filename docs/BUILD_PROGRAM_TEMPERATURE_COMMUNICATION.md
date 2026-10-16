@@ -2,7 +2,11 @@
 
 Governing work item: [Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8).
 
-Status: draft [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9), validating the fresh physical return after approved owner execution and exact readback. Owner enablement and physical forward/selection are observed; no result returned to Spare. Only the specific owner-run single-file exposure is now authorized; no merge,
+Status: implementation and bounded validation complete; one unmerged
+[PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9) is prepared
+for Founder Review. Actual physical 205°C return, exact originating receipt,
+persisted native ACK, delivered unlock and original NOT APPLIED instructions
+are verified. The owner-approved single-file exposure is applied. No merge,
 service/firmware change or deployment is authorized.
 
 ## Authority and reconstructed baseline
@@ -53,7 +57,24 @@ Final PR must provide the exact normal entry point on Spare, the named represent
 
 ## Current checkpoint
 
-OSS identity and merged baselines are verified, and canonical dirty work remains preserved. The isolated candidate passes 181 tests, native evidence verification and Windows validation. Receipt-driven relay retries are independently reviewed. The owner enabled the verified storage-only plugin and reported actual original context and 205°C/Return. Production storage resolves under the install tree rather than Moonraker's exposed config tree; no result/inbox/receipt was retrieved. The relay is stopped and the target remains nonactive. [The deployment gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) records the source evidence and narrow owner-run amendment, now explicitly approved, owner-applied and verified through exact authenticated readback. This Issue remains the sole governing work item; full AI Product Preflight and Founder Review remain open.
+OSS identity and merged baselines are verified, and canonical dirty work remains
+preserved. The candidate passes 181 tests, corrected native eleven-viewport
+verification, isolated Windows validation and independent review. After the
+approved owner-run bridge, a fresh request completed actual Send -> physical
+original context -> owner-selected simulated 205°C/Return -> exact Spare inbox/
+receipt -> persisted native ACK -> delivered status. All terminal observations
+preceded original expiry. Actual original saved/edited/effective values remain
+220/220/220°C and the final Windows panel states NOT APPLIED. The relay exited
+successfully; the target is ready/standby, native/display files match, and the
+normal 1,429-file Orca profile fingerprint is unchanged.
+
+[AI Product Preflight](ISSUE_8_PRODUCT_PREFLIGHT.md) passes the same approved
+path. [Sanitized actual evidence](evidence/issue-8/physical/qualification.json)
+retains bindings to private artifacts; the historical failed attempt is labeled
+separately and its expired result was never forwarded. The
+[exact Founder Review path](TEMPERATURE_COMMUNICATION.md#founder-review) includes
+agent-owned setup for a new bounded window. Issue #8 remains the sole governing
+work item and stays open for Founder acceptance; there is one unmerged PR.
 
 ## Capability checkpoint — 2026-10-16
 
@@ -93,3 +114,12 @@ gate. The receipt retry gap discovered during diagnosis was corrected and
 reviewed without further target events. The subsequent explicit owner approval permits only the reviewed real
 directory and one file link; the earlier trusted-LAN approval alone did not
 authorize it. No alternate access permission is granted.
+
+The owner subsequently executed the exact approved utility. Authenticated GET
+verified the original expired state without forwarding it, then a fresh native
+request and its completed return/ACK across atomic storage updates. The actual
+pending Lua serialization omitted a nil result; the narrow relay correction
+accepts that only in unacknowledged received state. The same unexpired request
+resumed under its original IDs, completed before expiry, and passed final
+independent artifact/correlation review. This resolves the deployment gate only
+for the explicitly approved one-file bridge and verified target.

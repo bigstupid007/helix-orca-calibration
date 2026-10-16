@@ -234,11 +234,18 @@ Retries and restarts may only shorten the stored deadline. Local Orca result
 commit preserves the slot until exact native acknowledgement is confirmed
 and durably recorded, or explicit retirement after original absolute expiry.
 
-The production attempt exposed a deployment mismatch: beta.9 links the settings
-file individually, so native storage remains under installation config while
-the relay reads printer-data config. No physical result returned. The proposed
-single-file exposure is now approved for owner execution using existing local
-access; it has not yet been applied. See the
-[storage gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md). Receipt-driven relay
-redelivery is bounded across restart and stops on exact native persistence,
-but it cannot make an unexposed file reachable.
+The initial production attempt exposed beta.9's per-file settings symlink:
+native storage stays under installation config, outside the shared config
+route. The owner explicitly approved and applied one real shared directory and
+one exact file link to native `orcacal.json`. Existing authenticated GET now
+observes native atomic replacements, including the fresh actual persisted
+return and ACK. No directory-wide link, access-mode, service, credential or
+plugin permission change was made. See the
+[storage amendment](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md).
+
+Receipt-driven redelivery is bounded to five sends across restart and stops on
+exact native persistence. Lua omits a pending nil result; only unacknowledged
+received state may omit that key. Final actual evidence proves the same
+immutable request/result/receipt across both directions and completed delivery
+before expiry. The completed relay exits; this is bounded qualification
+infrastructure, not a new installed service.

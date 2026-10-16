@@ -293,41 +293,48 @@ trusted-client source-IP authorization, not per-message cryptographic
 authentication. The founder explicitly approved that disclosed existing
 trusted-LAN boundary for this proof.
 
-The new companion was observed in the actual qualified October 15 Windows GUI
-as local version `0.5.0`, with all five capabilities. Its new dock retained
-saved/edited/effective 220/220/220 from native APIs and verified the exact
-previously qualified file through the native chooser. Those observations prove
-only the sampled Windows surfaces; no physical return is claimed. Further
-validation and limitations belong to the [current program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md).
+The generated `0.5.0` companion was observed in the actual qualified October
+15 Windows GUI with all five capabilities. Native entry requires Prepare:
+**New Project > Prepare > application menu beside File > Plugins > expand
+Helix Calibration Context > Play Helix Temperature Communication (no printing)**.
+The final returned panel preserves saved/edited/effective 220/220/220°C,
+simulated 205°C, exact original profile/setting and NOT APPLIED instructions.
+Isolated profile-switch and restart checks preserve the original result.
 
-The final corrected candidate passes 169 automated tests and the source-bound
-beta.9 eleven-viewport matrix (33 frames and exact request/lease/result/ACK
-storage). The promoted verifier runs through the unchanged CI unit-test job;
-the accepted workflow and Issue #2 evidence remain byte-compatible. The mock
-query omits eventtime, so its isolated fixture supplies only that synthetic
-clock prerequisite. Actual HTTP clock readback is verified; native production
-clock/return still requires the physical demonstration. Independent review
-found no remaining material code defect after the four recorded corrections.
+The final candidate passes 181 automated tests and the source-bound beta.9
+eleven-viewport matrix (33 frames and exact request/lease/result/ACK storage).
+The promoted verifier runs through the unchanged CI unit-test job; accepted
+Issue #2 evidence remains compatible. The mock query omits eventtime, so its
+fixture supplies only that labeled, hashed synthetic clock prerequisite.
+Production native clock support was separately observed in the actual return.
 
-## Issue #8 actual production storage blocker
+## Issue #8 production storage amendment and actual return
 
-The owner enabled the exact storage-only grant and observed original context
-and simulated 205°C/Return on the physical screen. No sidecar, originating
-inbox/receipt or native ACK was retrieved through the approved route. Pinned
-beta.9 deployment source confirms that settings.json is a file symlink, while
-plugin-data stays under the install tree. This supersedes the initial assumed
-production storage reachability and any broad no-material-findings/readiness
-inference from isolated evidence. The relay is stopped; postcheck was idle.
+The initial actual attempt reached the native screen but could not read its
+state: beta.9 links settings.json individually into shared config and keeps
+plugin-data in the install tree. Source inspection confirmed the production
+layout mismatch. This initial attempt remains labeled historical; it is not
+the successful proof. The founder separately approved owner-run creation of
+one real shared directory and one exact file link. The owner applied the
+hash-pinned utility using existing local terminal access. Existing authenticated
+GET matched the historical expired request/205 result, which was never
+forwarded, then a fresh originating request after explicit retirement.
 
-A separate missed-receipt retry gap was corrected: bounded same-request
-redelivery, non-extending leases, restart-persisted five-send cap and exact
-native receipt detection now pass independent review and 179 combined tests.
-Native product/companion bytes and their qualifying evidence remain unchanged.
-The [storage exposure gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) records
-the narrow unapplied owner decision. No service, credential, permission or
-configuration change has been inferred or performed.
+Actual Lua omits `result=nil` while pending. The relay accepts that omission
+only in unacknowledged received state; selected/acknowledged states require a
+result. Receipt-driven retry is bounded to five persisted deliveries across
+restart and only shortens leases. Independent review and full tests cover
+both corrections, without changes to native/companion qualifying bytes.
 
-The founder subsequently approved the exact owner-run single-file exposure.
-The reviewed utility and seven local filesystem checks are in the candidate;
-actual owner execution and authenticated readback remain pending. No new host
-access, permission, service or credential is authorized.
+The fresh owner-selected 205°C return completed under its original IDs before
+expiry. Native persisted `returned`/acknowledged state, relay complete journal,
+exact originating inbox/receipt and `delivered` status all match. The final
+actual Windows panel was inspected. All nine native/display source files are
+unchanged, target is ready/standby, and normal Windows settings/profile
+fingerprint matches the fresh 1,429-file baseline. Independent review confirmed
+these private artifact relationships; [public evidence](evidence/issue-8/physical/qualification.json)
+contains sanitized outcomes and artifact digests. Same-path
+[AI Product Preflight](ISSUE_8_PRODUCT_PREFLIGHT.md) passes for Founder Review.
+The bounded relay has exited; Founder acceptance, merge and deployment remain
+open. The existing trusted-LAN limitation and owner-only bridge authority are
+unchanged.

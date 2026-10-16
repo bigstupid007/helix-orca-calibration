@@ -226,16 +226,19 @@ physical evidence honestly. One fresh-context independent candidate review, AI
 Product Preflight, reconciled documentation and one unmerged PR are required;
 never label an AI run Founder acceptance.
 
-The Issue #8 physical attempt established forward context and owner 205°C
-selection only. Production sidecar storage lies outside the exposed Moonraker
-config tree. The founder subsequently approved owner-run creation of one real
+The initial Issue #8 physical attempt established forward context and owner
+205°C selection only. Production sidecar storage lies outside the exposed
+Moonraker config tree. The founder subsequently approved owner-run creation of one real
 shared `plugin-data` directory and one `orcacal.json` file link to the existing
 native state, through the existing authenticated trusted-LAN config API.
 `scripts/temperature-communication-storage-link.py` implements only that
 bounded amendment and defaults to a dry run. Existing owner local access is
 required; this grants no agent SSH access, new credential, host-trust bypass,
 access-mode change, directory-wide link, service or plugin permission.
-Verify exact readback before another physical request; preserve the prior
-request/journal and never retarget an expired result. Full return/preflight and
-Founder acceptance remain required. See
-`docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md`.
+The owner applied that exact bridge; authenticated readback and a fresh actual
+round trip, persisted ACK, delivered status, independent review and AI Product
+Preflight are now verified. Preserve the prior request/journal and never
+retarget an expired result. This grants no wider change. Founder acceptance,
+merge and deployment remain open. See
+`docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md` and
+`docs/TEMPERATURE_COMMUNICATION.md#founder-review`.

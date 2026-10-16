@@ -4,6 +4,7 @@
   "blocker": "Native sidecar uses install/config/plugin-data; beta.9 installer links settings.json individually into Moonraker config, leaving the sidecar outside the existing exposed route.",
   "configuration_workaround_applied": false,
   "evidence_scope": "Owner observation plus read-only manifest/grant, missing file/inbox/receipt and readiness checks; private request and target identifiers excluded.",
+  "evidence_stage": "historical_initial_attempt_before_explicit_owner_amendment",
   "fresh_origin_unrelated_to_isolated_result": true,
   "native_sidecar_readback": false,
   "new_permission_or_credentials": false,
@@ -25,5 +26,6 @@
   "relay_stopped": true,
   "reviewed_native_source": "fe6860512d6b2af7d57f1ffb0ea2156bcbe4d3ec",
   "status": "blocked-production-storage-exposure",
+  "superseded_by": "physical/qualification.json",
   "version": "0.3.0-issue8-native"
 }

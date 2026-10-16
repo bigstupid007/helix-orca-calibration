@@ -1,132 +1,109 @@
 # Issue #8 AI Product Preflight
 
-Status: blocked at production storage exposure. This record does not provide Founder acceptance or a
-completed physical return claim. The governing item is
-[Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8).
+Status: **passed for the bounded, non-printing Founder Review path**, 2026-10-16.
+This is AI validation, not Founder acceptance. The governing item is
+[Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8), with
+one unmerged [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9).
 
 ## Workflow fidelity
 
-The founder supplied the approved workflow directly: retain the original Orca
-calibration context on Spare, send through the proven physical display route,
-select a simulated winning temperature in the actual HelixScreen, and receive
-that value automatically in the originating Orca with the exact original
-profile/setting and NOT APPLIED instructions. There is no print/apply step or
-recurring manual result-file operation.
+The approved path was exercised: actual Orca on Spare retained its original
+context and exact normally prepared/uploaded file, Send reached the actual
+HelixScreen Temperature detail, the owner selected simulated 205°C and Return,
+and the originating Orca automatically committed the exact returned result and
+receipt. Native persisted state is `returned`, acknowledged is true, the relay
+journal is complete, and Spare's exact correlated delivery is `delivered`.
+Terminal delivery was observed before the original expiry. No result-file
+copying or transport command was assigned to the founder.
 
-Independent specification-fidelity review required extending the accepted
-`orcacal` tile, chooser and Temperature detail. The generated derivative keeps
-that identity, Back navigation, registry and inactive Start-toast behavior.
-The separate accepted display receipt and mock harness remain unchanged.
-Storage consent is an owner setup action; relay operation is agent-owned
-bounded qualification infrastructure. The founder explicitly approved the
-disclosed existing trusted-LAN boundary for this proof.
+The derivative extends the accepted `orcacal` tile, chooser and Temperature
+detail, preserving Back, registry and inactive Start-toast behavior. The
+accepted display receipt, mock bridge, harness and source artifacts remain
+unchanged. Owner consent and the explicitly approved one-file exposure are
+setup actions. The relay is agent-owned, bounded qualification infrastructure.
 
-## Interaction evidence and open gate
+## Interaction quality
 
-The agent exercised the corrected `0.5.0` companion in the hash-pinned October
-15 Windows runtime, using its marked isolated data directory and child-only
-WebView2 storage. Native entry is **New Project** from startup home, then
-**Prepare > application menu beside File > Plugins > expand Helix Calibration
-Context > Play Helix Temperature Communication (no printing)**.
+The qualified October 15 Windows `0.5.0` companion exposes the new capability
+through **New Project > Prepare > application menu beside File > Plugins >
+expand Helix Calibration Context > Play Helix Temperature Communication (no
+printing)**. Startup home does not expose the Prepare dock, so that prerequisite
+is included in the review instructions.
 
-The startup home screen does not expose the Prepare dock. The first attempt
-from home produced no visible panel; entering Prepare and invoking the same
-capability displayed the recovered original result. The review instructions
-must include that prerequisite.
+The actual returned panel visibly shows **Generic PLA - Voron Rapido - Initial**,
+the exact **Filament > Print temperature > Nozzle > Other layers
+(nozzle_temperature)** setting, separately labeled saved/edited/effective
+220/220/220°C, simulated 205°C, current effective 220°C, prominent **NOT APPLIED**,
+and optional manual instructions tied to the original profile. The clean
+[actual result frame](evidence/issue-8/physical/orca-not-applied.png) excludes
+private operational file details. Its pixels match the earlier isolated result
+because the original context and selected value match; the actual artifact
+digests separately bind this physical delivery.
 
-Actual Windows observations include original-context capture, native exact-file
-selection, Send, automatic acceptance of a real isolated native 205°C result,
-profile-switch warning without retargeting the result, and close/reopen/restart
-recovery. The corrected acknowledgement-lock companion also recovers that
-original result. Full operational frames remain private; cropped frames may
-show the original profile and explicit separate saved/edited/effective values
-without disclosing the private exact file identity.
+Isolated Windows validation also exercised native file selection, Send,
+profile-switch warning without retargeting, acknowledgement lock, and
+close/reopen/restart recovery. Eleven beta.9 native viewports cover the accepted
+navigation, fixed selector, waiting/returned states and horizontal fit. The
+owner, rather than an AI screen driver, reported the actual physical context
+and selection. Persisted native state and the originating Windows panel were
+then independently read back and inspected.
 
-The physical workflow remains required. Do not present the final review path
-as ready until actual native clock handling, screen selection, Spare receipt,
-persisted native acknowledgement and final Windows instructions have all been
-observed on the corrected candidate.
+Discoverability through Orca's Plugins capability list and the retained
+preparation controls still deserve Founder judgment. No custom launcher or
+substitute UI was introduced. The [review path](TEMPERATURE_COMMUNICATION.md#founder-review)
+names the current completed result and the agent-owned setup for a fresh live
+window. The completed relay has exited; this is not an always-on integration.
 
-## Engineering evidence and limits
+## Engineering correctness
 
-Independent technical review identified four material boundary defects across
-the integrated correction: native relative TTL could extend original expiry,
-local Orca commit could free the slot before native acknowledgement, restart
-recovery could replace a stored lease with a later one, and the native clock
-query ignored the returned printer state. The corrected candidate binds a
-target-clock lease to original expiry, only shortens stored recovery deadlines,
-requires a nonactive state at every native query gate, and durably persists
-terminal delivery before unlocking Orca. The independent reviewer found no
-remaining material code defect in `fe68605`, conditional on the final matrix
-and evidence verification. All 181 automated tests and branch whitespace checks
-pass.
-Retries preserve IDs and can only shorten the lease. Expiry permits explicit
-retirement without silently changing the prior NOT APPLIED instructions.
+All 181 dependency-free tests pass. Corrected native evidence verifies eleven
+viewports, 33 frames and exact request/lease/result/ACK storage. Accepted Issue
+#2 evidence remains valid under the byte-identical CI workflow. The beta.9 mock
+omits `eventtime`; its isolated fixture supplies only that labeled, hashed clock
+prerequisite. The physical proof separately passed real native clock and
+nonactive-state gates without that fixture.
 
-Native qualification uses the exact beta.9 binary with Docker network none,
-read-only runtime/plugin mounts and a private control socket. Its mock omits
-`eventtime` from the supported read-only query, so the generated test fixture
-supplies that clock prerequisite only and labels/hashes the wrapper. This
-proves isolated native behavior; it does not prove production Lua clock data.
-The real target's read-only HTTP query already returned a finite advancing
-clock while ready/idle. Native production verification remains separate.
+Independent review identified and verified corrections for absolute expiry,
+acknowledgement-before-unlock ordering, non-extending recovery leases,
+nonactive native query gates, receipt-driven bounded redelivery, and actual
+Lua omission of a pending nil result. The omitted key is accepted only for
+unacknowledged `received` state; selected/acknowledged states require a result.
+Retry retains original IDs and immutable context, with a persisted five-send
+cap. The successful physical request used two same-request deliveries across
+recovery, without extending its original deadline.
 
-Historical captures made before the lease correction are retained privately
-and cannot establish the final candidate. One capture also overlapped a source
-edit; it is excluded from promotion. The final capture snapshots sources before execution, rejects source/fixture
-changes before report publication, and has passed verification and promotion
-for all eleven viewports, 33 frames and exact storage/selection/ACK artifacts.
-At the isolated checkpoint, independent review of `bc9c507` found no remaining
-material correctness,
-security, recovery, fidelity or evidence finding; it qualifies a draft PR only.
-The later production finding below supersedes any readiness inference.
-CI passes on [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9).
+The initial actual attempt exposed beta.9's install-side storage layout. The
+owner explicitly approved and executed the reviewed single-file bridge. Its
+historical expired selection was preserved and never forwarded or retargeted.
+A fresh originating request completed the actual return, exact Spare receipt,
+persisted native ACK and delivered unlock. See the
+[sanitized physical proof](evidence/issue-8/physical/qualification.json) and
+[deployment amendment](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md).
 
-The normal Windows Orca settings/profile fingerprint still matches the fresh
-program baseline after corrected-companion staging: 1,429 relevant files,
-SHA-256 `41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`.
-Repeat comparisons after final isolated Windows validation and the stopped
-physical forward attempt both matched this program baseline.
+Final readback verifies all nine native/accepted-display files unchanged and
+the printer ready in standby. The normal Windows settings/profile fingerprint
+still matches the fresh program baseline: 1,429 files, SHA-256
+`41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`.
+Independent final review confirmed exact private request/result/inbox/receipt/
+delivery equality, completion before expiry, unchanged product bytes and no
+remaining material code, security, recovery, fidelity or evidence defect.
+Final read-only public-package reconciliation by the independent GPT-5.6 Sol /
+High reviewer also found no material issue: all ten private artifact digests
+and the clean frame match, historical/isolated limits remain explicit, local
+links resolve, and the Founder Review path correctly identifies agent-owned
+bounded setup. Final commit CI is reported by the PR checks.
 
-## Founder Review gate
+## Limits and Founder Review
 
-The final handoff must name the already-open isolated Orca entry, original
-representative Temperature context, exact private prepared file location,
-Send action, physical native selector/Return, and expected original-target
-205°C NOT APPLIED result. It must identify the bounded live communication
-window and recovery without asking the founder to run transport commands.
+The founder explicitly approved the disclosed existing trusted-LAN boundary.
+Physical HTTP remains unencrypted and lacks per-message cryptographic
+authentication. Correlation/replay checks protect against accidental
+misdelivery; no malicious-LAN protection is claimed. The Spare hop uses its
+existing authenticated worker. No new credential, service or public access
+was created.
 
-Founder judgment concerns discoverability, wording, hierarchy, context trust,
-and navigation. Automated tests, AI inspection, isolated screenshots and owner
-physical observations do not replace Founder acceptance. No merge or deployment
-is authorized by this preflight.
-
-## Superseding actual production finding
-
-The owner-enabled Storage grant was verified read-only. Actual original
-context and simulated 205°C/Return were reported by the owner on the real
-screen. The native sidecar remains outside the Moonraker config tree because
-beta.9’s installer links the settings file individually. No result or receipt
-reached Spare; no persisted native ACK or delivered unlock was observed.
-The relay is stopped, target is nonactive, and the physical return/full same-
-path preflight is blocked. Earlier technically reviewed isolation and draft CI
-passes must not be called a completed production flow.
-
-The discovered automatic retry gap was independently corrected and tested.
-That change does not resolve sidecar reachability. The
-[storage-gate amendment](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) has now
-been explicitly approved for owner execution, but has not been applied. A new actual same-path run is required after an explicit
-decision, followed by evidence/documentation reconciliation and Founder handoff.
-
-## Owner bridge and actual receipt correction
-
-The owner applied the explicitly approved, hash-pinned single-file bridge.
-Authenticated GET matched the old physical request and 205°C selection in
-expired state; it was never forwarded or retargeted. A fresh originating Send
-then persisted its exact context through the bridge. Native Lua omits a nil
-result key while pending; the relay now accepts that omission only in received,
-unacknowledged state. This source-specific correction passes independent review
-and 181 combined tests; selected/acknowledged states still require a result.
-The same unexpired request resumed under its original IDs and is awaiting the
-owner’s fresh selection. No native UI, plugin permission or companion byte
-changed. Full return/preflight is not yet claimed.
+This pass covers this exact beta.9/October 15 candidate, target and approved
+storage bridge. It does not generalize to other installations or qualify
+printing/application. No print, queue, heat, motion, homing, macro, firmware or
+profile write occurred. Founder judgment of wording, hierarchy, context trust,
+discoverability and navigation remains open. No merge or deployment is authorized.

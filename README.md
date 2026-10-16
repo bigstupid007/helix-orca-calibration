@@ -167,11 +167,13 @@ a bounded relay using existing access. Accepted Issue #1, #4 and #6 sources and
 the beta.4 harness remain unchanged.
 
 The candidate passes 181 tests, corrected eleven-viewport native evidence,
-isolated Windows validation and reviewed receipt-driven retry/recovery. The
-initial physical attempt exposed beta.9's install-side storage path. The owner
-then applied the explicitly approved single-file bridge. Exact authenticated
-readback and a fresh native receipt are verified; the fresh selection/return
-and full AI Product Preflight remain in progress.
+isolated Windows validation, independent review and AI Product Preflight. A
+fresh actual Orca request reached the physical HelixScreen; the owner selected
+simulated 205°C and Return. Spare committed the exact result and receipt, native
+storage persisted its acknowledgement, and Orca displayed original-context
+**NOT APPLIED** instructions. [Actual proof](docs/evidence/issue-8/physical/qualification.json)
+also records completion before expiry, unchanged native/display files, ready/
+standby postchecks and the unchanged 1,429-file normal Orca profile fingerprint.
 
 The founder approved the disclosed trusted-LAN boundary, which remains
 unencrypted and without per-message cryptographic authentication. A narrowly
@@ -180,5 +182,8 @@ exposing only `orcacal.json` through the existing config API. This amendment is
 approved and was executed through existing owner local access only. See the
 [storage gate](docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md),
 [program](docs/BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md), and
-[operations](docs/TEMPERATURE_COMMUNICATION.md). PR #9 remains draft; full AI
-Product Preflight, Founder Review, merge and deployment are not complete.
+[operations and exact Founder Review path](docs/TEMPERATURE_COMMUNICATION.md#founder-review).
+[PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9) is the single
+unmerged candidate. The completed relay has exited; the agent prepares another
+bounded live window for a fresh review. Founder acceptance, merge and deployment
+remain open.

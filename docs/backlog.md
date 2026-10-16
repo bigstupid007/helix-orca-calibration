@@ -1,6 +1,6 @@
 # Backlog
 
-## In progress: Issue #8 — real Temperature communication without printing
+## Awaiting Founder Review: Issue #8 — real Temperature communication without printing
 
 The founder approved one real request/selection return using current beta.9
 and qualified October 15 Orca, with all print/heating/motion/profile-write
@@ -17,17 +17,19 @@ strategy and physical security gate.
 - [x] Owner enabled the verified storage-only candidate and observed physical original context and 205°C/Return.
 - [x] Founder approved owner-run creation of one real shared directory and one exact file link.
 - [x] Owner executed the exact amendment; authenticated native readback and fresh receipt pass.
-- [ ] Demonstrate fresh selection -> originating Spare receipt -> persisted native ACK.
-- [ ] Complete frozen-candidate independent review and AI Product Preflight.
-- [ ] Present one unmerged PR with the proven exact Founder Review path.
+- [x] Demonstrate fresh selection -> originating Spare receipt -> persisted native ACK.
+- [x] Complete frozen-candidate independent review and AI Product Preflight.
+- [x] Prepare one unmerged PR with the proven exact Founder Review path.
+- [ ] Founder acceptance; merge/deployment require later explicit authorization.
 
-Reviewed native files and the owner grant are verified. The approved owner-run
-bridge now serves the exact native data and fresh receipt. The bounded relay
-is waiting for the fresh selection; full return/ACK and same-path preflight
-remain required. See the
-[storage bridge](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md).
-
-
+The fresh actual physical return is complete, including originating receipt,
+persisted native ACK and delivered unlock before expiry. The final panel shows
+original 220/220/220°C, simulated 205°C and NOT APPLIED. Source files, ready/idle
+state and normal Windows profiles pass final checks. The bounded relay exited;
+see [operations and Founder Review](TEMPERATURE_COMMUNICATION.md#founder-review),
+[preflight](ISSUE_8_PRODUCT_PREFLIGHT.md) and
+[actual evidence](evidence/issue-8/physical/qualification.json). No acceptance,
+merge or deployment is implied.
 
 ## Completed: Issue #1 — Helix calibration hub/detail foundation
 

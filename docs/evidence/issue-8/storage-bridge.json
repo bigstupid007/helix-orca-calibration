@@ -1,6 +1,8 @@
 {
   "bridge_survived_native_atomic_updates": true,
   "expired_result_forwarded": false,
+  "final_proof": "physical/qualification.json",
+  "fresh_full_round_trip_verified": true,
   "fresh_native_request_readback_verified": true,
   "historical_native_request_exact_match": true,
   "historical_selected_value": 205,
@@ -11,7 +13,6 @@
   "owner_explicit_approval": true,
   "owner_reported_apply_changed": true,
   "owner_reported_dry_run": true,
-  "remaining_gate": "actual fresh selection -> originating companion receipt -> persisted native ACK and delivered unlock; full preflight",
   "scope": "one real shared plugin-data directory and one exact orcacal.json file link",
   "status": "owner-applied-and-authenticated-readback-verified",
   "utility_commit": "1d4543ba489f87a24916c143fdae8f79babbc305",
