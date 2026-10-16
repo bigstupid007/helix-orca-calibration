@@ -166,19 +166,18 @@ Temperature detail, a self-contained October 15 Orca companion derivative, and
 a bounded relay using existing access. Accepted Issue #1, #4 and #6 sources and
 the beta.4 harness remain unchanged.
 
-The candidate passes 179 tests, corrected eleven-viewport native evidence,
+The candidate passes 181 tests, corrected eleven-viewport native evidence,
 isolated Windows validation and reviewed receipt-driven retry/recovery. The
-owner enabled the exact storage-only plugin and observed the original context
-and simulated 205°C/Return on the actual screen. **The physical return is
-blocked:** beta.9 writes its sidecar under the install tree, outside the
-Moonraker config route assumed by the relay. No result or receipt reached Spare.
-The relay is stopped; no configuration remedy is authorized or applied.
+initial physical attempt exposed beta.9's install-side storage path. The owner
+then applied the explicitly approved single-file bridge. Exact authenticated
+readback and a fresh native receipt are verified; the fresh selection/return
+and full AI Product Preflight remain in progress.
 
 The founder approved the disclosed trusted-LAN boundary, which remains
 unencrypted and without per-message cryptographic authentication. A narrowly
 reviewed owner utility creates one real shared directory and one file link,
 exposing only `orcacal.json` through the existing config API. This amendment is
-approved for execution through existing owner local access only. See the
+approved and was executed through existing owner local access only. See the
 [storage gate](docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md),
 [program](docs/BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md), and
 [operations](docs/TEMPERATURE_COMMUNICATION.md). PR #9 remains draft; full AI

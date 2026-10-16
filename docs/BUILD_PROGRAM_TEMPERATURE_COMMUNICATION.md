@@ -2,7 +2,7 @@
 
 Governing work item: [Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8).
 
-Status: draft [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9), awaiting execution/readback of the approved owner-run storage exposure. Owner enablement and physical forward/selection are observed; no result returned to Spare. Only the specific owner-run single-file exposure is now authorized; no merge,
+Status: draft [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9), validating the fresh physical return after approved owner execution and exact readback. Owner enablement and physical forward/selection are observed; no result returned to Spare. Only the specific owner-run single-file exposure is now authorized; no merge,
 service/firmware change or deployment is authorized.
 
 ## Authority and reconstructed baseline
@@ -53,7 +53,7 @@ Final PR must provide the exact normal entry point on Spare, the named represent
 
 ## Current checkpoint
 
-OSS identity and merged baselines are verified, and canonical dirty work remains preserved. The isolated candidate passes 179 tests, native evidence verification and Windows validation. Receipt-driven relay retries are independently reviewed. The owner enabled the verified storage-only plugin and reported actual original context and 205°C/Return. Production storage resolves under the install tree rather than Moonraker's exposed config tree; no result/inbox/receipt was retrieved. The relay is stopped and the target remains nonactive. [The deployment gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) records the source evidence and narrow owner-run amendment, now explicitly approved but not yet applied. This Issue remains the sole governing work item; full AI Product Preflight and Founder Review remain open.
+OSS identity and merged baselines are verified, and canonical dirty work remains preserved. The isolated candidate passes 181 tests, native evidence verification and Windows validation. Receipt-driven relay retries are independently reviewed. The owner enabled the verified storage-only plugin and reported actual original context and 205°C/Return. Production storage resolves under the install tree rather than Moonraker's exposed config tree; no result/inbox/receipt was retrieved. The relay is stopped and the target remains nonactive. [The deployment gate](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) records the source evidence and narrow owner-run amendment, now explicitly approved, owner-applied and verified through exact authenticated readback. This Issue remains the sole governing work item; full AI Product Preflight and Founder Review remain open.
 
 ## Capability checkpoint — 2026-10-16
 

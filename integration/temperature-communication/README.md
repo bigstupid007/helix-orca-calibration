@@ -72,3 +72,9 @@ expiry, the user may explicitly retire that slot and begin another; expiry
 never silently clears or mutates the old request, receipt, or NOT APPLIED
 instructions. Stale, mismatched, malformed, and conflicting returns are
 rejected without changing the committed result or writing a new receipt.
+
+Native storage is Lua JSON: a pending `result=nil` is omitted, rather than
+encoded as JSON null. The relay accepts that omission only in unacknowledged
+`received` state and normalizes a copy to null internally. Selected or
+acknowledged states must include the result; identity, lease and state checks
+remain required. The actual physical pending receipt established this shape.

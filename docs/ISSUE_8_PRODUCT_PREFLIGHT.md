@@ -58,7 +58,7 @@ target-clock lease to original expiry, only shortens stored recovery deadlines,
 requires a nonactive state at every native query gate, and durably persists
 terminal delivery before unlocking Orca. The independent reviewer found no
 remaining material code defect in `fe68605`, conditional on the final matrix
-and evidence verification. All 179 automated tests and branch whitespace checks
+and evidence verification. All 181 automated tests and branch whitespace checks
 pass.
 Retries preserve IDs and can only shorten the lease. Expiry permits explicit
 retirement without silently changing the prior NOT APPLIED instructions.
@@ -117,3 +117,16 @@ That change does not resolve sidecar reachability. The
 [storage-gate amendment](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md) has now
 been explicitly approved for owner execution, but has not been applied. A new actual same-path run is required after an explicit
 decision, followed by evidence/documentation reconciliation and Founder handoff.
+
+## Owner bridge and actual receipt correction
+
+The owner applied the explicitly approved, hash-pinned single-file bridge.
+Authenticated GET matched the old physical request and 205°C selection in
+expired state; it was never forwarded or retargeted. A fresh originating Send
+then persisted its exact context through the bridge. Native Lua omits a nil
+result key while pending; the relay now accepts that omission only in received,
+unacknowledged state. This source-specific correction passes independent review
+and 181 combined tests; selected/acknowledged states still require a result.
+The same unexpired request resumed under its original IDs and is awaiting the
+owner’s fresh selection. No native UI, plugin permission or companion byte
+changed. Full return/preflight is not yet claimed.

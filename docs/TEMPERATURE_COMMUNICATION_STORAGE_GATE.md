@@ -1,6 +1,6 @@
 # Issue #8 production storage gate
 
-Status: **single-file exposure approved for owner execution; not yet applied**.
+Status: **owner-applied single-file exposure and exact authenticated readback verified**.
 The one candidate remains [draft PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9).
 The earlier technically reviewed isolated pass does not establish a completed
 physical return or full AI Product Preflight.
@@ -49,7 +49,7 @@ Pinned primary sources:
 - [beta.9 runtime config path](https://github.com/prestonbrown/helixscreen/blob/e5cdc5dc523280bc3ead681a4f229bf84dfa726a/include/runtime_config.h)
 - [beta.9 plugin-host settings path](https://github.com/prestonbrown/helixscreen/blob/e5cdc5dc523280bc3ead681a4f229bf84dfa726a/src/application/printer_session.cpp)
 
-## Narrow amendment — approved for owner execution, not yet applied
+## Narrow amendment — owner-applied and readback verified
 
 Permit the owner, using existing local access, to expose **one file**:
 
@@ -71,7 +71,12 @@ in the program chat. The owner confirmed an existing local terminal and the
 installation directory. This amendment authorizes only the real shared
 `plugin-data` directory and exact file link described above. It does not grant
 the agent new SSH access, credentials, host trust, permissions or service
-changes. Execution remains owner-run; no target mutation has occurred yet.
+changes. The owner executed the pinned, hash-checked utility and reported dry-run then
+apply success. Existing authenticated GET returned the exact historical
+request/205°C result, now expired; it was preserved as evidence, never forwarded.
+A fresh request then persisted through the bridge, proving native atomic
+replacement preserves this separate file link. Exact native/display source
+hashes are unchanged. The fresh full round trip remains required.
 
 The reviewed [owner utility](../scripts/temperature-communication-storage-link.py)
 defaults to a dry run. Seven temporary-filesystem tests and independent review
@@ -110,6 +115,6 @@ then verify original NOT APPLIED instructions, idle state, exact native files
 and normal Windows profile preservation. Complete the same-path AI Product
 Preflight and reconcile the existing PR before Founder Review.
 
-If the current envelope is retained, leave the PR draft and the physical return
-gate blocked. The owner-observed forward interaction remains valid partial
-evidence; it is not bidirectional communication acceptance.
+The approved amendment does not grant any wider file exposure, access-mode,
+service, credential, plugin permission, hardware or deployment change. Keep the
+PR draft until the fresh same-path return and AI Product Preflight pass.

@@ -1,0 +1,19 @@
+{
+  "bridge_survived_native_atomic_updates": true,
+  "expired_result_forwarded": false,
+  "fresh_native_request_readback_verified": true,
+  "historical_native_request_exact_match": true,
+  "historical_selected_value": 205,
+  "historical_state": "expired",
+  "native_and_accepted_display_source_unchanged": true,
+  "new_service_credential_permission_or_hardware_action": false,
+  "owner_existing_terminal_confirmed": true,
+  "owner_explicit_approval": true,
+  "owner_reported_apply_changed": true,
+  "owner_reported_dry_run": true,
+  "remaining_gate": "actual fresh selection -> originating companion receipt -> persisted native ACK and delivered unlock; full preflight",
+  "scope": "one real shared plugin-data directory and one exact orcacal.json file link",
+  "status": "owner-applied-and-authenticated-readback-verified",
+  "utility_commit": "1d4543ba489f87a24916c143fdae8f79babbc305",
+  "utility_sha256": "045d2a578f869eaa761a7168a3155af44785b9baadb677a85f5af3e9aa95a00f"
+}

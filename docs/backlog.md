@@ -16,15 +16,17 @@ strategy and physical security gate.
 - [x] Founder approved the disclosed existing trusted-LAN boundary for this proof.
 - [x] Owner enabled the verified storage-only candidate and observed physical original context and 205°C/Return.
 - [x] Founder approved owner-run creation of one real shared directory and one exact file link.
-- [ ] Execute/read back that amendment; demonstrate actual selection -> originating Spare return.
+- [x] Owner executed the exact amendment; authenticated native readback and fresh receipt pass.
+- [ ] Demonstrate fresh selection -> originating Spare receipt -> persisted native ACK.
 - [ ] Complete frozen-candidate independent review and AI Product Preflight.
 - [ ] Present one unmerged PR with the proven exact Founder Review path.
 
-Reviewed native files and owner grant are verified. The physical forward route
-and selection were observed, but the return file is outside the existing
-Moonraker config tree; no result reached Spare. The relay is stopped. See the
-[approved owner-run storage exposure](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md).
-No completed round-trip or Founder Review-ready claim is valid.
+Reviewed native files and the owner grant are verified. The approved owner-run
+bridge now serves the exact native data and fresh receipt. The bounded relay
+is waiting for the fresh selection; full return/ACK and same-path preflight
+remain required. See the
+[storage bridge](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md).
+
 
 
 ## Completed: Issue #1 — Helix calibration hub/detail foundation

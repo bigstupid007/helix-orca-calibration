@@ -31,11 +31,11 @@ complete: read-only verification found exactly the reviewed version and Storage
 grant. The owner reported no literal Storage label; beta.9 describes it as
 keeping the plugin’s own data on the screen, up to 256 KB.
 
-**Production return is blocked.** The actual native sidecar path is under the
-install tree, outside this config-root GET. See the
-[approved owner-run exposure](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md). No
-new physical request is permitted before the approved single-file bridge
-passes exact authenticated readback. No broader workaround is authorized.
+The initial deployed sidecar location was outside the config-root GET. The
+owner has since applied the explicitly approved real directory and exact file
+link. Authenticated GET now matches the native data and fresh receipt; see the
+[storage bridge](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md). No broader
+configuration or access change is authorized.
 
 ## Correlation and delivery
 
@@ -117,8 +117,7 @@ the founder should judge discoverability, naturalness, wording, hierarchy,
 context trust and native navigation. No saving, printing or hardware control
 is part of review.
 
-That complete scenario is **not yet a Founder Review handoff**. Required
-the actual physical return remains blocked at the deployment decision. AI Product Preflight
+That complete scenario is **not yet a Founder Review handoff**. The fresh actual physical return is still in progress. AI Product Preflight
 must prove the same real path before the PR is presented as ready. Automated,
 fixture and AI inspection cannot provide founder acceptance.
 
