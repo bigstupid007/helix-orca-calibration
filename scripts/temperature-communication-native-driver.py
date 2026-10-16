@@ -60,12 +60,15 @@ def selection_for(request: dict, value: int) -> dict:
 
 
 def run(payload: Path, output: Path, result_output: Path, viewport_label: str, value: int,
-        expiry_proof: bool = False) -> None:
-    request = json.loads(payload.read_text(encoding="utf-8"))
-    # The native extension remains the protocol authority. This exact key check
-    # catches flattened-wrapper or accidental transport metadata before launch.
-    if set(request) != set(qualification.VALID_REQUEST):
-        raise DriverError("payload does not have the exact 20-key native request shape")
+        expiry_proof: bool = False, recovery_proof: bool = False,
+        clock_failure_proof: bool = False) -> None:
+    envelope = json.loads(payload.read_text(encoding="utf-8"))
+    if set(envelope) != {"session", "lease"} \
+            or set(envelope.get("session", {})) != set(qualification.VALID_REQUEST) \
+            or set(envelope.get("lease", {})) != {"issued_eventtime", "expires_eventtime"}:
+        raise DriverError("payload does not have the exact session/lease native envelope")
+    request = envelope["session"]
+    lease = envelope["lease"]
     expected_result = selection_for(request, value)
     try:
         choice_index = request["choices"].index(value)
@@ -82,10 +85,13 @@ def run(payload: Path, output: Path, result_output: Path, viewport_label: str, v
     output.mkdir(parents=True)
     (output / "home").mkdir()
     qualification.seed_settings(output / "config")
-    fixture = Path(tempfile.mkdtemp(prefix="helix-temperature-origin-"))
+    fixture_parent = qualification.generator.default_output().parent / "qualification-fixtures"
+    fixture_parent.mkdir(parents=True, exist_ok=True)
+    fixture = Path(tempfile.mkdtemp(prefix="native-origin-", dir=fixture_parent))
     qualification.VALID_REQUEST = request
     qualification.VALID_ACK = dict(expected_result, schema="helix-orca-temperature-ack/v1")
-    plugin_root = qualification.make_fixture(fixture)
+    eventtime = lease["issued_eventtime"] + 0.25
+    plugin_root = qualification.make_fixture(fixture, envelope=envelope, eventtime=eventtime)
     label, width, height, layout, dpi = entry
     name = f"temperature-origin-{os.getpid()}"
     accepted._remove_container(name)
@@ -93,9 +99,52 @@ def run(payload: Path, output: Path, result_output: Path, viewport_label: str, v
     accepted.run(accepted._container_args(name, output, width, height, layout, dpi), capture=True)
     try:
         qualification.wait_ready(name)
+        if clock_failure_proof:
+            qualification.tap(name, "orcacal__qualify-clock-missing", width, height)
+            qualification.tap(name, "orcacal__qualify-request", width, height)
+            if accepted.ctl(name, "current").get("overlays") != []:
+                raise DriverError("missing query clock accepted a request")
+            storage = output / "config/plugin-data/orcacal.json"
+            if storage.exists() and "session" in json.loads(storage.read_text(encoding="utf-8")):
+                raise DriverError("missing query clock persisted a request")
+            qualification.tap(name, "orcacal__qualify-clock-restore", width, height)
+            qualification.tap(name, "orcacal__qualify-expire", width, height)
+            qualification.tap(name, "orcacal__qualify-request", width, height)
+            if accepted.ctl(name, "current").get("overlays") != []:
+                raise DriverError("delayed expired envelope opened native UI")
+            if storage.exists() and "session" in json.loads(storage.read_text(encoding="utf-8")):
+                raise DriverError("delayed expired envelope persisted a request")
+            report = {
+                "container_network": "none", "viewport": f"{width}x{height}",
+                "clock_fixture": dict(qualification.SYNTHETIC_CLOCK,
+                                      eventtime=eventtime),
+                "assertions": ["missing-clock-failed-closed", "delayed-envelope-rejected"],
+            }
+            (output / "report.json").write_text(
+                json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            return
+        pre_assertions = []
         qualification.tap(name, "orcacal__qualify-request", width, height)
         accepted._assert_overlay(accepted.ctl(name, "current"),
                                  ["orcacal__wizard", "orcacal__temperature"])
+        if recovery_proof:
+            time.sleep(0.7)
+            accepted._remove_container(name)
+            accepted.run(accepted._container_args(name, output, width, height, layout, dpi), capture=True)
+            qualification.wait_ready(name)
+            qualification.tap(name, "orcacal__tile", width, height)
+            qualification.tap(name, "orcacal__temperature_choice", width, height)
+            if accepted.ctl(name, "get", "orcacal__tc_choice_on").get("value") != 0:
+                raise DriverError("restart enabled selection before lease recovery")
+            qualification.back_to_home(name)
+            qualification.tap(name, "orcacal__qualify-request", width, height)
+            if accepted.ctl(name, "current").get("overlays") != []:
+                raise DriverError("recovery request reopened dismissed native overlays")
+            qualification.tap(name, "orcacal__tile", width, height)
+            qualification.tap(name, "orcacal__temperature_choice", width, height)
+            if accepted.ctl(name, "get", "orcacal__tc_choice_on").get("value") != 1:
+                raise DriverError("validated exact recovery did not enable selection")
+            pre_assertions.extend(("restart-disabled-selection", "exact-recovery-revalidated-clock"))
         detail = accepted.ctl(name, "ls", "orcacal__temperature")
         for widget in ("orcacal__request_printer", "orcacal__request_values",
                        "orcacal__request_file", "orcacal__request_hash",
@@ -109,16 +158,18 @@ def run(payload: Path, output: Path, result_output: Path, viewport_label: str, v
         time.sleep(0.8)
         storage = output / "config/plugin-data/orcacal.json"
         session = json.loads(storage.read_text(encoding="utf-8"))["session"]
-        if session.get("request") != request or session.get("result") != expected_result:
+        if session.get("request") != request or session.get("lease") != lease \
+                or session.get("result") != expected_result:
             raise DriverError("native persisted request/result does not match Windows-origin payload")
         if session.get("acknowledged") is not False:
             raise DriverError("native result was acknowledged before originating companion receipt")
-        assertions = ["fresh-request-auto-opened", "native-selector-used",
+        assertions = pre_assertions + ["fresh-request-auto-opened", "native-selector-used",
                       "exact-result-persisted", "awaiting-originating-companion-ack"]
         if expiry_proof:
-            if request["ttl_seconds"] > 5:
-                raise DriverError("expiry proof requires ttl_seconds <= 5")
-            deadline = time.monotonic() + request["ttl_seconds"] + 1.5
+            remaining = lease["expires_eventtime"] - eventtime - 1.0
+            if remaining <= 2 or remaining > 5:
+                raise DriverError("expiry proof requires a lease between 2 and 5 seconds")
+            deadline = time.monotonic() + remaining + 1.5
             while time.monotonic() < deadline:
                 session = json.loads(storage.read_text(encoding="utf-8"))["session"]
                 if session.get("state") == "expired":
@@ -178,8 +229,11 @@ def main() -> int:
     parser.add_argument("--viewport", default="medium_800x480")
     parser.add_argument("--value", type=int, default=205)
     parser.add_argument("--expiry-proof", action="store_true")
+    parser.add_argument("--recovery-proof", action="store_true")
+    parser.add_argument("--clock-failure-proof", action="store_true")
     args = parser.parse_args()
-    run(args.payload, args.output, args.result_output, args.viewport, args.value, args.expiry_proof)
+    run(args.payload, args.output, args.result_output, args.viewport, args.value,
+        args.expiry_proof, args.recovery_proof, args.clock_failure_proof)
     print(f"Native selection retained at {args.result_output}")
     return 0
 

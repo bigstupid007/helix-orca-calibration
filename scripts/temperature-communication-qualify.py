@@ -17,6 +17,21 @@ import time
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SOURCE_PATHS = (
+    "scripts/temperature-communication-plugin.py",
+    "scripts/temperature-communication-qualify.py",
+    "scripts/helix-beta9-qualify.py",
+    "scripts/helix_dev.py",
+)
+
+
+def qualification_source_hashes() -> dict[str, str]:
+    return {path: hashlib.sha256((ROOT / path).read_bytes()).hexdigest()
+            for path in SOURCE_PATHS}
+
+
+# Capture before importing any executable qualification dependency.
+LOADED_SOURCE_SNAPSHOT = qualification_source_hashes()
 
 
 def load(name: str, path: Path):
@@ -59,6 +74,14 @@ VALID_ACK = {
                "context_sha256", "file_sha256", "file", "file_bytes", "setting"}
 }
 VALID_ACK.update({"schema": "helix-orca-temperature-ack/v1", "value": 205})
+VALID_LEASE = {"issued_eventtime": 1000.0, "expires_eventtime": 1900.0}
+VALID_ENVELOPE = {"session": VALID_REQUEST, "lease": VALID_LEASE}
+FIXTURE_EVENTTIME = 1000.25
+SYNTHETIC_CLOCK = {
+    "kind": "synthetic-query-eventtime",
+    "eventtime": FIXTURE_EVENTTIME,
+    "scope": "test fixture wraps only printer.objects.query print_stats state",
+}
 
 TILE_XML = """<?xml version="1.0"?>
 <component>
@@ -85,6 +108,14 @@ class QualificationError(RuntimeError):
     pass
 
 
+def verify_source_snapshot(expected: dict[str, str] | None = None) -> dict[str, str]:
+    expected = expected or LOADED_SOURCE_SNAPSHOT
+    current = qualification_source_hashes()
+    if current != expected:
+        raise QualificationError("qualification source changed after module load")
+    return current
+
+
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
@@ -98,13 +129,32 @@ def state_root() -> Path:
     return root / "helix-orca-calibration/temperature-communication"
 
 
-def make_fixture(root: Path) -> Path:
+def make_fixture(root: Path, envelope: dict | None = None,
+                 eventtime: float = FIXTURE_EVENTTIME) -> Path:
     plugin_root = root / "plugins"
     target = plugin_root / "orcacal"
     generator.generate(target)
-    request = json.dumps(VALID_REQUEST, separators=(",", ":"))
+    request = json.dumps(envelope or VALID_ENVELOPE, separators=(",", ":"))
     ack = json.dumps(VALID_ACK, separators=(",", ":"))
     hook = f"""
+local qualification_eventtime = {eventtime!r}
+local qualification_clock_missing = false
+local qualification_real_call = helix.moonraker.call
+helix.moonraker.call = function(method, params)
+    local response, err = qualification_real_call(method, params)
+    local objects = type(params) == "table" and params.objects or nil
+    local fields = type(objects) == "table" and objects.print_stats or nil
+    local exact_query = method == "printer.objects.query"
+        and type(fields) == "table" and #fields == 1 and fields[1] == "state"
+    if exact_query and type(response) == "table" and type(response.result) == "table" then
+        if qualification_clock_missing then
+            response.result.eventtime = nil
+        else
+            response.result.eventtime = qualification_eventtime
+        end
+    end
+    return response, err
+end
 local qualification_request = helix.json.decode([==[{request}]==])
 local qualification_ack = helix.json.decode([==[{ack}]==])
 helix.ui.on("qualify_request", function()
@@ -112,6 +162,15 @@ helix.ui.on("qualify_request", function()
 end)
 helix.ui.on("qualify_ack", function()
     on_temperature_ack("qualification", qualification_ack)
+end)
+helix.ui.on("qualify_expire", function()
+    qualification_eventtime = qualification_request.lease.expires_eventtime
+end)
+helix.ui.on("qualify_clock_missing", function()
+    qualification_clock_missing = true
+end)
+helix.ui.on("qualify_clock_restore", function()
+    qualification_clock_missing = false
 end)
 """
     with (target / "main.lua").open("a", encoding="utf-8") as handle:
@@ -122,11 +181,20 @@ end)
          "description": "Test-only request trigger", "component": "orcacal__qualify-request", "colspan": 3, "rowspan": 2},
         {"id": "orcacal__qualify-ack", "name": "Inject acknowledgement", "icon": "check",
          "description": "Test-only acknowledgement trigger", "component": "orcacal__qualify-ack", "colspan": 3, "rowspan": 2},
+        {"id": "orcacal__qualify-expire", "name": "Advance lease clock", "icon": "clock",
+         "description": "Test-only expiry trigger", "component": "orcacal__qualify-expire", "colspan": 3, "rowspan": 2},
+        {"id": "orcacal__qualify-clock-missing", "name": "Hide lease clock", "icon": "cancel",
+         "description": "Test-only missing clock trigger", "component": "orcacal__qualify-clock-missing", "colspan": 3, "rowspan": 2},
+        {"id": "orcacal__qualify-clock-restore", "name": "Restore lease clock", "icon": "refresh",
+         "description": "Test-only clock restore trigger", "component": "orcacal__qualify-clock-restore", "colspan": 3, "rowspan": 2},
     ])
     (target / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     for suffix, action, label in (
         ("request", "qualify_request", "Inject request"),
         ("ack", "qualify_ack", "Inject acknowledgement"),
+        ("expire", "qualify_expire", "Advance lease clock"),
+        ("clock-missing", "qualify_clock_missing", "Hide lease clock"),
+        ("clock-restore", "qualify_clock_restore", "Restore lease clock"),
     ):
         component = f"orcacal__qualify-{suffix}"
         (target / "ui" / f"{component}.xml").write_text(
@@ -151,6 +219,9 @@ def seed_settings(config_dir: Path) -> None:
         {"col": 0, "colspan": 4, "enabled": True, "id": "orcacal__tile", "row": 0, "rowspan": 2},
         {"col": 4, "colspan": 4, "enabled": True, "id": "orcacal__qualify-request", "row": 0, "rowspan": 2},
         {"col": 8, "colspan": 4, "enabled": True, "id": "orcacal__qualify-ack", "row": 0, "rowspan": 2},
+        {"col": 0, "colspan": 4, "enabled": True, "id": "orcacal__qualify-expire", "row": 2, "rowspan": 2},
+        {"col": 4, "colspan": 4, "enabled": True, "id": "orcacal__qualify-clock-missing", "row": 2, "rowspan": 2},
+        {"col": 8, "colspan": 4, "enabled": True, "id": "orcacal__qualify-clock-restore", "row": 2, "rowspan": 2},
     ]
     widgets.extend({"col": -1, "colspan": 1, "enabled": False, "id": widget_id,
                     "row": -1, "rowspan": 1} for widget_id in accepted.BETA4_DEFAULT_HOME_WIDGETS)
@@ -258,7 +329,7 @@ def run_viewport(entry, output: Path, plugin_root: Path) -> dict[str, object]:
             raise QualificationError("native selector did not choose 205 C")
         assertions.append("native-selector-chooses-205")
         tap(name, "orcacal__return_selection", width, height)
-        time.sleep(0.8)
+        time.sleep(1.5)
         waiting = accepted.ctl(name, "ls", "orcacal__temperature")
         accepted._assert_widget(waiting, "orcacal__waiting_area")
         assertions.append("selection-enters-waiting")
@@ -267,9 +338,10 @@ def run_viewport(entry, output: Path, plugin_root: Path) -> dict[str, object]:
         stored = json.loads(storage_path.read_text(encoding="utf-8"))["session"]
         expected_result = dict(VALID_ACK)
         expected_result["schema"] = "helix-orca-temperature-selection/v1"
-        if set(stored) != {"request", "result", "acknowledged", "recovery_required", "state", "tombstones"}:
+        if set(stored) != {"request", "lease", "result", "acknowledged", "recovery_required", "state", "tombstones"}:
             raise QualificationError(f"unexpected native session storage shape: {stored}")
-        if stored["request"] != VALID_REQUEST or stored["result"] != expected_result:
+        if stored["request"] != VALID_REQUEST or stored["lease"] != VALID_LEASE \
+                or stored["result"] != expected_result:
             raise QualificationError("persisted native request/result does not match exact protocol")
         if stored["acknowledged"] is not False or stored["state"] not in {"queued", "waiting"}:
             raise QualificationError("selection claimed delivery before exact acknowledgement")
@@ -277,6 +349,7 @@ def run_viewport(entry, output: Path, plugin_root: Path) -> dict[str, object]:
         back_to_home(name)
 
         tap(name, "orcacal__qualify-ack", width, height)
+        time.sleep(0.8)
         _, returned = open_temperature(name, width, height)
         accepted._assert_widget(returned, "orcacal__returned_area")
         accepted._assert_widget(returned, "orcacal__returned_value")
@@ -306,39 +379,45 @@ def capture(output: Path) -> None:
     image = accepted.image_metadata()
     if output.exists(): raise QualificationError(f"capture destination exists: {output}")
     output.mkdir(parents=True)
-    fixture = Path(tempfile.mkdtemp(prefix="helix-temperature-native-"))
+    fixture_parent = generator.default_output().parent / "qualification-fixtures"
+    fixture_parent.mkdir(parents=True, exist_ok=True)
+    fixture = Path(tempfile.mkdtemp(prefix="native-matrix-", dir=fixture_parent))
     baseline_before = generator.verify_baseline()
     rows = []
     try:
         plugin_root = make_fixture(fixture)
         fixture_files = file_hashes(plugin_root / "orcacal")
+        verify_source_snapshot()
+        if file_hashes(plugin_root / "orcacal") != fixture_files:
+            raise QualificationError("qualification fixture changed before native execution")
         for entry in accepted.VIEWPORTS:
             row = run_viewport(entry, output, plugin_root)
             if row["assertions"] != list(EXPECTED_ASSERTIONS):
                 raise QualificationError(f"assertion sequence mismatch: {row}")
             rows.append(row)
             print(f"PASS {row['label']}: {row['viewport']}", flush=True)
+        verify_source_snapshot()
+        if file_hashes(plugin_root / "orcacal") != fixture_files:
+            raise QualificationError("qualification fixture changed during native execution")
+        if generator.verify_baseline() != baseline_before:
+            raise QualificationError("qualification changed the accepted OrcaCal baseline")
         report = {
             "accepted_baseline": baseline_before,
             "captured_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "container_network": "none", "dependency_image": accepted.IMAGE,
             "dependency_image_id": image["id"], "fixture_files": fixture_files,
-            "qualification_sources": {
-                "scripts/temperature-communication-plugin.py": sha256(ROOT / "scripts/temperature-communication-plugin.py"),
-                "scripts/temperature-communication-qualify.py": sha256(ROOT / "scripts/temperature-communication-qualify.py"),
-                "scripts/helix-beta9-qualify.py": sha256(ROOT / "scripts/helix-beta9-qualify.py"),
-            },
+            "qualification_sources": LOADED_SOURCE_SNAPSHOT,
             "results": rows, "runtime": runtime,
             "screenshots": {str(path.relative_to(output)): sha256(path) for path in sorted(output.rglob("*.png"))},
             "storage": {str(path.relative_to(output)): sha256(path)
                         for path in sorted(output.glob("*/config/plugin-data/orcacal.json"))},
-            "test_request": VALID_REQUEST, "test_ack": VALID_ACK,
+            "test_envelope": VALID_ENVELOPE, "test_ack": VALID_ACK,
+            "clock_fixture": dict(SYNTHETIC_CLOCK,
+                                  wrapper_sha256=fixture_files["main.lua"]),
         }
         accepted.json_write(output / "report.json", report)
     finally:
         shutil.rmtree(fixture, ignore_errors=True)
-    if generator.verify_baseline() != baseline_before:
-        raise QualificationError("qualification changed the accepted OrcaCal baseline")
 
 
 def main() -> int:

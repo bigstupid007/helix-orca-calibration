@@ -106,6 +106,13 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
         ):
             self.assertIn(marker, source)
         self.assertIn("local TEMPERATURE_CHOICES = {230, 225, 220, 215, 210, 205, 200, 195, 190}", source)
+        for marker in (
+            "exact_keys(data, ENVELOPE_KEYS, 2)", "exact_keys(data, LEASE_KEYS, 2)",
+            "data.issued_eventtime < 0", "data.expires_eventtime <= data.issued_eventtime",
+            "data.expires_eventtime - data.issued_eventtime > request.ttl_seconds",
+            "local request, lease = validate_envelope(data)",
+        ):
+            self.assertIn(marker, source)
 
     def test_result_and_ack_have_exact_eleven_key_contract(self):
         source = EXTENSION.read_text()
@@ -129,12 +136,12 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
             'tc_status:set("Rejected conflicting request identity")',
             'tc_status:set("Busy with an earlier Temperature request")',
             "temperature_session.recovery_required = false",
-            "recovery_required=not stored_expired and stored.acknowledged ~= true",
+            "temperature_session.lease = lease",
             "temperature_session.result.value ~= value",
             'tc_status:set("First selection is immutable; waiting for its acknowledgement")',
             "data.value ~= temperature_session.result.value",
-            "temperature_session.acknowledged = true",
-            "helix.timer.after(request.ttl_seconds * 1000",
+            "session.acknowledged = true",
+            "session.lease.expires_eventtime - current",
             "MAX_TOMBSTONES = 16",
         ):
             self.assertIn(marker, source)
@@ -148,10 +155,8 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
         duplicate = source[source.index("if temperature_session and same_request"):
                            source.index("if temperature_session and same_identity")]
         self.assertIn("local recovering = temperature_session.recovery_required", duplicate)
-        self.assertIn("if recovering then arm_expiry(request) end", duplicate)
-        self.assertNotIn("arm_expiry(request)\n", duplicate.replace(
-            "if recovering then arm_expiry(request) end\n", ""
-        ))
+        self.assertIn("math.min(temperature_session.lease.expires_eventtime", duplicate)
+        self.assertIn("arm_expiry(current)", duplicate)
         expired_gate = source[source.index("if temperature_session and not temperature_session.acknowledged"):
                               source.index("local candidate = new_session")]
         self.assertIn('temperature_session.state ~= "expired"', expired_gate)
@@ -167,9 +172,10 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
             'recovery_required=not stored_expired',
             'state=stored_expired and "expired"',
             "remember_tombstone(temperature_session, request)",
-            "if not temperature_session.acknowledged and not stored_expired then arm_expiry(request) end",
+            "local lease = validate_lease(stored.lease, request)",
         ):
             self.assertIn(marker, restore)
+        self.assertNotIn("arm_expiry", restore)
         ack = source[source.index("local function on_temperature_ack"):
                      source.index("helix.moonraker.on_agent_event")]
         self.assertIn('temperature_session.state == "expired"', ack)
@@ -193,7 +199,7 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
         self.assertEqual(source.count('helix.storage.set, "session"'), 1)
         self.assertEqual(source.count('helix.storage.get, "session"'), 1)
         for marker in (
-            'request=request, result=nil, acknowledged=false, recovery_required=false',
+            'request=request, lease=lease, result=nil, acknowledged=false, recovery_required=false',
             'state="received", tombstones=bounded_tombstones(tombstones)',
             'tc_status:set("Selection queued; waiting for companion acknowledgement")',
             'tc_status:set("Waiting for originating companion acknowledgement")',
@@ -201,15 +207,41 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
         ):
             self.assertIn(marker, source)
 
-    def test_no_network_print_or_mock_lifecycle_capabilities(self):
+    def test_only_permissionless_read_query_and_no_print_lifecycle_capabilities(self):
         source = EXTENSION.read_text()
         for forbidden in (
-            "helix.http", "helix.moonraker.call", "helix.moonraker.query",
+            "helix.http", "helix.moonraker.query",
             "helix.moonraker.subscribe", "helix.gcode", "helix.printer",
             "printer.print", "mock_only", "finish_simulation", "print_state",
         ):
             self.assertNotIn(forbidden, source)
+        self.assertEqual(source.count('helix.moonraker.call("printer.objects.query"'), 1)
+        self.assertIn('objects={print_stats={"state"}}', source)
         self.assertEqual(source.count("helix.moonraker.on_agent_event"), 2)
+
+    def test_clock_gate_covers_receive_return_ack_and_restart(self):
+        source = EXTENSION.read_text()
+        self.assertGreaterEqual(source.count("query_eventtime(generation)"), 4)
+        self.assertGreaterEqual(source.count("generation ~= operation_generation"), 3)
+        self.assertIn("current >= lease.issued_eventtime and current < lease.expires_eventtime", source)
+        self.assertIn("session.lease.expires_eventtime - current <= RETURN_SAFETY_SECONDS", source)
+        self.assertIn("local RETURN_SAFETY_SECONDS = 2", source)
+        self.assertIn("local QUERY_TIMEOUT_MS = 1000", source)
+        self.assertIn("return current + QUERY_LATENCY_SECONDS", source)
+        self.assertIn("if operation_generation == generation then next_operation() end", source)
+        restore = source[source.index("local function restore_session"):source.index("\nrestore_session()")]
+        self.assertIn("recovery_required=not stored_expired", restore)
+        self.assertNotIn("query_eventtime", restore)
+        self.assertNotIn("arm_expiry", restore)
+        ack = source[source.index("local function on_temperature_ack"):
+                     source.index("helix.moonraker.on_agent_event")]
+        queued = ack.index('tc_status:set("Acknowledgement received; committing returned state")')
+        delay = ack.index("helix.timer.after(650", queued)
+        returned = ack.index('session.state = "returned"', delay)
+        cancel = ack.index("cancel_expiry_timer()", returned)
+        self.assertLess(queued, delay)
+        self.assertLess(delay, returned)
+        self.assertLess(returned, cancel)
 
     def test_templates_extend_existing_native_shell_and_keep_back(self):
         wizard = ET.parse(TEMPLATES / "orcacal__wizard.xml").getroot()
@@ -245,6 +277,9 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
         self.assertIn("request-auto-opens-accepted-stack", source)
         self.assertIn("ack-enters-returned", source)
         self.assertNotIn("requests.", source)
+        self.assertIn("LOADED_SOURCE_SNAPSHOT = qualification_source_hashes()", source)
+        self.assertIn("verify_source_snapshot()", source)
+        self.assertIn('"clock_fixture"', source)
 
     def test_windows_origin_driver_leaves_result_unacknowledged(self):
         source = (ROOT / "scripts/temperature-communication-native-driver.py").read_text()
@@ -262,13 +297,25 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
         source = (ROOT / "scripts/temperature-communication-native-driver.py").read_text()
         for marker in (
             'parser.add_argument("--expiry-proof"',
-            'if request["ttl_seconds"] > 5',
+            'if remaining <= 2 or remaining > 5',
             'qualification.tap(name, "orcacal__qualify-ack"',
             '"late exact ACK changed an expired session"',
             '"expired restart re-enabled native selection"',
             '"duplicate expired request reopened native overlays"',
             '"expired-state-survived-restart"',
             '"duplicate-expired-recovery-rejected"',
+        ):
+            self.assertIn(marker, source)
+
+    def test_driver_has_recovery_and_clock_failure_native_proofs(self):
+        source = (ROOT / "scripts/temperature-communication-native-driver.py").read_text()
+        for marker in (
+            'parser.add_argument("--recovery-proof"',
+            'parser.add_argument("--clock-failure-proof"',
+            '"restart enabled selection before lease recovery"',
+            '"validated exact recovery did not enable selection"',
+            '"missing query clock accepted a request"',
+            '"delayed expired envelope opened native UI"',
         ):
             self.assertIn(marker, source)
 
