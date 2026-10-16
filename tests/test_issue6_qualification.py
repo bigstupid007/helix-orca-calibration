@@ -65,6 +65,8 @@ class Issue6QualificationTests(unittest.TestCase):
             "accepted.run_viewport",
             '"container_network": "none"',
             "accepted._plugin_hashes()",
+            '"qualification_sources": qualification_source_hashes()',
+            'report.get("accepted_plugin_files") != accepted._plugin_hashes()',
         ):
             self.assertIn(value, source)
         self.assertNotIn("git clone", source)

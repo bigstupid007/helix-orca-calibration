@@ -226,6 +226,14 @@ def configure_accepted_harness() -> None:
     accepted.PLUGIN_DIR = accepted.PLUGIN_ROOT / "orcacal"
 
 
+def qualification_source_hashes() -> dict[str, str]:
+    paths = (
+        ROOT / "scripts/helix-beta9-qualify.py",
+        ROOT / "scripts/helix_dev.py",
+    )
+    return {str(path.relative_to(ROOT)): sha256(path) for path in paths}
+
+
 def capture_matrix(output: Path | None) -> None:
     metadata = verify_cache()
     image = accepted.image_metadata()
@@ -255,6 +263,7 @@ def capture_matrix(output: Path | None) -> None:
         "container_network": "none",
         "dependency_image": accepted.IMAGE,
         "dependency_image_id": image["id"],
+        "qualification_sources": qualification_source_hashes(),
         "results": rows,
         "runtime": metadata,
         "screenshots": screenshots,
@@ -265,12 +274,17 @@ def capture_matrix(output: Path | None) -> None:
 
 
 def verify_capture(root: Path) -> None:
+    configure_accepted_harness()
     report_path = root / "report.json"
     if not report_path.is_file():
         raise QualificationError("beta.9 capture report is missing")
     report = json.loads(report_path.read_text(encoding="utf-8"))
     if report.get("container_network") != "none" or report.get("runtime") != verify_cache():
         raise QualificationError("beta.9 report runtime/isolation mismatch")
+    if report.get("qualification_sources") != qualification_source_hashes():
+        raise QualificationError("beta.9 report qualification-source mismatch")
+    if report.get("accepted_plugin_files") != accepted._plugin_hashes():
+        raise QualificationError("beta.9 report accepted-plugin mismatch")
     rows = report.get("results", [])
     if len(rows) != len(accepted.VIEWPORTS):
         raise QualificationError("beta.9 report does not contain the eleven-target matrix")
