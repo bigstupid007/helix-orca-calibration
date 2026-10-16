@@ -41,10 +41,55 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
             accepted_main = (ROOT / "helix-plugin/orcacal/main.lua").read_bytes()
             self.assertTrue(generated_main.startswith(accepted_main + b"\n"))
             self.assertEqual(report["accepted_baseline"], generator.BASELINE_HASHES)
+            self.assertEqual(json.loads((output / generator.MARKER_NAME).read_text()), generator.MARKER)
             self.assertEqual(
                 hashlib.sha256((output / "ui/orcacal__tile.xml").read_bytes()).hexdigest(),
                 generator.BASELINE_HASHES["ui/orcacal__tile.xml"],
             )
+
+    def test_generator_replaces_only_an_exact_owned_output(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            output = root / "orcacal"
+            generator.generate(output)
+            first = (output / "main.lua").read_bytes()
+            generator.generate(output, replace=True)
+            self.assertEqual((output / "main.lua").read_bytes(), first)
+
+            arbitrary = root / "arbitrary"
+            arbitrary.mkdir()
+            sentinel = arbitrary / "keep.txt"
+            sentinel.write_text("owned by somebody else")
+            with self.assertRaises(generator.GenerationError):
+                generator.generate(arbitrary, replace=True)
+            self.assertEqual(sentinel.read_text(), "owned by somebody else")
+
+    def test_generator_refuses_symlink_tamper_and_extra_files(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            output = root / "orcacal"
+            generator.generate(output)
+            (output / "unexpected.txt").write_text("do not delete")
+            with self.assertRaises(generator.GenerationError):
+                generator.generate(output, replace=True)
+            self.assertTrue((output / "unexpected.txt").is_file())
+
+            clean = root / "with-extra-directory"
+            generator.generate(clean)
+            (clean / "unexpected-empty").mkdir()
+            with self.assertRaises(generator.GenerationError):
+                generator.generate(clean, replace=True)
+            self.assertTrue((clean / "unexpected-empty").is_dir())
+
+            target = root / "target"
+            target.mkdir()
+            sentinel = target / "keep.txt"
+            sentinel.write_text("safe")
+            link = root / "linked-output"
+            link.symlink_to(target, target_is_directory=True)
+            with self.assertRaises(generator.GenerationError):
+                generator.generate(link, replace=True)
+            self.assertEqual(sentinel.read_text(), "safe")
 
     def test_request_contract_is_exact_and_bounded(self):
         source = EXTENSION.read_text()
@@ -84,7 +129,7 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
             'tc_status:set("Rejected conflicting request identity")',
             'tc_status:set("Busy with an earlier Temperature request")',
             "temperature_session.recovery_required = false",
-            "recovery_required=stored.acknowledged ~= true",
+            "recovery_required=not stored_expired and stored.acknowledged ~= true",
             "temperature_session.result.value ~= value",
             'tc_status:set("First selection is immutable; waiting for its acknowledgement")',
             "data.value ~= temperature_session.result.value",
@@ -112,6 +157,22 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
         self.assertIn('temperature_session.state ~= "expired"', expired_gate)
         self.assertIn('temperature_session.state == "expired"', expired_gate)
         self.assertIn("remember_tombstone(temperature_session, temperature_session.request)", source)
+
+    def test_expired_storage_survives_restart_and_rejects_late_ack(self):
+        source = EXTENSION.read_text()
+        restore_start = source.index("local function restore_session")
+        restore = source[restore_start:source.index("\nrestore_session()", restore_start)]
+        for marker in (
+            'local stored_expired = stored.state == "expired"',
+            'recovery_required=not stored_expired',
+            'state=stored_expired and "expired"',
+            "remember_tombstone(temperature_session, request)",
+            "if not temperature_session.acknowledged and not stored_expired then arm_expiry(request) end",
+        ):
+            self.assertIn(marker, restore)
+        ack = source[source.index("local function on_temperature_ack"):
+                     source.index("helix.moonraker.on_agent_event")]
+        self.assertIn('temperature_session.state == "expired"', ack)
 
     def test_fresh_request_opens_accepted_stack_but_duplicate_does_not_reopen(self):
         source = EXTENSION.read_text()
@@ -195,7 +256,21 @@ class TemperatureCommunicationNativeTests(unittest.TestCase):
             '"awaiting-originating-companion-ack"',
         ):
             self.assertIn(marker, source)
-        self.assertNotIn('qualification.tap(name, "orcacal__qualify-ack"', source)
+        self.assertIn("if expiry_proof:", source)
+
+    def test_native_driver_has_bounded_expiry_restart_proof(self):
+        source = (ROOT / "scripts/temperature-communication-native-driver.py").read_text()
+        for marker in (
+            'parser.add_argument("--expiry-proof"',
+            'if request["ttl_seconds"] > 5',
+            'qualification.tap(name, "orcacal__qualify-ack"',
+            '"late exact ACK changed an expired session"',
+            '"expired restart re-enabled native selection"',
+            '"duplicate expired request reopened native overlays"',
+            '"expired-state-survived-restart"',
+            '"duplicate-expired-recovery-rejected"',
+        ):
+            self.assertIn(marker, source)
 
 
 if __name__ == "__main__":

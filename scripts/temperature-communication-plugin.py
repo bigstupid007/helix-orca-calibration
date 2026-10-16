@@ -22,6 +22,20 @@ BASELINE_HASHES = {
     "ui/orcacal__tile.xml": "fdbdb78c0b1db680ca19dc2619abfe3eed5858749162abc55bf9b95bdea26eff",
     "ui/orcacal__wizard.xml": "cc02d31b63f804c0aa34c54f8ba134c7e51817db8ba9417f672e502bffd34f81",
 }
+MARKER_NAME = ".helix-orca-temperature-generated.json"
+MARKER = {
+    "schema": "helix-orca-temperature-generated/v1",
+    "generator": "scripts/temperature-communication-plugin.py",
+    "plugin_id": "orcacal",
+}
+GENERATED_FILES = {
+    MARKER_NAME,
+    "main.lua",
+    "manifest.json",
+    "ui/orcacal__temperature.xml",
+    "ui/orcacal__tile.xml",
+    "ui/orcacal__wizard.xml",
+}
 
 
 class GenerationError(RuntimeError):
@@ -44,14 +58,50 @@ def default_output() -> Path:
     return cache / "helix-orca-calibration/temperature-communication/orcacal"
 
 
+def verify_owned_output(output: Path) -> None:
+    if output.is_symlink() or not output.is_dir():
+        raise GenerationError("replacement destination must be an owned generated directory, not a symlink")
+    observed: set[str] = set()
+    directories: set[str] = set()
+    for path in output.rglob("*"):
+        if path.is_symlink():
+            raise GenerationError(f"generated destination contains a symlink: {path}")
+        if path.is_file():
+            observed.add(str(path.relative_to(output)))
+        elif path.is_dir():
+            directories.add(str(path.relative_to(output)))
+        else:
+            raise GenerationError(f"generated destination contains an unsupported entry: {path}")
+    if observed != GENERATED_FILES:
+        raise GenerationError("replacement destination does not have the exact generated file set")
+    if directories != {"ui"}:
+        raise GenerationError("replacement destination does not have the exact generated directory set")
+    marker_path = output / MARKER_NAME
+    try:
+        marker = json.loads(marker_path.read_text(encoding="utf-8"))
+        manifest = json.loads((output / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise GenerationError("replacement destination has malformed ownership metadata") from exc
+    if marker != MARKER:
+        raise GenerationError("replacement destination ownership marker does not match")
+    if (manifest.get("id"), manifest.get("version"), manifest.get("permissions")) != (
+        "orcacal", "0.3.0-issue8-native", ["storage"]
+    ):
+        raise GenerationError("replacement destination manifest is not the generated candidate")
+
+
 def generate(output: Path, *, replace: bool = False) -> dict[str, object]:
     baseline = verify_baseline()
-    output = output.resolve()
-    if output == BASE.resolve() or ROOT.resolve() in output.parents:
+    output = output.expanduser().absolute()
+    if output.is_symlink():
+        raise GenerationError("generated destination must not be a symlink")
+    resolved_output = output.resolve()
+    if resolved_output == BASE.resolve() or ROOT.resolve() in resolved_output.parents:
         raise GenerationError("generated runtime must stay outside the repository")
     if output.exists():
         if not replace:
             raise GenerationError(f"destination exists: {output}")
+        verify_owned_output(output)
         shutil.rmtree(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(BASE, output)
@@ -70,6 +120,7 @@ def generate(output: Path, *, replace: bool = False) -> dict[str, object]:
         "permissions": ["storage"],
     })
     (output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (output / MARKER_NAME).write_text(json.dumps(MARKER, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     generated = {
         str(path.relative_to(output)): sha256(path)
         for path in sorted(output.rglob("*")) if path.is_file()

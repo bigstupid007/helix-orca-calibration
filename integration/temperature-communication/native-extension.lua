@@ -335,6 +335,7 @@ end
 
 local function on_temperature_ack(_, data)
     if not temperature_session or not temperature_session.result
+        or temperature_session.state == "expired"
         or not result_matches_request(data, temperature_session.request, ACK_SCHEMA)
         or data.value ~= temperature_session.result.value then
         return
@@ -391,14 +392,19 @@ local function restore_session()
         if not result_matches_request(stored.result, request, RESULT_SCHEMA) then return end
         result = stored.result
     end
+    local stored_expired = stored.state == "expired"
     temperature_session = {
         request=request, result=result, acknowledged=stored.acknowledged == true,
-        recovery_required=stored.acknowledged ~= true,
-        state=stored.acknowledged == true and "returned" or (result and "waiting" or "received"),
+        recovery_required=not stored_expired and stored.acknowledged ~= true,
+        state=stored_expired and "expired"
+            or (stored.acknowledged == true and "returned" or (result and "waiting" or "received")),
         tombstones=bounded_tombstones(stored.tombstones),
     }
+    if stored_expired then
+        remember_tombstone(temperature_session, request)
+    end
     show_request(request)
-    if not temperature_session.acknowledged then arm_expiry(request) end
+    if not temperature_session.acknowledged and not stored_expired then arm_expiry(request) end
 end
 
 restore_session()
