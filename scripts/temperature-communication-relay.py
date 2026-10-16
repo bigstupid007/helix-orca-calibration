@@ -690,7 +690,7 @@ class SessionRelay:
             return None
         if not isinstance(session, dict):
             raise RelayError("native storage session is invalid")
-        required = {"request", "lease", "result", "acknowledged", "recovery_required", "state"}
+        required = {"request", "lease", "acknowledged", "recovery_required", "state"}
         if not required.issubset(session):
             raise RelayError("native storage session is incomplete")
         if session["request"] != request:
@@ -703,6 +703,12 @@ class SessionRelay:
             raise RelayError("native storage acknowledgement flags are invalid")
         if session["state"] not in ("received", "queued", "waiting", "returned"):
             raise RelayError("native storage state is invalid")
+        if "result" not in session:
+            # Lua serializes nil by omitting the key. Only the native pending
+            # state may omit a result; selected/acknowledged states must retain it.
+            if session["state"] != "received" or session["acknowledged"]:
+                raise RelayError("native selected session is missing its result")
+            session = dict(session, result=None)
         return session
 
     def _journal_value(

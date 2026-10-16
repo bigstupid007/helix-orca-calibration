@@ -470,6 +470,50 @@ class RelayContractTests(unittest.TestCase):
                     clock.sleep, poll_seconds=60,
                 ).run()
 
+    def test_actual_lua_pending_receipt_omits_nil_result(self):
+        outbox = valid_outbox()
+        request = outbox["payload"]
+        lease = {"issued_eventtime": 1000.0, "expires_eventtime": 1500.0}
+        session = {"request": request, "lease": lease, "acknowledged": False,
+                   "recovery_required": False, "state": "received", "tombstones": []}
+        normalized = relay.SessionRelay._storage_session({"session": session}, request, lease)
+        self.assertIsNone(normalized["result"])
+        self.assertNotIn("result", session)
+        for state in ("queued", "waiting", "returned"):
+            with self.subTest(state=state), self.assertRaises(relay.RelayError):
+                relay.SessionRelay._storage_session(
+                    {"session": dict(session, state=state)}, request, lease)
+        with self.assertRaises(relay.RelayError):
+            relay.SessionRelay._storage_session(
+                {"session": dict(session, acknowledged=True)}, request, lease)
+
+    def test_pending_lua_receipt_stops_retry_then_real_selection_completes(self):
+        outbox = valid_outbox()
+        physical = FakePhysical(outbox["payload"])
+        spare = FakeSpare(outbox)
+        original = physical.read_native_storage
+        observations = []
+
+        def read():
+            value = original()
+            if value.get("session") and not observations:
+                value["session"].pop("result")
+                value["session"]["state"] = "received"
+                observations.append("actual-pending-shape")
+            return value
+
+        physical.read_native_storage = read
+        clock = FakeClock()
+        with tempfile.TemporaryDirectory() as temp:
+            result = relay.SessionRelay(
+                physical, spare, Path(temp), wall_time=clock.time,
+                monotonic=clock.monotonic, sleep=clock.sleep).run()
+        self.assertEqual(result["state"], "complete")
+        self.assertEqual(observations, ["actual-pending-shape"])
+        self.assertEqual(spare.files["inbox.json"]["value"], 205)
+        self.assertTrue(physical.acknowledged)
+        self.assertEqual(sum(event == relay.REQUEST_EVENT for event, _ in physical.events), 1)
+
     def test_native_storage_conflict_never_reaches_inbox(self):
         clock = FakeClock()
         outbox = valid_outbox(int(clock.wall))
