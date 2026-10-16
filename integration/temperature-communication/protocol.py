@@ -493,4 +493,3 @@ class TemperatureCommunicationState:
     def is_expired(self):
         return (self.payload is not None and self.result is None
                 and self.payload["expires_at"] <= int(self.now()))
-

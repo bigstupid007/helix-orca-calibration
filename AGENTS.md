@@ -190,3 +190,36 @@ main verification and Issue closure. This supersedes the prior keep-unmerged
 gate for PR #5 only. Additional UX polish is deferred in `docs/backlog.md`.
 Hardware access, production transport, real-print control, profile writes,
 release and deployment remain prohibited; acceptance grants none of them.
+
+## Issue #8 bidirectional communication candidate
+
+The initiating founder instruction on 2026-10-16 and
+[Build Program #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8)
+authorize one correlated real Temperature request and simulated-selection
+return, without printing. Preserve accepted source/evidence: generate the new
+beta.9 `orcacal` derivative from the unchanged chooser/detail baseline and the
+new single-file Orca derivative from the unchanged qualified October 15 source.
+Keep the Issue #4 mock bridge, beta.4 harness, and Issue #6 display plugin and
+namespace unchanged. Do not introduce another native shell.
+
+The native candidate requests only `storage`. Its request and acknowledgement
+events use the separate `helix_orca_temperature.*.v1` namespace. Storage return
+is read through only its exact existing config-file path, then relayed through
+the existing authenticated Spare worker. The Orca plugin performs only bounded
+local artifact I/O below host-provided storage during supported UI callbacks;
+it has no networking, process execution, background threads or profile writes.
+Only an originating-companion committed receipt may acknowledge delivery.
+
+The physical-hop security decision remains pending: existing trusted-LAN HTTP
+is not encrypted or per-message cryptographically authenticated. No new
+physical event/write may occur until that boundary is explicitly resolved.
+New credentials/services, security/configuration changes, unknown-host bypass,
+print/queue/heat/motion/homing/macros, firmware, profile writes, public access,
+merge, release and deployment remain outside this candidate's authority.
+Owner storage consent/enablement must never be written remotely.
+
+Use the exact beta.9 native matrix and October 15 Windows build for claims on
+those surfaces. Preserve private target data and disclose isolated versus
+physical evidence honestly. One fresh-context independent candidate review, AI
+Product Preflight, reconciled documentation and one unmerged PR are required;
+never label an AI run Founder acceptance.

@@ -1,5 +1,27 @@
 # Backlog
 
+## In progress: Issue #8 — real Temperature communication without printing
+
+The founder approved one real request/selection return using current beta.9
+and qualified October 15 Orca, with all print/heating/motion/profile-write
+boundaries retained. [The governing program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md)
+records the source reconstruction, independent fidelity correction, isolation
+strategy and physical security gate.
+
+- [x] Reconstruct merged Issues #4/#6 and verify isolated OSS identity.
+- [x] Create one governing GitHub work item and preserve the dirty canonical checkout.
+- [x] Complete independent source-to-workflow fidelity review for the corrected shell extension.
+- [x] Implement and focus-test companion/relay correlation, original context and local recovery.
+- [ ] Complete integrated native eleven-target and Windows request/result evidence.
+- [ ] Resolve the explicit trusted-LAN versus encrypted physical-hop security decision.
+- [ ] Demonstrate actual physical HelixScreen selection -> originating Spare return.
+- [ ] Complete frozen-candidate independent review and AI Product Preflight.
+- [ ] Present one unmerged PR with the proven exact Founder Review path.
+
+No new physical event or write has occurred. No completed round-trip or
+Founder Review-ready claim may be made while required evidence is missing.
+
+
 ## Completed: Issue #1 — Helix calibration hub/detail foundation
 
 Founder accepted the final candidate on 2026-10-10. HelixScreen plugin

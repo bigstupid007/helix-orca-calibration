@@ -108,4 +108,3 @@ class TemperatureCommunicationPanel(orca.script.ScriptPluginCapabilityBase):
                          "status": self.status, "current_matches_target": same,
                          "current_profile": current_profile, "current_effective": current_effective,
                          "delivery_status": self.delivery_status})
-

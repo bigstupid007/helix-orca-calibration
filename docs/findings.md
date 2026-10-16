@@ -269,3 +269,32 @@ files still match baseline aggregate
 The owned mock still uses `--test`, Docker network `none`, read-only runtime
 and plugin mounts and its private control socket. Canonical OSS guards and the
 unrelated tracked-change fingerprint match the pre-closeout checkpoint.
+
+## Issue #8 source and access capability checkpoint
+
+At beta.9 commit `e5cdc5dc523280bc3ead681a4f229bf84dfa726a`, native
+`helix.storage.get/set` requires the explicit `storage` permission and stores
+one JSON object, capped at 256 KiB, at sibling `plugin-data/<id>.json`. Writes
+are atomic but deferred about 500 ms; a Lua success is not proof of disk
+persistence or result delivery. Source: [`lua_bind_io.cpp`](https://github.com/prestonbrown/helixscreen/blob/e5cdc5dc523280bc3ead681a4f229bf84dfa726a/src/plugin/lua_bind_io.cpp).
+
+There is no permissionless outbound agent event. Methods beyond seven
+read-only Moonraker calls require `moonraker_write`, and the exact Moonraker
+`connection.send_event` endpoint requires an agent connection; HelixScreen's
+connection is not such an agent. Broad write permission would not supply a
+supported return API. Source: [`lua_bind_moonraker.cpp`](https://github.com/prestonbrown/helixscreen/blob/e5cdc5dc523280bc3ead681a4f229bf84dfa726a/src/plugin/lua_bind_moonraker.cpp)
+and [`extensions.py`](https://github.com/Arksine/moonraker/blob/d5ee17128bb88434aacdab90c2e9e990e2b64e4a/moonraker/components/extensions.py).
+
+Existing approved config-root readback can retrieve the uniquely owned native
+storage file. No physical-target SSH pin/access was found; the verified SSH
+route is Spare to devbox. The storage/readback option creates no service,
+listener or credential, but the physical hop remains unencrypted HTTP with
+trusted-client source-IP authorization, not per-message cryptographic
+authentication. The founder's security decision is pending.
+
+The new companion was observed in the actual qualified October 15 Windows GUI
+as local version `0.5.0`, with all five capabilities. Its new dock retained
+saved/edited/effective 220/220/220 from native APIs and verified the exact
+previously qualified file through the native chooser. Those observations prove
+only the sampled Windows surfaces; no physical return is claimed. Further
+validation and limitations belong to the [current program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md).

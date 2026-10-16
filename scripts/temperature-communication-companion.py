@@ -53,8 +53,8 @@ def generate() -> str:
     class_anchor = "@orca.plugin\nclass HelixCalibrationPlugin"
     if source.count(class_anchor) != 1:
         raise CompanionGenerationError("plugin class anchor changed")
-    protocol = PROTOCOL.read_text(encoding="utf-8")
-    extension = EXTENSION.read_text(encoding="utf-8")
+    protocol = PROTOCOL.read_text(encoding="utf-8").rstrip() + "\n\n"
+    extension = EXTENSION.read_text(encoding="utf-8").rstrip() + "\n\n"
     embedded = "\n# BEGIN GENERATED TEMPERATURE COMMUNICATION\n" + protocol + "\n" + extension + "\n# END GENERATED TEMPERATURE COMMUNICATION\n\n"
     return source.replace(class_anchor, embedded + class_anchor)
 

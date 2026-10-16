@@ -197,3 +197,31 @@ architecture, while the real result-return path remains mock-only.
 Founder accepted Issue #6 and PR #7 on 2026-10-15 (America/Chicago) and
 authorized governed merge and closeout. Receipt and workflow polish is deferred
 until the complete Orca-to-Helix-to-Orca integration functions.
+
+## Issue #8 candidate communication boundary
+
+The accepted source trees remain immutable. New generators derive an Orca
+`0.5.0` single-file plugin and beta.9 `orcacal` runtime outside the repository.
+The native derivative extends the existing chooser/Temperature shell and
+requests only `storage`; it adds no print lifecycle, new module, second shell
+or network permission. The Orca derivative retains all accepted capabilities
+and adds an Orca-owned communication dock/modeless fallback. Its JavaScript
+posts poll messages; Python callbacks read/write fixed local artifacts below
+host plugin storage. It opens no network/process/thread and never writes a
+profile.
+
+The proposed bounded route is originating Orca outbox -> existing authenticated
+Spare worker -> transient Moonraker request event -> native Temperature detail
+-> plugin-owned storage -> exact Moonraker config-file GET -> Spare inbox.
+Orca validates and commits the exact result before producing the receipt used
+for the native acknowledgement. Request/origin IDs, full retained-context
+digest, flattened source equality, filename/size/SHA-256, prepared choices,
+expiry and immutable first selection are checked independently.
+
+The existing physical HTTP hop relies on trusted-client LAN authorization.
+Correlation and replay checks do not provide encryption or malicious-LAN
+authentication. Physical use awaits the explicit security decision recorded in
+[Issue #8's program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md). The existing
+SSH worker protects the Spare hop; no new service, port or credential is part
+of this proposal. Details and recovery are in
+[TEMPERATURE_COMMUNICATION.md](TEMPERATURE_COMMUNICATION.md).

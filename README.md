@@ -156,3 +156,20 @@ The suite includes the accepted product/harness policy, Orca qualification,
 request/result, display-only transport, release-lock, and evidence checks. Run
 it from the candidate checkout; historical dirty-checkout counts are not the
 candidate's validation result.
+
+## Issue #8 — bidirectional communication candidate
+
+[Build Program #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8)
+authorizes one real Temperature request/selection return without printing. The
+candidate generates a beta.9 derivative of the accepted `orcacal` chooser and
+Temperature detail, a self-contained October 15 Orca companion derivative, and
+a bounded relay using existing access. Accepted Issue #1, #4 and #6 sources and
+the beta.4 harness remain unchanged.
+
+The candidate is in isolated validation. Its storage-only native return requires
+owner consent; the physical hop uses existing trusted-LAN HTTP and is neither
+encrypted nor cryptographically authenticated. The founder's transport-security
+choice is pending, so no new physical event or write has occurred. This is not a
+completed physical round trip or a Founder Review-ready result. See the
+[program](docs/BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md) and
+[operation and validation boundary](docs/TEMPERATURE_COMMUNICATION.md).
