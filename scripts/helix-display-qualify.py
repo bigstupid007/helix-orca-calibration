@@ -184,9 +184,12 @@ def run_viewport(entry: tuple[str, int, int, str, int], root: Path, plugin_root:
         accepted._assert_overlay(accepted.ctl(name, "current"), [])
         assertions.append("extra-key-rejected-without-overlay")
         accepted._tap_visible_widget(name, "helix-orca-display__valid-tile", width, height)
-        accepted._assert_overlay(accepted.ctl(name, "current"), ["helix-orca-display__receipt"])
+        current = accepted.ctl(name, "current")
+        overlays = current.get("overlays", [])
+        if current.get("panel") != "home" or len(overlays) != 1:
+            raise DisplayQualificationError(f"valid receipt did not open one overlay: {current}")
         assertions.append("valid-contract-opens-receipt")
-        receipt = accepted.ctl(name, "ls", "helix-orca-display__receipt")
+        receipt = accepted.ctl(name, "ls", overlays[0])
         for widget in ("helix-orca-display__receipt_line", "helix-orca-display__effective_line",
                        "helix-orca-display__file_line", "helix-orca-display__hash_line",
                        "helix-orca-display__dismiss"):
