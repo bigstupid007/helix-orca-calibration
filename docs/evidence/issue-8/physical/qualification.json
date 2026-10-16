@@ -1,0 +1,73 @@
+{
+  "actual_orca_send_and_exact_native_request": true,
+  "all_nine_native_and_accepted_display_source_files_exact": true,
+  "bounded_relay_is_currently_running": false,
+  "companion_sha256": "bc3d35eb260a1360e1095bd97d8e7d31e3ab96e8b3cafde1f145e3adf5b4d71f",
+  "exact_native_result_equals_originating_inbox": true,
+  "exact_originating_receipt_equals_result_ack": true,
+  "exact_private_filename_bytes_and_sha256_verified": true,
+  "fresh_origin_distinct_from_expired_attempt_and_isolated_fixture": true,
+  "governing_issue": 8,
+  "limitations": [
+    "Physical Helix selection was owner-observed; persisted state and originating Windows result were independently read back.",
+    "Existing trusted-LAN HTTP boundary was explicitly approved; no encryption or per-message cryptographic authentication is claimed.",
+    "Relay is a bounded one-request qualification process, not an installed always-on service.",
+    "Isolated mock clock prerequisite is synthetic; this physical proof separately observed real native clock gates.",
+    "Prior blocked physical checkpoint is historical and its expired result was never forwarded.",
+    "No Founder acceptance, merge, deployment, print or profile application is established.",
+    "Operational identifiers and full private payloads are retained privately; public artifact digests bind the observations."
+  ],
+  "live_native_clock_and_nonactive_gates_observed": true,
+  "native_permissions": [
+    "storage"
+  ],
+  "native_persisted_acknowledged": true,
+  "native_persisted_state": "returned",
+  "native_recovery_required": false,
+  "native_version": "0.3.0-issue8-native",
+  "normal_windows_profiles": {
+    "aggregate_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+    "file_count": 1429,
+    "recorded_at_utc": "2026-10-16T15:26:16.6011322Z",
+    "scope": "Fresh Issue8 program baseline; actual post-roundtrip worker output",
+    "unchanged": true
+  },
+  "not_applied": true,
+  "original_edited": 220,
+  "original_effective": 220,
+  "original_profile": "Generic PLA - Voron Rapido - Initial",
+  "original_saved": 220,
+  "originating_delivery_phase": "delivered",
+  "owner_approved_and_applied_exact_file_bridge": true,
+  "owner_enablement_verified": true,
+  "owner_reported_actual_original_context_and_return": true,
+  "post_roundtrip_ready_nonactive": true,
+  "print_queue_heat_motion_homing_macro_firmware_or_profile_action": false,
+  "private_artifact_sha256": {
+    "final-delivery.json": "a0630a57ef87ac310fd22f115bcc2e17146a9c4a8d662647e6af353d1630c470",
+    "final-inbox.json": "58bdd1505321e2b377aa47b60f496b5407bb5002775b5f14424d0b8631ba80d9",
+    "final-receipt.json": "c14581a46f66fe3097607a1848166c0bfb617320b8a98f3e24b3e4fa175fef86",
+    "observed-final-journal.json": "361d533c846e3ec20e9d086c5c987df0ba68d18e362743ee5c0986bdbef0a0f3",
+    "observed-final-storage.json": "cd24414ee8ca07b3540524746e52ee02e96fe7b983ef012e21fc364aea5928dd",
+    "outbox-final.json": "d672f3fd2f3c175279b4753b010236ed89d186df9f0810d14d52404e6ebcbf14",
+    "post-roundtrip-integrity.json": "ccf08aba361b9512a464ba64981f0b7450c19b8a0281f37f1e61de2d8c1801a9",
+    "post-roundtrip-normal-profile.json": "00c4e3bce6bafda81d77cf6be879cd011314912a9747c1ea7220f4cd05546574",
+    "post-roundtrip-ready.json": "5e64f04ba5425e2dfe3016d47c8506e51296dfc45d3d3c1567ac59eb8aecbc6e",
+    "relay-final-recovered.log": "174f88b1b2a99390236ed7cbf1df40d92b8c96ed34db0c46c6e82bac634b4ce4"
+  },
+  "public_frames": {
+    "orca-not-applied.png": "506470a0d5c484cc77cbf38762a48f72c6ca56824879babde11016ef985b6968"
+  },
+  "recorded_date_utc": "2026-10-16",
+  "relay_exited_zero": true,
+  "relay_phase": "complete",
+  "relay_sha256": "72d8a7701e6159c4eac8c8e470c9f0ed3295ef039605680d1e0d16e1a92449f6",
+  "reviewed_native_companion_commit": "fe6860512d6b2af7d57f1ffb0ea2156bcbe4d3ec",
+  "reviewed_relay_commit": "943196c",
+  "same_request_delivery_attempts_across_recovery": 2,
+  "selected_simulated_value": 205,
+  "setting": "nozzle_temperature",
+  "simulation_only": true,
+  "status": "actual-physical-round-trip-pass",
+  "terminal_delivery_observed_before_original_expiry": true
+}

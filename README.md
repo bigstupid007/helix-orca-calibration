@@ -156,3 +156,37 @@ The suite includes the accepted product/harness policy, Orca qualification,
 request/result, display-only transport, release-lock, and evidence checks. Run
 it from the candidate checkout; historical dirty-checkout counts are not the
 candidate's validation result.
+
+## Issue #8 — accepted bidirectional communication milestone
+
+[Build Program #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8)
+authorizes one real Temperature request/selection return without printing. The
+candidate generates a beta.9 derivative of the accepted `orcacal` chooser and
+Temperature detail, a self-contained October 15 Orca companion derivative, and
+a bounded relay using existing access. Accepted Issue #1, #4 and #6 sources and
+the beta.4 harness remain unchanged.
+
+The candidate passes 181 tests, corrected eleven-viewport native evidence,
+isolated Windows validation, independent review and AI Product Preflight. A
+fresh actual Orca request reached the physical HelixScreen; the owner selected
+simulated 205°C and Return. Spare committed the exact result and receipt, native
+storage persisted its acknowledgement, and Orca displayed original-context
+**NOT APPLIED** instructions. [Actual proof](docs/evidence/issue-8/physical/qualification.json)
+also records completion before expiry, unchanged native/display files, ready/
+standby postchecks and the unchanged 1,429-file normal Orca profile fingerprint.
+
+The founder approved the disclosed trusted-LAN boundary, which remains
+unencrypted and without per-message cryptographic authentication. A narrowly
+reviewed owner utility creates one real shared directory and one file link,
+exposing only `orcacal.json` through the existing config API. This amendment is
+approved and was executed through existing owner local access only. See the
+[storage gate](docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md),
+[program](docs/BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md), and
+[operations and exact Founder Review path](docs/TEMPERATURE_COMMUNICATION.md#founder-review).
+Founder accepted Issue #8 and PR #9 on 2026-10-16 (America/Chicago), after
+reviewing the actual original-profile 220°C / simulated 205°C / NOT APPLIED
+Orca result, and authorized governed merge, main verification and Issue closure.
+[Acceptance and closeout](docs/ISSUE_8_ACCEPTANCE.md) records the precise scope;
+the PR/Issue own final merge and verification state. The completed relay has
+exited. [UX polish remains deferred](docs/backlog.md#deferred-ux-batch-after-the-accepted-bidirectional-proof);
+no printing, automatic profile update, release or broader deployment is authorized.

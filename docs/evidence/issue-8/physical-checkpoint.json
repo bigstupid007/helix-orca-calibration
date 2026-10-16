@@ -1,0 +1,31 @@
+{
+  "actual_orca_send": true,
+  "bidirectional_proof_complete": false,
+  "blocker": "Native sidecar uses install/config/plugin-data; beta.9 installer links settings.json individually into Moonraker config, leaving the sidecar outside the existing exposed route.",
+  "configuration_workaround_applied": false,
+  "evidence_scope": "Owner observation plus read-only manifest/grant, missing file/inbox/receipt and readiness checks; private request and target identifiers excluded.",
+  "evidence_stage": "historical_initial_attempt_before_explicit_owner_amendment",
+  "fresh_origin_unrelated_to_isolated_result": true,
+  "native_sidecar_readback": false,
+  "new_permission_or_credentials": false,
+  "normal_windows_aggregate_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+  "normal_windows_file_count": 1429,
+  "normal_windows_profile_unchanged_after_attempt": true,
+  "originating_inbox_received": false,
+  "originating_receipt_received": false,
+  "owner_enablement_confirmed": true,
+  "owner_observed_original_context": true,
+  "owner_reported_return_action": true,
+  "owner_reported_selected_temperature": 205,
+  "persisted_native_ack_observed": false,
+  "printer_nonactive_after_stop": true,
+  "proposal_status": "one real shared plugin-data directory and one exact orcacal.json file link; not approved or applied",
+  "recorded_permission_grant": [
+    "storage"
+  ],
+  "relay_stopped": true,
+  "reviewed_native_source": "fe6860512d6b2af7d57f1ffb0ea2156bcbe4d3ec",
+  "status": "blocked-production-storage-exposure",
+  "superseded_by": "physical/qualification.json",
+  "version": "0.3.0-issue8-native"
+}

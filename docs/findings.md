@@ -269,3 +269,75 @@ files still match baseline aggregate
 The owned mock still uses `--test`, Docker network `none`, read-only runtime
 and plugin mounts and its private control socket. Canonical OSS guards and the
 unrelated tracked-change fingerprint match the pre-closeout checkpoint.
+
+## Issue #8 source and access capability checkpoint
+
+At beta.9 commit `e5cdc5dc523280bc3ead681a4f229bf84dfa726a`, native
+`helix.storage.get/set` requires the explicit `storage` permission and stores
+one JSON object, capped at 256 KiB, at sibling `plugin-data/<id>.json`. Writes
+are atomic but deferred about 500 ms; a Lua success is not proof of disk
+persistence or result delivery. Source: [`lua_bind_io.cpp`](https://github.com/prestonbrown/helixscreen/blob/e5cdc5dc523280bc3ead681a4f229bf84dfa726a/src/plugin/lua_bind_io.cpp).
+
+There is no permissionless outbound agent event. Methods beyond seven
+read-only Moonraker calls require `moonraker_write`, and the exact Moonraker
+`connection.send_event` endpoint requires an agent connection; HelixScreen's
+connection is not such an agent. Broad write permission would not supply a
+supported return API. Source: [`lua_bind_moonraker.cpp`](https://github.com/prestonbrown/helixscreen/blob/e5cdc5dc523280bc3ead681a4f229bf84dfa726a/src/plugin/lua_bind_moonraker.cpp)
+and [`extensions.py`](https://github.com/Arksine/moonraker/blob/d5ee17128bb88434aacdab90c2e9e990e2b64e4a/moonraker/components/extensions.py).
+
+Existing approved config-root readback can retrieve the uniquely owned native
+storage file. No physical-target SSH pin/access was found; the verified SSH
+route is Spare to devbox. The storage/readback option creates no service,
+listener or credential, but the physical hop remains unencrypted HTTP with
+trusted-client source-IP authorization, not per-message cryptographic
+authentication. The founder explicitly approved that disclosed existing
+trusted-LAN boundary for this proof.
+
+The generated `0.5.0` companion was observed in the actual qualified October
+15 Windows GUI with all five capabilities. Native entry requires Prepare:
+**New Project > Prepare > application menu beside File > Plugins > expand
+Helix Calibration Context > Play Helix Temperature Communication (no printing)**.
+The final returned panel preserves saved/edited/effective 220/220/220°C,
+simulated 205°C, exact original profile/setting and NOT APPLIED instructions.
+Isolated profile-switch and restart checks preserve the original result.
+
+The final candidate passes 181 automated tests and the source-bound beta.9
+eleven-viewport matrix (33 frames and exact request/lease/result/ACK storage).
+The promoted verifier runs through the unchanged CI unit-test job; accepted
+Issue #2 evidence remains compatible. The mock query omits eventtime, so its
+fixture supplies only that labeled, hashed synthetic clock prerequisite.
+Production native clock support was separately observed in the actual return.
+
+## Issue #8 production storage amendment and actual return
+
+The initial actual attempt reached the native screen but could not read its
+state: beta.9 links settings.json individually into shared config and keeps
+plugin-data in the install tree. Source inspection confirmed the production
+layout mismatch. This initial attempt remains labeled historical; it is not
+the successful proof. The founder separately approved owner-run creation of
+one real shared directory and one exact file link. The owner applied the
+hash-pinned utility using existing local terminal access. Existing authenticated
+GET matched the historical expired request/205 result, which was never
+forwarded, then a fresh originating request after explicit retirement.
+
+Actual Lua omits `result=nil` while pending. The relay accepts that omission
+only in unacknowledged received state; selected/acknowledged states require a
+result. Receipt-driven retry is bounded to five persisted deliveries across
+restart and only shortens leases. Independent review and full tests cover
+both corrections, without changes to native/companion qualifying bytes.
+
+The fresh owner-selected 205°C return completed under its original IDs before
+expiry. Native persisted `returned`/acknowledged state, relay complete journal,
+exact originating inbox/receipt and `delivered` status all match. The final
+actual Windows panel was inspected. All nine native/display source files are
+unchanged, target is ready/standby, and normal Windows settings/profile
+fingerprint matches the fresh 1,429-file baseline. Independent review confirmed
+these private artifact relationships; [public evidence](evidence/issue-8/physical/qualification.json)
+contains sanitized outcomes and artifact digests. Same-path
+[AI Product Preflight](ISSUE_8_PRODUCT_PREFLIGHT.md) passes for Founder Review.
+The bounded relay has exited. Founder subsequently accepted the actual
+completed Orca result and authorized PR #9 merge, main verification and Issue
+closure on 2026-10-16; see [acceptance](ISSUE_8_ACCEPTANCE.md). The existing
+trusted-LAN limitation and owner-only bridge authority are unchanged.
+Documentation-only closeout preserves accepted implementation/evidence and
+defers UX work without authorizing release or broader printer deployment.

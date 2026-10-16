@@ -190,3 +190,81 @@ main verification and Issue closure. This supersedes the prior keep-unmerged
 gate for PR #5 only. Additional UX polish is deferred in `docs/backlog.md`.
 Hardware access, production transport, real-print control, profile writes,
 release and deployment remain prohibited; acceptance grants none of them.
+
+## Issue #8 bidirectional communication candidate
+
+The initiating founder instruction on 2026-10-16 and
+[Build Program #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8)
+authorize one correlated real Temperature request and simulated-selection
+return, without printing. Preserve accepted source/evidence: generate the new
+beta.9 `orcacal` derivative from the unchanged chooser/detail baseline and the
+new single-file Orca derivative from the unchanged qualified October 15 source.
+Keep the Issue #4 mock bridge, beta.4 harness, and Issue #6 display plugin and
+namespace unchanged. Do not introduce another native shell.
+
+The native candidate requests only `storage`. Its request and acknowledgement
+events use the separate `helix_orca_temperature.*.v1` namespace. Storage return
+is read through only its exact existing config-file path, then relayed through
+the existing authenticated Spare worker. The Orca plugin performs only bounded
+local artifact I/O below host-provided storage during supported UI callbacks;
+it has no networking, process execution, background threads or profile writes.
+Only an originating-companion committed receipt may acknowledge delivery.
+
+The founder explicitly approved “Use existing trusted-LAN boundary for this
+proof” in the program chat. Existing physical-hop HTTP remains unencrypted and
+without per-message cryptographic authentication; correlation protects against
+accidental misdelivery, not a malicious LAN participant. This approval permits
+the bounded physical proof through existing access.
+New credentials/services, security/configuration changes, unknown-host bypass,
+print/queue/heat/motion/homing/macros, firmware, profile writes, public access,
+merge, release and deployment remain outside this candidate's authority.
+Owner storage consent/enablement must never be written remotely.
+
+Use the exact beta.9 native matrix and October 15 Windows build for claims on
+those surfaces. Preserve private target data and disclose isolated versus
+physical evidence honestly. One fresh-context independent candidate review, AI
+Product Preflight, reconciled documentation and one unmerged PR are required;
+never label an AI run Founder acceptance.
+
+The initial Issue #8 physical attempt established forward context and owner
+205°C selection only. Production sidecar storage lies outside the exposed
+Moonraker config tree. The founder subsequently approved owner-run creation of one real
+shared `plugin-data` directory and one `orcacal.json` file link to the existing
+native state, through the existing authenticated trusted-LAN config API.
+`scripts/temperature-communication-storage-link.py` implements only that
+bounded amendment and defaults to a dry run. Existing owner local access is
+required; this grants no agent SSH access, new credential, host-trust bypass,
+access-mode change, directory-wide link, service or plugin permission.
+The owner applied that exact bridge; authenticated readback and a fresh actual
+round trip, persisted ACK, delivered status, independent review and AI Product
+Preflight are now verified. Preserve the prior request/journal and never
+retarget an expired result. This grants no wider change. Founder acceptance
+and the exact PR #9 merge/closeout authority are recorded below; deployment
+remains excluded. See
+`docs/TEMPERATURE_COMMUNICATION_STORAGE_GATE.md` and
+`docs/TEMPERATURE_COMMUNICATION.md#founder-review`.
+
+## Issue #8 Founder acceptance and closeout
+
+Founder accepted Issue #8 and PR #9 on 2026-10-16 (America/Chicago) as the
+completed real bidirectional Temperature communication milestone. Founder
+reviewed the completed actual Orca result and confirmed the exact original
+profile/setting, 220°C context, simulated 205°C and NOT APPLIED instructions.
+The same instruction authorizes documentation/deferred-UX reconciliation,
+final safeguards, PR #9 merge, main verification and Issue #8 closure. This
+supersedes the preceding unmerged/acceptance-open restriction for PR #9 only.
+
+Closeout changes documentation only; accepted implementations, captured public
+and private proof, normal Orca profiles and the canonical uncommitted work
+must remain unchanged. Use the established merge-commit method, current green
+checks and exact-head match; verify main in a clean detached worktree rather
+than updating the dirty canonical main checkout. Preserve original evidence
+and branch references; no physical rerun or cleanup is required. Record exact
+merge/main outcome in the existing GitHub work items.
+
+The trusted-LAN limitation, storage-only native permission, owner-only enablement
+and exact approved single-file bridge remain unchanged. No physical printing,
+queue, heating, motion, homing, macros, automatic profile update, firmware,
+service/security/access change, wider exposure, new credentials, release or
+broader printer deployment is authorized. Deferred UX work is backlog only.
+See `docs/ISSUE_8_ACCEPTANCE.md`.

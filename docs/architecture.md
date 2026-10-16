@@ -197,3 +197,62 @@ architecture, while the real result-return path remains mock-only.
 Founder accepted Issue #6 and PR #7 on 2026-10-15 (America/Chicago) and
 authorized governed merge and closeout. Receipt and workflow polish is deferred
 until the complete Orca-to-Helix-to-Orca integration functions.
+
+## Issue #8 accepted communication boundary
+
+The accepted source trees remain immutable. New generators derive an Orca
+`0.5.0` single-file plugin and beta.9 `orcacal` runtime outside the repository.
+The native derivative extends the existing chooser/Temperature shell and
+requests only `storage`; it adds no print lifecycle, new module, second shell
+or network permission. The Orca derivative retains all accepted capabilities
+and adds an Orca-owned communication dock/modeless fallback. Its JavaScript
+posts poll messages; Python callbacks read/write fixed local artifacts below
+host plugin storage. It opens no network/process/thread and never writes a
+profile.
+
+The bounded route is originating Orca outbox -> existing authenticated
+Spare worker -> transient Moonraker request event -> native Temperature detail
+-> plugin-owned storage -> exact Moonraker config-file GET -> Spare inbox.
+Orca validates and commits the exact result before producing the receipt used
+for the native acknowledgement. Request/origin IDs, full retained-context
+digest, flattened source equality, filename/size/SHA-256, prepared choices,
+expiry and immutable first selection are checked independently.
+
+The existing physical HTTP hop relies on trusted-client LAN authorization.
+Correlation and replay checks do not provide encryption or malicious-LAN
+authentication. The founder explicitly approved the existing trusted-LAN
+boundary for this proof, as recorded in
+[Issue #8's program](BUILD_PROGRAM_TEMPERATURE_COMMUNICATION.md). The existing
+SSH worker protects the Spare hop; no new service, port or credential is part
+of this candidate. Details and recovery are in
+[TEMPERATURE_COMMUNICATION.md](TEMPERATURE_COMMUNICATION.md).
+
+The immutable session is wrapped in a target-eventtime lease. Native receive,
+recovery, Return and ACK requery finite eventtime and nonactive print state; a
+bounded latency charge and remaining-time margin protect deferred writes.
+Retries and restarts may only shorten the stored deadline. Local Orca result
+commit preserves the slot until exact native acknowledgement is confirmed
+and durably recorded, or explicit retirement after original absolute expiry.
+
+The initial production attempt exposed beta.9's per-file settings symlink:
+native storage stays under installation config, outside the shared config
+route. The owner explicitly approved and applied one real shared directory and
+one exact file link to native `orcacal.json`. Existing authenticated GET now
+observes native atomic replacements, including the fresh actual persisted
+return and ACK. No directory-wide link, access-mode, service, credential or
+plugin permission change was made. See the
+[storage amendment](TEMPERATURE_COMMUNICATION_STORAGE_GATE.md).
+
+Receipt-driven redelivery is bounded to five sends across restart and stops on
+exact native persistence. Lua omits a pending nil result; only unacknowledged
+received state may omit that key. Final actual evidence proves the same
+immutable request/result/receipt across both directions and completed delivery
+before expiry. The completed relay exits; this is bounded qualification
+infrastructure, not a new installed service.
+
+Founder accepted the actual original-profile 220°C / simulated 205°C /
+NOT APPLIED result on 2026-10-16 and authorized PR #9 merge/main verification/
+Issue #8 closure. [The acceptance record](ISSUE_8_ACCEPTANCE.md) separates that
+product decision from the prior technical/AI proof. Closeout changes docs only;
+no runtime architecture, transport permission, profile behavior or hardware
+capability changes. Deferred UX is backlog work, with no broader deployment.
