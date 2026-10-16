@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: GPL-3.0-or-later -->
+<component>
+  <view extends="overlay_panel" title="Temperature request" title_tag="Temperature request" bg_color="#card_bg">
+    <lv_obj name="helix-orca-display__receipt_content"
+            width="100%" flex_grow="1" flex_flow="column" scrollable="true"
+            style_pad_all="#space_md" style_pad_gap="#space_sm">
+      <ui_card name="helix-orca-display__status_card"
+               width="100%" height="content" flex_flow="column"
+               style_pad_all="#space_sm" style_pad_gap="#space_xxs">
+        <text_heading text="Display-only request" width="100%"/>
+        <text_body text="No print started by this request" width="100%"/>
+        <text_small text="Received · not printed · not applied" width="100%" style_text_color="#text_muted"/>
+        <text_xs name="helix-orca-display__receipt_line" width="100%" long_mode="wrap"
+                 bind_text="helix-orca-display__receipt_line" style_text_color="#text_muted"/>
+      </ui_card>
+
+      <ui_card name="helix-orca-display__context_card"
+               width="100%" height="content" flex_flow="column"
+               style_pad_all="#space_sm" style_pad_gap="#space_xxs">
+        <text_body text="Calibration context" width="100%"/>
+        <text_small name="helix-orca-display__printer_line" width="100%" long_mode="wrap"
+                    bind_text="helix-orca-display__printer_line"/>
+        <text_small name="helix-orca-display__filament_line" width="100%" long_mode="wrap"
+                    bind_text="helix-orca-display__filament_line"/>
+        <text_small name="helix-orca-display__process_line" width="100%" long_mode="wrap"
+                    bind_text="helix-orca-display__process_line"/>
+        <text_small name="helix-orca-display__temperatures_line" width="100%" long_mode="wrap"
+                    bind_text="helix-orca-display__temperatures_line"/>
+      </ui_card>
+
+      <ui_card name="helix-orca-display__file_card"
+               width="100%" height="content" flex_flow="column"
+               style_pad_all="#space_sm" style_pad_gap="#space_xxs">
+        <text_body text="Transferred file" width="100%"/>
+        <text_small name="helix-orca-display__file_line" width="100%" long_mode="wrap"
+                    bind_text="helix-orca-display__file_line"/>
+        <text_xs name="helix-orca-display__hash_line" width="100%" long_mode="wrap"
+                 bind_text="helix-orca-display__hash_line" style_text_color="#text_muted"/>
+      </ui_card>
+
+      <lv_button name="helix-orca-display__dismiss" width="100%" height="content" style_pad_all="#space_sm">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="helix-orca-display__dismiss"/>
+        <text_body text="Dismiss" width="100%" style_text_align="center"/>
+      </lv_button>
+    </lv_obj>
+  </view>
+</component>
