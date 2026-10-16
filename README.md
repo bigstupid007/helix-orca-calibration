@@ -120,6 +120,31 @@ Qualification UI driving and complete mock lifecycle simulation remain test
 infrastructure. Modeless-window and explicit manual-file fallbacks remain
 supported. The interactive Temperature picker is deferred and unimplemented.
 
+## Issue #6 — accepted display-only real-HelixScreen milestone
+
+Issue #6 qualifies HelixScreen `v1.1.0-beta.9` and the pinned October 15 Orca
+nightly for a bounded physical display increment. Normal Orca's explicit
+**Upload** action transfers the prepared file without starting or queuing a
+print. A readback of those exact bytes is bound to the retained original Orca
+context before the permissionless `helix-orca-display` plugin receives its
+separate display-only event.
+
+The plugin requests no permissions and presents one native receipt with
+**Dismiss** as its only action. The owner observed the expected
+`Received · not printed · not applied` receipt, retained original effective
+temperature, prepared range, and successful Dismiss after exactly one event.
+Target-specific operational evidence remains private. The release pins,
+qualification boundaries, independent review, and reproducible public evidence
+are recorded in
+[`docs/ISSUE_6_QUALIFICATION.md`](docs/ISSUE_6_QUALIFICATION.md).
+
+Founder accepted Issue #6 and PR #7 on 2026-10-15 (America/Chicago) and
+authorized governed merge and closeout. Acceptance is limited to the physical
+display receipt. The real Orca result-return path remains mock-only; print,
+queue, heating, motion, profile writeback, service/security changes, public
+access, release, and deployment remain outside the accepted milestone. Visual
+polish is deferred until the complete Orca-to-Helix-to-Orca workflow functions.
+
 ## Verify
 
 ```sh
@@ -127,7 +152,7 @@ python3 -m unittest discover -s tests -v
 git diff --check
 ```
 
-The Issue #4 candidate includes the earlier product/harness policy suite and
-the Orca qualification, access, request/result, and evidence checks. Run the
-suite from the candidate checkout; historical dirty-checkout counts are not
-the candidate's validation result.
+The suite includes the accepted product/harness policy, Orca qualification,
+request/result, display-only transport, release-lock, and evidence checks. Run
+it from the candidate checkout; historical dirty-checkout counts are not the
+candidate's validation result.

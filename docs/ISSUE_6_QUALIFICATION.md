@@ -2,7 +2,17 @@
 
 ## Current disposition
 
-This document records the frozen pre-target code and isolated qualification checkpoint for [Issue #6](https://github.com/bigstupid007/helix-orca-calibration/issues/6). It is not a completed real-printer candidate or completed hardware proof. It preserves the accepted beta.4 harness, October 11 Orca runtime, normal Orca installation and profiles, and all Issue #4 evidence. Exact new pins and the observations available at that freeze are locked in [`evidence/issue-6/release-lock.json`](evidence/issue-6/release-lock.json); its pre-target mutation fields are historical snapshot evidence rather than the current physical status.
+This document records the frozen pre-target code, isolated qualification, and
+later physical display proof for [Issue #6](https://github.com/bigstupid007/helix-orca-calibration/issues/6).
+The frozen checkpoint described itself as “not a completed real-printer
+candidate”; founder acceptance now supersedes that candidate-state restriction
+for PR #7 only. It remains bounded physical-display evidence rather than broad
+hardware proof. It preserves the accepted beta.4 harness, October 11 Orca
+runtime, normal Orca installation and profiles, and all Issue #4 evidence.
+Exact new pins and the observations available at that freeze are locked in
+[`evidence/issue-6/release-lock.json`](evidence/issue-6/release-lock.json); its
+pre-target mutation fields are historical snapshot evidence rather than the
+current physical status.
 
 After independent code review, the approved non-printing preparation advanced through normal Orca upload-only verification, exact file/context binding, and staging of the reviewed permissionless display plugin. The owner enabled that plugin, one display-only event was acknowledged, and the owner confirmed that the expected receipt appeared and Dismiss closed it. Target-specific identifiers, file details, responses and observations remain in private qualification state. This achieves the physical display gate only: it does not qualify print, heat, motion or other hardware behavior, and the Orca result-return path remains mock-only. The public, generic progress record began at [Issue #6's preparation checkpoint](https://github.com/bigstupid007/helix-orca-calibration/issues/6#issuecomment-6208213563).
 
@@ -43,3 +53,19 @@ The required physical procedure was deliberately ordered: verify target identity
 The required independent GPT-5.6 Sol / High review found no material issue in frozen implementation commit `5c082483b068e904c9981e07f17144aacc6343fb`. The reviewer independently confirmed the 108-test pass, clean branch-range whitespace check, preservation of the accepted beta.4 and Issue #4 bytes, release-lock hashes, 11-viewport display report, permissionless receipt-only action surface, bounded client transport, exact-file receiver boundary, and exact generated October 15 plugin staging.
 
 The independent sign-off covers the frozen code and isolated qualification evidence; it did not independently reproduce the later physical preparation. The owner-observed receipt and Dismiss behavior now provide physical display evidence for this bounded request. They are not print, heating, motion, measurement or broader hardware proof. Result return into Orca remains the accepted mock-only proof, and rollback of the owned review artifacts remains ready rather than completed.
+
+## Founder acceptance and closeout
+
+Founder accepted Issue #6 and PR #7 on 2026-10-15 (America/Chicago) as the
+completed display-only real-HelixScreen milestone and explicitly authorized
+governed merge, main verification, and Issue closure. The physical receipt and
+Dismiss observation satisfy this milestone; target-specific operational
+evidence remains private.
+
+Acceptance does not expand the qualified behavior. Real result return into
+Orca remains mock-only. Print, queue, heating, motion, homing, macros,
+measurement, profile writeback, service or security changes, public access,
+release, and deployment remain outside the accepted scope. Visual polish is
+deferred until the complete Orca-to-Helix-to-Orca integration workflow
+functions. The accepted shell, normal profiles, Issue #4 mock bridge, and
+beta.4 harness remain preserved.

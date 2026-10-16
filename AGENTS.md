@@ -138,11 +138,23 @@ plugin; the owner enables it on the physical screen. Rollback removes only that
 owned folder after the plugin is disabled. Do not write Helix enabled-state or
 printer configuration files remotely.
 
-The Issue #6 candidate remains unmerged. Freeze one bounded candidate, obtain
-a fresh-context read-only GPT-5.6 Sol / High review, resolve material findings,
-and leave one guided-review pull request. Exact Windows and physical-screen
-observations are required for the surfaces they claim; Linux/source evidence
-cannot be relabeled as Windows or hardware qualification.
+Before founder acceptance, keep the Issue #6 candidate unmerged. Freeze one
+bounded candidate, obtain a fresh-context read-only GPT-5.6 Sol / High review,
+resolve material findings, and leave one guided-review pull request. Exact
+Windows and physical-screen observations are required for the surfaces they
+claim; Linux/source evidence cannot be relabeled as Windows or hardware
+qualification.
+
+Founder accepted Issue #6 and PR #7 on 2026-10-15 (America/Chicago) as the
+completed display-only real-HelixScreen milestone and explicitly authorized
+governed merge, main verification, and Issue closure. This supersedes the
+prior keep-unmerged gate for PR #7 only. Acceptance covers normal Orca
+Upload-only transfer, exact file/context binding, the permissionless display
+plugin, one transient receipt event, and owner-observed Dismiss. It does not
+authorize a real result-return path, print, queue, heating, motion, profile
+writeback, service/security changes, public access, release, or deployment.
+Visual polish is deferred until the complete integration workflow functions;
+the accepted shell, profiles, and mock harness remain preserved.
 
 ## OSS safety before GitHub changes
 

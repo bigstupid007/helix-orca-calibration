@@ -169,3 +169,31 @@ Founder accepted the completed Issue #4 / PR #5 mock-only technical proof on
 documentation-only closeout changes no architecture or runtime boundary.
 Additional UX polish is deferred in `backlog.md`; physical-printer routes,
 production use, real-print control and Orca profile writes remain prohibited.
+
+## Issue #6 display-only physical delivery
+
+Issue #6 adds a separate physical display path without changing the accepted
+Issue #4 mock bridge, `helixcal.*` event contract, or beta.4 harness. The pinned
+October 15 Orca derivative adds only the exact qualified build identity. Normal
+Orca performs the Upload-only transfer, and the retained request binds the
+original profile context to a readback of the exact transferred bytes.
+
+`integration/helix-orca-display/` is a permissionless HelixScreen plugin with
+no widgets, settings, network calls, or printer actions. It subscribes only to
+`helix_orca_display.available.v1`, requires the `helix-orca-display/v1` schema
+and `display_only: true`, renders a native receipt, and exposes Dismiss as its
+only action. The short-lived client enforces exact-host and nonactive preflight,
+bounded file readback, an absolute transport deadline, bounded frames, and an
+RPC allowlist limited to identification and the one display event.
+
+After independent review, the approved path transferred one file through
+normal Orca, staged the permissionless plugin through HelixScreen's supported
+plugin directory, and sent exactly one display-only event. The owner observed
+the expected receipt and Dismiss behavior. This proves the bounded physical
+display path only. Print, queue, heating, motion, measurement, profile
+writeback, service/security changes, and public access remain outside the
+architecture, while the real result-return path remains mock-only.
+
+Founder accepted Issue #6 and PR #7 on 2026-10-15 (America/Chicago) and
+authorized governed merge and closeout. Receipt and workflow polish is deferred
+until the complete Orca-to-Helix-to-Orca integration functions.

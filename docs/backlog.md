@@ -125,11 +125,37 @@ not supported product automation. Retain the host-owned modeless-window and
 manual-file-selection fallbacks. The interactive Temperature picker remains a
 separate deferred requirement.
 
-## Future UX polish — deferred after Founder acceptance
+## Accepted: Issue #6 — display-only real-HelixScreen milestone
 
-Founder explicitly deferred additional UX polish beyond the accepted technical
-proof. A future approved increment may refine the companion's preparation,
-result explanation and manual-update flow, and the mock review experience.
+Founder accepted the bounded display-only milestone on 2026-10-15
+(America/Chicago) and authorized PR #7 merge and Issue #6 closeout.
+
+- [x] Pin and qualify HelixScreen `v1.1.0-beta.9` and the October 15 Orca
+  nightly without replacing the accepted beta.4 harness or Issue #4 runtime.
+- [x] Prove normal Orca Temperature preparation and explicit Upload-only
+  transfer without print start or queue.
+- [x] Bind the exact transferred-file readback to the retained original Orca
+  context and effective temperature.
+- [x] Add a permissionless receipt-only HelixScreen plugin with a separate
+  display namespace, strict schema, and Dismiss as its only action.
+- [x] Pass 108 tests, the 11-viewport native display matrix, release/evidence
+  locks, GitHub CI, and independent GPT-5.6 Sol / High review.
+- [x] Send one reviewed display-only event and receive owner confirmation that
+  the expected physical receipt appeared and Dismiss closed it.
+- [x] Preserve normal Orca profiles, the accepted shell, Issue #4 mock bridge,
+  and beta.4 harness.
+
+Acceptance covers the physical receipt only. The real Orca result-return path
+remains mock-only, and no print, queue, heat, motion, automatic profile update,
+service/security change, public access, release, or deployment is accepted.
+The owned review artifacts remain reversible through the documented rollback.
+
+## Future UX polish — deferred until complete integration works
+
+Founder explicitly deferred additional UX polish until the complete
+Orca-to-Helix-to-Orca integration workflow functions. A future approved
+increment may refine the companion's preparation, receipt, result explanation,
+manual-update flow, and mock review experience.
 Retain the result-first facts, prominent NOT APPLIED status, immediate mock
 Finish control, normal Home/Back and active-task return. This entry creates no
 new completion gate or implementation authority. The interactive Temperature
@@ -138,8 +164,10 @@ profile application is included.
 
 ## Deferred — requires new approval
 
-- Moonraker coordination or networking.
-- G-code generation, modification, upload, or execution.
+- Moonraker coordination or networking beyond the accepted permissionless
+  Issue #6 display-only route.
+- G-code generation, modification, or execution, and upload beyond the
+  accepted normal Orca Upload-only display request.
 - Print start, monitoring, results, or calibration scoring.
 - Orca preset mutation or writeback.
 - Additional calibration modules beyond a separately approved increment.
