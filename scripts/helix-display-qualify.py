@@ -126,8 +126,10 @@ def seed_settings(config_dir: Path) -> None:
     printer.setdefault("hardware", {})["expected"] = list(accepted.BETA4_MOCK_ACKNOWLEDGED_HARDWARE)
     printer["panel_widgets"] = {"home": {"grid": "12x8", "main_page_index": 0, "next_page_id": 1,
         "pages": [{"id": "main", "widgets": [
-            {"col": 0, "colspan": 3, "enabled": True, "id": "helix-orca-display__invalid-tile", "row": 0, "rowspan": 2},
-            {"col": 3, "colspan": 3, "enabled": True, "id": "helix-orca-display__valid-tile", "row": 0, "rowspan": 2},
+            {"col": 0, "colspan": 4, "enabled": True, "id": "helix-orca-display__invalid-tile", "row": 0, "rowspan": 2},
+            {"col": 4, "colspan": 4, "enabled": True, "id": "helix-orca-display__valid-tile", "row": 0, "rowspan": 2},
+            *({"col": -1, "colspan": 1, "enabled": False, "id": widget_id,
+               "row": -1, "rowspan": 1} for widget_id in accepted.BETA4_DEFAULT_HOME_WIDGETS),
         ]}]}}
     accepted.json_write(config_dir / "settings-test.json", settings)
 
