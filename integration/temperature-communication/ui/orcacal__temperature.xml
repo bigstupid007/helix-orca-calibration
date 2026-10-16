@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<component>
+  <view name="orcacal__temperature" extends="overlay_panel" title="Temperature" bg_color="#screen_bg">
+    <lv_obj name="orcacal__temperature_content" width="100%" flex_grow="1" flex_flow="column" scrollable="true"
+            style_pad_all="#space_md" style_pad_gap="#space_md" style_bg_opa="0" style_border_width="0">
+      <ui_card width="100%" height="content" flex_flow="column" style_pad_all="#space_md" style_pad_gap="#space_xs">
+        <text_small width="100%" text="USING" style_text_color="#text_muted"/>
+        <lv_obj width="100%" height="content" flex_flow="column" scrollable="false" style_pad_all="0"
+                style_pad_gap="#space_xxs" style_bg_opa="0" style_border_width="0">
+          <bind_flag_if_eq subject="orcacal__tc_baseline_on" flag="hidden" ref_value="0"/>
+          <text_body width="100%" text="Voron 2.4 300" long_mode="wrap"/>
+          <text_small width="100%" text="Generic PLA - Rapido · 0.4 mm" long_mode="wrap" style_text_color="#text_muted"/>
+          <text_small width="100%" text="Fast Quality" long_mode="wrap" style_text_color="#text_muted"/>
+        </lv_obj>
+        <lv_obj name="orcacal__request_context" width="100%" height="content" flex_flow="column" scrollable="false"
+                style_pad_all="0" style_pad_gap="#space_xxs" style_bg_opa="0" style_border_width="0">
+          <bind_flag_if_eq subject="orcacal__tc_active_on" flag="hidden" ref_value="0"/>
+          <text_body name="orcacal__request_printer" width="100%" bind_text="orcacal__tc_printer" long_mode="wrap"/>
+          <text_small name="orcacal__request_filament" width="100%" bind_text="orcacal__tc_filament" long_mode="wrap" style_text_color="#text_muted"/>
+          <text_small name="orcacal__request_process" width="100%" bind_text="orcacal__tc_process" long_mode="wrap" style_text_color="#text_muted"/>
+          <text_small name="orcacal__request_values" width="100%" bind_text="orcacal__tc_values" long_mode="wrap" style_text_color="#text_muted"/>
+        </lv_obj>
+      </ui_card>
+      <ui_card width="100%" height="content" flex_flow="column" style_pad_all="#space_md" style_pad_gap="#space_sm">
+        <bind_flag_if_eq subject="orcacal__tc_active_on" flag="hidden" ref_value="1"/>
+        <lv_obj width="100%" height="content" flex_flow="row" scrollable="false" style_pad_all="0"
+                style_pad_gap="#space_sm" style_flex_cross_place="center" style_bg_opa="0" style_border_width="0">
+          <icon src="thermometer_lines" size="md" variant="primary"/>
+          <text_heading width="0" flex_grow="1" text="Temperature range" long_mode="wrap"/>
+        </lv_obj>
+        <lv_obj width="100%" height="content" flex_flow="row" scrollable="false" style_pad_all="0"
+                style_pad_gap="#space_sm" style_flex_main_place="center" style_flex_cross_place="center"
+                style_bg_opa="0" style_border_width="0">
+          <lv_label text="230°C" style_text_font="#font_xl" style_text_color="#text"/>
+          <icon src="arrow_right" size="md" variant="muted"/>
+          <lv_label text="190°C" style_text_font="#font_xl" style_text_color="#text"/>
+        </lv_obj>
+      </ui_card>
+      <text_small name="orcacal__request_status" width="100%" bind_text="orcacal__tc_status"
+                  long_mode="wrap" style_text_color="#warning">
+        <bind_flag_if_eq subject="orcacal__tc_active_on" flag="hidden" ref_value="0"/>
+      </text_small>
+      <lv_dropdown name="orcacal__temperature_selector"
+                   options="230°C&#10;225°C&#10;220°C&#10;215°C&#10;210°C&#10;205°C&#10;200°C&#10;195°C&#10;190°C"
+                   bind_value="orcacal__tc_choice_idx" width="100%">
+        <bind_flag_if_eq subject="orcacal__tc_choice_on" flag="hidden" ref_value="0"/>
+      </lv_dropdown>
+      <lv_button name="orcacal__return_selection" width="100%" height="#button_height"
+                 style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius"
+                 style_border_width="0" style_shadow_width="0">
+        <bind_flag_if_eq subject="orcacal__tc_choice_on" flag="hidden" ref_value="0"/>
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__return_selection"/>
+        <lv_label width="100%" text="Return selection" style_text_align="center"
+                  style_text_font="#font_body_bold" style_text_color="#text_on_primary"/>
+      </lv_button>
+      <lv_obj name="orcacal__waiting_area" width="100%" height="content" flex_flow="column" scrollable="false"
+              style_pad_all="0" style_bg_opa="0" style_border_width="0">
+        <bind_flag_if_eq subject="orcacal__tc_waiting_on" flag="hidden" ref_value="0"/>
+        <text_body width="100%" text="Waiting for receipt" style_text_align="center"/>
+        <text_small name="orcacal__waiting_value" width="100%" bind_text="orcacal__tc_returned_value" style_text_align="center" style_text_color="#text_muted"/>
+      </lv_obj>
+      <lv_obj name="orcacal__returned_area" width="100%" height="content" flex_flow="column" scrollable="false"
+              style_pad_all="0" style_bg_opa="0" style_border_width="0">
+        <bind_flag_if_eq subject="orcacal__tc_returned_on" flag="hidden" ref_value="0"/>
+        <text_heading name="orcacal__returned_value" width="100%" bind_text="orcacal__tc_returned_value" style_text_align="center" style_text_color="#primary"/>
+        <text_small width="100%" text="Returned · simulation only · not applied" style_text_align="center" style_text_color="#text_muted"/>
+      </lv_obj>
+      <ui_card name="orcacal__request_file_card" width="100%" height="content" flex_flow="column"
+               style_pad_all="#space_sm" style_pad_gap="#space_xxs">
+        <bind_flag_if_eq subject="orcacal__tc_active_on" flag="hidden" ref_value="0"/>
+        <text_small width="100%" text="EXACT FILE" style_text_color="#text_muted"/>
+        <text_small name="orcacal__request_file" width="100%" bind_text="orcacal__tc_file" long_mode="wrap"/>
+        <text_xs name="orcacal__request_hash" width="100%" bind_text="orcacal__tc_hash" long_mode="wrap" style_text_color="#text_muted"/>
+      </ui_card>
+      <lv_button name="orcacal__start_button" width="100%" height="#button_height"
+                 style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius"
+                 style_border_width="0" style_shadow_width="0">
+        <bind_flag_if_eq subject="orcacal__tc_baseline_on" flag="hidden" ref_value="0"/>
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__start"/>
+        <lv_label width="100%" text="Start" style_text_align="center"
+                  style_text_font="#font_body_bold" style_text_color="#text_on_primary"/>
+      </lv_button>
+    </lv_obj>
+  </view>
+</component>
