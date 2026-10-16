@@ -18,6 +18,7 @@ OUTBOX_SCHEMA = "helix-orca-temperature-outbox/v1"
 SESSION_SCHEMA = "helix-orca-temperature-session/v1"
 RESULT_SCHEMA = "helix-orca-temperature-selection/v1"
 ACK_SCHEMA = "helix-orca-temperature-ack/v1"
+DELIVERY_SCHEMA = "helix-orca-temperature-delivery/v1"
 STATE_SCHEMA = "helix-orca-temperature-local-state/v1"
 SETTING = "nozzle_temperature"
 CHOICES = [230, 225, 220, 215, 210, 205, 200, 195, 190]
@@ -28,6 +29,17 @@ HEX32 = re.compile(r"[a-f0-9]{32}")
 HEX64 = re.compile(r"[a-f0-9]{64}")
 SAFE_FILE = re.compile(r"[^/\\]+\.gcode")
 ARTIFACT_NAMES = frozenset({"outbox.json", "inbox.json", "receipt.json", "state.json", "delivery.json"})
+DELIVERY_PHASES = frozenset({
+    "delivering", "waiting_selection", "waiting_companion", "delivered", "retrying", "failed",
+})
+DELIVERY_MESSAGES = {
+    "delivering": "Delivering the retained request.",
+    "waiting_selection": "Request delivered; waiting for a simulated HelixScreen selection.",
+    "waiting_companion": "Selection returned; waiting for this originating Orca companion.",
+    "delivered": "Communication acknowledged by the originating companion.",
+    "retrying": "Delivery is delayed; the relay is retrying automatically.",
+    "failed": "Delivery failed after bounded retries. Retry republishes the same request and IDs.",
+}
 
 
 class CommunicationProtocolError(ValueError):
@@ -181,6 +193,22 @@ def validate_ack(payload, value, now=None):
     return json.loads(canonical_json(expected_result))
 
 
+def validate_delivery(payload, value):
+    # Delivery remains useful at and after expiry, so validate the immutable
+    # session structurally at its creation instant rather than against now.
+    structural_now = payload["expires_at"] - payload["ttl_seconds"]
+    payload = validate_forward_payload(payload, now=structural_now)
+    _exact_keys(value, ("schema", "request_id", "origin_id", "context_sha256", "phase"), "delivery status")
+    if value["schema"] != DELIVERY_SCHEMA:
+        raise CommunicationProtocolError("Invalid delivery status schema.")
+    for key in ("request_id", "origin_id", "context_sha256"):
+        if type(value[key]) is not type(payload[key]) or value[key] != payload[key]:
+            raise CommunicationProtocolError(f"Stale or mismatched delivery status: {key}.")
+    if type(value["phase"]) is not str or value["phase"] not in DELIVERY_PHASES:
+        raise CommunicationProtocolError("Invalid delivery phase.")
+    return json.loads(canonical_json(value))
+
+
 def bounded_read_json(path, max_bytes=MAX_ARTIFACT_BYTES):
     path = pathlib.Path(path)
     if path.name not in ARTIFACT_NAMES:
@@ -291,6 +319,7 @@ class TemperatureCommunicationState:
         self.payload = None
         self.result = None
         self.instructions = None
+        self.delivery_phase = None
         self.recovery_error = None
         self._recover()
 
@@ -384,6 +413,7 @@ class TemperatureCommunicationState:
         origin_id = secrets.token_hex(16)
         self.target, self.file, self.origin_id = copied, None, origin_id
         self.payload = self.result = self.instructions = None
+        self.delivery_phase = None
         self.recovery_error = None
         self.directory.mkdir(parents=True, exist_ok=True)
         for name in ("outbox.json", "inbox.json", "receipt.json", "delivery.json"):
@@ -449,4 +479,18 @@ class TemperatureCommunicationState:
             raise
         atomic_write_json(self._path("receipt.json"), make_ack(result))
         return "Selection received; NOT APPLIED."
+
+    def poll_delivery(self):
+        if self.payload is None:
+            return None
+        path = self._path("delivery.json")
+        if not path.exists():
+            return None
+        delivery = validate_delivery(self.payload, bounded_read_json(path))
+        self.delivery_phase = delivery["phase"]
+        return DELIVERY_MESSAGES[self.delivery_phase]
+
+    def is_expired(self):
+        return (self.payload is not None and self.result is None
+                and self.payload["expires_at"] <= int(self.now()))
 

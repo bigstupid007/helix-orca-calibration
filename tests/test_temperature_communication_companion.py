@@ -58,6 +58,14 @@ def selection(payload, value=205):
     }
 
 
+def delivery(payload, phase="delivering"):
+    return {
+        "schema": protocol.DELIVERY_SCHEMA, "request_id": payload["request_id"],
+        "origin_id": payload["origin_id"], "context_sha256": payload["context_sha256"],
+        "phase": phase,
+    }
+
+
 class ProtocolTests(unittest.TestCase):
     def test_payload_has_exact_flattened_contract_and_distinct_sources(self):
         payload = protocol.make_forward_payload(target(), FILE, "b" * 32, now=1000, request_id="c" * 32)
@@ -210,6 +218,56 @@ class ProtocolTests(unittest.TestCase):
             candidate = dict(FILE, name=name)
             with self.subTest(name=name), self.assertRaises(protocol.CommunicationProtocolError):
                 protocol.make_forward_payload(target(), candidate, "b" * 32, now=1000, request_id="c" * 32)
+
+    def test_delivery_status_is_exact_correlated_and_locally_mapped(self):
+        payload = protocol.make_forward_payload(target(), FILE, "b" * 32, now=1000, request_id="c" * 32)
+        for phase in protocol.DELIVERY_PHASES:
+            value = protocol.validate_delivery(payload, delivery(payload, phase))
+            self.assertEqual(value["phase"], phase)
+            self.assertIn(phase, protocol.DELIVERY_MESSAGES)
+        for key, bad in (("request_id", "d" * 32), ("origin_id", "d" * 32),
+                         ("context_sha256", "d" * 64), ("phase", "relay.internal: failed")):
+            candidate = delivery(payload); candidate[key] = bad
+            with self.subTest(key=key), self.assertRaises(protocol.CommunicationProtocolError):
+                protocol.validate_delivery(payload, candidate)
+        candidate = delivery(payload); candidate["error"] = "private relay detail"
+        with self.assertRaises(protocol.CommunicationProtocolError):
+            protocol.validate_delivery(payload, candidate)
+
+    def test_stale_delivery_cannot_replace_status_target_or_result(self):
+        with tempfile.TemporaryDirectory() as root:
+            state = protocol.TemperatureCommunicationState(root, now=lambda: 1000)
+            state.start_new(target()); state.select_file(FILE, file_validator); state.send()
+            directory = Path(root) / "communication"
+            protocol.atomic_write_json(directory / "delivery.json", delivery(state.payload, "retrying"))
+            self.assertEqual(state.poll_delivery(), protocol.DELIVERY_MESSAGES["retrying"])
+            retained_target = copy.deepcopy(state.target)
+            stale = delivery(state.payload, "failed"); stale["origin_id"] = "d" * 32
+            protocol.atomic_write_json(directory / "delivery.json", stale)
+            with self.assertRaises(protocol.CommunicationProtocolError):
+                state.poll_delivery()
+            self.assertEqual(state.delivery_phase, "retrying")
+            self.assertEqual(state.target, retained_target)
+            result = selection(state.payload)
+            protocol.atomic_write_json(directory / "inbox.json", result); state.poll_inbox()
+            instructions = copy.deepcopy(state.instructions)
+            with self.assertRaises(protocol.CommunicationProtocolError):
+                state.poll_delivery()
+            self.assertEqual(state.instructions, instructions)
+
+    def test_expiry_is_visible_without_clearing_pending_state(self):
+        current = [1000]
+        with tempfile.TemporaryDirectory() as root:
+            state = protocol.TemperatureCommunicationState(root, now=lambda: current[0])
+            state.start_new(target()); state.select_file(FILE, file_validator); state.send()
+            request_id = state.payload["request_id"]
+            origin_id = state.origin_id
+            self.assertFalse(state.is_expired())
+            current[0] = 1900
+            self.assertTrue(state.is_expired())
+            self.assertEqual(state.payload["request_id"], request_id)
+            state.start_new(target())
+            self.assertNotEqual(state.origin_id, origin_id)
 
 
 class GeneratedCompanionTests(unittest.TestCase):

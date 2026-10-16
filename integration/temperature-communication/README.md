@@ -17,7 +17,7 @@ No absolute path is part of a payload.
 | `inbox.json` | Relay | Exact `helix-orca-temperature-selection/v1` result |
 | `receipt.json` | Orca companion | Exact result fields with schema `helix-orca-temperature-ack/v1` |
 | `state.json` | Orca companion | Canonical private recovery state |
-| `delivery.json` | Relay, optional | Omitted until a fixed shared status schema is approved |
+| `delivery.json` | Relay, optional | Exact correlated `helix-orca-temperature-delivery/v1` status |
 
 The session payload has exactly these keys:
 
@@ -39,6 +39,13 @@ The reusable API is:
 - `make_forward_payload` for secure correlated request creation; and
 - `TemperatureCommunicationState` for durable new-calibration, file selection,
   send/retry, restart recovery, inbox polling, local commit, and acknowledgement.
+
+Optional delivery status contains exactly `schema`, `request_id`, `origin_id`,
+`context_sha256`, and `phase`. Phase is one of `delivering`,
+`waiting_selection`, `waiting_companion`, `delivered`, `retrying`, or `failed`.
+The companion maps those values to fixed local text. It displays no relay error,
+hostname, or other untrusted status text. Invalid or stale status cannot replace
+the last validated status, pending target, or committed result instructions.
 
 State is flushed before an outbox is published. A validated result is flushed
 to canonical local state before `receipt.json` is written. Retry reuses the
