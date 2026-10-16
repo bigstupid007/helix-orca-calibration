@@ -73,9 +73,12 @@ clock while ready/idle. Native production verification remains separate.
 
 Historical captures made before the lease correction are retained privately
 and cannot establish the final candidate. One capture also overlapped a source
-edit; it is excluded from promotion. Final capture must snapshot sources before
-execution, reject source/fixture changes before report publication, and verify
-all eleven viewports and exact storage/selection/ACK artifacts before promotion.
+edit; it is excluded from promotion. The final capture snapshots sources before execution, rejects source/fixture
+changes before report publication, and has passed verification and promotion
+for all eleven viewports, 33 frames and exact storage/selection/ACK artifacts.
+Independent final review of `bc9c507` found no remaining material correctness,
+security, recovery, fidelity or evidence finding; it qualifies a draft PR only.
+CI passes on [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9).
 
 The normal Windows Orca settings/profile fingerprint still matches the fresh
 program baseline after corrected-companion staging: 1,429 relevant files,

@@ -2,7 +2,7 @@
 
 Governing work item: [Issue #8](https://github.com/bigstupid007/helix-orca-calibration/issues/8).
 
-Status: approved outcome; capability and specification-fidelity gates in progress. One governing Issue, one lead-owned candidate PR, no merge or deployment before Founder acceptance.
+Status: technically reviewed draft [PR #9](https://github.com/bigstupid007/helix-orca-calibration/pull/9), with CI passing. Owner storage consent, actual physical return and full AI Product Preflight remain open. One governing Issue, one candidate PR, no merge or deployment before Founder acceptance.
 
 ## Authority and reconstructed baseline
 
