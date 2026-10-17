@@ -1,0 +1,116 @@
+{
+  "accepted_base": "9c8d159221ff132a7be2516bb7a50b1ef26bbeca",
+  "alpha_source": "3880f2c58ec392ed2bd5938ab31c9c7c496c0eb2",
+  "companion": {
+    "accepted_050_unchanged": true,
+    "exact_runtime_gate": true,
+    "observed_app_info": {
+      "build": "3880f2c5",
+      "version": "2.5.0-alpha"
+    },
+    "sha256": "9b79d6150b4f0102a8e5ed8b43491005ddfb3834f4e099d9eb470c870a4c41b7",
+    "version": "0.5.1"
+  },
+  "date_local": "2026-10-16",
+  "issue": 10,
+  "native": {
+    "actual_native_persisted_selection": 205,
+    "clock_fixture": {
+      "expires_eventtime": 1900.0,
+      "issued_eventtime": 1000.0,
+      "kind": "synthetic-query-eventtime"
+    },
+    "docker_network": "none",
+    "fresh_alpha_outbox_run": "unchanged beta.9 native driver,800x480",
+    "fresh_native_acknowledgement_or_terminal_delivery": false,
+    "physical_communication_repeated": false,
+    "reused_evidence": "unchanged Issue8 eleven-viewports/33-frames and ACK/recovery proof; Issue2 harness evidence verified"
+  },
+  "nightly_source": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+  "non_claims": [
+    "No physical test, fresh native ACK or terminal relay delivery is claimed for Alpha.",
+    "No print, queue, heat, motion, profile writeback, new access/security change or deployment.",
+    "No baseline adoption, Founder acceptance or merge is implied.",
+    "Private payloads, request IDs, target paths and operational file hashes are withheld."
+  ],
+  "preservation": {
+    "accepted_product_and_evidence_unchanged": true,
+    "accepted_source_and_evidence_files_compared": 263,
+    "canonical_dirty_work_unchanged": true,
+    "nightly_binaries_unchanged": true,
+    "nightly_sampled_files": 61,
+    "nightly_unchanged": true,
+    "normal_files": 1429,
+    "normal_unchanged": true,
+    "seeded_alpha_profile_json_unchanged": 12
+  },
+  "private_evidence_artifacts": 121,
+  "private_evidence_manifest_sha256": "5fb83769ca53ff038bb391c6924e5b09e1247d2edf0416f1c16d5fa75eb4decd",
+  "public_result_frame": {
+    "file": "orca-not-applied.png",
+    "native_capture_region": [
+      1503,
+      80,
+      439,
+      650
+    ],
+    "private_operational_details_excluded": true,
+    "sha256": "aab493f26d30c4716d08a918e2aa00b508f6f8a9f6b155d2df9ac2a9695d5a34"
+  },
+  "recommendation": "Keep October15 nightly as preferred program/physical baseline. Alpha0.5.1 qualifies as an isolated secondary companion environment; accepted0.5.0 and physical relay remain nightly-only.",
+  "schema": "helix-orca-alpha-compatibility-qualification/v1",
+  "status": "passed-isolated-alpha-companion",
+  "validation": {
+    "ci": "see exact-head PR checks",
+    "focused_alpha_tests": 8,
+    "full_tests": 189,
+    "independent_final_review": {
+      "model": "GPT-5.6 Sol / High",
+      "private_manifest_entries_verified": 121,
+      "scope": "integrated code/provenance/actual Windows and isolated native evidence, privacy and preservation",
+      "status": "passed-no-material-findings"
+    },
+    "product_preflight": "passed: actual documented Prepare/Plugins/communication/recovered-result path; screenshot-only accessibility limits and inherited UX polish remain deferred"
+  },
+  "windows": {
+    "conflicting_duplicate_rejected": true,
+    "exact_duplicate_idempotent": true,
+    "export_lifecycle": "temporary slice path only; explicit manual association qualified",
+    "export_temperature_choices": [
+      230,
+      225,
+      220,
+      215,
+      210,
+      205,
+      200,
+      195,
+      190
+    ],
+    "filament_switch_warns_without_retargeting": true,
+    "independent_hash_matches_native_file_selection": true,
+    "native205_result_committed_exactly": true,
+    "native_local_install_activation_and_restart_load": true,
+    "normally_prepared_export_bytes": 3028203,
+    "not_applied_instructions": true,
+    "orca_owned_dock_ui": true,
+    "original_printer_filament_process_nozzle": true,
+    "originating_receipt_exact_ack": true,
+    "process_restart_recovers_exact_request_result_receipt": true,
+    "request_retry_byte_identical": true,
+    "restored_original_values": [
+      220,
+      220,
+      220
+    ],
+    "saved_edited_effective_unsaved_test": [
+      220,
+      217,
+      217
+    ],
+    "separate_settings_and_webview2": true,
+    "stale_result_no_receipt_or_state_change": true,
+    "switch_back_restores_matching_context": true,
+    "temporary_project_and_edits_discarded": true
+  }
+}

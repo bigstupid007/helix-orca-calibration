@@ -256,3 +256,29 @@ Issue #8 closure. [The acceptance record](ISSUE_8_ACCEPTANCE.md) separates that
 product decision from the prior technical/AI proof. Closeout changes docs only;
 no runtime architecture, transport permission, profile behavior or hardware
 capability changes. Deferred UX is backlog work, with no broader deployment.
+
+
+## Issue #10 isolated Alpha compatibility layer
+
+The accepted October 15 implementation and physical relay remain unchanged.
+`scripts/orca-alpha-companion.py` derives an Alpha-only `0.5.1` single-file
+artifact from hash-verified accepted `0.5.0` bytes. It changes target metadata,
+exact runtime admission and the embedded runtime-validation/probe constants;
+request/result schemas, original-context digest binding, UI behavior and
+receipt/recovery guards remain intact. `scripts/orca-alpha-windows-review.py`
+reuses pinned native review guards for only the new Alpha executable/datadir.
+It creates no service, access route or physical-printer transport.
+
+Source compatibility does not override runtime gates. The accepted physical
+relay deliberately rejects an Alpha outbox; this qualification neither changes
+that gate nor repeats physical communication. [Qualification status](ORCA_ALPHA_QUALIFICATION.md)
+records passed actual Windows/context/export/result/recovery checks, the isolated
+native fixture and the distinction from the accepted physical workflow. Native
+return selection and Alpha receipt use unchanged v1 contracts; no fresh physical
+ACK/delivery or baseline adoption is implied.
+
+Founder accepted this qualification on 2026-10-16. October 15 nightly remains
+the preferred development and physical-integration baseline; Alpha with
+companion 0.5.1 is a qualified secondary target. PR #11 merge/closeout authority
+changes no runtime gate or architecture. Alpha physical integration and
+production adoption remain unauthorized. See [acceptance](ISSUE_10_ACCEPTANCE.md).

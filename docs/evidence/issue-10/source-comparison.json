@@ -1,0 +1,109 @@
+{
+  "schema": "helix-orca-alpha-source-comparison/v1",
+  "recorded_at_utc": "2026-10-17T00:34:30Z",
+  "scope": "Read-only source and release-provenance comparison. No Windows runtime or physical target action is represented.",
+  "repository": "OrcaSlicer/OrcaSlicer",
+  "nightly": {
+    "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+    "source_url": "https://github.com/OrcaSlicer/OrcaSlicer/commit/6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+    "workflow_run": 38671673715,
+    "workflow_url": "https://github.com/OrcaSlicer/OrcaSlicer/actions/runs/38671673715",
+    "artifact_id": 11945987535,
+    "artifact_name": "OrcaSlicer_Windows_V2.5.0-dev_x64_portable",
+    "artifact_bytes": 224950798,
+    "artifact_sha256": "728b11b2d84bae6b6f8da71da6d2ef3744060695457c092acc6a96c8643784bc",
+    "executable_sha256": "e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759",
+    "library_sha256": "3c5b2accbdc7d8ad2eab9cf21705a9b04f2e0be9961cfe3016c7376c6fadc157",
+    "observed_app_info": {
+      "version": "2.5.0-dev",
+      "build": "6a7763f0"
+    },
+    "qualification": "Accepted Windows runtime baseline, including isolated native preparation/export and later bounded physical display evidence recorded elsewhere."
+  },
+  "alpha": {
+    "source_commit": "3880f2c58ec392ed2bd5938ab31c9c7c496c0eb2",
+    "source_url": "https://github.com/OrcaSlicer/OrcaSlicer/commit/3880f2c58ec392ed2bd5938ab31c9c7c496c0eb2",
+    "tag": "v2.5.0-alpha",
+    "tag_url": "https://github.com/OrcaSlicer/OrcaSlicer/releases/tag/v2.5.0-alpha",
+    "release_id": 410256856,
+    "release_published_at": "2026-10-16T14:28:11Z",
+    "release_prerelease": true,
+    "tag_object_type": "commit",
+    "tag_object_commit": "3880f2c58ec392ed2bd5938ab31c9c7c496c0eb2",
+    "asset": {
+      "id": 647273931,
+      "name": "OrcaSlicer_Windows_V2.5.0-alpha_x64_portable.zip",
+      "bytes": 221507287,
+      "sha256": "9b4593697c9ec0f8e7c0dcbebd7f8ea08a5cd01c2bd68d2a5d48b45b4c18ff8c"
+    },
+    "source_expected_app_info": {
+      "version": "2.5.0-alpha",
+      "build": "3880f2c5",
+      "status": "Expected from version.inc and the release build's unchanged GitCommitHash.cmake abbreviation logic; the exact tuple must be read from the launched official asset before runtime admission."
+    },
+    "qualification": "Development qualification candidate only until the official asset is launched and its exact app_info, plugin load, context reads, storage, UI bridge, and calibration/export behavior are observed."
+  },
+  "ancestry": {
+    "relationship": "nightly_is_ancestor_of_alpha",
+    "commits_after_nightly": 39,
+    "compare_url": "https://github.com/OrcaSlicer/OrcaSlicer/compare/6a7763f08d1a175a464a00ce13f0b5a815662fc4...3880f2c58ec392ed2bd5938ab31c9c7c496c0eb2"
+  },
+  "unchanged_relevant_blobs": [
+    {"path": "src/slic3r/plugin/host/PluginHostApp.cpp", "blob": "b7fb1cdad67cae2b325d0f10e02ef267079ea8e7", "relevance": "app_info and application bindings"},
+    {"path": "src/slic3r/plugin/host/PluginHostPresets.cpp", "blob": "4f032e080840e34dca51cf6c5566f018c0ea1409", "relevance": "saved selected, edited, and effective merged configuration bindings"},
+    {"path": "src/slic3r/plugin/host/PluginHostUi.cpp", "blob": "4a87d5b26d075a165f359f868eace6cb59b0e3d2", "relevance": "dock panel, modeless window, post-message UI bridge"},
+    {"path": "src/slic3r/plugin/host/PluginHost.cpp", "blob": "7051b94f868ff287229ef9831c2fc6983beccb7a", "relevance": "plugin.storage binding"},
+    {"path": "src/slic3r/plugin/PluginAuditManager.cpp", "blob": "e913763891b2047cd762e0828944bd5ee8a36df1", "relevance": "runtime filesystem enforcement"},
+    {"path": "src/slic3r/plugin/PluginHooks.cpp", "blob": "dec7d261c6c02c5a0e9ee79669043e4049e920e1", "relevance": "plugin lifecycle dispatch"},
+    {"path": "src/libslic3r/LifecycleEvents.hpp", "blob": "f3e6f3239204947327dbc5c0fa287bfd794b8f46", "relevance": "lifecycle enum and payload contract"},
+    {"path": "src/libslic3r/Print.cpp", "blob": "93a71dcd8d6cbf71c17afffc7f15a3a72c2e5bb2", "relevance": "G-code export lifecycle events"},
+    {"path": "src/slic3r/GUI/Calibration.cpp", "blob": "7c25d4adaaf2caf26229bbbdad37afc5f1aea094", "relevance": "normal Calibration behavior"},
+    {"path": "src/slic3r/GUI/CalibrationPanel.cpp", "blob": "bd09d5fcf750d3e88eceec489316ce5646249fa9", "relevance": "normal Calibration UI"},
+    {"path": "src/slic3r/GUI/Plater.cpp", "blob": "6e4d3e34e08d848a754d15432006036cddfe4a64", "relevance": "normal GUI export and manual file path"},
+    {"path": "src/slic3r/GUI/InstanceCheck.cpp", "blob": "d8365be97ebbc85b282cef9b3d51683744a0889c", "relevance": "single-instance behavior and per-datadir lock location"},
+    {"path": "src/slic3r/GitCommitHash.cmake", "blob": "9302885e6a61d5012dde1974674feaa870e4d6f1", "relevance": "app_info build-label generation"}
+  ],
+  "changed_relevant_paths": [
+    {"path": "version.inc", "nightly_blob": "1160e63916e0d18e0c31fd6c5b629a88bf2d6e6f", "alpha_blob": "e7caf23386dcb45f09a4f58b142e087a31676da4", "assessment": "SoftFever_VERSION changes only from 2.5.0-dev to 2.5.0-alpha."},
+    {"path": "src/slic3r/plugin/PluginConfig.cpp", "nightly_blob": "8dd377e7a96acb135ab9ecef05ca3bbdeebdc52b", "alpha_blob": "349e70b166b43a0ee94b145f36508739f8d5a3fc", "assessment": "Adds the Resource Texture capability label."},
+    {"path": "src/slic3r/plugin/PluginFsUtils.cpp", "nightly_blob": "e40ddd28e2311f73fbcbfca6cde0f815fc04b442", "alpha_blob": "1dd8391ad709a7b283e63a3c905616cde051dcde", "assessment": "Adds resource-texture file collection and improves Windows long-path ZIP extraction; no companion storage-path change."},
+    {"path": "src/slic3r/plugin/PluginFsUtils.hpp", "nightly_blob": "d485ac5efe357f3388647c7fd9cb56d048cc8602", "alpha_blob": "9c864ed73af14f5ce72a1b7f044d28b6ded9130c", "assessment": "Declares resource-texture file collection."},
+    {"path": "src/slic3r/plugin/PluginLoader.cpp", "nightly_blob": "51f68076152fcbc61ed09d9e5b6bbc2194dd5685", "alpha_blob": "70601b3a5b877dd83259f9e97adc97639888feed", "assessment": "Materializes additive ResourceTexture capabilities; Script capability path used by the companion is unchanged."},
+    {"path": "src/slic3r/plugin/PythonPluginBridge.cpp", "nightly_blob": "8d1a5860dd8e2cdc3e0275de364f85e748ab9161", "alpha_blob": "103de8e362afc992c25248d11a91295a3735d5b8", "assessment": "Registers additive ResourceTexture Python bindings; lifecycle names and Script binding remain unchanged."},
+    {"path": "src/slic3r/plugin/PythonPluginInterface.hpp", "nightly_blob": "2702275166231a02c52e626d7282a45a9c6148f6", "alpha_blob": "c57c9ce6b6cb490c22398238c1806f111d35caf9", "assessment": "Adds ResourceTexture enum/string values."},
+    {"path": "src/slic3r/plugin/host/PluginPages.cpp", "nightly_blob": "cf4ed6a6a857d57fad224bc72f096063c6b775e4", "alpha_blob": "93bc8e93cd4093005e808c19b26455f5b897dd90", "assessment": "Refits native tab labels after plugin-page overflow changes; the companion is a Script panel, not a Pages capability."},
+    {"path": "src/slic3r/GUI/GUI_App.cpp", "nightly_blob": "5351ae4904d821fd00cc807d98f2bc0a0b9b9ff8", "alpha_blob": "b9e119220cad31964321bcef45db014a397b98be", "assessment": "Adds ResourceTexture GUI wiring, OrcaCloud navigation, and cloud preset-sync fixes; no companion host binding or datadir behavior change."},
+    {"path": "src/slic3r/GUI/WebViewDialog.cpp", "nightly_blob": "fe7bd0fdfb7f650bcd042b6f91b1f1998b6cdad5", "alpha_blob": "d6fc4a71700d26991cb58eed2c46f29f6197b44b", "assessment": "OrcaCloud pane navigation only; plugin panel bridge is unchanged."},
+    {"path": "src/slic3r/GUI/Widgets/WebView.cpp", "nightly_blob": "7af3ba4f1dfd8929905f1b540260c3029542c879", "alpha_blob": "dde4df385a5813d26bfdc50204a82ce315673427", "assessment": "Linux WebKitGTK compositing/shared-memory detection only; no Windows WebView2 code change."},
+    {"path": "resources/web/dialog/PluginsDialog/index.html", "nightly_blob": "ae4ffc8b9e688c66bc14e1a24f7e571f3295d4a8", "alpha_blob": "8981a7d62d7cc739b526046b43ec290717ab53c6", "assessment": "Corrects the fuzzy-search script path in the Plugins dialog."},
+    {"path": "src/libslic3r/GCode.cpp", "nightly_blob": "ce2be2db580f356ed869e6d77b11f87dc037bebf", "alpha_blob": "508ab5b42159cfbf63982c4a8fdaff34caeeaa52", "assessment": "Changes multi-tool standby-heater G-code. Export lifecycle emission sites are unchanged. Revalidate exact alpha output bytes rather than reusing a nightly digest."},
+    {"path": "src/OrcaSlicer.cpp", "nightly_blob": "ef0e4bbe3ac8215403b98aca5d1a7937ebce5502", "alpha_blob": "468cfb9a30f2b51ba01a41a37af42c81ac5451ff", "assessment": "Linux WebKitGTK startup workaround only; Windows --datadir parsing remains unchanged."}
+  ],
+  "compatibility": {
+    "host_and_context_api": "Source-compatible; exact relevant host blobs are unchanged.",
+    "normal_calibration_prepare": "Source-compatible at the inspected Calibration GUI surfaces; runtime observation is still required.",
+    "export_and_file_selection": "Lifecycle contracts and GUI path are source-compatible. Alpha-generated file bytes must be selected and hashed anew.",
+    "plugin_storage": "Unchanged. Local plugin storage remains beneath the selected datadir's orca_plugins/plugin_data/<plugin-key> directory.",
+    "single_instance_and_datadir": "Unchanged. Use a separate extracted executable path and dedicated --datadir. Do not pass --no-single-instance: InstanceCheck parses it internally, but the CLI schema does not accept it.",
+    "webview2": "No Windows WebView2 source delta. --datadir alone does not establish browser-data isolation; retain a child-process-only WEBVIEW2_USER_DATA_FOLDER rooted in the dedicated qualification data tree.",
+    "runtime_whitelist": "Incompatible by design until adapted. Accepted companion and protocol admit the qualified nightly tuple and reject Alpha."
+  },
+  "smallest_derivative": {
+    "source": "Generate from the exact accepted v0.5.0 companion while preserving accepted originals.",
+    "required_changes": [
+      "Admit only the exact runtime tuple observed from the official alpha asset; source expectation is (2.5.0-alpha, 3880f2c5).",
+      "Use that same exact tuple in the embedded protocol outbox validator and file-descriptor probe.",
+      "Keep the accepted physical relay unchanged and rejecting Alpha unless a separate review explicitly adapts it."
+    ],
+    "forbidden_broadening": "Do not wildcard the version, accept an arbitrary 3880f2c prefix, or admit all 2.5.0-alpha builds.",
+    "no_other_companion_change_indicated_by_source": true
+  },
+  "risk_matrix": [
+    {"area": "Runtime identity", "source_confidence": "high", "runtime_risk": "medium until observed", "gate": "Read exact app_info from the official asset before loading the alpha derivative."},
+    {"area": "Host/preset/UI APIs", "source_confidence": "high; byte-identical", "runtime_risk": "low but nonzero", "gate": "Exercise plugin load, saved/edited/effective reads, and panel bridge in the isolated alpha process."},
+    {"area": "Calibration/export", "source_confidence": "high for GUI and lifecycle compatibility", "runtime_risk": "medium because output code changed", "gate": "Prepare normally, manually select, rehash, and validate the alpha file without any physical action."},
+    {"area": "Storage/isolation", "source_confidence": "high; relevant source unchanged", "runtime_risk": "medium", "gate": "Prove dedicated datadir, separate process, child WebView2 storage, and normal-data preservation."},
+    {"area": "Physical relay/display baseline", "source_confidence": "not applicable", "runtime_risk": "not authorized", "gate": "Retain the qualified nightly as the accepted physical baseline; no alpha physical retest or relay enablement follows from source compatibility."}
+  ],
+  "limitation": "This report establishes source compatibility and release provenance only. It does not prove the released Windows binary reports the expected abbreviated build, loads the derivative, preserves normal data, renders the WebView2 panel, or reproduces calibration/export behavior. Those are isolated development qualification gates. The October 15 nightly remains the accepted physical baseline unless separately approved evidence supersedes it."
+}

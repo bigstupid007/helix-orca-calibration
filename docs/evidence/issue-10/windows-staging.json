@@ -1,0 +1,51 @@
+{
+  "accepted_050_companion_input_staged": true,
+  "actual_app_info_observed": false,
+  "alpha_051_companion_generated_not_yet_runtime_qualified": true,
+  "alpha_051_companion_sha256": "9b79d6150b4f0102a8e5ed8b43491005ddfb3834f4e099d9eb470c870a4c41b7",
+  "capture_and_input_blocked_by_lock_screen": true,
+  "child_only_webview2_storage_verified": true,
+  "combined_tests": 189,
+  "executable_and_library_pinned_before_guarded_process_admission": true,
+  "expected_app_info_from_source": {
+    "build": "3880f2c5",
+    "version": "2.5.0-alpha"
+  },
+  "focused_alpha_tests": 8,
+  "limitations": [
+    "No actual GUI or app_info qualification yet.",
+    "Expected exact runtime tuple is source evidence; the actual asset must be observed.",
+    "Retained Issue8 physical proof is not an Alpha physical qualification.",
+    "October15 remains the accepted physical baseline; no adoption/merge/deployment authorized."
+  ],
+  "native_window_and_exact_owned_process_observed": true,
+  "nightly_settings_and_plugin_before": {
+    "count": 61,
+    "sha256": "5a38d73878c1d3995a60aab4340621ba5205a87888621ecd7739fa9c8f3b933b"
+  },
+  "normal_and_qualified_nightly_runtime_overwritten": false,
+  "normal_profiles_before": {
+    "count": 1429,
+    "sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19"
+  },
+  "official_archive_and_binary_hashes_verified_on_devbox_and_spare": true,
+  "physical_printer_actions": false,
+  "preservation_after_staging": {
+    "nightly": {
+      "count": 61,
+      "sha256": "5a38d73878c1d3995a60aab4340621ba5205a87888621ecd7739fa9c8f3b933b"
+    },
+    "nightly_binaries_unchanged": true,
+    "nightly_unchanged": true,
+    "normal": {
+      "count": 1429,
+      "sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19"
+    },
+    "normal_unchanged": true,
+    "recorded_at_utc": "2026-10-17T00:41:13.7153669Z"
+  },
+  "profile_copies_only_no_printer_connections_or_accepted_communication_state": true,
+  "separate_runtime_and_marked_datadir": true,
+  "static_independent_review": "pass; actual Windows gates pending",
+  "status": "staged-gui-qualification-pending-owner-unlock"
+}

@@ -341,3 +341,39 @@ closure on 2026-10-16; see [acceptance](ISSUE_8_ACCEPTANCE.md). The existing
 trusted-LAN limitation and owner-only bridge authority are unchanged.
 Documentation-only closeout preserves accepted implementation/evidence and
 defers UX work without authorizing release or broader printer deployment.
+
+
+## Issue #10 Alpha compatibility qualification
+
+Official Alpha `3880f2c5` is 39 commits beyond qualified nightly `6a7763f0`.
+The used plugin host/preset/UI/storage/lifecycle and Calibration/Plater sources
+are byte-identical. Additive resource-texture and plugin-page changes do not
+replace the Script companion API. G-code behavior changed for multi-tool
+standby heaters, so actual Alpha qualification must prepare/export and bind a
+new file rather than reuse a nightly digest. Official release/tag/archive and
+extracted binary provenance are hash-verified; source comparison is retained
+in [Issue #10 evidence](evidence/issue-10/source-comparison.json).
+
+The accepted companion's runtime gate and embedded protocol deliberately reject
+Alpha. The separate derivative uses exact truthful Alpha provenance, retaining
+v1 correlation and NOT APPLIED behavior; the accepted physical relay remains
+nightly-only. Owner unlock resolved the initial desktop-lock gate. Actual Alpha
+reports `2.5.0-alpha / 3880f2c5`; installation, owned docks, original context,
+saved220/edited217/effective217, native reset and normal Temperature export pass.
+Manual file association remains necessary because export events identify a
+slice-temporary path. The actual export descriptor matches independent bytes,
+SHA-256 and all nine temperature bands.
+
+The unchanged isolated native beta.9 driver selected 205°C from the actual Alpha
+outbox. Originating Alpha committed the exact result and receipt, showed original
+220°C/205°C NOT APPLIED instructions, rejected stale/conflicting results and
+preserved state across duplicates, filament switching and process restart.
+No fresh native ACK or physical delivery is claimed. Normal/nightly fingerprints,
+12 seeded profile JSON files and canonical dirty work remain unchanged.
+[Current qualification and recommendation](ORCA_ALPHA_QUALIFICATION.md) retain
+October 15 as preferred development/physical-integration baseline and Alpha 0.5.1 as a qualified
+secondary environment. Independent final review found no material issue and affected-surface AI Product
+Preflight passed; exact-head CI is recorded on PR #11. Founder accepted the
+qualification on 2026-10-16 with that baseline policy and authorized PR #11
+merge, main verification and Issue #10 closure. Alpha physical integration and
+production adoption remain unauthorized; see [acceptance](ISSUE_10_ACCEPTANCE.md).

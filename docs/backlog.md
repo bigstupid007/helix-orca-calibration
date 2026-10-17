@@ -1,5 +1,22 @@
 # Backlog
 
+## Accepted: Issue #10 — official OrcaSlicer 2.5.0 Alpha qualification
+
+- [x] Verify isolated OSS identity, accepted Issue #8 / PR #9 baseline and no overlapping active work.
+- [x] Compare pinned source revisions and verify the official Windows x64 portable archive/binaries.
+- [x] Stage Alpha in a new marked environment with separate settings and child-only WebView2 storage.
+- [x] Preserve accepted source; generate a narrow exact-Alpha companion and guarded UI tool; focused tests pass.
+- [x] Complete actual Windows plugin/context/preparation/export/request/result/recovery/profile-switch/stale/duplicate proof; preserve normal/nightly settings and all seeded profile JSON.
+- [x] Complete independent static candidate review and consolidated provenance corrections.
+- [x] Complete final independent evidence review, affected-surface AI Product Preflight and exact-head CI; Founder accepted Issue #10 / PR #11 on 2026-10-16.
+
+[Founder acceptance and governed closeout](ISSUE_10_ACCEPTANCE.md) supersede the
+former unmerged gate for PR #11 only. October 15 nightly remains the preferred
+development and physical-integration baseline; Alpha with companion 0.5.1 is a
+qualified secondary target. No Alpha physical integration, production adoption,
+deployment or additional UX is authorized. Capture-time evidence is preserved;
+the existing PR/Issue record final merge, main verification and closure.
+
 ## Accepted: Issue #8 — real Temperature communication without printing
 
 The founder approved one real request/selection return using current beta.9

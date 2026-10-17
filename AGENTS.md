@@ -268,3 +268,50 @@ queue, heating, motion, homing, macros, automatic profile update, firmware,
 service/security/access change, wider exposure, new credentials, release or
 broader printer deployment is authorized. Deferred UX work is backlog only.
 See `docs/ISSUE_8_ACCEPTANCE.md`.
+
+## Issue #10 official Orca Alpha compatibility qualification
+
+The founder's 2026-10-16 instruction and Issue #10 authorize comparing official
+`v2.5.0-alpha` source `3880f2c58ec392ed2bd5938ab31c9c7c496c0eb2` with qualified
+October 15 nightly `6a7763f08d1a175a464a00ce13f0b5a815662fc4`. Stage only its
+hash-verified portable x64 artifact in a separate marked Spare environment,
+with separate settings and child-only WebView2 storage. Preserve normal Orca,
+the accepted nightly, accepted source/artifacts and private operational proof.
+
+A generated exact-runtime Alpha derivative and bounded qualification tooling
+are allowed when required; retain truthful context/digest provenance and strict
+v1 request/result safety. Do not weaken or modify accepted original runtime
+gates, physical relay, native shell, harness or evidence. Use focused tests,
+actual Windows UI proof and independent review. Reuse valid retained native/
+communication evidence; do not manufacture another physical test. Separate
+approval is required before consequential physical actions. No printing,
+queue, heat, motion, profile writeback, new access/security change, deployment
+or unrelated UX is authorized. Leave one reviewed unmerged PR and recommend
+baseline policy; qualification alone does not adopt Alpha or authorize merge.
+Owner-only desktop unlock remains required if Spare is locked. See
+`docs/ORCA_ALPHA_QUALIFICATION.md`.
+
+## Issue #10 Founder acceptance and closeout
+
+Founder accepted Issue #10 and PR #11 on 2026-10-16 (America/Chicago) as the
+completed OrcaSlicer 2.5.0 Alpha compatibility qualification, at reviewed head
+`7c9078896a1f3dedaa91536b8388ccb29f5e4359`. The accepted policy keeps the
+October 15 nightly as the preferred development and physical-integration
+baseline; Alpha with companion 0.5.1 is a qualified secondary target only.
+No Alpha physical integration or production adoption is authorized.
+
+The same instruction authorizes acceptance/policy documentation, final
+safeguards, PR #11 merge, main verification and Issue #10 closure. It supersedes
+the earlier keep-unmerged restriction for PR #11 only. Closeout changes
+documentation only: preserve accepted implementations, runtime isolation,
+normal and copied profiles, private operational evidence and public capture
+artifacts. Preserve the dirty canonical checkout through the existing separate
+qualification worktree and a clean detached main-verification worktree.
+Use the established merge-commit method, exact-head match and current green
+checks without bypass. Record exact merge/main and closure results in the
+existing PR/Issue; preserve branch references and earlier evidence.
+
+The physical relay, printer configuration, security/access boundaries and
+profile data must remain unchanged. No print, queue, heat, motion, homing,
+macros, profile writeback, deployment, release, Alpha physical testing or
+additional UX work is authorized. See `docs/ISSUE_10_ACCEPTANCE.md`.

@@ -190,3 +190,21 @@ Orca result, and authorized governed merge, main verification and Issue closure.
 the PR/Issue own final merge and verification state. The completed relay has
 exited. [UX polish remains deferred](docs/backlog.md#deferred-ux-batch-after-the-accepted-bidirectional-proof);
 no printing, automatic profile update, release or broader deployment is authorized.
+
+
+## Official OrcaSlicer 2.5.0 Alpha qualification
+
+Founder accepted [Issue #10](https://github.com/bigstupid007/helix-orca-calibration/issues/10)
+and PR #11 on 2026-10-16 for official `v2.5.0-alpha` (`3880f2c5`) against the
+accepted October 15 nightly. Source comparison and official artifact verification pass; Alpha is
+staged separately on Spare. A generated `0.5.1` companion admits only the exact
+Alpha identity without changing accepted `0.5.0` source, protocol or relay.
+Actual Windows installation, context/unsaved values, normal Temperature export,
+exact file association, isolated native 205°C return, duplicate/stale handling,
+profile switching and process-restart recovery pass. Normal profiles and the
+accepted nightly are unchanged. October 15 remains the preferred development
+and physical-integration baseline; Alpha with companion 0.5.1 is a qualified
+secondary target. Alpha physical integration and production adoption remain
+unauthorized. [Founder acceptance and closeout](docs/ISSUE_10_ACCEPTANCE.md)
+authorize PR #11 merge, main verification and Issue #10 closure only; GitHub
+records the final outcome. See the [qualification report](docs/ORCA_ALPHA_QUALIFICATION.md).
