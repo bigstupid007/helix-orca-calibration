@@ -268,3 +268,25 @@ queue, heating, motion, homing, macros, automatic profile update, firmware,
 service/security/access change, wider exposure, new credentials, release or
 broader printer deployment is authorized. Deferred UX work is backlog only.
 See `docs/ISSUE_8_ACCEPTANCE.md`.
+
+## Issue #10 official Orca Alpha compatibility qualification
+
+The founder's 2026-10-16 instruction and Issue #10 authorize comparing official
+`v2.5.0-alpha` source `3880f2c58ec392ed2bd5938ab31c9c7c496c0eb2` with qualified
+October 15 nightly `6a7763f08d1a175a464a00ce13f0b5a815662fc4`. Stage only its
+hash-verified portable x64 artifact in a separate marked Spare environment,
+with separate settings and child-only WebView2 storage. Preserve normal Orca,
+the accepted nightly, accepted source/artifacts and private operational proof.
+
+A generated exact-runtime Alpha derivative and bounded qualification tooling
+are allowed when required; retain truthful context/digest provenance and strict
+v1 request/result safety. Do not weaken or modify accepted original runtime
+gates, physical relay, native shell, harness or evidence. Use focused tests,
+actual Windows UI proof and independent review. Reuse valid retained native/
+communication evidence; do not manufacture another physical test. Separate
+approval is required before consequential physical actions. No printing,
+queue, heat, motion, profile writeback, new access/security change, deployment
+or unrelated UX is authorized. Leave one reviewed unmerged PR and recommend
+baseline policy; qualification alone does not adopt Alpha or authorize merge.
+Owner-only desktop unlock remains required if Spare is locked. See
+`docs/ORCA_ALPHA_QUALIFICATION.md`.

@@ -1,0 +1,19 @@
+{
+  "archive": "OrcaSlicer_Windows_V2.5.0-alpha_x64_portable.zip",
+  "bytes": 221507287,
+  "sha256": "9b4593697c9ec0f8e7c0dcbebd7f8ea08a5cd01c2bd68d2a5d48b45b4c18ff8c",
+  "binaries": [
+    {
+      "path": "orca-slicer.exe",
+      "bytes": 278528,
+      "sha256": "a37d149ea315a0a2125c11625b7dc24e456dbd3bc309dd56519d90dcdcd77985"
+    },
+    {
+      "path": "OrcaSlicer.dll",
+      "bytes": 151276544,
+      "sha256": "92bdf7493425b949934479164d0745ce5e28fe24c7a556af300792b788e94c8b"
+    }
+  ],
+  "files": 4278,
+  "uncompressed_bytes": 615612612
+}

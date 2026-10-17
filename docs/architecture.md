@@ -256,3 +256,21 @@ Issue #8 closure. [The acceptance record](ISSUE_8_ACCEPTANCE.md) separates that
 product decision from the prior technical/AI proof. Closeout changes docs only;
 no runtime architecture, transport permission, profile behavior or hardware
 capability changes. Deferred UX is backlog work, with no broader deployment.
+
+
+## Issue #10 isolated Alpha compatibility layer
+
+The accepted October 15 implementation and physical relay remain unchanged.
+`scripts/orca-alpha-companion.py` derives an Alpha-only `0.5.1` single-file
+artifact from hash-verified accepted `0.5.0` bytes. It changes target metadata,
+exact runtime admission and the embedded runtime-validation/probe constants;
+request/result schemas, original-context digest binding, UI behavior and
+receipt/recovery guards remain intact. `scripts/orca-alpha-windows-review.py`
+reuses pinned native review guards for only the new Alpha executable/datadir.
+It creates no service, access route or physical-printer transport.
+
+Source compatibility does not override runtime gates. The accepted physical
+relay deliberately rejects an Alpha outbox; this qualification neither changes
+that gate nor repeats physical communication. [Qualification status](ORCA_ALPHA_QUALIFICATION.md)
+records source proof, actual Windows gates and the distinction between an
+isolated development baseline and the accepted physical workflow.

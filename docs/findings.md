@@ -341,3 +341,23 @@ closure on 2026-10-16; see [acceptance](ISSUE_8_ACCEPTANCE.md). The existing
 trusted-LAN limitation and owner-only bridge authority are unchanged.
 Documentation-only closeout preserves accepted implementation/evidence and
 defers UX work without authorizing release or broader printer deployment.
+
+
+## Issue #10 Alpha source and staging checkpoint
+
+Official Alpha `3880f2c5` is 39 commits beyond qualified nightly `6a7763f0`.
+The used plugin host/preset/UI/storage/lifecycle and Calibration/Plater sources
+are byte-identical. Additive resource-texture and plugin-page changes do not
+replace the Script companion API. G-code behavior changed for multi-tool
+standby heaters, so actual Alpha qualification must prepare/export and bind a
+new file rather than reuse a nightly digest. Official release/tag/archive and
+extracted binary provenance are hash-verified; source comparison is retained
+in [Issue #10 evidence](evidence/issue-10/source-comparison.json).
+
+The accepted companion's runtime gate and embedded protocol deliberately reject
+Alpha. The separate derivative uses exact truthful Alpha provenance, retaining
+v1 correlation and NOT APPLIED behavior; the accepted physical relay remains
+nightly-only. Alpha launched separately with isolated WebView2, but LockApp
+occludes its window. Guards reject capture/input rather than bypass the lock.
+Owner unlock is pending; no app_info/GUI/preparation/result pass is claimed.
+See [current qualification](ORCA_ALPHA_QUALIFICATION.md).

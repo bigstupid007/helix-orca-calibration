@@ -190,3 +190,15 @@ Orca result, and authorized governed merge, main verification and Issue closure.
 the PR/Issue own final merge and verification state. The completed relay has
 exited. [UX polish remains deferred](docs/backlog.md#deferred-ux-batch-after-the-accepted-bidirectional-proof);
 no printing, automatic profile update, release or broader deployment is authorized.
+
+
+## Official OrcaSlicer 2.5.0 Alpha qualification
+
+[Issue #10](https://github.com/bigstupid007/helix-orca-calibration/issues/10)
+qualifies official `v2.5.0-alpha` (`3880f2c5`) against the accepted October 15
+nightly. Source comparison and official artifact verification pass; Alpha is
+staged separately on Spare. A generated `0.5.1` companion admits only the exact
+Alpha identity without changing accepted `0.5.0` source, protocol or relay.
+Actual Windows UI qualification is pending owner unlock of Spare; source/unit
+results are not a runtime pass. The qualified nightly remains the accepted
+physical baseline. See [qualification status and limits](docs/ORCA_ALPHA_QUALIFICATION.md).

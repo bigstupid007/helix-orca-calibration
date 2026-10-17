@@ -1,5 +1,20 @@
 # Backlog
 
+## In progress: Issue #10 — official OrcaSlicer 2.5.0 Alpha qualification
+
+- [x] Verify isolated OSS identity, accepted Issue #8 / PR #9 baseline and no overlapping active work.
+- [x] Compare pinned source revisions and verify the official Windows x64 portable archive/binaries.
+- [x] Stage Alpha in a new marked environment with separate settings and child-only WebView2 storage.
+- [x] Preserve accepted source; generate a narrow exact-Alpha companion and guarded UI tool; focused tests pass.
+- [ ] Complete actual Windows plugin/context/preparation/export/request/result/recovery/profile-switch/stale/duplicate proof. Spare is locked; owner unlock requested.
+- [x] Complete independent static candidate review and consolidated provenance corrections.
+- [ ] Complete CI on the draft candidate, actual Windows evidence review and final recommendation with one unmerged PR.
+
+[Qualification authority/status](ORCA_ALPHA_QUALIFICATION.md) distinguishes source
+evidence from pending actual GUI proof. No physical retest, baseline adoption,
+merge, deployment or unrelated UX is authorized. October 15 remains the
+accepted physical baseline.
+
 ## Accepted: Issue #8 — real Temperature communication without printing
 
 The founder approved one real request/selection return using current beta.9
