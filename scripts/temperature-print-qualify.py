@@ -149,10 +149,18 @@ def open_detail(name,w,h):
                 if a.ctl(name,'current').get('overlays')==expected:break
                 time.sleep(.05)
             else:raise ValueError('Native input did not reach expected overlay')
-def read_storage(work):
-    # Native storage coalesces writes on a one-second timer.
-    time.sleep(1.2)
-    return json.loads((work/'config/plugin-data/orcacal.json').read_text())['print_session']
+def read_storage(work, *, key=None, state=None, request_id=None):
+    # Pinned beta.9 defers storage writes by 500 ms. Observe the actual file;
+    # host scheduling/fsync may take longer. This never retries a native action.
+    deadline=time.monotonic()+5
+    while True:
+        try:
+            stored=json.loads((work/'config/plugin-data/orcacal.json').read_text())['print_session']
+            if (key is None or key in stored) and (state is None or stored.get('state')==state) and (request_id is None or stored.get('request',{}).get('request_id')==request_id):
+                return stored
+        except (FileNotFoundError,KeyError,json.JSONDecodeError):pass
+        if time.monotonic()>=deadline:raise ValueError('Native storage did not persist the expected state')
+        time.sleep(.1)
 
 def viewport(entry,output,plugins):
     label,w,h,layout,dpi=entry;work=output/label;work.mkdir();(work/'home').mkdir();settings(work/'config')
@@ -163,14 +171,14 @@ def viewport(entry,output,plugins):
         q.wait_ready(name)
         trigger(name,'request',w,h)
         require(value(name,'tp_start_on')==0 and value(name,'tc_choice_on')==0,'Receipt unlocked an action')
-        s=read_storage(work);require('start_intent' not in s and 'result' not in s,'Receipt started or returned')
+        s=read_storage(work,state='received');require('start_intent' not in s and 'result' not in s,'Receipt started or returned')
         a.ctl(name,'scroll','orcacal__request_status');a._screenshot(name,work,'received.png')
         trigger(name,'ready',w,h);open_detail(name,w,h)
         require(value(name,'tp_start_on')==1 and value(name,'tc_choice_on')==0,'Ready controls invalid')
         a.ctl(name,'scroll','orcacal__print_start');a._screenshot(name,work,'ready.png')
         tap(name,'orcacal__print_start',w,h)
         require(value(name,'tp_start_on')==0 and value(name,'tc_choice_on')==0,'Start was repeated or unlocked result')
-        intent=read_storage(work)['start_intent']
+        intent=read_storage(work,key='start_intent')['start_intent']
         require(intent['schema']=='helix-orca-temperature-start/v1' and intent['request_id']==REQUEST['request_id'],'Unbound native Start intent')
         trigger(name,'ready',w,h);require(read_storage(work)['start_intent']==intent,'Duplicate ready reset Start')
         trigger(name,'printing',w,h);open_detail(name,w,h)
@@ -183,14 +191,14 @@ def viewport(entry,output,plugins):
         trigger(name,'printing',w,h);open_detail(name,w,h)
         require(value(name,'tp_cancel_on')==1 and read_storage(work)['start_intent']==intent,'Verified recovery lost cancellation or changed Start')
         trigger(name,'confirming',w,h);open_detail(name,w,h)
-        require(value(name,'tc_choice_on')==0 and read_storage(work)['state']=='confirming','History lag became terminal or unlocked result')
+        require(value(name,'tc_choice_on')==0 and read_storage(work,state='confirming')['state']=='confirming','History lag became terminal or unlocked result')
         trigger(name,'complete',w,h);open_detail(name,w,h)
         require(value(name,'tc_choice_on')==1 and value(name,'tp_cancel_on')==0,'Confirmed success did not unlock result')
         a._assert_horizontal_fit(a.ctl(name,'geom','orcacal__temperature_content','8'),w)
         a.ctl(name,'scroll','orcacal__temperature_selector');a.ctl(name,'set_value','orcacal__temperature_selector','1')
         a._screenshot(name,work,'completed.png')
         tap(name,'orcacal__return_selection',w,h)
-        s=read_storage(work)
+        s=read_storage(work,key='result',state='waiting')
         require(s['result']['value']==205 and s['result']['job_id']=='000001' and s['result']['completion_sha256']=='c'*64,'Result proof invalid')
         require(s['request']==REQUEST,'Original context changed')
         a.json_write(work/'selection.json',s['result'])
@@ -202,12 +210,10 @@ def viewport(entry,output,plugins):
         a.run(a._container_args(name,work,w,h,layout,dpi),capture=True);q.wait_ready(name);open_detail(name,w,h)
         require(value(name,'tc_choice_on')==0 and read_storage(work)['result']==s['result'],'Waiting restart changed the result')
         trigger(name,'ack',w,h)
-        deadline=time.monotonic()+3
-        while read_storage(work)['state']!='returned' and time.monotonic()<deadline:pass
-        require(read_storage(work)['state']=='returned','Exact Orca acknowledgement not retained')
+        require(read_storage(work,state='returned')['state']=='returned','Exact Orca acknowledgement not retained')
         open_detail(name,w,h);a.ctl(name,'scroll','orcacal__returned_area');a._screenshot(name,work,'returned.png')
         trigger(name,'fresh',w,h)
-        fresh=read_storage(work)
+        fresh=read_storage(work,request_id='3'*32)
         require(fresh['request']['request_id']=='3'*32 and 'start_intent' not in fresh,'Terminal session did not retire')
         require(REQUEST['origin_id']+':'+REQUEST['request_id'] in fresh['tombstones'],'Retirement lost replay tombstone')
         trigger(name,'request',w,h)
@@ -216,20 +222,20 @@ def viewport(entry,output,plugins):
         trigger(name,'printing',w,h);open_detail(name,w,h);tap(name,'orcacal__print_cancel',w,h)
         a.ctl(name,'wait_idle')
         a._assert_overlay(a.ctl(name,'current'),['orcacal__wizard','orcacal__temperature','orcacal__cancel_confirmation'])
-        require('cancel_intent' not in read_storage(work),'Opening confirmation cancelled the job')
+        require('cancel_intent' not in read_storage(work,state='printing'),'Opening confirmation cancelled the job')
         a.ctl(name,'scroll','orcacal__confirm_cancel');a._screenshot(name,work,'cancel-confirmation.png')
         a.ctl(name,'go_back');a.ctl(name,'wait_idle')
-        require('cancel_intent' not in read_storage(work),'Back cancelled the job')
+        require('cancel_intent' not in read_storage(work,state='printing'),'Back cancelled the job')
         tap(name,'orcacal__print_cancel',w,h);tap(name,'orcacal__confirm_cancel',w,h)
-        cancel=read_storage(work)['cancel_intent']
+        cancel=read_storage(work,key='cancel_intent')['cancel_intent']
         require(cancel['expires_eventtime']>cancel['eventtime'] and cancel['eventtime']>LEASE['issued_eventtime']+900,'Late cancellation was wrongly tied to Start expiry')
         trigger(name,'complete',w,h);open_detail(name,w,h)
-        require(value(name,'tc_choice_on')==0 and 'result' not in read_storage(work),'Cancelled job unlocked a result')
+        require(value(name,'tc_choice_on')==0 and 'result' not in read_storage(work,state='cancelled'),'Cancelled job unlocked a result')
         a.ctl(name,'scroll','orcacal__request_status');a._screenshot(name,work,'cancelled.png')
         a._remove_container(name)
         a.run(a._container_args(name,work,w,h,layout,dpi),capture=True);q.wait_ready(name)
         trigger(name,'fresh',w,h)
-        require(read_storage(work)['request']['request_id']=='5'*32,'Cancelled restart required manual cleanup')
+        require(read_storage(work,request_id='5'*32)['request']['request_id']=='5'*32,'Cancelled restart required manual cleanup')
         return {'label':label,'viewport':f'{w}x{h}','dpi':dpi,'layout':layout,'result':'PASS','assertions':ASSERTIONS}
     finally:
         logs=a.run(['docker','logs',name],capture=True,check=False)
