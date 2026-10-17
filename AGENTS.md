@@ -315,3 +315,42 @@ The physical relay, printer configuration, security/access boundaries and
 profile data must remain unchanged. No print, queue, heat, motion, homing,
 macros, profile writeback, deployment, release, Alpha physical testing or
 additional UX work is authorized. See `docs/ISSUE_10_ACCEPTANCE.md`.
+
+
+## Issue #12 miniature physical Temperature readiness
+
+The Founder instruction on 2026-10-16 (America/Chicago) and Issue #12 authorize
+an isolated first-physical-test readiness candidate, one independently reviewed
+unmerged PR, and a truthful readiness report. They authorize **no real print,
+heating, motion, homing, macro execution or other consequential printer action**.
+Separate explicit Founder review and physical-test authorization remain required.
+No merge, deployment or production enablement is authorized.
+
+Use exactly THREE native Orca Temperature bands; illustrative PLA values are
+210/205/200°C bottom to top, subject to the actual filament. Target 10–20 minutes;
+a proposed first-test estimate above 1200 seconds is disqualified. Missing
+filament, geometry, macro safety or duration evidence blocks physical readiness.
+Normal native Orca preparation/slicing/export is allowed in the qualified
+isolated October 15 nightly; never generate custom or hand-edited print G-code.
+Alpha remains secondary only, with no physical adoption.
+
+Preserve all accepted sources/evidence, original profile context, normal Orca,
+private payloads and the existing mock harness. New `temperature-print`
+derivatives may extend the accepted native shell and local original-context
+companion. The native plugin remains storage-only: explicit screen Start/cancel
+writes a correlated intent; request receipt never dispatches a print. The
+coordinator requires separate local authorization, exact reviewed configuration
+and physical identity, byte-verified qualified output, a durable one-shot
+intent and independent same-job status/history proof. Result selection remains
+locked for failed, cancelled, disconnected, stale or uncertain jobs. Return
+instructions remain NOT APPLIED; there is no profile writeback.
+
+All implemented transports default to actions disabled. This program must not
+activate the physical adapter, issue a live permit, upload/queue/start a file,
+install the derivative on the printer, invoke a macro, or change access/config.
+Read-only existing-target identity/status/config/history inspections are allowed
+for offline suitability evidence; retain raw target data privately. Native UI
+claims require the full pinned beta.9 eleven-size matrix with labeled synthetic
+job/authorization/clock inputs. Do not relabel fixture success as physical proof.
+See `docs/BUILD_PROGRAM_TEMPERATURE_PRINT.md` and
+`docs/TEMPERATURE_PRINT_READINESS.md` for the candidate state and remaining gates.

@@ -1,5 +1,28 @@
 # Helix-Orca Calibration
 
+## Issue #12 — miniature physical Temperature readiness
+
+[Build Program #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12)
+prepares the first controlled physical Temperature test: exactly three native
+bands (illustrative PLA 210 → 205 → 200°C), a 10–20-minute target, and a hard
+20-minute maximum proposed estimate. The corrected native export estimates
+12m00s; the combined cold-start estimate remains unqualified, so physical
+execution stays blocked. Current qualification and remaining gates are in
+[the readiness report](docs/TEMPERATURE_PRINT_READINESS.md).
+
+The candidate adds separate storage-only native and single-file Orca derivatives,
+a one-shot lifecycle coordinator and a disabled-by-default bounded Moonraker
+adapter. Request receipt cannot start a print. Explicit native Start requires
+separate local authorization and current identity/config/file/state checks.
+Results require observed same-job printing followed by fresh successful status
+and independent history; failures and cancellations never unlock a result.
+Original saved/edited/effective context and NOT APPLIED instructions survive.
+
+No physical action or installation is part of this readiness build. The accepted
+plugins, normal profiles and mock harness remain preserved. October 15 remains
+preferred; Alpha remains secondary without physical adoption. Separate Founder
+review and explicit authorization are required before any physical test.
+
 ## Issue #1 — native Helix calibration foundation
 
 `helix-plugin/orcacal/` is the accepted product baseline. Version `0.2.0`

@@ -377,3 +377,25 @@ Preflight passed; exact-head CI is recorded on PR #11. Founder accepted the
 qualification on 2026-10-16 with that baseline policy and authorized PR #11
 merge, main verification and Issue #10 closure. Alpha physical integration and
 production adoption remain unauthorized; see [acceptance](ISSUE_10_ACCEPTANCE.md).
+
+
+## Issue #12 offline first-print findings
+
+Exact October 15 native Temperature generation supports inclusive descending
+210/205/200°C bands and clips standard Cartesian geometry to approximately
+30 mm high. The initial actual native 0.20 mm slice estimates 25m17s; three
+bands alone do not meet the 20-minute bound. Native uniform 70% scale and
+unsaved 0.28 mm layers produce 75 layers with three equal 25-layer bands and
+a 12m00s model estimate. The final export uses native
+`PRINT_START BED_TEMP=60 EXTRUDER_TEMP=210`; earlier incompatible ABI output
+is rejected. Cold-start overhead remains unqualified. Actual records are
+summarized in [the readiness report](TEMPERATURE_PRINT_READINESS.md).
+
+Read-only existing-target inspection confirms the accepted Moonraker version,
+ready/standby state, empty paused queue, live history and 0.4 mm nozzle. Its
+cold PRINT_START macro includes homing, QGL, bed/hotend waits and purge; opaque
+macro time must not silently disappear from the proposed duration. Primary
+MCU CAN identity and host MACs are available; CPU serial is unavailable. Raw
+configuration and physical identity remain private. Saved profile identity
+alone cannot prove physical-machine suitability. Successful history uses
+`completed`; print_stats uses `complete`; start RPC success proves neither.

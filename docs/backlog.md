@@ -239,3 +239,16 @@ application, broader hardware operation or security/access expansion is included
 - Orca preset mutation or writeback.
 - Additional calibration modules beyond a separately approved increment.
 - Picker/profile-browser expansion beyond the bounded Issue #4 flow.
+
+
+## Issue #12 — first controlled physical Temperature readiness
+
+Approved under [the single governing Build Program](BUILD_PROGRAM_TEMPERATURE_PRINT.md):
+exactly three miniature native bands, target 10–20 minutes and maximum proposed
+estimate 20 minutes, native-screen Start only, real-state and same-job success
+proof, cancellation/failure safeguards and original-profile NOT APPLIED return.
+Implementation and isolated qualification are authorized; all hardware actions,
+physical installation, profile writeback, Alpha adoption and merge remain
+excluded. [The readiness report](TEMPERATURE_PRINT_READINESS.md) records proof
+and unresolved physical gates. Earlier accepted proofs and deferred UX remain
+preserved; this increment does not authorize a UX redesign.

@@ -141,10 +141,13 @@ does not authorize hardware operation.
 
 The result-frame SHA-256 is
 `c9074a513c599d2062d1f5393768859e4ad5629cd1283348a3cd480dccf1b75a`.
-Raw frames and JSON remain private evidence. A later, unrelated
-cancellation/restart case in the same private driver run hit a test-harness
-storage-flush timing assertion, so this result capture does not claim that the
-complete private driver suite passed.
+Raw frames and JSON remain private evidence. The final reviewed driver
+reran that exact outbox at `800x480` and passed its complete native scenario,
+including restart, waiting acknowledgement, replay retirement and cancellation.
+Independent verification bound its sources, fixture, runtime, eight frames and
+state, and confirmed that its selected result equals the actual Windows inbox
+and exact receipt. [Sanitized provenance](evidence/issue-12/windows-mock-roundtrip.json)
+records those hashes without publishing the private payload.
 
 After capture, all candidate readiness artifacts were transferred to private
 evidence and removed from the isolated datadir. The byte-identical accepted

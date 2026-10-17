@@ -1,0 +1,23 @@
+name: Temperature print readiness evidence
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  offline-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Preserved bidirectional communication evidence
+        run: python3 scripts/temperature-communication-evidence.py verify docs/evidence/issue-8/native
+      - name: Complete source-bound native readiness evidence
+        run: python3 scripts/temperature-print-qualify.py verify docs/evidence/issue-12/native

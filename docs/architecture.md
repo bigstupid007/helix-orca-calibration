@@ -282,3 +282,24 @@ the preferred development and physical-integration baseline; Alpha with
 companion 0.5.1 is a qualified secondary target. PR #11 merge/closeout authority
 changes no runtime gate or architecture. Alpha physical integration and
 production adoption remain unauthorized. See [acceptance](ISSUE_10_ACCEPTANCE.md).
+
+
+## Issue #12 readiness extension
+
+The new `integration/temperature-print/` path and `temperature-print-*`
+generators are separate from accepted Issue #8 source. The Orca derivative
+uses local `print-readiness` artifacts, a separate wire namespace and exactly
+three choices. Its original saved/edited/effective target remains immutable;
+results carry the independently confirmed job/proof identity and return NOT
+APPLIED instructions. The native derivative reuses the accepted chooser/detail
+shell and storage permission, writing one-shot Start/cancel intents only from
+native UI callbacks. It never invokes a print RPC.
+
+The transport-independent coordinator journals before any dispatch, never
+retries an ambiguous start/cancel, and corroborates same-job print_stats with
+Moonraker history. Physical identity is a local MCU/host binding, distinct from
+the Orca saved-preset label. The future adapter pins both that identity and the
+reviewed configuration and defaults to actions disabled. No live orchestration,
+permit issuance, hardware activation or physical derivative installation occurs
+in this build. [Readiness authority](BUILD_PROGRAM_TEMPERATURE_PRINT.md) controls
+this increment; [the report](TEMPERATURE_PRINT_READINESS.md) owns remaining gates.

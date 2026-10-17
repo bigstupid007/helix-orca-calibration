@@ -1,0 +1,28 @@
+{
+  "schema": "helix-orca-temperature-print-windows-mock-evidence/v1",
+  "runtime": "October 15 nightly 6a7763f",
+  "companion_version": "0.6.0",
+  "companion_sha256": "b6cce1ab22ac92af611cf7f74930560de160e1e53e19bbfc8785cf96ffe6dd15",
+  "actual_windows_send": true,
+  "outbox_sha256": "048d2ef88bdd8256cf4383af94b9c3d0d76d5bd169ff5937222a45fef1ef3255",
+  "native_mock_report_sha256": "796790d232476e2cefede351312bd91ab4a6d07fea61efb17d7376c68cdd6b9a",
+  "native_result_equals_windows_inbox": true,
+  "result_sha256": "50c45c62e22b37240c8b261e57da505ca092d7eb6f6b4b40b5af307685893b6b",
+  "exact_originating_receipt": true,
+  "receipt_sha256": "ea92d68263a10b9ce743efcbe3e8419fda97eb10cf8b0ff5b0a1d3e58f55654f",
+  "selected_c": 205,
+  "original_saved_edited_effective_c": [
+    220,
+    220,
+    220
+  ],
+  "original_context_unchanged": true,
+  "instructions": "NOT APPLIED",
+  "completion_inputs": "synthetic job 000001 / cccc proof; no physical completion",
+  "physical_actions": 0,
+  "result_frame_sha256": "c9074a513c599d2062d1f5393768859e4ad5629cd1283348a3cd480dccf1b75a",
+  "accepted_companion_and_five_communication_files_restored": true,
+  "normal_profile_count": 1429,
+  "normal_profile_fingerprint_unchanged": true,
+  "raw_evidence": "private XDG state"
+}
