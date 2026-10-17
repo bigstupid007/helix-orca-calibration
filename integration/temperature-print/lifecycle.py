@@ -807,7 +807,8 @@ class TemperaturePrintLifecycle:
         if not isinstance(permit, PhysicalPermit):
             raise SafetyViolation("a separate local physical permit is required")
         permit.assert_matches(request, qualification, intent, now_mono)
-        if self.wall_time() >= request.expires_at:
+        created_at = request.expires_at - request.ttl_seconds
+        if self.wall_time() >= min(request.expires_at, created_at + MAX_START_LIFETIME_S):
             self._terminal_start_rejection("request expired before start")
 
         try:
