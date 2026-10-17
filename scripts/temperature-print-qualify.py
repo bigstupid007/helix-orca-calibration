@@ -150,7 +150,8 @@ def open_detail(name,w,h):
                 time.sleep(.05)
             else:raise ValueError('Native input did not reach expected overlay')
 def read_storage(work):
-    time.sleep(.7)
+    # Native storage coalesces writes on a one-second timer.
+    time.sleep(1.2)
     return json.loads((work/'config/plugin-data/orcacal.json').read_text())['print_session']
 
 def viewport(entry,output,plugins):
