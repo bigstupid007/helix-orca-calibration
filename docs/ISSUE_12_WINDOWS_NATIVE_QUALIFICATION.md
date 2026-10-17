@@ -111,3 +111,46 @@ The final isolated-datadir write inventory contained only `OrcaSlicer.conf`
 and `OrcaSlicer.conf.bak`; no profile JSON was written. The accepted plugin,
 communication state, mock harness, firmware, and printer configuration were
 not changed.
+
+## Actual companion round trip in the isolated nightly
+
+The separate nightly-only `0.6.0` companion candidate, SHA-256
+`b6cce1ab22ac92af611cf7f74930560de160e1e53e19bbfc8785cf96ffe6dd15`,
+was staged after a bytewise backup of the installed accepted `0.5.0`
+companion and all five accepted communication artifacts. Orca's native Plugins
+manager showed the candidate as local, activated, and version `0.6.0`.
+
+In the actual October 15 Orca panel, **Keep original profile** retained the
+saved, edited, and effective values as `220 C`. The native file picker selected
+the candidate G-code above, and the panel independently reproduced its byte
+count and SHA-256. **Send request** created one new local `print-readiness`
+outbox and state file. The visible status said the request was ready for
+delivery, no print had started, and no profile had changed. No delivery status
+or lifecycle transition was seeded in the Windows storage.
+
+That exact outbox was exercised by the network-disabled native mock at
+`800x480`. Its exact correlated, explicitly synthetic result selected `205 C`
+and included mock job/completion proof. Returning that JSON unchanged to the
+actual Windows inbox produced an actual Orca **NOT APPLIED** result panel. It
+showed the original `220 C` values, selected `205 C`, current unchanged
+`220 C`, and the existing manual Orca update instructions. Windows persisted
+the exact result in its state and wrote the exact correlated acknowledgement.
+This proves the candidate's local Windows -> native mock -> Windows result
+path; the synthetic completion value is not physical completion evidence and
+does not authorize hardware operation.
+
+The result-frame SHA-256 is
+`c9074a513c599d2062d1f5393768859e4ad5629cd1283348a3cd480dccf1b75a`.
+Raw frames and JSON remain private evidence. A later, unrelated
+cancellation/restart case in the same private driver run hit a test-harness
+storage-flush timing assertion, so this result capture does not claim that the
+complete private driver suite passed.
+
+After capture, all candidate readiness artifacts were transferred to private
+evidence and removed from the isolated datadir. The byte-identical accepted
+`0.5.0` companion was restored at SHA-256
+`bc3d35eb260a1360e1095bd97d8e7d31e3ab96e8b3cafde1f145e3adf5b4d71f`;
+the native Plugins manager again showed local, activated version `0.5.0`.
+Every accepted communication artifact retained its pre-stage SHA-256, the
+temporary backup was removed after verification, and the normal profile
+fingerprint remained unchanged.
