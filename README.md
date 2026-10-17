@@ -199,6 +199,9 @@ qualifies official `v2.5.0-alpha` (`3880f2c5`) against the accepted October 15
 nightly. Source comparison and official artifact verification pass; Alpha is
 staged separately on Spare. A generated `0.5.1` companion admits only the exact
 Alpha identity without changing accepted `0.5.0` source, protocol or relay.
-Actual Windows UI qualification is pending owner unlock of Spare; source/unit
-results are not a runtime pass. The qualified nightly remains the accepted
-physical baseline. See [qualification status and limits](docs/ORCA_ALPHA_QUALIFICATION.md).
+Actual Windows installation, context/unsaved values, normal Temperature export,
+exact file association, isolated native 205°C return, duplicate/stale handling,
+profile switching and process-restart recovery pass. Normal profiles and the
+accepted nightly are unchanged. Retain October 15 as the preferred program/
+physical baseline: its accepted relay still intentionally excludes Alpha.
+See [qualification report, limits and review path](docs/ORCA_ALPHA_QUALIFICATION.md).

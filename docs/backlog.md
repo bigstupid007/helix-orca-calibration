@@ -6,12 +6,12 @@
 - [x] Compare pinned source revisions and verify the official Windows x64 portable archive/binaries.
 - [x] Stage Alpha in a new marked environment with separate settings and child-only WebView2 storage.
 - [x] Preserve accepted source; generate a narrow exact-Alpha companion and guarded UI tool; focused tests pass.
-- [ ] Complete actual Windows plugin/context/preparation/export/request/result/recovery/profile-switch/stale/duplicate proof. Spare is locked; owner unlock requested.
+- [x] Complete actual Windows plugin/context/preparation/export/request/result/recovery/profile-switch/stale/duplicate proof; preserve normal/nightly settings and all seeded profile JSON.
 - [x] Complete independent static candidate review and consolidated provenance corrections.
-- [ ] Complete CI on the draft candidate, actual Windows evidence review and final recommendation with one unmerged PR.
+- [x] Complete final independent evidence review and affected-surface AI Product Preflight; return reviewed unmerged PR #11. Exact-head CI status is recorded on that PR. Recommendation: keep October 15 preferred, qualify Alpha as an isolated secondary target.
 
 [Qualification authority/status](ORCA_ALPHA_QUALIFICATION.md) distinguishes source
-evidence from pending actual GUI proof. No physical retest, baseline adoption,
+evidence from actual Windows and isolated native proof. No physical retest, baseline adoption,
 merge, deployment or unrelated UX is authorized. October 15 remains the
 accepted physical baseline.
 

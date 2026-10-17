@@ -272,5 +272,7 @@ It creates no service, access route or physical-printer transport.
 Source compatibility does not override runtime gates. The accepted physical
 relay deliberately rejects an Alpha outbox; this qualification neither changes
 that gate nor repeats physical communication. [Qualification status](ORCA_ALPHA_QUALIFICATION.md)
-records source proof, actual Windows gates and the distinction between an
-isolated development baseline and the accepted physical workflow.
+records passed actual Windows/context/export/result/recovery checks, the isolated
+native fixture and the distinction from the accepted physical workflow. Native
+return selection and Alpha receipt use unchanged v1 contracts; no fresh physical
+ACK/delivery or baseline adoption is implied.

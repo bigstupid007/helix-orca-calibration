@@ -343,7 +343,7 @@ Documentation-only closeout preserves accepted implementation/evidence and
 defers UX work without authorizing release or broader printer deployment.
 
 
-## Issue #10 Alpha source and staging checkpoint
+## Issue #10 Alpha compatibility qualification
 
 Official Alpha `3880f2c5` is 39 commits beyond qualified nightly `6a7763f0`.
 The used plugin host/preset/UI/storage/lifecycle and Calibration/Plater sources
@@ -357,7 +357,21 @@ in [Issue #10 evidence](evidence/issue-10/source-comparison.json).
 The accepted companion's runtime gate and embedded protocol deliberately reject
 Alpha. The separate derivative uses exact truthful Alpha provenance, retaining
 v1 correlation and NOT APPLIED behavior; the accepted physical relay remains
-nightly-only. Alpha launched separately with isolated WebView2, but LockApp
-occludes its window. Guards reject capture/input rather than bypass the lock.
-Owner unlock is pending; no app_info/GUI/preparation/result pass is claimed.
-See [current qualification](ORCA_ALPHA_QUALIFICATION.md).
+nightly-only. Owner unlock resolved the initial desktop-lock gate. Actual Alpha
+reports `2.5.0-alpha / 3880f2c5`; installation, owned docks, original context,
+saved220/edited217/effective217, native reset and normal Temperature export pass.
+Manual file association remains necessary because export events identify a
+slice-temporary path. The actual export descriptor matches independent bytes,
+SHA-256 and all nine temperature bands.
+
+The unchanged isolated native beta.9 driver selected 205°C from the actual Alpha
+outbox. Originating Alpha committed the exact result and receipt, showed original
+220°C/205°C NOT APPLIED instructions, rejected stale/conflicting results and
+preserved state across duplicates, filament switching and process restart.
+No fresh native ACK or physical delivery is claimed. Normal/nightly fingerprints,
+12 seeded profile JSON files and canonical dirty work remain unchanged.
+[Current qualification and recommendation](ORCA_ALPHA_QUALIFICATION.md) retain
+October 15 as preferred program/physical baseline and Alpha 0.5.1 as a qualified
+secondary environment. Independent final review found no material issue and affected-surface AI Product
+Preflight passed; exact-head CI is recorded on PR #11. No adoption or merge is
+authorized.
