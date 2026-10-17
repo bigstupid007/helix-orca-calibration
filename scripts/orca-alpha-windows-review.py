@@ -16,6 +16,7 @@ COMMUNICATION_REVIEW = ROOT / "temperature-communication-windows-review.py"
 OCT15_REVIEW_SHA256 = "27f3cf38188e8dd2598de402a76c073d8a0d67a785c350105e2dd26dbb36fd6c"
 COMMUNICATION_REVIEW_SHA256 = "d5acdfad02772830c86fc72519a97b7bb4d19f91be36e21c8af83352abc7ece4"
 EXE_SHA256 = "a37d149ea315a0a2125c11625b7dc24e456dbd3bc309dd56519d90dcdcd77985"
+DLL_SHA256 = "92bdf7493425b949934479164d0745ce5e28fe24c7a556af300792b788e94c8b"
 
 
 def _sha256(path: Path) -> str:
@@ -50,6 +51,13 @@ def alpha_ui_source(review, *, passive_menu=False, region=None, op="windows"):
     )
     for before, after in replacements:
         source = _replace_once(source, before, after)
+    process_admission = "$Candidates=@(Get-CimInstance Win32_Process"
+    dll_guard = (
+        "$Dll=Join-Path $Stage 'runtime\\OrcaSlicer.dll'\n"
+        "$ActualDll=(Get-FileHash -LiteralPath $Dll -Algorithm SHA256).Hash.ToLowerInvariant()\n"
+        f"if($ActualDll-ne'{DLL_SHA256}'){{throw 'Official 2.5.0-alpha DLL digest mismatch.'}}\n"
+    )
+    source = _replace_once(source, process_admission, dll_guard + process_admission)
     if passive_menu:
         for before, after in (
             ("else{[Issue4Native]::SetWindowPos($H,[IntPtr]::new(-1),0,0,0,0,19)|Out-Null}", "else{}"),

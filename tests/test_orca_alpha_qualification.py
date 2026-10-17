@@ -100,6 +100,23 @@ class AlphaCompanionTests(unittest.TestCase):
         self.assertNotIn('"workflow_run":', source)
         self.assertNotIn('"artifact_digest":', source)
 
+    def test_snapshot_and_export_use_alpha_provenance(self):
+        with tempfile.TemporaryDirectory() as root:
+            plugin, _ = load_generated(alpha_generator.generate(), root)
+            host = test_plugin.FakeHost(
+                bundle(), storage_root=root, version="2.5.0-alpha", build="3880f2c5")
+            captured = plugin.datetime.datetime(
+                2026, 10, 16, 12, 34, 56, tzinfo=plugin.datetime.timezone.utc)
+            snapshot = plugin._qualification_snapshot(
+                host, [{"event": "PresetSelected"}], captured_at=captured)
+            self.assertEqual(snapshot["schema"], "helix-orca-alpha-qualification/v1")
+            self.assertEqual(snapshot["runtime"]["info"]["version"], "2.5.0-alpha")
+            self.assertTrue(snapshot["runtime"]["matches_target"])
+            path = Path(plugin.write_qualification_evidence(snapshot, root, captured_at=captured))
+            self.assertEqual(path.name, "alpha-qualification-20261016T123456.000000Z.json")
+            self.assertNotIn("nightly", path.name)
+            self.assertEqual(json.loads(path.read_text(encoding="utf-8")), snapshot)
+
     def test_exact_alpha_tuple_is_the_only_accepted_runtime(self):
         with tempfile.TemporaryDirectory() as root:
             plugin, _ = load_generated(alpha_generator.generate(), root)
@@ -176,6 +193,14 @@ class AlphaCompanionTests(unittest.TestCase):
 
 class AlphaWindowsReviewTests(unittest.TestCase):
     def test_wrapper_is_pinned_and_preserves_alpha_isolation_guards(self):
+        self.assertEqual(
+            hashlib.sha256(windows_review.OCT15_REVIEW.read_bytes()).hexdigest(),
+            windows_review.OCT15_REVIEW_SHA256,
+        )
+        self.assertEqual(
+            hashlib.sha256(windows_review.COMMUNICATION_REVIEW.read_bytes()).hexdigest(),
+            windows_review.COMMUNICATION_REVIEW_SHA256,
+        )
         review = windows_review._load_review()
         source = windows_review.alpha_ui_source(review)
         for value in (
@@ -184,6 +209,8 @@ class AlphaWindowsReviewTests(unittest.TestCase):
             r"HelixOrcaCalibration\issue-10-alpha-3880f2c\data",
             ".helix-orca-issue-10-alpha-data",
             windows_review.EXE_SHA256,
+            windows_review.DLL_SHA256,
+            r"$Dll=Join-Path $Stage 'runtime\OrcaSlicer.dll'",
             "ExecutablePath -eq $Exe",
             "ParentProcessId -eq $Target.ProcessId",
             "Click is occluded.",
@@ -192,6 +219,11 @@ class AlphaWindowsReviewTests(unittest.TestCase):
         ):
             self.assertIn(value, source)
         self.assertNotIn(review.EXE_SHA256, source)
+        exe_guard = source.index("$Actual=(Get-FileHash -LiteralPath $Exe")
+        dll_guard = source.index("$ActualDll=(Get-FileHash -LiteralPath $Dll")
+        process_admission = source.index("$Candidates=@(Get-CimInstance Win32_Process")
+        self.assertLess(exe_guard, dll_guard)
+        self.assertLess(dll_guard, process_admission)
 
     def test_passive_menu_and_bounded_region_reuse_accepted_guards(self):
         review = windows_review._load_review()

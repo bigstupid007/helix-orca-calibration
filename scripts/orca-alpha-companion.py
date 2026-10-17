@@ -98,6 +98,10 @@ def generate() -> str:
         ('The qualified nightly exposes orca.host.app_info()', 'The qualified alpha exposes orca.host.app_info()'),
         ('October 11 nightly qualification · read-only · never starts a print',
          'Official 2.5.0-alpha qualification · read-only · never starts a print'),
+        ('"schema": "helix-orca-nightly-qualification/v1"',
+         '"schema": "helix-orca-alpha-qualification/v1"'),
+        ('evidence_path = evidence_dir / f"nightly-qualification-{stamp}.json"',
+         'evidence_path = evidence_dir / f"alpha-qualification-{stamp}.json"'),
     )
     for old, new in replacements:
         source = _replace_once(source, old, new)
