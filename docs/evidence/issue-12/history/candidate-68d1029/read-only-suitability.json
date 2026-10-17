@@ -1,0 +1,76 @@
+{
+  "schema": "helix-orca-temperature-readonly-suitability/v1",
+  "physical_mutation_calls": 0,
+  "identity_inputs_available": true,
+  "moonraker_version_matches_accepted": true,
+  "klippy_state": "ready",
+  "print_state": "standby",
+  "homed_axes": "",
+  "queue_empty": true,
+  "history_available": true,
+  "physical_nozzle_mm": 0.4,
+  "physical_build_bounds_mm": {
+    "X": [
+      0.0,
+      300.0
+    ],
+    "Y": [
+      0.0,
+      300.0
+    ],
+    "Z": [
+      -5.0,
+      290.0
+    ]
+  },
+  "cold_start_macro_activities": [
+    "probe-temperature preheat",
+    "homing",
+    "bed-temperature wait",
+    "quad gantry leveling",
+    "Z rehome",
+    "temperature-selected saved mesh",
+    "extruder-temperature wait",
+    "adaptive line purge"
+  ],
+  "cold_start_duration_qualified": false,
+  "macro_hashes": {
+    "gcode_macro print_start": "d6280bae31fe2caf76e7d0a3ea4fd673e79af52f8648b1f527b4d72ad74e0bba",
+    "gcode_macro print_end": "f87849743ebfdfa79d4c2f7d1dfd5c8947c597af29de7581402e54552721d4ba",
+    "gcode_macro adaptive_line_purge": "d846773cf9691a155e1de3dc2d5ec9793efffaa518cded2ec504811c4e261a62",
+    "gcode_macro cancel_print": "746b851baf9c7987e4a70366c839e67708770684c0511344f964de4d01674a1a"
+  },
+  "physical_ready": false,
+  "identity_source": "primary MCU canbus_uuid and host MAC address set; private values retained",
+  "configuration_fingerprint_recorded": true,
+  "loaded_material_founder_report": "Elegoo Rapid PLA White",
+  "founder_normal_nozzle_c": 200,
+  "founder_normal_bed_c": 60,
+  "manufacturer_family_guidance": {
+    "product": "ELEGOO Rapid PLA+",
+    "nozzle_c": [
+      200,
+      230
+    ],
+    "bed_c": [
+      40,
+      60
+    ],
+    "source": "https://www.elegoo.com/en-gb/collections/elegoo-product-ex-s3-s4-m5/products/elegoo-rapid-pla-plus-filament-1-75mm-colored-1kg"
+  },
+  "exact_spool_label_verified": false,
+  "proposed_temperatures_fit_family_guidance": true,
+  "exclude_object_available_in_raw_config_and_live_objects": true,
+  "quad_gantry_level_available": true,
+  "native_start_macro_arguments_match": true,
+  "native_start_targets_c": {
+    "BED_TEMP": 60,
+    "EXTRUDER_TEMP": 210
+  },
+  "native_model_estimate_s": 720,
+  "qualified_total_estimate_s": null,
+  "first_test_maximum_s": 1200,
+  "acceleration_commands_within_configured_8000_limit": true,
+  "raw_configuration_and_identity": "private XDG state; not published",
+  "saved_60c_mesh_available": true
+}

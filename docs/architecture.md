@@ -282,3 +282,55 @@ the preferred development and physical-integration baseline; Alpha with
 companion 0.5.1 is a qualified secondary target. PR #11 merge/closeout authority
 changes no runtime gate or architecture. Alpha physical integration and
 production adoption remain unauthorized. See [acceptance](ISSUE_10_ACCEPTANCE.md).
+
+
+## Issue #12 readiness extension
+
+The new `integration/temperature-print/` path and `temperature-print-*`
+generators are separate from accepted Issue #8 source. The Orca derivative
+uses local `print-readiness` artifacts, a separate wire namespace and exactly
+three choices. Its original saved/edited/effective target remains immutable;
+results carry the independently confirmed job/proof identity and return NOT
+APPLIED instructions. The native derivative reuses the accepted chooser/detail
+shell and storage permission, writing one-shot Start/cancel intents only from
+native UI callbacks. It never invokes a print RPC.
+
+The transport-independent coordinator journals before any dispatch, never
+retries an ambiguous start/cancel, and corroborates same-job print_stats with
+Moonraker history. Physical identity is a local MCU/host binding, distinct from
+the Orca saved-preset label. The future adapter pins both that identity and the
+reviewed configuration and defaults to actions disabled. No live orchestration,
+permit issuance, hardware activation or physical derivative installation occurs
+in this build. [Readiness authority](BUILD_PROGRAM_TEMPERATURE_PRINT.md) controls
+this increment; [the report](TEMPERATURE_PRINT_READINESS.md) owns current validation.
+The 2026-10-17 correction fixes choices to 225/220/215°C and treats the native
+estimate as information, with no print-length ceiling or combined-time input.
+The filament is confirmed at normal 220°C; no new label checkpoint exists.
+Request/command freshness limits remain independent of the estimate. A healthy
+correlated job is not failed merely for exceeding its native time estimate.
+
+Post-Start monitoring has no request-TTL or runner-duration cutoff. The 900-second
+Start window and original request/grant expiry still prohibit late dispatch;
+fresh machine/configuration/status and exact owned-job history govern an active
+job, including recovery, cancellation, completion and result return. A durable
+request-scoped `delivery.json` lifecycle marker is written before dispatch, so
+the originating companion cannot abandon a started or uncertain session merely
+because its original TTL elapsed. Only an expired unstarted or terminal slot
+may retire. Post-expiry results still require the retained exact identity and
+independently confirmed job/proof; they cannot retarget a newer request.
+
+Initial print_stats may precede metadata/history. Missing or previous metadata
+and an explicit 404 remain pending inside the original 30-second confirmation
+deadline, without ownership, cancellation, selection or redispatch. Contradictory
+proof, unexpected jobs, transport failures and deadline expiry remain locked.
+Deterministic preflight/authorization rejection consumes the tap and publishes
+failure; an ambiguous command publishes uncertainty. The readiness protocol and
+coordinator require original effective nozzle 220°C while preserving saved and
+edited values independently. Accepted communication source is unchanged.
+
+Current readiness proof binds the actual native Windows export to its original
+220°C context and uses real companion receipts with isolated synthetic native
+completion. Offline suitability resolves exported commands and unchanged macro
+sources from GET-only target data; it issues no live grant. Accepted Windows
+state is restored after qualification. See the readiness report for exact file
+identity and preservation; no physical deployment is implied.

@@ -1,0 +1,47 @@
+{
+  "schema": "helix-orca-temperature-readonly-suitability/v2",
+  "physical_mutation_calls": 0,
+  "identity_matches_reviewed_target": true,
+  "configuration_matches_reviewed_target": true,
+  "moonraker_version_matches_accepted": true,
+  "print_state": "standby",
+  "queue_empty": true,
+  "physical_nozzle_mm": 0.4,
+  "physical_build_bounds_mm": {
+    "X": [
+      0,
+      300
+    ],
+    "Y": [
+      0,
+      300
+    ],
+    "Z": [
+      -5,
+      290
+    ]
+  },
+  "filament_confirmed_by_founder": true,
+  "founder_normal_nozzle_c": 220,
+  "bed_c": 60,
+  "requested_bands_c": [
+    225,
+    220,
+    215
+  ],
+  "start_argument_names": [
+    "BED_TEMP",
+    "EXTRUDER_TEMP"
+  ],
+  "exclude_object_available": true,
+  "saved_60c_mesh_available": true,
+  "quad_gantry_level_available": true,
+  "estimate_policy": "Native estimate is reported; no print-duration ceiling or combined-estimate gate.",
+  "raw_target_evidence": "private XDG state",
+  "all_17_exported_commands_registered": true,
+  "actual_export_offline_qualification_passed": true,
+  "object_definition_precedes_start": true,
+  "purge_and_park_within_reviewed_bounds": true,
+  "macro_dependencies_bound_to_unchanged_configuration": true,
+  "qualification_is_physical_authorization": false
+}

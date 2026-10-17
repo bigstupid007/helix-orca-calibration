@@ -1,5 +1,33 @@
 # Helix-Orca Calibration
 
+## Issue #12 — miniature Temperature readiness
+
+[Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12) /
+[PR #13](https://github.com/bigstupid007/helix-orca-calibration/pull/13) continue
+under the Founder's 2026-10-17 correction: exactly **225 / 220 / 215°C**, bottom
+to top, with confirmed filament and normal nozzle **220°C**. Native print time
+is reported information. There is no hard 20-minute limit, combined-estimate
+qualification requirement or spool-label checkpoint.
+
+The separate native/Orca derivatives retain explicit physical-screen Start,
+real same-job status/history monitoring, guarded cancellation and recovery,
+success-only selection and original-context **NOT APPLIED** return. Sending a
+request never starts printing. Accepted plugins, profiles, security boundaries
+and the existing mock harness remain preserved. October 15 stays preferred;
+Alpha has no physical adoption.
+
+[Current validation and readiness](docs/TEMPERATURE_PRINT_READINESS.md) tracks
+the corrected export and evidence. The resumed source passes 243 tests and
+independent review; the renewed eleven-target native evidence verifies. Actual
+Windows native export and current companion return pass: exactly three bands,
+484,552 bytes and a 12-minute informational estimate. Offline suitability passes;
+220°C returns as NOT APPLIED using explicitly synthetic completion. Accepted
+Windows state and original profiles are preserved. The candidate is ready for
+Founder Review; PR #13 owns current exact-head CI status. No physical print, heating, motion, firmware change,
+profile writeback or physical activation is authorized by this candidate.
+Physical execution requires separate Founder authorization. Leave the PR
+unmerged for Founder Review.
+
 ## Issue #1 — native Helix calibration foundation
 
 `helix-plugin/orcacal/` is the accepted product baseline. Version `0.2.0`

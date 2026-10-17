@@ -377,3 +377,40 @@ Preflight passed; exact-head CI is recorded on PR #11. Founder accepted the
 qualification on 2026-10-16 with that baseline policy and authorized PR #11
 merge, main verification and Issue #10 closure. Alpha physical integration and
 production adoption remain unauthorized; see [acceptance](ISSUE_10_ACCEPTANCE.md).
+
+
+## Issue #12 corrected native investigation
+
+The direct Founder correction of 2026-10-17 controls exactly three bands:
+225/220/215°C bottom to top, with confirmed filament and normal nozzle 220°C.
+Earlier 210/205/200°C exports and the AI-generated timing/label constraints are
+superseded; historical evidence remains under `docs/evidence/issue-12/history/`.
+The corrected actual native export passes: 484,552 bytes, 75 layers, three
+225/220/215°C bands and a 12m00s informational estimate. Offline macro ABI,
+geometry, registered commands and unchanged read-only target binding pass.
+Actual originating Windows 0.6.1 return displays 220°C NOT APPLIED; completion
+is synthetic. Accepted Windows companion and profile/artifact hashes are
+preserved. See [Windows qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md)
+and [readiness](TEMPERATURE_PRINT_READINESS.md).
+
+Native preparation uses the existing Temperature tool and normal slicing/export;
+no custom generator or exported-file edit is used. The physical macro expects
+`PRINT_START BED_TEMP=60 EXTRUDER_TEMP=225`. Existing QGL, saved 60°C mesh and
+exclude-object support were reviewed read-only. Native time excludes opaque
+printer-macro activity, which is an estimate limitation rather than a combined
+qualification gate. No print-length threshold is imposed.
+
+Read-only refresh confirms unchanged reviewed machine/configuration and accepted
+Moonraker version, idle state and empty queue. Successful history uses
+`completed`; print_stats uses `complete`; start RPC success proves neither.
+No physical action occurred. Original profile identity remains distinct from
+physical-machine binding, and returned instructions remain NOT APPLIED.
+
+Resumed independent review corrected a latent one-hour active-job cutoff and
+initial metadata/history lag handling. The effective-220 context is now enforced
+without collapsing saved and edited values. Durable local lifecycle status
+prevents request expiry from discarding a started/uncertain original target;
+late results still require that exact retained request and owned completion
+proof. Deterministic rejected Start and ambiguous dispatch have distinct
+terminal/uncertain recovery. The 54 focused safety tests pass independent review.
+No native-mock observation is hardware proof.

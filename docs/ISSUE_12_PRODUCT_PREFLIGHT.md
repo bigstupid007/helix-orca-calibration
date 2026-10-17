@@ -1,0 +1,44 @@
+# Issue #12 corrected candidate — affected-surface Product Preflight
+
+**Native and actual Windows affected surface: PASS.**
+The renewed source-bound eleven-target capture passes. The lead inspected
+current micro, micro-portrait, 800×480, phone, ultrawide and tall frames for
+Ready, printing, cancellation, success and returned states. No material
+affected-surface native UX defect was found. Prior 210/205/200°C and Windows 0.6.0/205°C captures are historical.
+
+The existing Home → chooser → Temperature flow and original-context card remain
+intact. Receipt never starts printing; results stay locked. Ready shows exactly
+225/220/215°C in bottom-to-top order, exact-file identity, authorization, estimate
+and explicit Start across 800×480, micro/portrait, phone, tall and ultrawide.
+Printing directs the person to normal Helix Print monitoring and retains Cancel.
+
+Native cancellation names the exact file, explains that results will be
+unavailable, and offers Back as the safe escape. Cancelled says “result
+unavailable.” Independently confirmed success unlocks exactly three choices;
+the reviewed fixture selects 220°C. Returning waits for Orca acknowledgement;
+Returned displays 220°C and **NOT APPLIED**. No extra label checkpoint or
+combined-duration decision appears.
+
+The renewed pinned beta.9 report verifies **11/11 targets, 88 PNGs and eleven
+storage snapshots**, with network disabled and zero physical actions. The
+previous corrected capture is preserved as superseded history. The driver also
+proves result/ACK and guarded cancellation beyond synthetic request expiry,
+without weakening pre-Start freshness or allowing active-session replacement. Job,
+authorization, clock and completion inputs are synthetic. The visible
+1501-second/26-minute Ready fixture proves acceptance above the removed ceiling;
+it is not the actual file estimate. Actual Windows native export and the reviewed
+0.6.1 Keep original → file picker → Send → synthetic 220°C result → NOT APPLIED
+flow pass on the preferred nightly. The exact 484,552-byte export, real Windows
+outbox, native result and committed originating receipt are bound in the current
+proof. Visible saved/edited/effective values stay 220°C. The native estimate is
+12m00s, with no extra duration or label decision. The accepted companion and
+artifacts are restored; temporary preparation settings were discarded.
+
+The inherited compact 26 px control token remains a physical touch-validation
+risk at 480×272. Screenshots do not establish keyboard/focus behavior,
+screen-reader output, physical touch accuracy, real heating/printing or printer
+wall time. These limits introduce no new approval checkpoint. This AI check
+is not Founder Review or physical-execution authorization.
+
+[Verified native report](evidence/issue-12/native/report.json) ·
+[Readiness report](TEMPERATURE_PRINT_READINESS.md)

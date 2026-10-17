@@ -1,0 +1,146 @@
+"""Behavioral tests of the separate three-band derivative and offline artifact gate."""
+import copy
+import importlib.util
+import json
+from pathlib import Path
+import tempfile
+import types
+import unittest
+import test_temperature_communication_companion as accepted
+
+ROOT=Path(__file__).resolve().parents[1]
+def load(name,path):
+    s=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+comp=load('print_companion_generator',ROOT/'scripts/temperature-print-companion.py')
+gcode=load('print_gcode',ROOT/'integration/temperature-print/gcode.py')
+protocol=types.ModuleType('print_protocol');exec(comp.generated_parts().split('class TemperatureCommunicationPanel')[0].split('COMMUNICATION_ACTION_NAME')[0],protocol.__dict__)
+FILE=dict(accepted.FILE,bands=[225,220,215])
+
+class PrintProtocolTests(unittest.TestCase):
+    def test_three_choices_and_original_values_survive_result_commit_and_restart(self):
+        with tempfile.TemporaryDirectory() as d:
+            state=protocol.TemperatureCommunicationState(d,now=lambda:1000)
+            target=accepted.target();target["saved_temperature"]=217;target["edited_temperature"]=219;target["effective_temperature"]=220;original=copy.deepcopy(target)
+            state.start_new(target);state.select_file(FILE,protocol.validate_print_temperature_file);state.send()
+            result={k:state.payload[k] for k in ('request_id','origin_id','context_sha256','file_sha256','file','file_bytes','setting','physical_calibration','not_applied')}
+            result.update(schema=protocol.RESULT_SCHEMA,value=220,job_id='000001',completion_sha256='c'*64)
+            protocol.atomic_write_json(Path(d)/'print-readiness/inbox.json',result)
+            state.poll_inbox()
+            self.assertEqual(state.instructions['status'],'NOT APPLIED')
+            self.assertEqual((state.instructions['original_saved_value'],state.instructions['original_edited_value'],state.instructions['original_effective_value']),(217,219,220))
+            self.assertEqual(state.target,original)
+            restored=protocol.TemperatureCommunicationState(d,now=lambda:1001)
+            self.assertEqual(restored.result,result)
+            self.assertEqual(restored.instructions,state.instructions)
+            for key in ('job_id','completion_sha256'):
+                bad=dict(result);bad.pop(key)
+                with self.assertRaises(protocol.CommunicationProtocolError):protocol.validate_selection_result(state.payload,bad,now=1001)
+    def test_nine_bands_wrong_runtime_stale_result_rejected(self):
+        for invalid in (accepted.FILE,dict(FILE,bands=[210,205,200])):
+            with self.assertRaises(protocol.CommunicationProtocolError):protocol.validate_print_temperature_file(invalid)
+        t=accepted.target();t['effective_temperature']=220;t['runtime']={'version':'2.5.0-alpha','build':'3880f2c5'}
+        p=protocol.make_forward_payload(t,FILE,'b'*32,now=1000,request_id='d'*32)
+        with self.assertRaises(protocol.CommunicationProtocolError):protocol.validate_outbox({'schema':protocol.OUTBOX_SCHEMA,'target':t,'payload':p},now=1000)
+    def test_effective_context_is_220_and_expired_forward_request_cannot_retry(self):
+        target=accepted.target()
+        with self.assertRaises(protocol.CommunicationProtocolError):
+            protocol.make_forward_payload(target,FILE,'b'*32,now=1000,request_id='d'*32)
+        target['effective_temperature']=220
+        payload=protocol.make_forward_payload(target,FILE,'b'*32,now=1000,request_id='d'*32)
+        with self.assertRaises(protocol.CommunicationProtocolError):protocol.validate_forward_payload(payload,now=9000)
+
+    def test_expiry_retires_only_unstarted_or_terminal_slots(self):
+        for phase,allowed in [('received',True),('ready',True),('starting',False),('printing',False),
+                ('confirming',False),('uncertain',False),('cancelling',False),('complete',False),('failed',True),('cancelled',True)]:
+            with self.subTest(phase=phase),tempfile.TemporaryDirectory() as d:
+                clock=[1000]
+                state=protocol.TemperatureCommunicationState(d,now=lambda:clock[0])
+                target=accepted.target();target['effective_temperature']=220
+                state.start_new(target);state.select_file(FILE,protocol.validate_print_temperature_file);state.send()
+                old=copy.deepcopy(state.payload)
+                protocol.atomic_write_json(Path(d)/'print-readiness/delivery.json',dict(schema=protocol.DELIVERY_SCHEMA,
+                    request_id=old['request_id'],origin_id=old['origin_id'],context_sha256=old['context_sha256'],phase=phase))
+                clock[0]=9000
+                restored=protocol.TemperatureCommunicationState(d,now=lambda:clock[0])
+                self.assertEqual(restored.can_start_new(),allowed)
+                if allowed:
+                    restored.start_new(target)
+                    self.assertIsNone(restored.payload)
+                else:
+                    with self.assertRaises(protocol.CommunicationProtocolError):restored.start_new(target)
+                    self.assertEqual(restored.payload,old)
+
+    def test_generated_source_compiles_and_cannot_operate_printer(self):
+        code=comp.generate();compile(code,'generated.py','exec')
+        self.assertNotIn('printer.print.start',code)
+        self.assertNotIn('moonraker_write',code)
+        self.assertIn('2.5.0-dev',code);self.assertIn('6a7763f0',code)
+        self.assertEqual(protocol.CHOICES,[225,220,215])
+        self.assertEqual(protocol.TTL_SECONDS,3600)
+
+# Small synthetic inspection inputs only. These are never exported or sent to a printer.
+def sample(estimate='15m 0s'):
+    rows=['; generated by OrcaSlicer 2.5.0-dev','; estimated printing time (normal mode) = '+estimate,'G90','M83']
+    for i,temp in enumerate((225,220,215)):
+        rows.extend([f'M104 S{temp}',f'G1 X10 Y10 Z{1+i*10} E1',f'G1 X20 Y20 Z{3+i*10} E1'])
+    rows.append('M104 S0')
+    return ('\n'.join(rows)+'\n').encode()
+
+class ArtifactGateTests(unittest.TestCase):
+    def test_three_physical_extruding_bands_and_native_estimate(self):
+        r=gcode.inspect(sample(),'mini.gcode')
+        self.assertEqual(r['choices'],[225,220,215]);self.assertEqual(r['estimated_duration_s'],900)
+        self.assertEqual([s['min_z'] for s in r['bands']],[1,11,21])
+        self.assertFalse(r['physical_ready'])
+    def test_native_estimate_is_reported_without_a_duration_gate(self):
+        for label,seconds in [('1m 0s',60),('20m 1s',1201),('1h 0m 0s',3600)]:
+            report=gcode.inspect(sample(label),'mini.gcode')
+            self.assertEqual(report['estimated_duration_s'],seconds)
+            self.assertNotIn('within_first_test_limit',report)
+            self.assertNotIn('target_10_to_20_minutes',report)
+    def test_wrong_order_warmup_extra_band_and_partial_geometry_fail(self):
+        for data in [sample().replace(b'M104 S220',b'M104 S230'),sample().replace(b'M104 S215',b'M104 S225'),sample().replace(b'Z23',b'Z21')]:
+            with self.assertRaises(gcode.GcodeError):gcode.inspect(data,'mini.gcode')
+    def test_unknown_macros_unqualified_printer_or_filament_never_pass_silently(self):
+        r=gcode.inspect(sample()+b'PRINT_END\n','mini.gcode')
+        self.assertEqual(r['unresolved_commands'],['PRINT_END'])
+        with self.assertRaises(gcode.GcodeError):gcode.qualify(r,request={'printer':'Voron'},suitability={})
+
+    def test_start_macro_values_and_argument_ambiguity_are_rejected(self):
+        data=sample().replace(b'G90\n',b'PRINT_START BED_TEMP=60 EXTRUDER_TEMP=225\nG90\n')
+        r=gcode.inspect(data,'mini.gcode')
+        request={k:r[k] for k in ('file','file_bytes','file_sha256','choices')}
+        request.update(printer='Voron',request_id='1'*32,origin_id='2'*32,context_sha256='3'*64)
+        evidence=dict(file_sha256=r['file_sha256'],printer='Voron',filament_range_c=[200,230],motion_bounds={a:[0,300] for a in 'XYZ'},
+            macro_sources_sha256={'PRINT_START':'4'*64},native_export_verified=True,printer_config_sha256='5'*64,physical_printer_identity='6'*64,
+            macro_safety_reviewed=True,printer_safety_reviewed=True,
+            start_required_arguments=['BED_TEMP','EXTRUDER_TEMP'],bed_range_c=[0,60],moonraker_version='pinned')
+        self.assertTrue(gcode.qualify(r,request=request,suitability=evidence)['suitable'])
+        for duration in (60,1201,3600):
+            informational=copy.deepcopy(r);informational['estimated_duration_s']=duration
+            qualified=gcode.qualify(informational,request=request,suitability=evidence)
+            self.assertEqual(qualified['estimated_duration_s'],duration)
+            self.assertNotIn('startup_estimated_duration_s',qualified)
+        for args in ('BED_TEMP=150 EXTRUDER_TEMP=500','BED_TEMP=60 EXTRUDER_TEMP=500','BED_TEMP=0 EXTRUDER_TEMP=225','BED_TEMP=60 EXTRUDER_TEMP=220'):
+            bad=copy.deepcopy(r);bad['start_arguments']=[{k:float(v) for k,v in (a.split('=') for a in args.split())}]
+            with self.assertRaises(gcode.GcodeError):gcode.qualify(bad,request=request,suitability=evidence)
+        for args in (b'BED_TEMP=60 EXTRUDER_TEMP=225 EXTRUDER_TEMP=500',b'BED_TEMP=60 EXTRUDER_TEMP=225BAD'):
+            with self.assertRaises(gcode.GcodeError):gcode.inspect(data.replace(b'BED_TEMP=60 EXTRUDER_TEMP=225',args),'mini.gcode')
+
+
+class NativeEvidenceObservationTests(unittest.TestCase):
+    def test_negative_check_observes_a_delayed_forbidden_write(self):
+        driver=load('print_driver_observation_test',ROOT/'scripts/temperature-print-qualify.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);path=root/'config/plugin-data/orcacal.json';path.parent.mkdir(parents=True)
+            path.write_text(json.dumps({'print_session':{'state':'printing'}}))
+            class Clock:
+                now=0
+                def monotonic(self):return self.now
+                def sleep(self,seconds):
+                    self.now+=seconds
+                    path.write_text(json.dumps({'print_session':{'state':'cancelling','cancel_intent':{}}}))
+            clock=Clock();driver.time=clock
+            with self.assertRaisesRegex(ValueError,'forbidden'):
+                driver.stable_storage(root,lambda s:'cancel_intent' not in s,'forbidden delayed write',duration=1)
+            self.assertGreater(clock.now,0)

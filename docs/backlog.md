@@ -239,3 +239,28 @@ application, broader hardware operation or security/access expansion is included
 - Orca preset mutation or writeback.
 - Additional calibration modules beyond a separately approved increment.
 - Picker/profile-browser expansion beyond the bounded Issue #4 flow.
+
+
+## Issue #12 — first controlled physical Temperature readiness
+
+Approved under [the single governing Build Program](BUILD_PROGRAM_TEMPERATURE_PRINT.md):
+exactly three miniature native bands, 225/220/215°C bottom to top, confirmed
+filament with normal nozzle 220°C, native-screen Start only, real-state and same-job success
+proof, cancellation/failure safeguards and original-profile NOT APPLIED return.
+Implementation and isolated qualification are authorized; all hardware actions,
+physical installation, profile writeback, Alpha adoption and merge remain
+excluded. [The readiness report](TEMPERATURE_PRINT_READINESS.md) records proof
+and the separate physical-execution boundary. The Founder correction removes
+the earlier AI-generated 20-minute/combined-estimate gates and spool-label
+checkpoint. Earlier accepted proofs and deferred UX remain
+preserved; this increment does not authorize a UX redesign.
+
+Issue #12 resumed software checkpoint: 243 repository tests, independent source
+review (54 affected tests) and renewed source-bound native eleven-target proof
+pass. Corrected actual Windows export, exact-file offline qualification and
+0.6.1 originating-companion return now pass. Accepted Windows companion, normal
+and saved profiles and prior communication artifacts are preserved. Final
+review/Product Preflight are recorded in the readiness documents; PR #13 tracks
+exact-head CI. The unmerged candidate is ready for Founder Review and the first
+separately authorized controlled physical calibration. No physical execution
+has occurred or is authorized here.

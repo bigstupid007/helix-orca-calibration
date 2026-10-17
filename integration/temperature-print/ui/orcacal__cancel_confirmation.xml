@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<component>
+  <view name="orcacal__cancel_confirmation" extends="overlay_panel" title="Cancel calibration?" bg_color="#screen_bg">
+    <lv_obj width="100%" flex_grow="1" flex_flow="column" scrollable="true" style_pad_all="#space_md" style_pad_gap="#space_md" style_bg_opa="0" style_border_width="0">
+      <text_body width="100%" text="Stop this calibration print? No temperature result will be available." long_mode="wrap"/>
+      <text_small width="100%" bind_text="orcacal__tc_file" long_mode="wrap" style_text_color="#text_muted"/>
+      <lv_button name="orcacal__confirm_cancel" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__confirm_cancel"/>
+        <lv_label width="100%" text="Cancel this print" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary"/>
+      </lv_button>
+      <text_small width="100%" text="Use Back to keep printing." long_mode="wrap" style_text_color="#text_muted"/>
+    </lv_obj>
+  </view>
+</component>
