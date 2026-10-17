@@ -75,6 +75,33 @@ def validate_grant(grant,payload,qualification,now,*,allow_expired=False):
     if type(grant['expires_at']) is not int or not created<grant['expires_at']<=payload['expires_at'] or (not allow_expired and now>=grant['expires_at']):raise ValueError('Authorization expired or exceeds request lifetime')
     return copy.deepcopy(grant)
 
+def require_live_authorization(coordinator,grant,payload,qualification,now):
+    try:return validate_grant(grant,payload,qualification,now)
+    except ValueError:
+        if coordinator.status().phase=='awaiting_start':
+            coordinator._fail('failed','Physical authorization expired or changed before Start')
+        raise
+
+def bind_authorization(coordinator,grant,payload,qualification,now,*,resume):
+    # One immutable grant per request/journal. A later authorization requires a
+    # fresh request and physical tap; it cannot revive an earlier persisted tap.
+    phase=coordinator.status().phase
+    if phase=='awaiting_start':require_live_authorization(coordinator,grant,payload,qualification,now)
+    else:validate_grant(grant,payload,qualification,now,allow_expired=resume)
+    digest=hashlib.sha256(json.dumps(grant,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+    previous=coordinator._state.get('founder_grant_sha256')
+    if (resume and previous is None) or (previous is not None and previous!=digest):
+        if phase=='awaiting_start':coordinator._fail('failed','Recovered Founder authorization differs')
+        raise ValueError('Recovered Founder grant differs; use a fresh request and native Start')
+    if previous is None:
+        coordinator._state['founder_grant_sha256']=digest;coordinator._persist()
+
+def validate_tap_after_offer(coordinator,intent):
+    lease=coordinator._state.get('native_envelope',{}).get('lease',{})
+    issued=lease.get('issued_eventtime')
+    if type(issued) not in (int,float) or intent.eventtime<issued:
+        raise ValueError('Native Start predates the separately authorized offer')
+
 def execute(args,outbox,qualification):
     if args.trusted_lan_ack!=transport.accepted.TRUSTED_LAN_ACK:raise ValueError('Existing trusted-LAN limitation acknowledgement required')
     grant=validate_grant(read(args.founder_authorization),outbox['payload'],qualification,time.time(),allow_expired=args.resume)
@@ -86,38 +113,46 @@ def execute(args,outbox,qualification):
     # A request file alone never grants a run. Only a validated native intent can
     # cause a local permit to be issued, bound to that exact tap and original job.
     def authorize(c,intent):
-        validate_grant(grant,outbox['payload'],qualification,time.time())
+        require_live_authorization(c,grant,outbox['payload'],qualification,time.time())
+        validate_tap_after_offer(c,intent)
         if artifacts.read_json('outbox.json')!=outbox:raise ValueError('Originating request changed before native Start')
         return c.issue_local_permit(intent,authorization_id=outbox['payload']['request_id'],
             deadline_monotonic=time.monotonic()+min(30,grant['expires_at']-time.time()))
     with transport.lc.TemperaturePrintLifecycle(args.journal,physical) as lifecycle:
         session=controller.NativePrintController(lifecycle,outbox,qualification,event_sink=events.send,
             write_inbox=lambda value:artifacts.write_json('inbox.json',value),authorize_intent=authorize)
-        if lifecycle.status().phase=='awaiting_start':session.offer()
-        deadline=time.monotonic()+3600
-        last_forward=time.monotonic()
-        while time.monotonic()<deadline:
-            stored=physical.reader.read_native_storage()
-            if stored.get('print_session',{}).get('request')!=outbox['payload']:
-                if lifecycle.status().phase=='awaiting_start' and time.monotonic()-last_forward>=2:
-                    session.offer();last_forward=time.monotonic()
-                elif lifecycle.status().phase!='awaiting_start':
-                    lifecycle.poll();session._publish()
-            if stored.get('print_session',{}).get('request')==outbox['payload']:
-                status=session.step(stored)
-                receipt=artifacts.read_json('receipt.json')
-                if receipt is not None and session.committed_result is not None:
-                    session.acknowledge(receipt)
-                native=physical.reader.read_native_storage().get('print_session',{})
-                if native.get('state')=='returned' and native.get('result')==session.committed_result and session.committed_result:
-                    artifacts.write_json('delivery.json',dict(schema=controller.protocol.DELIVERY_SCHEMA,
-                        request_id=outbox['payload']['request_id'],origin_id=outbox['payload']['origin_id'],
-                        context_sha256=outbox['payload']['context_sha256'],phase='delivered'))
-                    return
-                if status.phase not in ('awaiting_start','start_dispatch_intent','start_dispatched','printing','completion_pending','completed','cancel_dispatch_intent','cancel_dispatched'):
-                    raise ValueError('Physical lifecycle stopped in '+status.phase)
-            time.sleep(1)
-        raise ValueError('Bounded test window expired; inspect real printer state before any further action')
+        try:
+            bind_authorization(lifecycle,grant,outbox['payload'],qualification,time.time(),resume=args.resume)
+            if lifecycle.status().phase=='awaiting_start':session.offer()
+            deadline=time.monotonic()+3600
+            last_forward=time.monotonic()
+            while time.monotonic()<deadline:
+                if lifecycle.status().phase=='awaiting_start':
+                    require_live_authorization(lifecycle,grant,outbox['payload'],qualification,time.time())
+                stored=physical.reader.read_native_storage()
+                if stored.get('print_session',{}).get('request')!=outbox['payload']:
+                    if lifecycle.status().phase=='awaiting_start' and time.monotonic()-last_forward>=2:
+                        session.offer();last_forward=time.monotonic()
+                    elif lifecycle.status().phase!='awaiting_start':
+                        lifecycle.poll();session._publish()
+                if stored.get('print_session',{}).get('request')==outbox['payload']:
+                    status=session.step(stored)
+                    receipt=artifacts.read_json('receipt.json')
+                    if receipt is not None and session.committed_result is not None:
+                        session.acknowledge(receipt)
+                    native=physical.reader.read_native_storage().get('print_session',{})
+                    if native.get('state')=='returned' and native.get('result')==session.committed_result and session.committed_result:
+                        artifacts.write_json('delivery.json',dict(schema=controller.protocol.DELIVERY_SCHEMA,
+                            request_id=outbox['payload']['request_id'],origin_id=outbox['payload']['origin_id'],
+                            context_sha256=outbox['payload']['context_sha256'],phase='delivered'))
+                        return
+                    if status.phase not in ('awaiting_start','start_dispatch_intent','start_dispatched','printing','completion_pending','completed','cancel_dispatch_intent','cancel_dispatched'):
+                        raise ValueError('Physical lifecycle stopped in '+status.phase)
+                time.sleep(1)
+            raise ValueError('Bounded test window expired; inspect real printer state before any further action')
+        except ValueError:
+            if lifecycle.status().phase=='failed':session._publish()
+            raise
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)

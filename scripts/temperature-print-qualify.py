@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import socket
 import time
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -114,12 +115,34 @@ def settings(path):
 def value(name,subject):return a.ctl(name,'get','orcacal__'+subject).get('value')
 def require(ok,message):
     if not ok:raise ValueError(message)
+CONTROL_PATHS={}
+def tap(name,widget,w,h):
+    a.ctl(name,"scroll",widget);a.ctl(name,"wait_idle")
+    g=a._visible_widget_geometry(a.ctl(name,"geom",widget,"0"),widget,w,h)
+    coords={"x":int(g["x"])+int(g["w"])//2,"y":int(g["y"])+int(g["h"])//2}
+    # Same native pointer API/private socket; avoid separate docker exec startup
+    # turning an ordinary tap into a long press under host scheduling load.
+    with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as client:
+        client.settimeout(3)
+        directory=os.open(CONTROL_PATHS[name].parent,os.O_RDONLY|os.O_DIRECTORY)
+        try:client.connect(f"/proc/self/fd/{directory}/control.sock")
+        finally:os.close(directory)
+        stream=client.makefile("rwb",buffering=0)
+        try:
+            for n,method in enumerate(("pointer_press","pointer_release"),1):
+                stream.write((json.dumps(dict(jsonrpc="2.0",id=n,method=method,params=coords))+"\n").encode())
+                reply=json.loads(stream.readline(65537))
+                require(reply.get("id")==n and "error" not in reply,"Native pointer input failed")
+        finally:
+            stream.close()
+    a.ctl(name,"wait_idle")
+
 def trigger(name,action,w,h):
-    q.back_to_home(name);q.tap(name,'orcacal__qualify-'+action,w,h);a.ctl(name,'wait_idle')
+    q.back_to_home(name);tap(name,'orcacal__qualify-'+action,w,h);a.ctl(name,'wait_idle')
 def open_detail(name,w,h):
     if not a.ctl(name,'current').get('overlays'):
         for widget,expected in [('orcacal__tile',['orcacal__wizard']),('orcacal__temperature_choice',['orcacal__wizard','orcacal__temperature'])]:
-            q.tap(name,widget,w,h)
+            tap(name,widget,w,h)
             deadline=time.monotonic()+2
             while time.monotonic()<deadline:
                 a.ctl(name,'wait_idle')
@@ -133,7 +156,7 @@ def read_storage(work):
 def viewport(entry,output,plugins):
     label,w,h,layout,dpi=entry;work=output/label;work.mkdir();(work/'home').mkdir();settings(work/'config')
     name='temperature-print-'+str(os.getpid())+'-'+label.replace('_','-')
-    a.PLUGIN_ROOT=plugins;a._remove_container(name)
+    a.PLUGIN_ROOT=plugins;CONTROL_PATHS[name]=work/'control.sock';a._remove_container(name)
     a.run(a._container_args(name,work,w,h,layout,dpi),capture=True)
     try:
         q.wait_ready(name)
@@ -144,7 +167,7 @@ def viewport(entry,output,plugins):
         trigger(name,'ready',w,h);open_detail(name,w,h)
         require(value(name,'tp_start_on')==1 and value(name,'tc_choice_on')==0,'Ready controls invalid')
         a.ctl(name,'scroll','orcacal__print_start');a._screenshot(name,work,'ready.png')
-        q.tap(name,'orcacal__print_start',w,h)
+        tap(name,'orcacal__print_start',w,h)
         require(value(name,'tp_start_on')==0 and value(name,'tc_choice_on')==0,'Start was repeated or unlocked result')
         intent=read_storage(work)['start_intent']
         require(intent['schema']=='helix-orca-temperature-start/v1' and intent['request_id']==REQUEST['request_id'],'Unbound native Start intent')
@@ -165,7 +188,7 @@ def viewport(entry,output,plugins):
         a._assert_horizontal_fit(a.ctl(name,'geom','orcacal__temperature_content','8'),w)
         a.ctl(name,'scroll','orcacal__temperature_selector');a.ctl(name,'set_value','orcacal__temperature_selector','1')
         a._screenshot(name,work,'completed.png')
-        q.tap(name,'orcacal__return_selection',w,h)
+        tap(name,'orcacal__return_selection',w,h)
         s=read_storage(work)
         require(s['result']['value']==205 and s['result']['job_id']=='000001' and s['result']['completion_sha256']=='c'*64,'Result proof invalid')
         require(s['request']==REQUEST,'Original context changed')
@@ -177,7 +200,10 @@ def viewport(entry,output,plugins):
         a._remove_container(name)
         a.run(a._container_args(name,work,w,h,layout,dpi),capture=True);q.wait_ready(name);open_detail(name,w,h)
         require(value(name,'tc_choice_on')==0 and read_storage(work)['result']==s['result'],'Waiting restart changed the result')
-        trigger(name,'ack',w,h);require(read_storage(work)['state']=='returned','Exact Orca acknowledgement not retained')
+        trigger(name,'ack',w,h)
+        deadline=time.monotonic()+3
+        while read_storage(work)['state']!='returned' and time.monotonic()<deadline:pass
+        require(read_storage(work)['state']=='returned','Exact Orca acknowledgement not retained')
         open_detail(name,w,h);a.ctl(name,'scroll','orcacal__returned_area');a._screenshot(name,work,'returned.png')
         trigger(name,'fresh',w,h)
         fresh=read_storage(work)
@@ -185,15 +211,15 @@ def viewport(entry,output,plugins):
         require(REQUEST['origin_id']+':'+REQUEST['request_id'] in fresh['tombstones'],'Retirement lost replay tombstone')
         trigger(name,'request',w,h)
         require(read_storage(work)['request']['request_id']=='3'*32,'Old request replay replaced the fresh session')
-        trigger(name,'ready',w,h);open_detail(name,w,h);q.tap(name,'orcacal__print_start',w,h)
-        trigger(name,'printing',w,h);open_detail(name,w,h);q.tap(name,'orcacal__print_cancel',w,h)
+        trigger(name,'ready',w,h);open_detail(name,w,h);tap(name,'orcacal__print_start',w,h)
+        trigger(name,'printing',w,h);open_detail(name,w,h);tap(name,'orcacal__print_cancel',w,h)
         a.ctl(name,'wait_idle')
         a._assert_overlay(a.ctl(name,'current'),['orcacal__wizard','orcacal__temperature','orcacal__cancel_confirmation'])
         require('cancel_intent' not in read_storage(work),'Opening confirmation cancelled the job')
         a.ctl(name,'scroll','orcacal__confirm_cancel');a._screenshot(name,work,'cancel-confirmation.png')
         a.ctl(name,'go_back');a.ctl(name,'wait_idle')
         require('cancel_intent' not in read_storage(work),'Back cancelled the job')
-        q.tap(name,'orcacal__print_cancel',w,h);q.tap(name,'orcacal__confirm_cancel',w,h)
+        tap(name,'orcacal__print_cancel',w,h);tap(name,'orcacal__confirm_cancel',w,h)
         cancel=read_storage(work)['cancel_intent']
         require(cancel['expires_eventtime']>cancel['eventtime'] and cancel['eventtime']>LEASE['issued_eventtime']+900,'Late cancellation was wrongly tied to Start expiry')
         trigger(name,'complete',w,h);open_detail(name,w,h)

@@ -169,3 +169,25 @@ class AuthorizationTests(unittest.TestCase):
         self.assertEqual(runner.validate_grant(grant,p,q,2000,allow_expired=True),grant)
         changed=dict(grant,expires_at=p['expires_at']+1)
         with self.assertRaises(ValueError):runner.validate_grant(changed,p,q,2000,allow_expired=True)
+
+        from types import SimpleNamespace
+        class Journal:
+            def __init__(self):self._state={};self.phase='awaiting_start'
+            def status(self):return SimpleNamespace(phase=self.phase)
+            def _persist(self):pass
+            def _fail(self,phase,reason):self.phase=phase
+        journal=Journal()
+        runner.bind_authorization(journal,grant,p,q,1000,resume=False)
+        with self.assertRaises(ValueError):runner.bind_authorization(journal,grant,p,q,2000,resume=True)
+        self.assertEqual(journal.phase,'failed')
+        journal.phase='printing'
+        runner.bind_authorization(journal,grant,p,q,2000,resume=True)
+        replacement=dict(grant,founder_authorization_reference='A LATER SYNTHETIC AUTHORIZATION')
+        with self.assertRaises(ValueError):runner.bind_authorization(journal,replacement,p,q,2000,resume=True)
+        journal._state['native_envelope']={'lease':{'issued_eventtime':100.5}}
+        with self.assertRaises(ValueError):runner.validate_tap_after_offer(journal,SimpleNamespace(eventtime=100.4))
+        runner.validate_tap_after_offer(journal,SimpleNamespace(eventtime=100.6))
+
+        journal.phase='awaiting_start'
+        with self.assertRaises(ValueError):runner.require_live_authorization(journal,grant,p,q,2000)
+        self.assertEqual(journal.phase,'failed')
