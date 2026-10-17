@@ -276,3 +276,9 @@ records passed actual Windows/context/export/result/recovery checks, the isolate
 native fixture and the distinction from the accepted physical workflow. Native
 return selection and Alpha receipt use unchanged v1 contracts; no fresh physical
 ACK/delivery or baseline adoption is implied.
+
+Founder accepted this qualification on 2026-10-16. October 15 nightly remains
+the preferred development and physical-integration baseline; Alpha with
+companion 0.5.1 is a qualified secondary target. PR #11 merge/closeout authority
+changes no runtime gate or architecture. Alpha physical integration and
+production adoption remain unauthorized. See [acceptance](ISSUE_10_ACCEPTANCE.md).

@@ -1,13 +1,16 @@
 # OrcaSlicer 2.5.0 Alpha compatibility qualification
 
-Status: **passed isolated compatibility qualification, independent review and affected-surface AI Product Preflight; unmerged candidate** under [Issue #10](https://github.com/bigstupid007/helix-orca-calibration/issues/10).
-The accepted physical baseline remains the October 15 nightly. This work does
-not adopt Alpha, merge a candidate or authorize physical communication.
+Status: **Founder accepted Issue #10 and PR #11 on 2026-10-16 (America/Chicago)**.
+[Acceptance and closeout](ISSUE_10_ACCEPTANCE.md) authorize governed merge,
+main verification and Issue closure for PR #11 only. October 15 nightly remains
+the preferred development and physical-integration baseline; Alpha with
+companion 0.5.1 is a qualified secondary target. Alpha physical integration and
+production adoption remain unauthorized.
 
 ## Baselines and approved boundary
 
-Accepted main is `9c8d159221ff132a7be2516bb7a50b1ef26bbeca`, following Founder
-acceptance and closeout of Issue #8 / PR #9. That milestone proved the actual
+Qualification began from accepted main
+`9c8d159221ff132a7be2516bb7a50b1ef26bbeca`, following Founder acceptance and closeout of Issue #8 / PR #9. That milestone proved the actual
 physical 205°C selection return and original-profile 220°C / NOT APPLIED
 instructions. Its implementation and public/private evidence remain unchanged.
 Canonical dirty work is preserved through a separate qualification worktree.
@@ -120,8 +123,9 @@ binding, result/recovery guards and the pinned Windows process boundary.
 Independent static review corrected DLL binding and Alpha-specific evidence
 schema/filenames. Final independent GPT-5.6 Sol / High review found no material
 issue: all 121 private-manifest entries, runtime/state/file invariants and the
-clean public capture matched. Exact-head CI is reported by PR #11. No Founder
-acceptance is implied.
+clean public capture matched. Exact-head CI is reported by PR #11. Founder
+subsequently accepted the qualification and baseline policy; the separate
+[acceptance record](ISSUE_10_ACCEPTANCE.md) grants PR #11 closeout authority.
 
 The affected-surface AI Product Preflight passes the same actual Prepare →
 Plugins → communication → recovered result path below, including the original
@@ -131,19 +135,22 @@ polish remains deferred; this qualification adds no new product workflow.
 Screenshot review does not newly qualify keyboard/focus or assistive-technology
 behavior; inherited text density and discoverability remain deferred polish.
 
-## Recommendation
+## Accepted baseline policy
 
-**Retain the October 15 nightly as the preferred program and physical baseline.**
+**October 15 nightly remains the preferred development and physical-integration baseline.**
 Official Alpha passes the bounded isolated companion qualification with the
 separate 0.5.1 derivative and is suitable as a secondary development/test target.
 It is not a drop-in replacement for accepted 0.5.0: the unchanged physical relay
 intentionally rejects Alpha context. A program-wide switch would need separately
-authorized relay compatibility work and acceptance. This qualification performs
-no adoption, merge, deployment or physical rerun.
+authorized relay compatibility work and acceptance. Founder accepted the policy
+and authorized PR #11 merge/closeout only.
+No Alpha physical integration, production adoption, deployment or physical rerun
+is authorized.
 
 ## Founder Review
 
-The isolated Alpha is left open on Spare with an empty Prepare workspace,
+Founder has accepted this qualification. At the review handoff, isolated Alpha
+was left open on Spare with an empty Prepare workspace,
 original copied profiles and the recovered completed result. Use this window,
 not a normal Orca shortcut. Its owned runtime is beneath
 `%LOCALAPPDATA%\HelixOrcaCalibration\issue-10-alpha-3880f2c\runtime`.
@@ -160,5 +167,6 @@ not a normal Orca shortcut. Its owned runtime is beneath
    the workspace from startup Home.
 
 No new Send, Keep original profile, manual save or printer action is needed for
-this review. Judge whether this bounded compatibility evidence and the proposed
-baseline policy are acceptable. Deferred UX polish remains outside this PR.
+this retained review path. No further Founder Review or runtime interaction is
+required for closeout. The accepted baseline policy is recorded above; deferred
+UX polish remains backlog only.

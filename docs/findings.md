@@ -371,7 +371,9 @@ preserved state across duplicates, filament switching and process restart.
 No fresh native ACK or physical delivery is claimed. Normal/nightly fingerprints,
 12 seeded profile JSON files and canonical dirty work remain unchanged.
 [Current qualification and recommendation](ORCA_ALPHA_QUALIFICATION.md) retain
-October 15 as preferred program/physical baseline and Alpha 0.5.1 as a qualified
+October 15 as preferred development/physical-integration baseline and Alpha 0.5.1 as a qualified
 secondary environment. Independent final review found no material issue and affected-surface AI Product
-Preflight passed; exact-head CI is recorded on PR #11. No adoption or merge is
-authorized.
+Preflight passed; exact-head CI is recorded on PR #11. Founder accepted the
+qualification on 2026-10-16 with that baseline policy and authorized PR #11
+merge, main verification and Issue #10 closure. Alpha physical integration and
+production adoption remain unauthorized; see [acceptance](ISSUE_10_ACCEPTANCE.md).

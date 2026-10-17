@@ -194,14 +194,17 @@ no printing, automatic profile update, release or broader deployment is authoriz
 
 ## Official OrcaSlicer 2.5.0 Alpha qualification
 
-[Issue #10](https://github.com/bigstupid007/helix-orca-calibration/issues/10)
-qualifies official `v2.5.0-alpha` (`3880f2c5`) against the accepted October 15
-nightly. Source comparison and official artifact verification pass; Alpha is
+Founder accepted [Issue #10](https://github.com/bigstupid007/helix-orca-calibration/issues/10)
+and PR #11 on 2026-10-16 for official `v2.5.0-alpha` (`3880f2c5`) against the
+accepted October 15 nightly. Source comparison and official artifact verification pass; Alpha is
 staged separately on Spare. A generated `0.5.1` companion admits only the exact
 Alpha identity without changing accepted `0.5.0` source, protocol or relay.
 Actual Windows installation, context/unsaved values, normal Temperature export,
 exact file association, isolated native 205°C return, duplicate/stale handling,
 profile switching and process-restart recovery pass. Normal profiles and the
-accepted nightly are unchanged. Retain October 15 as the preferred program/
-physical baseline: its accepted relay still intentionally excludes Alpha.
-See [qualification report, limits and review path](docs/ORCA_ALPHA_QUALIFICATION.md).
+accepted nightly are unchanged. October 15 remains the preferred development
+and physical-integration baseline; Alpha with companion 0.5.1 is a qualified
+secondary target. Alpha physical integration and production adoption remain
+unauthorized. [Founder acceptance and closeout](docs/ISSUE_10_ACCEPTANCE.md)
+authorize PR #11 merge, main verification and Issue #10 closure only; GitHub
+records the final outcome. See the [qualification report](docs/ORCA_ALPHA_QUALIFICATION.md).
