@@ -101,10 +101,8 @@ accepted beta.4 evidence, Issue #8 native evidence, corrected eleven-target
 Issue #12 evidence and whitespace validation pass. A private resume baseline
 records all sixteen pre-existing canonical file hashes and canonical HEAD.
 This initial source/evidence checkpoint is superseded by the reviewed repairs
-below; it is not evidence for the repaired runtime. Spare access is disconnected;
-only the documented owner-side unelevated launch
-is needed. Actual corrected export, current companion proof, final integrated
-review, documentation reconciliation and exact-head CI remain completion work.
+below; it is not evidence for the repaired runtime. At that checkpoint Spare
+access was disconnected; the documented owner-side unelevated launch was needed. Export and companion proof were then incomplete.
 No physical authorization, action or installation is implied by this checkpoint.
 
 The resumed independent source review subsequently identified and corrected
@@ -115,14 +113,37 @@ passes 243 tests. These repairs preserve pre-Start expiry and one-shot safety
 while keeping an already owned job observable without a duration ceiling.
 The renewed native capture is recorded in the existing readiness/evidence
 reports. Exact-head CI is a separate GitHub gate owned by PR #13 current checks;
-it is not implied by local validation. Actual Windows export/current companion proof still
-requires the existing owner-side worker launch; it is not replaced by mock
-status, source review or historical exports.
+it is not implied by local validation. The subsequent actual Windows
+qualification is recorded below.
 
 The renewed complete beta.9 matrix now passes and verifies all eleven targets,
 88 frames and eleven storage snapshots, including synthetic post-expiry
 monitoring, result/ACK and cancellation. Earlier corrected native bytes were
 preserved byte-for-byte as history before promotion. Owned capture containers
-were removed normally; output headroom remained about 359 GiB. This completes
-current source/native software proof, not actual Windows export or hardware
-qualification. No disk cleanup or historical storage investigation was reopened.
+were removed normally; output headroom remained about 359 GiB. This capture
+proves the native software surface; hardware execution remains unauthorized. No disk cleanup or historical storage investigation was reopened.
+
+## Completed Windows qualification — 2026-10-17
+
+The existing worker reconnected after the owner launch. Native Orca Scale,
+Slice Plate and Export produced the corrected 484,552-byte three-band file,
+75 layers and a 12m00s estimate. Exact-byte offline qualification against current
+GET-only identity/configuration, registered commands and unchanged macro
+safeguards passes. No custom generator or exported-file edit was used.
+
+The reviewed 0.6.1 companion retained original 220°C context, selected that file,
+and sent the actual Windows outbox into the isolated native UI. The exact
+persisted synthetic 220°C result reached the original companion; its committed
+receipt preceded native ACK. Windows showed NOT APPLIED. Accepted 0.5.0 is
+restored with the test process closed. Five accepted communication files,
+12 saved profile JSONs, 1,429 normal files and canonical dirty work are preserved.
+See [qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md) and
+[current evidence](evidence/issue-12/README.md). Private raw evidence remains in
+XDG state. Headroom remained about 358 GiB; no storage investigation was reopened.
+
+This is one software-qualified unmerged candidate for Founder Review and the
+first separately authorized controlled physical calibration. No physical
+adapter activation, live grant, upload, queue, print, heat, motion, macro,
+firmware change, automatic writeback, merge or deployment occurred. A future
+physical test requires fresh binding through the existing safeguards; the
+consumed mock request and synthetic completion are never reused as hardware proof.

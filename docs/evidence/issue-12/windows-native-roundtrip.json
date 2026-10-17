@@ -1,0 +1,51 @@
+{
+  "native_result_equals_windows_inbox": true,
+  "exact_originating_receipt_before_ack": true,
+  "result_sha256": "ab83787ad0add9dc929e306779e5086d9d6aa900db611106feace54fb6edac83",
+  "receipt_sha256": "05cb59f41464b9ebb073f1f6ab8f6061eab463c2a2d61e3b0d09eccd792f9e8e",
+  "native_returned_after_originating_receipt": true,
+  "schema": "helix-orca-issue12-actual-windows-native-proof/v1",
+  "driver_sha256": "14bd3b2c4c44646e24ba924cf4842197578bdd365c1906d3cd81ea9c79d2aa2b",
+  "source_hashes": {
+    "scripts/temperature-print-plugin.py": "dcc73f3767502c49f1613861ebe8e1e6087ff3b7b82420cfaef3d3a897c8908b",
+    "scripts/temperature-print-qualify.py": "aec86010186c5c459f4c53da4c7bc68b7e47778acd592b2c2ebd0b869cd48159",
+    "integration/temperature-print/native.lua": "947f5d01dbebf454c4450d750cbd2384ca3892f579e17cd17e3d4ca5924ff6d7",
+    "integration/temperature-print/ui/orcacal__temperature.xml": "1f5c57eaebb62c5e2ab68dded429a374e40c4caf9a5d6492819fe402c87561af",
+    "integration/temperature-print/ui/orcacal__wizard.xml": "5acd72f663d8a73c7ae4c4495b8763b89be25d660c14f07a5bcafe29a289fd0b",
+    "integration/temperature-print/ui/orcacal__cancel_confirmation.xml": "810ab4add1c8a233ce73753a521fea5bee2a0f34df9c09e2d645ae7a8c9a0e88",
+    "scripts/temperature-print-companion.py": "1a8cdf5fc809e57794265e15bc22a11ad3df3e181a4a39be01a7b6e24ae80f00",
+    "scripts/temperature-communication-qualify.py": "5020e13ce0277e30c19f0046068c7832a1c2eea9b859bfd1c42f3b8e34c22b8c",
+    "scripts/temperature-communication-plugin.py": "fd7e758cd01ae135fd15958324751abb99d586119a44ec9f3017c4337102355b",
+    "scripts/helix-beta9-qualify.py": "4b04f9506ef73807cd677e1534e79aa89d7fc5fc354ac6196b5977e03c589651",
+    "scripts/helix_dev.py": "3c9eb5a1c5d97986146922bca1b12941688103d78846189bf8c1ceb0f2da8f8b"
+  },
+  "outbox_sha256": "be9a06977c7e30c8fe8e71a9897dd96b812273297e3a6fde0be6b7a0f7742dca",
+  "physical_actions": 0,
+  "native_completion": "synthetic job 000001 and cccc proof; no hardware completion",
+  "windows_original_sources": [
+    220,
+    220,
+    220
+  ],
+  "companion_version": "0.6.1",
+  "companion_sha256": "30a5a51539e432513181d04966d09196d93057d085ba5d918ea77a262164c86b",
+  "native_file_sha256": "83fd38e22aca7237c1b8c9fa8a8971657f72b47d344a06f42120c78d05503074",
+  "selected_temperature_c": 220,
+  "return_status": "NOT APPLIED",
+  "windows_native_send_observed": true,
+  "windows_native_file_picker_observed": true,
+  "installed_source_hash_verified_before_restoration": true,
+  "preservation": {
+    "accepted_companion_restored": true,
+    "accepted_companion_sha256": "bc3d35eb260a1360e1095bd97d8e7d31e3ab96e8b3cafde1f145e3adf5b4d71f",
+    "reviewed_candidate_sha256": "30a5a51539e432513181d04966d09196d93057d085ba5d918ea77a262164c86b",
+    "communication_files_unchanged": 5,
+    "saved_user_profiles_unchanged": 12,
+    "normal_profile_files_unchanged": 1429,
+    "normal_profiles_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+    "candidate_proof_preserved": true,
+    "prior_readiness_restored": false,
+    "free_bytes": 85545058304,
+    "physical_actions": 0
+  }
+}

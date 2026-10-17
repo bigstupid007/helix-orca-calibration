@@ -385,8 +385,12 @@ The direct Founder correction of 2026-10-17 controls exactly three bands:
 225/220/215°C bottom to top, with confirmed filament and normal nozzle 220°C.
 Earlier 210/205/200°C exports and the AI-generated timing/label constraints are
 superseded; historical evidence remains under `docs/evidence/issue-12/history/`.
-The corrected actual native export, transitions, geometry, macro ABI, identity
-and estimate remain pending the existing Windows worker restart; current status is recorded in [Windows qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md)
+The corrected actual native export passes: 484,552 bytes, 75 layers, three
+225/220/215°C bands and a 12m00s informational estimate. Offline macro ABI,
+geometry, registered commands and unchanged read-only target binding pass.
+Actual originating Windows 0.6.1 return displays 220°C NOT APPLIED; completion
+is synthetic. Accepted Windows companion and profile/artifact hashes are
+preserved. See [Windows qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md)
 and [readiness](TEMPERATURE_PRINT_READINESS.md).
 
 Native preparation uses the existing Temperature tool and normal slicing/export;

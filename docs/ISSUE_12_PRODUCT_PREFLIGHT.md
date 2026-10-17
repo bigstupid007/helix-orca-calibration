@@ -1,6 +1,6 @@
 # Issue #12 corrected candidate — affected-surface Product Preflight
 
-**Native: PASS. Overall affected surface: pending actual Windows 0.6.1 proof.**
+**Native and actual Windows affected surface: PASS.**
 The renewed source-bound eleven-target capture passes. The lead inspected
 current micro, micro-portrait, 800×480, phone, ultrawide and tall frames for
 Ready, printing, cancellation, success and returned states. No material
@@ -26,10 +26,13 @@ proves result/ACK and guarded cancellation beyond synthetic request expiry,
 without weakening pre-Start freshness or allowing active-session replacement. Job,
 authorization, clock and completion inputs are synthetic. The visible
 1501-second/26-minute Ready fixture proves acceptance above the removed ceiling;
-it is not the actual file estimate. Actual Windows native export and the 0.6.1
-Keep original → file picker → Send → synthetic 220°C result → NOT APPLIED flow
-remain pending the existing worker restart. The earlier Windows PASS is not
-carried forward.
+it is not the actual file estimate. Actual Windows native export and the reviewed
+0.6.1 Keep original → file picker → Send → synthetic 220°C result → NOT APPLIED
+flow pass on the preferred nightly. The exact 484,552-byte export, real Windows
+outbox, native result and committed originating receipt are bound in the current
+proof. Visible saved/edited/effective values stay 220°C. The native estimate is
+12m00s, with no extra duration or label decision. The accepted companion and
+artifacts are restored; temporary preparation settings were discarded.
 
 The inherited compact 26 px control token remains a physical touch-validation
 risk at 480×272. Screenshots do not establish keyboard/focus behavior,

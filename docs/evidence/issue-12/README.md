@@ -27,11 +27,19 @@ The superseded `ac84114` native bytes are preserved under
 [history](history/candidate-ac84114/README.md); earlier 210/205/200°C proof remains
 separate history. No partial capture was promoted.
 
-Corrected actual Windows native-export inspection and current companion
-round-trip proof remain pending reconnection of the existing test worker.
-Earlier files and screenshots are [superseded history](history/README.md),
-never evidence of the corrected export. Raw G-code, Windows frames and payloads
-remain private. No physical action is authorized or performed.
+`native-gcode-inspection.json` records the actual corrected native Windows export:
+484,552 bytes, three bands, 75 layers and a 720-second informational estimate.
+Its standalone `physical_ready: false` is not a failed offline suitability gate:
+`native-file-safety-review.json` and `read-only-suitability.json` resolve registered
+commands, unchanged macro dependencies and geometric bounds without authorization.
+
+`windows-native-roundtrip.json` binds the real originating Windows outbox,
+reviewed installed 0.6.1 source, exact native persisted 220°C result and committed
+receipt before ACK. Job/history/authorization/completion inputs are synthetic;
+zero hardware completion or physical action is claimed. The accepted 0.5.0
+companion is restored, all five communication artifacts, 12 user profile JSONs
+and 1,429 normal files are unchanged. Raw G-code, Windows frames, target data and
+payloads remain private. Earlier evidence stays superseded history.
 
 See the [readiness report](../../TEMPERATURE_PRINT_READINESS.md),
 [engineering review](../../ISSUE_12_ENGINEERING_REVIEW.md) and

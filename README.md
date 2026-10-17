@@ -19,9 +19,11 @@ Alpha has no physical adoption.
 [Current validation and readiness](docs/TEMPERATURE_PRINT_READINESS.md) tracks
 the corrected export and evidence. The resumed source passes 243 tests and
 independent review; the renewed eleven-target native evidence verifies. Actual
-Windows export/current companion proof await the
-existing Spare worker launch; the devbox storage incident is resolved. The readiness record owns local evidence; PR #13 owns current
-exact-head CI status, which is not implied by local validation. No physical print, heating, motion, firmware change,
+Windows native export and current companion return pass: exactly three bands,
+484,552 bytes and a 12-minute informational estimate. Offline suitability passes;
+220°C returns as NOT APPLIED using explicitly synthetic completion. Accepted
+Windows state and original profiles are preserved. The candidate is ready for
+Founder Review; PR #13 owns current exact-head CI status. No physical print, heating, motion, firmware change,
 profile writeback or physical activation is authorized by this candidate.
 Physical execution requires separate Founder authorization. Leave the PR
 unmerged for Founder Review.

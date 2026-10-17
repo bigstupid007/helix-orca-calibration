@@ -9,20 +9,22 @@ or spool-label checkpoint**.
 
 ## Current disposition
 
-The remaining runtime qualification is on the actual Windows surface. The
+**READY for Founder Review and a separately authorized first controlled physical calibration.**
+The
 reviewed source passes **243 repository tests**, including **54 affected tests
 independently rerun**. The independent source review is PASS. Accepted beta.4
 and Issue #8 native evidence verifies. The renewed eleven-target beta.9 capture passes, with **88 frames and eleven
 storage snapshots**, promoted and verified against current source. It covers
 post-expiry monitoring, cancellation, return and context gating; see [current evidence](evidence/issue-12/README.md).
 
-Actual Windows regeneration/export and the current companion UI proof await
-restart of the existing owner-launched test worker. The devbox storage incident
-is resolved: resume checks show 358.6 GiB available and healthy inode headroom;
-proportionate checks continue around export and capture. Windows Product
-Preflight remains due; PR #13 current checks own the exact-head CI disposition. No hardware action is authorized
-or needed for these software checks. This report does not claim a completed
-physical-test candidate before those gates pass.
+Actual Windows native export and reviewed 0.6.1 companion return pass, including
+exact originating receipt before native ACK and visible 220°C NOT APPLIED.
+Offline exact-file suitability passes against unchanged GET-only target facts.
+The accepted Windows companion is restored; saved/normal profiles and accepted
+communication artifacts are byte-preserved. Storage headroom remains about
+358 GiB with proportionate checks. Independent final review and affected-surface
+Product Preflight are recorded below; PR #13 owns exact-head CI status.
+No physical execution is authorized by this readiness disposition.
 
 ## Actual export and estimate
 
@@ -33,12 +35,14 @@ layers, normal Slice and Export. The in-memory machine-start field must emit
 `PRINT_START BED_TEMP=60 EXTRUDER_TEMP=225`, matching the existing printer macro.
 Temporary changes are discarded; presets and original context stay unchanged.
 
-The corrected export's actual byte count, SHA-256, geometry, transitions and
-native estimate will be recorded from its new bytes in
-[Windows qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md) and the new
-inspection JSON. Earlier 210/205/200°C files are preserved as
-[superseded history](evidence/issue-12/history/README.md); they do not prove this
-correction. No custom G-code generator or exported-file edit is used.
+The actual export is **484,552 bytes**, SHA-256
+`83fd38e22aca7237c1b8c9fa8a8971657f72b47d344a06f42120c78d05503074`,
+75 layers, top extrusion Z20.92 mm and native estimate **12m00s**.
+The three bands span extrusion Z0.20–6.92, 7.20–13.92 and 14.20–20.92 mm.
+[Windows qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md) records native
+preparation, source provenance, macro/geometry review and preservation. Earlier
+210/205/200°C files remain superseded history. No custom generator or exported
+file edit is used.
 
 The native estimate is useful information, not an elapsed-time promise or
 readiness gate. Printer-side heating, homing, QGL, saved-mesh loading, purge and
@@ -104,6 +108,6 @@ git diff --check
 ```
 
 [Engineering review](ISSUE_12_ENGINEERING_REVIEW.md) and
-[affected-surface Product Preflight](ISSUE_12_PRODUCT_PREFLIGHT.md) will record the
+[affected-surface Product Preflight](ISSUE_12_PRODUCT_PREFLIGHT.md) record the
 completed corrected candidate. Founder Review is personal review, not AI
 acceptance. Physical execution remains a separate authorization.

@@ -51,13 +51,43 @@ and cancellation, in addition to the retained one-shot and failure invariants.
 Its final report is in [current evidence](evidence/issue-12/README.md).
 All native authorization/job/status/clock/completion inputs are synthetic.
 
-Actual corrected Windows export and current 0.6.1 companion proof remain pending
-the existing owner-launched Spare worker. The generated companion compiles but
-is not installed; SHA-256 is
+Actual corrected Windows export and current 0.6.1 companion proof pass. The
+installed source hash was verified before restoration:
 `30a5a51539e432513181d04966d09196d93057d085ba5d918ea77a262164c86b`.
-Affected Windows Product Preflight and final exact-head CI remain separate gates.
+The exact Windows outbox, native persisted selection, inbox and originating
+receipt are correlated; only that receipt permits native ACK. Completion is
+explicitly synthetic. Exact-file offline suitability and read-only command,
+macro, purge/park and acceleration review pass. Accepted companion restoration,
+12 saved user profiles, 1,429 normal files and five communication artifacts are
+verified. See [Windows qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md).
+Affected Windows Product Preflight passes; PR #13 owns final exact-head CI.
 Earlier reviews/captures at `68d1029`, `baf08d5` and `ac84114` do not replace
 current export evidence.
+
+## Final actual-file and integration review: PASS
+
+The independent reviewer inspected the exact raw export, private GET-only
+configuration/status evidence, current Windows and isolated native frames,
+source binding, all request/result/receipt identities and final restoration.
+No material file, UI, lifecycle-evidence or preservation blocker remains.
+The export has 25 extruding layers in each approved band. Offline macro,
+registered-command, geometry and acceleration checks pass. The genuine
+originating Windows receipt precedes native ACK; the 220°C return remains
+NOT APPLIED. Native completion is synthetic, not measured physical quality.
+The reviewer idempotently reproduced the private deterministic qualifier once;
+only its three derived private JSON outputs were rewritten from unchanged
+inputs. Those outputs are reproducible analyses, not untouched capture mtimes.
+No repository, Windows, network or hardware state was changed by that rerun.
+
+Final read-only documentation and sanitized-evidence review is PASS: current
+claims match retained proof, source hashes match, private operational data is
+excluded, and physical execution remains separately authorized.
+
+Final local validation passes 243 tests, accepted beta.4 and Issue #8 evidence,
+current source-bound Issue #12 eleven-target evidence, static harness contract
+and whitespace checks. Canonical HEAD and all sixteen pre-existing file hashes
+match the private resume baseline. The Windows test process is closed, accepted
+0.5.0 restored, and no candidate remains installed on a physical printer.
 
 Accepted implementations/evidence, normal profiles, the dirty canonical checkout
 and existing security boundaries remain preserved. No live grant/permit,

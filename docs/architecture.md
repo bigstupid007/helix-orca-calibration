@@ -327,3 +327,10 @@ Deterministic preflight/authorization rejection consumes the tap and publishes
 failure; an ambiguous command publishes uncertainty. The readiness protocol and
 coordinator require original effective nozzle 220°C while preserving saved and
 edited values independently. Accepted communication source is unchanged.
+
+Current readiness proof binds the actual native Windows export to its original
+220°C context and uses real companion receipts with isolated synthetic native
+completion. Offline suitability resolves exported commands and unchanged macro
+sources from GET-only target data; it issues no live grant. Accepted Windows
+state is restored after qualification. See the readiness report for exact file
+identity and preservation; no physical deployment is implied.

@@ -257,7 +257,10 @@ preserved; this increment does not authorize a UX redesign.
 
 Issue #12 resumed software checkpoint: 243 repository tests, independent source
 review (54 affected tests) and renewed source-bound native eleven-target proof
-pass. Corrected actual Windows export/0.6.1 companion proof remains pending the
-existing Spare worker launch. Final evidence review and exact-head CI are
-separate gates tracked on PR #13, not implied by the local passes. No first-physical-test readiness or execution is claimed
-before those remaining software gates complete.
+pass. Corrected actual Windows export, exact-file offline qualification and
+0.6.1 originating-companion return now pass. Accepted Windows companion, normal
+and saved profiles and prior communication artifacts are preserved. Final
+review/Product Preflight are recorded in the readiness documents; PR #13 tracks
+exact-head CI. The unmerged candidate is ready for Founder Review and the first
+separately authorized controlled physical calibration. No physical execution
+has occurred or is authorized here.
