@@ -19,12 +19,13 @@ pgen=load('print_native_generator',ROOT/'scripts/temperature-print-plugin.py')
 REQUEST=dict(q.VALID_REQUEST)
 REQUEST.pop('simulation_only')
 REQUEST.update(schema='helix-orca-temperature-print-session/v1',physical_calibration=True,
-               choices=[210,205,200],file='miniature-temperature-210-200.gcode',ttl_seconds=3600)
+               choices=[210,205,200],file='miniature-temperature-210-200.gcode',ttl_seconds=3600,
+               file_bytes=200000,file_sha256='a'*64,context_sha256='b'*64)
 LEASE={'issued_eventtime':1000.0,'expires_eventtime':4600.0}
 ASSERTIONS=['accepted-shell-loads','receive-never-starts','picker-locked-before-success',
     'authorized-ready-needs-native-start','native-start-persists-once','rpc-ack-does-not-unlock',
-    'matching-printing-keeps-picker-locked','independent-success-enables-three-choices',
-    'native-205-result-has-completion-proof','original-context-preserved','native-back-and-horizontal-fit']
+    'matching-printing-keeps-picker-locked','restart-never-redispatches-and-recovers-verified-state','history-lag-stays-nonterminal','independent-success-enables-three-choices',
+    'native-205-result-has-completion-proof','original-context-preserved','native-back-and-horizontal-fit','terminal-session-retires-with-replay-tombstone']
 SOURCES=['scripts/temperature-print-plugin.py','scripts/temperature-print-qualify.py',
 'integration/temperature-print/native.lua','integration/temperature-print/ui/orcacal__temperature.xml',
 'integration/temperature-print/ui/orcacal__wizard.xml','scripts/temperature-print-companion.py',
@@ -48,8 +49,15 @@ helix.moonraker.call=function(method,params)
 end
 local fixture_request=helix.json.decode([==[REQUEST]==])
 local fixture_lease=helix.json.decode([==[LEASE]==])
-helix.ui.on("qualify_request",function() receive("fixture",{session=fixture_request,lease=fixture_lease}) end)
+helix.ui.on("qualify_request",function()
+    if not session then
+        query_busy=true; receive("fixture",{session=fixture_request,lease=fixture_lease}); query_busy=false
+        if session then error("Busy receive committed a session") end
+    end
+    receive("fixture",{session=fixture_request,lease=fixture_lease})
+end)
 local function fixture_status(state,n)
+    n=math.max(n,(session.status_sequence or 0)+1)
     local d={schema="helix-orca-temperature-print-status/v1",state=state,sequence=n,eventtime=fixture_eventtime,
         authorized=true,estimated_duration_s=900,job_id="000001",completion_sha256=string.rep("c",64)}
     for _,k in ipairs(identity_keys) do d[k]=fixture_request[k] end
@@ -59,13 +67,29 @@ helix.ui.on("qualify_ready",function() fixture_status("ready",1) end)
 helix.ui.on("qualify_printing",function()
     fixture_state="printing"; fixture_filename=fixture_request.file; fixture_status("printing",2)
 end)
+helix.ui.on("qualify_confirming",function()
+    fixture_state="complete"; fixture_status("confirming",3)
+end)
 helix.ui.on("qualify_complete",function()
-    fixture_state="complete"; fixture_status("complete",3)
+    fixture_state="complete"; fixture_status("complete",4)
+end)
+helix.ui.on("qualify_ack",function()
+    local result=session.result
+    if not result then return end
+    local ack={}
+    for k,v in pairs(result) do ack[k]=v end
+    ack.schema="helix-orca-temperature-print-ack/v1"
+    acknowledgement("fixture",ack)
+end)
+helix.ui.on("qualify_fresh",function()
+    local fresh=helix.json.decode([==[REQUEST]==])
+    fresh.request_id=string.rep("3",32); fresh.origin_id=string.rep("4",32)
+    receive("fixture",{session=fresh,lease=fixture_lease})
 end)
 '''.replace('REQUEST',request).replace('LEASE',lease)
     with (target/'main.lua').open('a') as f:f.write(hook)
     manifest=json.loads((target/'manifest.json').read_text())
-    for action,label in [('request','Receive request'),('ready','Qualify ready'),('printing','Observe printing'),('complete','Confirm completion')]:
+    for action,label in [('request','Receive request'),('ready','Qualify ready'),('printing','Observe printing'),('confirming','Wait for history'),('complete','Confirm completion'),('ack','Confirm Orca receipt'),('fresh','Receive next request')]:
         component='orcacal__qualify-'+action
         manifest['widgets'].append({'id':component,'name':label,'icon':'download','description':'Synthetic isolated qualification input','component':component,'colspan':3,'rowspan':2})
         (target/'ui'/f'{component}.xml').write_text(q.TILE_XML.format(component=component,action='qualify_'+action,label=label))
@@ -78,7 +102,7 @@ def settings(path):
     s['plugins']['enabled']['orcacal']['version']='0.4.0-issue12-readiness'
     widgets=s['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']
     keep=[w for w in widgets if w['id']=='orcacal__tile' or not w['enabled']]
-    for i,action in enumerate(('request','ready','printing','complete')):
+    for i,action in enumerate(('request','ready','printing','confirming','complete','ack','fresh')):
         keep.append({'col':(i%3)*4,'row':2+(i//3)*2,'colspan':4,'rowspan':2,'enabled':True,'id':'orcacal__qualify-'+action})
     s['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']=keep
     a.json_write(path/'settings-test.json',s)
@@ -116,6 +140,14 @@ def viewport(entry,output,plugins):
         trigger(name,'printing',w,h);open_detail(name,w,h)
         require(value(name,'tc_choice_on')==0 and value(name,'tp_cancel_on')==1,'Printing unlocked results or omitted cancellation')
         a.ctl(name,'scroll','orcacal__request_status');a._screenshot(name,work,'printing.png')
+        a._remove_container(name)
+        a.run(a._container_args(name,work,w,h,layout,dpi),capture=True);q.wait_ready(name)
+        open_detail(name,w,h)
+        require(value(name,'tp_start_on')==0 and value(name,'tc_choice_on')==0,'Restart restored an unverified action')
+        trigger(name,'printing',w,h);open_detail(name,w,h)
+        require(value(name,'tp_cancel_on')==1 and read_storage(work)['start_intent']==intent,'Verified recovery lost cancellation or changed Start')
+        trigger(name,'confirming',w,h);open_detail(name,w,h)
+        require(value(name,'tc_choice_on')==0 and read_storage(work)['state']=='confirming','History lag became terminal or unlocked result')
         trigger(name,'complete',w,h);open_detail(name,w,h)
         require(value(name,'tc_choice_on')==1 and value(name,'tp_cancel_on')==0,'Confirmed success did not unlock result')
         a._assert_horizontal_fit(a.ctl(name,'geom','orcacal__temperature_content','8'),w)
@@ -129,6 +161,13 @@ def viewport(entry,output,plugins):
         a.ctl(name,'go_back');a.ctl(name,'wait_idle')
         a._assert_overlay(a.ctl(name,'current'),['orcacal__wizard'])
         a._assert_horizontal_fit(a.ctl(name,'geom','orcacal__chooser_content','8'),w)
+        trigger(name,'ack',w,h);require(read_storage(work)['state']=='returned','Exact Orca acknowledgement not retained')
+        trigger(name,'fresh',w,h)
+        fresh=read_storage(work)
+        require(fresh['request']['request_id']=='3'*32 and 'start_intent' not in fresh,'Terminal session did not retire')
+        require(REQUEST['origin_id']+':'+REQUEST['request_id'] in fresh['tombstones'],'Retirement lost replay tombstone')
+        trigger(name,'request',w,h)
+        require(read_storage(work)['request']['request_id']=='3'*32,'Old request replay replaced the fresh session')
         return {'label':label,'viewport':f'{w}x{h}','dpi':dpi,'layout':layout,'result':'PASS','assertions':ASSERTIONS}
     finally:
         logs=a.run(['docker','logs',name],capture=True,check=False)

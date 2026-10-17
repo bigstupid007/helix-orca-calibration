@@ -24,9 +24,11 @@ lc=load('_temperature_print_lifecycle',Path(__file__).with_name('lifecycle.py'))
 accepted=load('_temperature_print_accepted_relay',ROOT/'scripts/temperature-communication-relay.py')
 
 class MoonrakerPrintAdapter:
-    def __init__(self,base_url,expected_host,expected_version,physical_identity,*,api_key=None,actions=False):
+    def __init__(self,base_url,expected_host,expected_version,physical_identity,*,configuration_sha256,api_key=None,actions=False):
         self.reader=accepted.PhysicalAdapter(base_url,expected_host,expected_version,api_key)
         if not re.fullmatch('[a-f0-9]{64}',physical_identity):raise ValueError('Exact physical identity digest required')
+        if not re.fullmatch('[a-f0-9]{64}',configuration_sha256):raise ValueError('Exact reviewed configuration digest required')
+        self.expected_configuration=configuration_sha256
         self.expected_identity=physical_identity
         if type(actions) is not bool:raise TypeError('actions is a local activation switch')
         self.actions=actions
@@ -36,10 +38,15 @@ class MoonrakerPrintAdapter:
         return value['result']
     def _identity(self):
         info=self._get('/machine/system_info')['system_info']
-        serial=info['cpu_info']['serial_number']
+        config=self._get('/printer/objects/query?configfile')['status']['configfile']['settings']
+        actual=hashlib.sha256(json.dumps(config,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        if actual!=self.expected_configuration:raise lc.SafetyViolation('Reviewed printer configuration changed')
+        mcu=config.get('mcu',{})
+        kind='serial' if mcu.get('serial') else 'canbus_uuid'
+        serial=mcu.get(kind)
         macs=sorted(x['mac_address'] for x in info['network'].values() if x.get('mac_address'))
         if not isinstance(serial,str) or not serial.strip() or not macs:raise lc.SafetyViolation('Physical identity unavailable')
-        digest=hashlib.sha256(json.dumps({'cpu_serial':serial,'macs':macs},sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        digest=hashlib.sha256(json.dumps({'mcu_kind':kind,'mcu_identity':serial,'macs':macs},sort_keys=True,separators=(',',':')).encode()).hexdigest()
         if digest!=self.expected_identity:raise lc.SafetyViolation('Physical identity changed')
         return digest
     def snapshot(self):
@@ -67,7 +74,7 @@ class MoonrakerPrintAdapter:
             raise lc.SafetyViolation('Printer job changed during snapshot')
         if time.monotonic()-began>5:raise lc.SafetyViolation('Printer snapshot exceeded its freshness bound')
         return lc.PrinterSnapshot(connected=True,ready=True,eventtime=final['eventtime'],state=current['state'],
-            filename=filename,job_id=job_id,start_time=start,queue_job_ids=queued,printer_identity=identity)
+            filename=filename,job_id=job_id,start_time=start,queue_job_ids=queued,printer_identity=identity,configuration_sha256=self.expected_configuration)
     def read_file_bytes(self,filename):
         lc._file_name(filename)
         request=Request(self.reader.base_url+'/server/files/gcodes/'+quote(filename,safe=''),headers=self.reader._headers('application/octet-stream'))

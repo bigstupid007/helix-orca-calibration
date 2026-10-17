@@ -2,7 +2,7 @@
 
 `lifecycle.py` is a transport-independent, one-request coordinator. It does not
 contain a Moonraker client, physical-printer address, CLI entry point, or
-enabled physical adapter. Production wiring remains disabled in this program;
+enabled physical adapter. The separate runner defaults to offline preflight; physical wiring remains unactivated in this program;
 tests use only an injected fake adapter.
 
 The caller constructs `TemperaturePrintLifecycle(journal_path, adapter)`, then

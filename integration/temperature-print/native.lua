@@ -58,6 +58,8 @@ local messages = {
     received="Not authorized for a physical test · nothing started",
     ready="Three bands · 210 → 205 → 200°C · press Start here when ready",
     starting="Start requested · waiting for the printer to confirm",
+    confirming="Print ended · verifying successful completion",
+    recovering="Reconnecting · waiting for verified printer state",
     printing="Printing · result selection stays locked until success is confirmed",
     cancelling="Cancellation requested · waiting for the printer to confirm",
     complete="Print completed successfully · choose the best temperature band",
@@ -89,7 +91,7 @@ local function clock()
     local timed_out=false
     local timeout=helix.timer.after(1000,function()
         timed_out=true
-        if session then session.state="uncertain"; persist(); render() end
+        if session then session.state="uncertain"; session.recovery_required=true; persist(); render() end
     end)
     local ok,response = pcall(helix.moonraker.call,"printer.objects.query",{objects={print_stats={"state","filename"}}})
     timeout:cancel(); query_busy=false
@@ -112,53 +114,82 @@ local function show(r)
     file:set(r.file.." · "..r.file_bytes.." bytes"); hash:set("SHA-256 "..r.file_sha256)
     render()
 end
+local function tombstone_id(r) return r.origin_id..":"..r.request_id end
+local function bounded_tombstones(old,retired)
+    local out={}
+    if type(old)=="table" then
+        for i=math.max(1,#old-14),#old do
+            if type(old[i])=="string" and #old[i]==65 then out[#out+1]=old[i] end
+        end
+    end
+    if retired then out[#out+1]=tombstone_id(retired) end
+    return out
+end
 local function receive(_,data)
     if type(data)~="table" or not valid(data.session) or type(data.lease)~="table" then return end
     local r,l=data.session,data.lease
     if not finite(l.issued_eventtime) or not finite(l.expires_eventtime)
         or l.expires_eventtime<=l.issued_eventtime or l.expires_eventtime-l.issued_eventtime>r.ttl_seconds then return end
-    if session then
-        -- Neither duplicate delivery nor changed data may reset a one-shot session.
-        return
-    end
-    session={request=r,lease=l,state="received"}
     if query_busy then return end
     local t,state=clock()
-    if not live(t) or (state~="standby" and state~="complete" and state~="cancelled") then
-        session=nil; return
+    if not finite(t) or t<l.issued_eventtime or t+1>=l.expires_eventtime
+        or (state~="standby" and state~="complete" and state~="cancelled") then return end
+    local tombstones={}
+    if session then
+        if same(session.request,r) then return end
+        local terminal=session.state=="returned" or session.state=="failed" or session.state=="cancelled"
+        local expired=type(session.lease)=="table" and finite(session.lease.expires_eventtime)
+            and t>=session.lease.expires_eventtime
+        if not terminal and not expired then return end
+        tombstones=bounded_tombstones(session.tombstones,session.request)
     end
+    for _,id in ipairs(tombstones) do if id==tombstone_id(r) then return end end
+    session={request=r,lease=l,state="received",status_sequence=0,tombstones=tombstones}
     if not persist() then return end
     show(r)
     wizard_handle=helix.ui.overlay("orcacal__wizard",{on_close=function() wizard_handle=nil end})
     detail_handle=helix.ui.overlay("orcacal__temperature",{on_close=function() detail_handle=nil end})
 end
-local sequence=-1
 local function update(_,data)
     if not session or type(data)~="table" or data.schema~="helix-orca-temperature-print-status/v1"
         or not same(session.request,data) or not finite(data.sequence) or data.sequence%1~=0
-        or data.sequence<=sequence or not messages[data.state] then return end
+        or data.sequence<=(session.status_sequence or 0) or not messages[data.state] then return end
+    if data.state=="failed" or data.state=="cancelled" or data.state=="uncertain" then
+        session.status_sequence=data.sequence; session.state=data.state
+        session.recovery_required=false; session.proof=nil; persist(); render(); return
+    end
     if query_busy then return end
     local t,state,name=clock()
     if not live(t) or not finite(data.eventtime) or data.eventtime>t or t-data.eventtime>5 then
         session.state="uncertain"; persist(); render(); return
     end
-    if session.state=="failed" or session.state=="cancelled" or session.state=="uncertain"
+    if session.state=="failed" or session.state=="cancelled"
+        or (session.state=="uncertain" and not session.recovery_required)
         or session.state=="returned" or session.state=="waiting" then return end
     if data.state=="ready" then
-        if session.state~="received" or session.start_intent or data.authorized~=true
+        if (session.state~="received" and session.state~="recovering") or session.start_intent or data.authorized~=true
             or t>=session.lease.issued_eventtime+900
             or not finite(data.estimated_duration_s) or data.estimated_duration_s<=0 or data.estimated_duration_s>1200
             or (state~="standby" and state~="complete" and state~="cancelled") then return end
     elseif data.state=="printing" then
-        if not session.start_intent or state~="printing" or name~=session.request.file then return end
+        if not session.start_intent or state~="printing" or name~=session.request.file
+            or not text(data.job_id,64) or (session.owned_job_id and session.owned_job_id~=data.job_id) then return end
+        session.observed_running=true; session.owned_job_id=data.job_id
+    elseif data.state=="confirming" then
+        if not session.start_intent or state~="complete" or name~=session.request.file then return end
     elseif data.state=="complete" then
-        if not session.start_intent or session.state~="printing" or session.cancel_intent
+        if not session.start_intent or session.cancel_intent
+            or (not session.observed_running and data.observed_running~=true)
             or state~="complete" or name~=session.request.file or not hex(data.completion_sha256,64)
-            or not text(data.job_id,64) then return end
+            or not text(data.job_id,64) or (session.owned_job_id and session.owned_job_id~=data.job_id) then return end
+        session.owned_job_id=data.job_id; session.observed_running=true
         session.proof={job_id=data.job_id,completion_sha256=data.completion_sha256}
-    elseif data.state=="received" or data.state=="returned" or data.state=="waiting" then return
-    elseif data.state=="starting" or data.state=="cancelling" then return end
-    sequence=data.sequence; session.state=data.state
+    elseif data.state=="starting" then
+        if not session.start_intent or session.cancel_intent then return end
+    elseif data.state=="cancelling" then
+        if not session.cancel_intent then return end
+    elseif data.state=="received" or data.state=="returned" or data.state=="waiting" then return end
+    session.status_sequence=data.sequence; session.state=data.state; session.recovery_required=false
     persist(); render()
 end
 local function intent(schema,t)
@@ -204,7 +235,7 @@ helix.ui.on("return_selection",function()
 end)
 helix.moonraker.on_agent_event(REQUEST_EVENT,receive)
 helix.moonraker.on_agent_event(STATUS_EVENT,update)
-helix.moonraker.on_agent_event(ACK_EVENT,function(_,data)
+local function acknowledgement(_,data)
     if not session or session.state~="waiting" or type(data)~="table" or not session.result
         or data.schema~="helix-orca-temperature-print-ack/v1" then return end
     for k,v in pairs(session.result) do
@@ -214,11 +245,13 @@ helix.moonraker.on_agent_event(ACK_EVENT,function(_,data)
     local t,state,name=clock()
     if not live(t) or state~="complete" or name~=session.request.file then return end
     session.state="returned"; persist(); render()
-end)
+end
+helix.moonraker.on_agent_event(ACK_EVENT,acknowledgement)
 -- Reload/restart cannot redispatch, re-enable Start, or restore unconfirmed success.
 local ok,stored=pcall(helix.storage.get,"print_session")
 if ok and type(stored)=="table" and valid(stored.request) then
-    session=stored; session.state="uncertain"; session.proof=nil; show(session.request)
+    session=stored; session.state="recovering"; session.proof=nil
+    session.recovery_required=true; show(session.request)
 end
 -- Missing/disconnected printer data and expired requests lock all actions.
 helix.timer.every(1000,function()
@@ -230,5 +263,5 @@ helix.timer.every(1000,function()
     unexpected = unexpected or (session.state=="printing" and (name~=session.request.file
         or (state~="printing" and state~="complete")))
     unexpected = unexpected or ((session.state=="received" or session.state=="ready") and finite(t) and t>=session.lease.issued_eventtime+900)
-    if not live(t) or unexpected then session.state="uncertain"; persist(); render() end
+    if not live(t) or unexpected then session.state="uncertain"; session.recovery_required=true; persist(); render() end
 end)

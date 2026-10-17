@@ -17,7 +17,7 @@ transport=load('print_transport_test',ROOT/'integration/temperature-print/transp
 
 class AdvancingFake(base.FakeAdapter):
     def snapshot(self):
-        sample=replace(self.current,printer_identity=base.PHYSICAL_PRINTER_IDENTITY)
+        sample=replace(self.current,printer_identity=base.PHYSICAL_PRINTER_IDENTITY,configuration_sha256=base.PRINTER_CONFIG_SHA256)
         if self.last_snapshot_eventtime is not None:
             sample=replace(sample,eventtime=max(sample.eventtime,self.last_snapshot_eventtime+.1))
         self.last_snapshot_eventtime=sample.eventtime
@@ -59,7 +59,7 @@ class ControllerTests(unittest.TestCase):
                 self.assertEqual(adapter.start_calls,[base.FILE])
                 self.assertEqual(adapter.cancel_calls,0)
     def test_physical_actions_disabled_before_network_request(self):
-        adapter=transport.MoonrakerPrintAdapter('http://192.168.2.5:7125','192.168.2.5','pinned-version','f'*64)
+        adapter=transport.MoonrakerPrintAdapter('http://192.168.2.5:7125','192.168.2.5','pinned-version','f'*64,configuration_sha256='e'*64)
         class NoNetwork:
             def open(self,*a,**k):raise AssertionError('Network call forbidden in test')
         adapter.reader.opener=NoNetwork()
@@ -74,3 +74,93 @@ class ControllerTests(unittest.TestCase):
             permit=c.issue_local_permit(intent,authorization_id='a'*32,deadline_monotonic=60)
             with self.assertRaises(base.lifecycle.SafetyViolation):c.start(intent,permit=permit)
             self.assertFalse(adapter.start_calls)
+
+class MoonrakerContractTests(unittest.TestCase):
+    def test_recorded_source_shapes_normalize_and_changed_configuration_fails_closed(self):
+        import hashlib
+        config={'mcu':{'canbus_uuid':'mock-controller'}}
+        network={'eth0':{'mac_address':'mock-mac','ip_addresses':[]}}
+        identity=hashlib.sha256(json.dumps({'mcu_kind':'canbus_uuid','mcu_identity':'mock-controller','macs':['mock-mac']},sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        digest=hashlib.sha256(json.dumps(config,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        reader=transport.MoonrakerPrintAdapter('http://192.168.2.5:7125','192.168.2.5','pinned',identity,configuration_sha256=digest)
+        samples=[100.0]
+        def get(path):
+            if path=='/server/info':value={'moonraker_version':'pinned','klippy_state':'ready','failed_components':[]}
+            elif path=='/machine/system_info':value={'system_info':{'network':network}}
+            elif path=='/printer/objects/query?configfile':value={'status':{'configfile':{'settings':config}}}
+            elif path=='/server/job_queue/status':value={'queued_jobs':[],'queue_state':'paused'}
+            elif path=='/printer/objects/query?print_stats':
+                samples[0]+=.1;value={'eventtime':samples[0],'status':{'print_stats':{'state':'standby','filename':''}}}
+            elif path.startswith('/server/history/job?'):
+                value={'job':{'job_id':'000001','filename':'mini.gcode','status':'in_progress','start_time':1000,'end_time':None}}
+            else:raise AssertionError('Unapproved endpoint '+path)
+            return {'result':value}
+        reader.reader._json_get=get
+        sample=reader.snapshot()
+        self.assertEqual(sample.state,'standby');self.assertEqual(sample.printer_identity,identity)
+        self.assertEqual(reader.history('000001').status,'printing')
+        config['printer']={'max_velocity':999}
+        with self.assertRaisesRegex(transport.lc.SafetyViolation,'configuration changed'):reader.snapshot()
+
+class ControllerBoundaryTests(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name)
+        self.clock=base.Clock();self.adapter=AdvancingFake();self.events=[]
+        t=original.target();t['printer']['selected_saved']['name']=base.PRINTER
+        self.state=controller.protocol.TemperatureCommunicationState(self.root,now=self.clock.wall_time)
+        self.state.start_new(t)
+        self.state.select_file({'name':base.FILE,'size':len(base.FILE_DATA),'sha256':base.FILE_SHA,'bands':[210,205,200]},controller.protocol.validate_print_temperature_file)
+        self.state.send();self.outbox=json.loads((self.root/'print-readiness/outbox.json').read_text());self.p=self.outbox['payload']
+        self.qual=base.qualification(**{k:self.p[k] for k in ('request_id','origin_id','context_sha256')})
+        self.c=self.coordinator()
+        self.ctl=self.make_controller()
+        intent=base.start_intent(**{k:self.p[k] for k in ('request_id','origin_id','context_sha256')})
+        intent['nonce']=self.p['request_id']+':100000000'
+        self.native={'print_session':{'request':copy.deepcopy(self.p),'start_intent':intent}}
+    def tearDown(self):self.c.close();self.temp.cleanup()
+    def coordinator(self):
+        return base.lifecycle.TemperaturePrintLifecycle(self.root/'journal.json',self.adapter,wall_time=self.clock.wall_time,monotonic=self.clock.monotonic)
+    def make_controller(self):
+        def permit(c,i):return c.issue_local_permit(i,authorization_id='a'*32,deadline_monotonic=60)
+        return controller.NativePrintController(self.c,self.outbox,self.qual,event_sink=lambda e,d:self.events.append((e,d)),write_inbox=lambda v:None,authorize_intent=permit)
+    def printing(self):
+        self.ctl.step(self.native);self.adapter.show_printing();self.ctl.step(self.native)
+    def test_controller_restart_preserves_exact_binding_sequence_and_one_shot_dispatch(self):
+        self.printing();sequence=self.events[-1][1]['sequence'];self.c.close()
+        self.c=self.coordinator();self.ctl=self.make_controller();self.ctl.step(self.native)
+        self.assertEqual(self.adapter.start_calls,[base.FILE]);self.assertEqual(self.c.status().phase,'printing')
+        self.assertGreater(self.events[-1][1]['sequence'],sequence)
+        bad=copy.deepcopy(self.qual);bad['printer_config_sha256']='f'*64
+        with self.assertRaises(controller.ControllerError):
+            controller.NativePrintController(self.c,self.outbox,bad,event_sink=lambda *x:None,write_inbox=lambda x:None)
+    def test_history_lag_is_nonterminal_then_same_job_success_unlocks(self):
+        self.printing();self.adapter.show_complete(history_status='printing');self.ctl.step(self.native)
+        self.assertEqual(self.events[-1][1]['state'],'confirming');self.assertFalse(self.c.status().result_available)
+        self.adapter.show_complete();self.ctl.step(self.native)
+        self.assertEqual(self.events[-1][1]['state'],'complete');self.assertTrue(self.c.status().result_available)
+    def test_disconnect_publishes_terminal_status_without_reading_again(self):
+        self.printing()
+        def broken():raise RuntimeError('Synthetic disconnect')
+        self.adapter.snapshot=broken
+        self.ctl.step(self.native)
+        self.assertIn(self.events[-1][1]['state'],('failed','uncertain'));self.assertFalse(self.c.status().result_available)
+    def test_late_offer_never_advertises_start(self):
+        self.clock.wall=1900
+        with self.assertRaisesRegex(controller.ControllerError,'window'):self.ctl.offer()
+        self.assertFalse(self.events);self.assertFalse(self.adapter.start_calls)
+
+class AuthorizationTests(unittest.TestCase):
+    def test_runner_accepts_only_exact_separate_scoped_founder_grant(self):
+        import hashlib
+        runner=load('print_runner_auth_tests',ROOT/'scripts/temperature-print-relay.py')
+        p=base.request();q=base.qualification()
+        fields=('request_id','origin_id','context_sha256','file_sha256','file','file_bytes','printer')
+        grant={k:p[k] for k in fields}
+        grant.update(schema='helix-orca-physical-test-authorization/v1',founder_authorization_reference='SYNTHETIC TEST ONLY',authorized=True,native_screen_start_only=True,
+            physical_printer_identity=q['physical_printer_identity'],printer_config_sha256=q['printer_config_sha256'],expires_at=1900,
+            qualification_sha256=hashlib.sha256(json.dumps(q,sort_keys=True,separators=(',',':')).encode()).hexdigest())
+        self.assertEqual(runner.validate_grant(grant,p,q,1000),grant)
+        for key,bad in [('authorized',False),('native_screen_start_only',False),('qualification_sha256','f'*64),('file_sha256','f'*64),('expires_at',999)]:
+            changed=dict(grant);changed[key]=bad
+            with self.assertRaises(ValueError):runner.validate_grant(changed,p,q,1000)
+        with self.assertRaises(ValueError):runner.validate_grant({'authorized':True},p,q,1000)

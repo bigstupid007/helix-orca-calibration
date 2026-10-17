@@ -21,41 +21,75 @@ class ControllerError(ValueError):pass
 
 class NativePrintController:
     def __init__(self,coordinator,outbox,qualification,*,event_sink,write_inbox,authorize_intent=None):
-        self.outbox=protocol.validate_outbox(outbox,now=int(coordinator.wall_time()))
+        probe=outbox.get('payload',{}) if isinstance(outbox,dict) else {}
+        recovered=coordinator.status().phase!='empty'
+        structural=probe.get('expires_at',0)-probe.get('ttl_seconds',0) if recovered else int(coordinator.wall_time())
+        self.outbox=protocol.validate_outbox(outbox,now=structural)
         self.request=copy.deepcopy(self.outbox['payload'])
         self.coordinator=coordinator
-        self.coordinator.bind_request(self.request,qualification)
+        if not recovered:
+            self.coordinator.bind_request(self.request,qualification)
+        else:
+            bound=self.coordinator.bound_request().as_dict()
+            if any(self.request.get(k)!=v for k,v in bound.items()):
+                raise ControllerError('Recovered journal does not match the originating request')
+            saved=self.coordinator._qualification_from_state()
+            incoming=type(saved).from_mapping(qualification)
+            if incoming.as_dict()!=saved.as_dict():
+                raise ControllerError('Recovered qualification differs from the reviewed job')
         self.event_sink=event_sink;self.write_inbox=write_inbox
         self.authorize_intent=authorize_intent
-        self.sequence=0;self.committed_result=None
+        self.committed_result=copy.deepcopy(self.coordinator._state.get("native_result"))
     def _identity(self):return {k:self.request[k] for k in IDENTITY}
     def offer(self):
-        sample=self.coordinator.adapter.snapshot()
+        created=self.request['expires_at']-self.request['ttl_seconds']
+        if self.coordinator.status().phase!='awaiting_start' or self.coordinator.wall_time()>=created+900:
+            raise ControllerError('Original physical Start window is closed')
+        sample=self.coordinator._normalized_snapshot()
         if not sample.connected or not sample.ready or sample.state!='standby' or sample.queue_job_ids:
             raise ControllerError('Printer is not available for a request')
         remaining=self.request['expires_at']-self.coordinator.wall_time()
         if not 0<remaining<=3600:raise ControllerError('Request expired')
-        self.event_sink('helix_orca_temperature_print.request.v1',{'session':copy.deepcopy(self.request),
-            'lease':{'issued_eventtime':sample.eventtime,'expires_eventtime':sample.eventtime+remaining}})
+        envelope=self.coordinator._state.get('native_envelope')
+        if envelope is None:
+            envelope={'session':copy.deepcopy(self.request),'lease':{'issued_eventtime':sample.eventtime,'expires_eventtime':sample.eventtime+remaining}}
+            self.coordinator._state['native_envelope']=copy.deepcopy(envelope)
+        attempts=self.coordinator._state.get('forward_attempts',0)
+        if type(attempts) is not int or attempts>=5:raise ControllerError('Bounded request delivery exhausted')
+        self.coordinator._state['forward_attempts']=attempts+1;self.coordinator._persist()
+        self.event_sink('helix_orca_temperature_print.request.v1',copy.deepcopy(envelope))
         return self._publish()
     def _publish(self):
-        state=self.coordinator.status();sample=self.coordinator.adapter.snapshot()
+        state=self.coordinator.status()
         phase=state.phase
-        if phase=='awaiting_start':native='ready' if self.authorize_intent else 'received'
+        if phase=='awaiting_start':
+            created=self.request['expires_at']-self.request['ttl_seconds']
+            native='ready' if self.authorize_intent and self.coordinator.wall_time()<created+900 else 'received'
         elif phase in ('start_dispatch_intent','start_dispatched'):native='starting'
         elif phase=='printing':native='printing'
+        elif phase=='completion_pending':native='confirming'
         elif phase in ('cancel_dispatch_intent','cancel_dispatched'):native='cancelling'
         elif phase=='completed' and state.result_available:native='complete'
         elif phase=='cancelled':native='cancelled'
         elif 'uncertain' in phase or phase=='completed':native='uncertain'
         else:native='failed'
-        self.sequence+=1
+        eventtime=self.coordinator._state.get('last_eventtime',0)
+        if native not in ('failed','cancelled','uncertain'):
+            try:
+                sample=self.coordinator._normalized_snapshot()
+                if not sample.connected or not sample.ready:raise ControllerError('Printer unavailable')
+                eventtime=sample.eventtime
+            except Exception:
+                self.coordinator._fail('failed','Printer status unavailable during publication')
+                state=self.coordinator.status();native='uncertain'
+        sequence=self.coordinator.reserve_status_sequence()
         data=dict(self._identity(),schema='helix-orca-temperature-print-status/v1',state=native,
-            eventtime=sample.eventtime,sequence=self.sequence)
+            eventtime=eventtime,sequence=sequence)
         if native=='ready':
             data.update(authorized=True,estimated_duration_s=self.coordinator._qualification_from_state().estimated_duration_s)
+        if state.job_id:data['job_id']=state.job_id
         if native=='complete':
-            data.update(job_id=state.job_id,completion_sha256=state.completion_proof_sha256)
+            data.update(job_id=state.job_id,completion_sha256=state.completion_proof_sha256,observed_running=True)
         self.event_sink('helix_orca_temperature_print.status.v1',data)
         return state
     def step(self,native_storage):
@@ -90,6 +124,8 @@ class NativePrintController:
                 raise ControllerError('Result completion evidence does not match the monitored job')
             if self.committed_result is not None and selected!=self.committed_result:
                 raise ControllerError('The first selected result is immutable')
+            self.coordinator._state['native_result']=copy.deepcopy(selected)
+            self.coordinator._persist()
             self.write_inbox(copy.deepcopy(selected));self.committed_result=selected
         return self._publish()
     def acknowledge(self,receipt):

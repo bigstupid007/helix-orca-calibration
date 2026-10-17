@@ -25,6 +25,7 @@ REQUEST_ID = "1" * 32
 ORIGIN_ID = "2" * 32
 CONTEXT_SHA = "3" * 64
 PRINTER = "Voron 2.4 300"
+PRINTER_CONFIG_SHA256 = "e" * 64
 PHYSICAL_PRINTER_IDENTITY = "4" * 64
 FILE = "mini-temperature-210-200.gcode"
 
@@ -74,6 +75,8 @@ class FakeAdapter:
         if self.snapshot_error:
             raise self.snapshot_error
         sample = self.snapshot_sequence.pop(0) if self.snapshot_sequence else self.current
+        if sample.configuration_sha256 is None:
+            sample = replace(sample, configuration_sha256=PRINTER_CONFIG_SHA256)
         if sample.printer_identity is None:
             sample = replace(sample, printer_identity=PHYSICAL_PRINTER_IDENTITY)
         if (
@@ -197,6 +200,7 @@ def qualification(**updates):
         "file_bytes": len(FILE_DATA),
         "printer": PRINTER,
         "physical_printer_identity": PHYSICAL_PRINTER_IDENTITY,
+        "printer_config_sha256": PRINTER_CONFIG_SHA256,
         "choices": [210, 205, 200],
         "band_count": 3,
         "estimated_duration_s": 900,

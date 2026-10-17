@@ -181,6 +181,7 @@ class GcodeQualification:
     file_bytes: int
     printer: str
     physical_printer_identity: str
+    printer_config_sha256: str
     choices: tuple[int, int, int]
     estimated_duration_s: float
 
@@ -205,6 +206,8 @@ class GcodeQualification:
         )
         if duration > MAX_ESTIMATED_DURATION_S:
             raise ValidationError("qualified duration exceeds the 20-minute maximum")
+        if duration < 600:
+            raise ValidationError("qualified duration is below the requested 10-minute target")
         return cls(
             request_id=_hex(value.get("request_id"), _HEX32, "qualification request_id"),
             origin_id=_hex(value.get("origin_id"), _HEX32, "qualification origin_id"),
@@ -222,6 +225,7 @@ class GcodeQualification:
                 _HEX64,
                 "qualification physical_printer_identity",
             ),
+            printer_config_sha256=_hex(value.get("printer_config_sha256"), _HEX64, "printer_config_sha256"),
             choices=_choices(value.get("choices")),
             estimated_duration_s=duration,
         )
@@ -250,6 +254,7 @@ class GcodeQualification:
             "file_bytes": self.file_bytes,
             "printer": self.printer,
             "physical_printer_identity": self.physical_printer_identity,
+            "printer_config_sha256": self.printer_config_sha256,
             "choices": list(self.choices),
             "estimated_duration_s": self.estimated_duration_s,
         }
@@ -369,6 +374,7 @@ class PhysicalPermit:
     file_bytes: int
     printer: str
     physical_printer_identity: str
+    printer_config_sha256: str
     nonce: str
     deadline_monotonic: float
 
@@ -394,6 +400,7 @@ class PhysicalPermit:
         object.__setattr__(
             self, "physical_printer_identity", qualification.physical_printer_identity
         )
+        object.__setattr__(self, "printer_config_sha256", qualification.printer_config_sha256)
         object.__setattr__(self, "nonce", intent.nonce)
         object.__setattr__(self, "deadline_monotonic", deadline_monotonic)
 
@@ -429,6 +436,7 @@ class PhysicalPermit:
             "file_bytes": request.file_bytes,
             "printer": request.printer,
             "physical_printer_identity": qualification.physical_printer_identity,
+            "printer_config_sha256": qualification.printer_config_sha256,
             "nonce": intent.nonce,
         }
         for name, value in expected.items():
@@ -449,6 +457,7 @@ class PrinterSnapshot:
     start_time: Optional[float] = None
     queue_job_ids: tuple[str, ...] = ()
     printer_identity: Optional[str] = None
+    configuration_sha256: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -641,6 +650,7 @@ class TemperaturePrintLifecycle:
             file_bytes=value["file_bytes"],
             printer=value["printer"],
             physical_printer_identity=value["physical_printer_identity"],
+            printer_config_sha256=value["printer_config_sha256"],
             choices=tuple(value["choices"]),
             estimated_duration_s=value["estimated_duration_s"],
         )
@@ -721,6 +731,8 @@ class TemperaturePrintLifecycle:
             != self._qualification_from_state().physical_printer_identity
         ):
             raise SafetyViolation("physical printer identity does not match request")
+        if _hex(sample.configuration_sha256, _HEX64, "snapshot configuration_sha256") != self._qualification_from_state().printer_config_sha256:
+            raise SafetyViolation("reviewed printer configuration does not match qualification")
         if not isinstance(sample.queue_job_ids, tuple) or any(
             not isinstance(item, str) or not item for item in sample.queue_job_ids
         ):
@@ -1185,6 +1197,14 @@ class TemperaturePrintLifecycle:
             "cancel command returned; actual cancellation is not yet confirmed",
         )
         return self.status()
+
+    def reserve_status_sequence(self) -> int:
+        previous = self._state.get("native_status_sequence", 0)
+        if type(previous) is not int or previous < 0:
+            raise JournalError("invalid native status sequence")
+        self._state["native_status_sequence"] = previous + 1
+        self._persist()
+        return previous + 1
 
     def status(self) -> LifecycleStatus:
         phase = self._state["phase"]
