@@ -14,7 +14,39 @@ def generated_parts():
     protocol=protocol.replace('simulation_only','physical_calibration')
     protocol=protocol.replace('CHOICES = [230, 225, 220, 215, 210, 205, 200, 195, 190]','CHOICES = [225, 220, 215]')
     protocol=protocol.replace('TTL_SECONDS = 900','TTL_SECONDS = 3600')
+    original='    if value["setting"] != SETTING or value["choices"] != CHOICES'
+    if protocol.count(original)!=1: raise ValueError('Accepted context validation anchor changed')
+    protocol=protocol.replace(original, '    if value["current"] != 220:\n        raise CommunicationProtocolError("Original effective nozzle temperature must be 220 C.")\n'+original)
+    protocol=protocol.replace('"effective_temperature": 1,','"effective_temperature": 220,')
+    # A result is accepted only for the exact retained payload and mandatory
+    # completed-job proof. Its Start deadline is not a print-duration limit.
+    original='def validate_selection_result(payload, value, now=None):\n    payload = validate_forward_payload(payload, now=now)'
+    replacement='def validate_selection_result(payload, value, now=None):\n    structural_now = payload["expires_at"] - payload["ttl_seconds"]\n    payload = validate_forward_payload(payload, now=structural_now)'
+    if protocol.count(original)!=1: raise ValueError('Accepted result freshness anchor changed')
+    protocol=protocol.replace(original,replacement)
     protocol=protocol.replace('/ "communication"','/ "print-readiness"')
+    extra_phases={
+        "received":"Request received; nothing started.",
+        "ready":"Ready for separately authorized native Start.",
+        "starting":"Start requested; confirming the same printer job.",
+        "printing":"Calibration is printing; monitor on HelixScreen.",
+        "confirming":"Print ended; verifying independent completion.",
+        "cancelling":"Cancellation requested; awaiting confirmation.",
+        "complete":"Successful calibration; waiting for the selected band.",
+        "uncertain":"Printer state is uncertain; the original calibration is retained.",
+        "cancelled":"Calibration cancelled; no result is available.",
+    }
+    anchor='\n\nclass CommunicationProtocolError'
+    if protocol.count(anchor)!=1: raise ValueError('Accepted delivery phase anchor changed')
+    protocol=protocol.replace(anchor,'\nDELIVERY_MESSAGES.update('+repr(extra_phases)+')\nDELIVERY_MESSAGES["failed"]="Calibration failed; no result is available."\nDELIVERY_PHASES=frozenset(DELIVERY_MESSAGES)'+anchor)
+    original='        return self.payload is None or self.delivery_delivered or self.is_expired()'
+    replacement=\
+        '        if self.payload is None or self.delivery_delivered:\n            return True\n'\
+        '        try:\n            self.poll_delivery()\n        except Exception:\n            return False\n'\
+        '        if self.delivery_phase in {"starting","printing","confirming","cancelling","complete","uncertain"}:\n            return False\n'\
+        '        return self.delivery_delivered or self.delivery_phase in {"failed","cancelled"} or self.is_expired()'
+    if protocol.count(original)!=1: raise ValueError('Accepted slot retirement anchor changed')
+    protocol=protocol.replace(original,replacement)
     protocol=protocol.replace('waiting for a simulated HelixScreen selection.','waiting for authorized physical Start and independently confirmed completion.')
     protocol=protocol.replace('"file", "file_bytes", "setting", "value",','"file", "file_bytes", "setting", "value", "job_id", "completion_sha256",')
     anchor='    if type(value["value"]) is not int or value["value"] not in payload["choices"]:'

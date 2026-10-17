@@ -120,15 +120,20 @@ def execute(args,outbox,qualification):
             deadline_monotonic=time.monotonic()+min(30,grant['expires_at']-time.time()))
     with transport.lc.TemperaturePrintLifecycle(args.journal,physical) as lifecycle:
         session=controller.NativePrintController(lifecycle,outbox,qualification,event_sink=events.send,
-            write_inbox=lambda value:artifacts.write_json('inbox.json',value),authorize_intent=authorize)
+            write_inbox=lambda value:artifacts.write_json('inbox.json',value),
+            write_delivery=lambda value:artifacts.write_json('delivery.json',value),authorize_intent=authorize)
         try:
             bind_authorization(lifecycle,grant,outbox['payload'],qualification,time.time(),resume=args.resume)
             if lifecycle.status().phase=='awaiting_start':session.offer()
-            deadline=time.monotonic()+3600
             last_forward=time.monotonic()
-            while time.monotonic()<deadline:
+            while True:
                 if lifecycle.status().phase=='awaiting_start':
                     require_live_authorization(lifecycle,grant,outbox['payload'],qualification,time.time())
+                    created=outbox['payload']['expires_at']-outbox['payload']['ttl_seconds']
+                    if time.time()>=created+900:
+                        lifecycle._fail('failed','Original physical Start window expired')
+                        session._publish()
+                        raise ValueError('Original physical Start window expired')
                 stored=physical.reader.read_native_storage()
                 if stored.get('print_session',{}).get('request')!=outbox['payload']:
                     if lifecycle.status().phase=='awaiting_start' and time.monotonic()-last_forward>=2:
@@ -149,9 +154,8 @@ def execute(args,outbox,qualification):
                     if status.phase not in ('awaiting_start','start_dispatch_intent','start_dispatched','printing','completion_pending','completed','cancel_dispatch_intent','cancel_dispatched'):
                         raise ValueError('Physical lifecycle stopped in '+status.phase)
                 time.sleep(1)
-            raise ValueError('Bounded test window expired; inspect real printer state before any further action')
-        except ValueError:
-            if lifecycle.status().phase=='failed':session._publish()
+        except (ValueError,transport.lc.LifecycleError):
+            session._publish()
             raise
 
 def main():

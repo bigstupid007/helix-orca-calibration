@@ -254,3 +254,10 @@ and the separate physical-execution boundary. The Founder correction removes
 the earlier AI-generated 20-minute/combined-estimate gates and spool-label
 checkpoint. Earlier accepted proofs and deferred UX remain
 preserved; this increment does not authorize a UX redesign.
+
+Issue #12 resumed software checkpoint: 243 repository tests, independent source
+review (54 affected tests) and renewed source-bound native eleven-target proof
+pass. Corrected actual Windows export/0.6.1 companion proof remains pending the
+existing Spare worker launch. Final evidence review and exact-head CI are
+separate gates tracked on PR #13, not implied by the local passes. No first-physical-test readiness or execution is claimed
+before those remaining software gates complete.

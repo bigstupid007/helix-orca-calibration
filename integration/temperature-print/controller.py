@@ -20,7 +20,7 @@ IDENTITY=('request_id','origin_id','context_sha256','file_sha256','file','file_b
 class ControllerError(ValueError):pass
 
 class NativePrintController:
-    def __init__(self,coordinator,outbox,qualification,*,event_sink,write_inbox,authorize_intent=None):
+    def __init__(self,coordinator,outbox,qualification,*,event_sink,write_inbox,write_delivery,authorize_intent=None):
         probe=outbox.get('payload',{}) if isinstance(outbox,dict) else {}
         recovered=coordinator.status().phase!='empty'
         structural=probe.get('expires_at',0)-probe.get('ttl_seconds',0) if recovered else int(coordinator.wall_time())
@@ -37,7 +37,7 @@ class NativePrintController:
             incoming=type(saved).from_mapping(qualification)
             if incoming.as_dict()!=saved.as_dict():
                 raise ControllerError('Recovered qualification differs from the reviewed job')
-        self.event_sink=event_sink;self.write_inbox=write_inbox
+        self.event_sink=event_sink;self.write_inbox=write_inbox;self.write_delivery=write_delivery
         self.authorize_intent=authorize_intent
         self.committed_result=copy.deepcopy(self.coordinator._state.get("native_result"))
     def _identity(self):return {k:self.request[k] for k in IDENTITY}
@@ -59,6 +59,12 @@ class NativePrintController:
         self.coordinator._state['forward_attempts']=attempts+1;self.coordinator._persist()
         self.event_sink('helix_orca_temperature_print.request.v1',copy.deepcopy(envelope))
         return self._publish()
+    def _delivery(self,phase):
+        # Persist the same request's lifecycle before any physical dispatch so
+        # Orca cannot discard an active/ambiguous job merely because TTL elapsed.
+        self.write_delivery(dict(schema=protocol.DELIVERY_SCHEMA,
+            request_id=self.request['request_id'],origin_id=self.request['origin_id'],
+            context_sha256=self.request['context_sha256'],phase=phase))
     def _publish(self):
         state=self.coordinator.status()
         phase=state.phase
@@ -90,6 +96,7 @@ class NativePrintController:
         if state.job_id:data['job_id']=state.job_id
         if native=='complete':
             data.update(job_id=state.job_id,completion_sha256=state.completion_proof_sha256,observed_running=True)
+        self._delivery(native)
         self.event_sink('helix_orca_temperature_print.status.v1',data)
         return state
     def step(self,native_storage):
@@ -99,10 +106,20 @@ class NativePrintController:
         state=self.coordinator.status()
         intent=session.get('start_intent')
         if intent and state.phase=='awaiting_start':
-            if self.authorize_intent is None:raise ControllerError('Separate physical authorization is absent')
-            parsed=self.coordinator.parse_start_intent(intent)
-            permit=self.authorize_intent(self.coordinator,parsed)
-            self.coordinator.start(parsed,permit=permit)
+            try:
+                if self.authorize_intent is None:raise ControllerError('Separate physical authorization is absent')
+                parsed=self.coordinator.parse_start_intent(intent)
+                permit=self.authorize_intent(self.coordinator,parsed)
+                self._delivery("starting")
+                self.coordinator.start(parsed,permit=permit)
+            except Exception:
+                # A persisted native tap is consumed even when authorization or
+                # preflight rejects it. Publish terminal failure; only an actual
+                # ambiguous command attempt keeps the session uncertain/locked.
+                if self.coordinator.status().phase=='awaiting_start':
+                    self.coordinator._fail('start_rejected','Native Start authorization or preflight rejected')
+                self._publish()
+                raise
         cancel=session.get('cancel_intent')
         if cancel and self.coordinator.status().phase=='printing':
             check=dict(cancel)

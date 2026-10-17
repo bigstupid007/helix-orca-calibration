@@ -1,53 +1,66 @@
 # Issue #12 corrected candidate — engineering review
 
-Authority: the direct Founder correction of 2026-10-17, the updated
+Authority: direct Founder correction of 2026-10-17, current
 [Build Program](BUILD_PROGRAM_TEMPERATURE_PRINT.md), application AGENTS.md and
-published shared Development System main `2328bc55709d6dd1705fdec339d4a3982a81ffe2`.
-Continue existing Issue #12 / PR #13, unmerged. Application main remains
-`89165d15993ccfcd065b299e1980bb19749fdcaf`.
+published shared Development System main
+`4a42a944b344427c8f925241191595eb57c6949c` (verified on resume).
+Application main remains `89165d15993ccfcd065b299e1980bb19749fdcaf`.
+Continue Issue #12 / PR #13, unmerged.
 
-## Independent authority and code review
+## Independent source review: PASS
 
-A fresh-context read-only reviewer first compared the raw Founder correction,
-workflow playback and proposed specification. **PASS:** no material mismatch;
-no extra human task, combined-time gate or filament checkpoint was introduced.
-The shared independent-review profile is used with High reasoning because the
-changed duration logic participates in a future physical-control lifecycle.
+A fresh-context GPT-5.6 Sol / High reviewer inspected the candidate and the
+consolidated corrections, independently reran **54/54 affected tests**, and
+reported no remaining material source finding. The full repository suite
+passes **243 tests**. Accepted beta.4 and Issue #8 evidence verification and
+`git diff --check` pass. This source disposition does not claim Windows or
+hardware proof.
 
-Frozen corrected runtime/protocol/driver boundary: `baf08d5`. Independent
-focused validation passes **42 tests**, with no material executable finding.
-Exactly 225/220/215 is enforced across actual-file inspection, qualification,
-request/protocol, native UI, stored-result restoration and result validation.
-Old 210/205/200 descriptors are rejected rather than retargeted.
+The source enforces exactly 225/220/215°C and original effective nozzle 220°C.
+Saved and edited temperatures remain separate original values. Native print
+estimates are finite, positive information, with no print-duration ceiling,
+combined-time requirement or additional filament checkpoint.
 
-The correction removes the 20-minute maximum, 10-minute minimum, startup/end
-allowance inputs, combined-time qualification and estimate-plus-five-minute
-monitoring timeout. The native estimate remains finite, positive information.
-Regression proof accepts above-20-minute estimates and observes a healthy job
-past its estimate without failing it. The native fixture uses 1501 seconds to
-prove that Ready is not blocked at 20 minutes.
+Review found and the lead corrected post-dispatch request/lease/runner cutoffs,
+premature failure on initial metadata/history lag, missing effective-220
+binding, and the directly implicated active-slot and rejected-Start recovery
+cases. A healthy owned job may exceed its estimate and original request expiry.
+Request/grant expiry and the 900-second Start window still prevent new dispatch.
+Fresh machine/configuration/version, status and exact owned-job history remain
+mandatory throughout observation, cancellation, completion and recovery.
 
-Request lifetime/start freshness, connection freshness, reviewed machine/config/
-version, exact G-code bytes, macro arguments, geometry, preconfirmed material
-suitability, durable one-shot dispatch, same-job monitoring, guarded cancellation,
-recovery and independent-success selection remain fail-closed. The existing
-one-hour request expiry is separate stale-request protection, not a duration
-qualification threshold or request for another Founder decision.
+Initial missing/previous metadata and explicit metadata/history 404 responses
+remain pending only inside the persisted 30-second confirmation deadline.
+Contradictory evidence, other transport errors, unexpected jobs and deadline
+expiry stay locked; pending state grants no ownership, result or redispatch.
 
-## Pending final reconciliation
+A durable request-scoped local lifecycle marker is written before dispatch and
+prevents abandoning a started/uncertain companion slot at TTL expiry/restart.
+Deterministic authorization/preflight rejection consumes the native tap and
+publishes failure with zero dispatch. An ambiguous command outcome publishes
+uncertainty, keeps the slot blocked and cannot retry. Only the retained exact
+request/context/file/job/completion proof may return a post-expiry selection;
+a newer request rejects the old result. Return remains NOT APPLIED.
 
-The full corrected beta.9 capture passes all eleven sizes. Its 88 native frames,
-eleven storage snapshots, generated fixture and report verify against this
-candidate source. Actual Windows export/current companion proof, affected
-Product Preflight, final integrated-head review and exact-head CI remain
-separate dispositions below. The independent affected-surface native Product
-Preflight passes with no material native UX defect; overall preflight remains
-pending the corrected Windows companion capture. Earlier review at `68d1029` and its evidence
-remain history and do not substitute for this correction's actual export.
+## Evidence dispositions
 
-The full repository suite passes **231 tests**. Retained beta.4 and Issue #8
-evidence verification and `git diff --check` pass. Accepted CI/source, normal profiles, old evidence,
-the canonical dirty checkout and existing security boundaries stay preserved.
-No physical print, heating, motion, macro, upload/queue, firmware/configuration
-change, profile writeback, physical derivative install, merge or Alpha adoption
-is authorized or performed.
+The renewed native eleven-target capture passes: **88 frames and eleven storage
+snapshots**, promoted and verified against current source. It exercises effective-220 gating,
+post-expiry active-session replacement refusal, monitoring/restart, result/ACK
+and cancellation, in addition to the retained one-shot and failure invariants.
+Its final report is in [current evidence](evidence/issue-12/README.md).
+All native authorization/job/status/clock/completion inputs are synthetic.
+
+Actual corrected Windows export and current 0.6.1 companion proof remain pending
+the existing owner-launched Spare worker. The generated companion compiles but
+is not installed; SHA-256 is
+`30a5a51539e432513181d04966d09196d93057d085ba5d918ea77a262164c86b`.
+Affected Windows Product Preflight and final exact-head CI remain separate gates.
+Earlier reviews/captures at `68d1029`, `baf08d5` and `ac84114` do not replace
+current export evidence.
+
+Accepted implementations/evidence, normal profiles, the dirty canonical checkout
+and existing security boundaries remain preserved. No live grant/permit,
+physical derivative installation, upload/queue/start, print, heating, motion,
+macro, firmware/configuration change, profile writeback, merge, deployment or
+Alpha physical adoption was performed.

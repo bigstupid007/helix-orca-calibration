@@ -10,3 +10,7 @@ The original evidence overview is retained verbatim as
 `candidate-68d1029/ORIGINAL_README.txt`; its relative paths describe the original
 layout at that commit. Current evidence and policy live outside this history
 directory.
+
+`candidate-ac84114/native/` preserves the first corrected native matrix before
+the resumed lifecycle repairs. Its 225/220/215°C values are current policy;
+its source binding is superseded by the renewed current matrix.

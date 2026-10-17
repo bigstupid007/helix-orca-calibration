@@ -20,14 +20,14 @@ class PrintProtocolTests(unittest.TestCase):
     def test_three_choices_and_original_values_survive_result_commit_and_restart(self):
         with tempfile.TemporaryDirectory() as d:
             state=protocol.TemperatureCommunicationState(d,now=lambda:1000)
-            target=accepted.target();original=copy.deepcopy(target)
+            target=accepted.target();target["saved_temperature"]=217;target["edited_temperature"]=219;target["effective_temperature"]=220;original=copy.deepcopy(target)
             state.start_new(target);state.select_file(FILE,protocol.validate_print_temperature_file);state.send()
             result={k:state.payload[k] for k in ('request_id','origin_id','context_sha256','file_sha256','file','file_bytes','setting','physical_calibration','not_applied')}
             result.update(schema=protocol.RESULT_SCHEMA,value=220,job_id='000001',completion_sha256='c'*64)
             protocol.atomic_write_json(Path(d)/'print-readiness/inbox.json',result)
             state.poll_inbox()
             self.assertEqual(state.instructions['status'],'NOT APPLIED')
-            self.assertEqual((state.instructions['original_saved_value'],state.instructions['original_edited_value'],state.instructions['original_effective_value']),(220,217,215))
+            self.assertEqual((state.instructions['original_saved_value'],state.instructions['original_edited_value'],state.instructions['original_effective_value']),(217,219,220))
             self.assertEqual(state.target,original)
             restored=protocol.TemperatureCommunicationState(d,now=lambda:1001)
             self.assertEqual(restored.result,result)
@@ -38,9 +38,38 @@ class PrintProtocolTests(unittest.TestCase):
     def test_nine_bands_wrong_runtime_stale_result_rejected(self):
         for invalid in (accepted.FILE,dict(FILE,bands=[210,205,200])):
             with self.assertRaises(protocol.CommunicationProtocolError):protocol.validate_print_temperature_file(invalid)
-        t=accepted.target();t['runtime']={'version':'2.5.0-alpha','build':'3880f2c5'}
+        t=accepted.target();t['effective_temperature']=220;t['runtime']={'version':'2.5.0-alpha','build':'3880f2c5'}
         p=protocol.make_forward_payload(t,FILE,'b'*32,now=1000,request_id='d'*32)
         with self.assertRaises(protocol.CommunicationProtocolError):protocol.validate_outbox({'schema':protocol.OUTBOX_SCHEMA,'target':t,'payload':p},now=1000)
+    def test_effective_context_is_220_and_expired_forward_request_cannot_retry(self):
+        target=accepted.target()
+        with self.assertRaises(protocol.CommunicationProtocolError):
+            protocol.make_forward_payload(target,FILE,'b'*32,now=1000,request_id='d'*32)
+        target['effective_temperature']=220
+        payload=protocol.make_forward_payload(target,FILE,'b'*32,now=1000,request_id='d'*32)
+        with self.assertRaises(protocol.CommunicationProtocolError):protocol.validate_forward_payload(payload,now=9000)
+
+    def test_expiry_retires_only_unstarted_or_terminal_slots(self):
+        for phase,allowed in [('received',True),('ready',True),('starting',False),('printing',False),
+                ('confirming',False),('uncertain',False),('cancelling',False),('complete',False),('failed',True),('cancelled',True)]:
+            with self.subTest(phase=phase),tempfile.TemporaryDirectory() as d:
+                clock=[1000]
+                state=protocol.TemperatureCommunicationState(d,now=lambda:clock[0])
+                target=accepted.target();target['effective_temperature']=220
+                state.start_new(target);state.select_file(FILE,protocol.validate_print_temperature_file);state.send()
+                old=copy.deepcopy(state.payload)
+                protocol.atomic_write_json(Path(d)/'print-readiness/delivery.json',dict(schema=protocol.DELIVERY_SCHEMA,
+                    request_id=old['request_id'],origin_id=old['origin_id'],context_sha256=old['context_sha256'],phase=phase))
+                clock[0]=9000
+                restored=protocol.TemperatureCommunicationState(d,now=lambda:clock[0])
+                self.assertEqual(restored.can_start_new(),allowed)
+                if allowed:
+                    restored.start_new(target)
+                    self.assertIsNone(restored.payload)
+                else:
+                    with self.assertRaises(protocol.CommunicationProtocolError):restored.start_new(target)
+                    self.assertEqual(restored.payload,old)
+
     def test_generated_source_compiles_and_cannot_operate_printer(self):
         code=comp.generate();compile(code,'generated.py','exec')
         self.assertNotIn('printer.print.start',code)

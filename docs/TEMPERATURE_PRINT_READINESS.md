@@ -9,13 +9,20 @@ or spool-label checkpoint**.
 
 ## Current disposition
 
-Correction validation is incomplete only on the actual Windows surface. All
-231 repository tests pass, including 42 affected tests independently rerun. The
-complete corrected eleven-size beta.9 matrix passes, with 88 source-bound native
-frames and eleven persisted storage snapshots promoted and verified. Actual Windows regeneration/export and current companion UI proof are
-paused only for restart of the existing owner-launched test worker after a
-storage-full disconnect. No hardware action is authorized or needed for these
-software checks. This report will be reconciled to the frozen completed candidate.
+The remaining runtime qualification is on the actual Windows surface. The
+reviewed source passes **243 repository tests**, including **54 affected tests
+independently rerun**. The independent source review is PASS. Accepted beta.4
+and Issue #8 native evidence verifies. The renewed eleven-target beta.9 capture passes, with **88 frames and eleven
+storage snapshots**, promoted and verified against current source. It covers
+post-expiry monitoring, cancellation, return and context gating; see [current evidence](evidence/issue-12/README.md).
+
+Actual Windows regeneration/export and the current companion UI proof await
+restart of the existing owner-launched test worker. The devbox storage incident
+is resolved: resume checks show 358.6 GiB available and healthy inode headroom;
+proportionate checks continue around export and capture. Windows Product
+Preflight remains due; PR #13 current checks own the exact-head CI disposition. No hardware action is authorized
+or needed for these software checks. This report does not claim a completed
+physical-test candidate before those gates pass.
 
 ## Actual export and estimate
 
@@ -47,7 +54,12 @@ configuration, Moonraker version and qualification. After Start it checks the
 exact uploaded bytes and a second fresh idle/queue snapshot before journaling
 and one dispatch. Ambiguous Start or cancel is never retried.
 
-Real same-job state, ID and start time confirm starting and monitoring. Fresh
+Real same-job state, ID and start time confirm starting and monitoring. Initial
+metadata/history lag remains pending only inside the persisted 30-second
+confirmation deadline; ownership is never inferred or dispatch repeated.
+After Start, request TTL is not a print-duration or result-return cutoff. A
+durable local lifecycle marker preserves the original companion slot while
+active/uncertain, and only exact retained job/proof results may return later. Fresh
 `print_stats=complete` plus the same independently completed history job unlock
 the three-choice result picker. History lag stays locked. Failure, cancellation,
 disconnection, replacement, stale request or unexpected state cannot yield a
@@ -55,7 +67,8 @@ result. Native Cancel confirms exact-file intent; ordinary Helix Print remains
 the monitoring route. Recovery observes rather than redispatches.
 
 The selected result returns to the original saved/edited/effective Orca context
-as **NOT APPLIED**, with no profile writeback. The companion is local-I/O only;
+as **NOT APPLIED**, with no profile writeback. Its effective original nozzle
+must be 220°C; saved and edited values are preserved independently. The companion is local-I/O only;
 Helix remains storage-only. The physical adapter defaults to actions disabled;
 no live permit, physical upload/queue, install or activation occurs here.
 

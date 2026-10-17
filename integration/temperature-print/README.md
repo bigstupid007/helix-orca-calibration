@@ -97,6 +97,28 @@ and extruding bands, geometry, native time and exact bytes; unresolved command
 behavior and machine/material suitability remain reviewed technical evidence.
 The material is already Founder-confirmed. No combined-time allowance or
 print-duration threshold is required. A healthy matching job may exceed its
-native estimate; monitoring retains separate request-expiry, connection,
-identity and job checks. Physical execution remains separately authorized.
+native estimate; request expiry guards pre-Start dispatch, while active
+monitoring retains connection, identity and job checks. Physical execution remains separately authorized.
 See `docs/TEMPERATURE_PRINT_READINESS.md`.
+
+The request lifetime applies before Start. It is not an active-print or result
+duration limit. The runner keeps observing to a terminal/acknowledged outcome;
+post-Start cancellation retains its own fresh 30-second intent. Missing initial
+metadata/history can remain pending only inside the persisted 30-second Start
+confirmation deadline. An explicit metadata/history 404 means unavailable proof;
+other transport/authentication/malformed responses still fail closed.
+
+`NativePrintController` requires `write_delivery` as well as `write_inbox`. It
+writes the request-bound `starting` marker before dispatch and subsequent native
+lifecycle phases to existing local `delivery.json`. The companion blocks a new
+calibration while that marker is starting, printing, confirming, cancelling,
+complete or uncertain, even after request expiry/restart. Expired unstarted or
+failed/cancelled slots may retire; successful return retires after delivery ACK.
+No new human checkpoint or workflow object is introduced.
+
+The current request's original effective temperature must be 220°C. Saved and
+edited readings remain separate. Late result validation checks the retained
+immutable payload structurally at creation, with mandatory exact request/origin/
+context/file/bytes/setting/value/job/proof. The controller must independently
+reconfirm success before any inbox write; an expired request still cannot be
+resent or newly dispatched, and an old result cannot bind a newer request.

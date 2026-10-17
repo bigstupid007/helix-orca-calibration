@@ -118,6 +118,7 @@ class BoundRequest:
     file_bytes: int
     printer: str
     choices: tuple[int, int, int]
+    current: float
     expires_at: int
     ttl_seconds: int
 
@@ -134,6 +135,8 @@ class BoundRequest:
             raise ValidationError("request must explicitly identify physical calibration")
         if value.get("not_applied") is not True:
             raise ValidationError("request must preserve NOT APPLIED behavior")
+        if _finite_number(value.get("current"), "original effective temperature") != 220:
+            raise ValidationError("original effective nozzle temperature must be 220 C")
         request = cls(
             request_id=_hex(value.get("request_id"), _HEX32, "request_id"),
             origin_id=_hex(value.get("origin_id"), _HEX32, "origin_id"),
@@ -143,6 +146,7 @@ class BoundRequest:
             file_bytes=_integer(value.get("file_bytes"), "file_bytes", 1, MAX_FILE_BYTES),
             printer=_string(value.get("printer"), "printer", 512),
             choices=_choices(value.get("choices")),
+            current=value["current"],
             expires_at=_integer(value.get("expires_at"), "expires_at", 1, 4_102_444_800),
             ttl_seconds=_integer(value.get("ttl_seconds"), "ttl_seconds", 1, MAX_REQUEST_TTL_S),
         )
@@ -164,6 +168,7 @@ class BoundRequest:
             "file_bytes": self.file_bytes,
             "printer": self.printer,
             "choices": list(self.choices),
+            "current": self.current,
             "expires_at": self.expires_at,
             "ttl_seconds": self.ttl_seconds,
         }
@@ -636,6 +641,7 @@ class TemperaturePrintLifecycle:
             file_bytes=value["file_bytes"],
             printer=value["printer"],
             choices=tuple(value["choices"]),
+            current=value["current"],
             expires_at=value["expires_at"],
             ttl_seconds=value["ttl_seconds"],
         )
@@ -893,55 +899,43 @@ class TemperaturePrintLifecycle:
 
     def _observe_start(self, sample: PrinterSnapshot, now_mono: float) -> None:
         request = self.bound_request()
-        if sample.state in {"paused", "error", "cancelled", "complete"}:
+        if now_mono > self._state["start_confirmation_deadline"]:
+            self._fail("start_uncertain", "actual start was not independently confirmed before timeout")
+            return
+        if sample.state not in {"standby", "printing"}:
             self._fail("failed", f"unexpected {sample.state} before owned running job confirmation")
             return
-        if sample.state == "standby":
-            if now_mono > self._state["start_confirmation_deadline"]:
-                self._fail("start_uncertain", "actual start was not confirmed before timeout")
-            else:
-                self._state["last_eventtime"] = sample.eventtime
-                self._persist()
+        if sample.state == "printing" and sample.filename != request.file:
+            self._fail("failed", "printing job does not match the requested file")
             return
-        if sample.state != "printing":
-            self._fail("failed", "unexpected printer state while confirming start")
-            return
-        if (
-            sample.filename != request.file
-            or not sample.job_id
-            or sample.start_time is None
-        ):
-            self._fail("failed", "printing job does not match the requested file and identity")
-            return
-        try:
-            history = self._history(sample.job_id)
-        except LifecycleError as exc:
-            self._fail("failed", str(exc))
-            return
-        if (
-            history is None
-            or history.status != "printing"
-            or history.filename != request.file
-            or history.job_id != sample.job_id
-            or history.start_time != sample.start_time
-        ):
-            self._fail("failed", "running job lacks matching independent history proof")
-            return
+        # print_stats can lead file metadata and history. Never infer ownership
+        # from a command acknowledgement or redispatch while corroboration lags.
+        history = None
+        if sample.state == "printing" and sample.job_id and sample.start_time is not None:
+            try:
+                history = self._history(sample.job_id)
+            except LifecycleError as exc:
+                self._fail("failed", str(exc))
+                return
         baseline_id = self._state.get("baseline_history_job_id")
         baseline_start = self._state.get("baseline_history_start_time")
-        if history.job_id == baseline_id or (
-            baseline_start is not None and history.start_time <= baseline_start
-        ):
-            self._fail("failed", "observed print is not a new job after dispatch")
-            return
-        self._set_phase(
-            "printing",
-            "owned running job independently confirmed",
-            last_eventtime=sample.eventtime,
-            owned_filename=history.filename,
-            owned_job_id=history.job_id,
-            owned_start_time=history.start_time,
+        previous_metadata = sample.job_id == baseline_id or (
+            sample.start_time is not None and baseline_start is not None
+            and sample.start_time <= baseline_start
         )
+        if history is not None and not previous_metadata:
+            if (history.status != "printing" or history.filename != request.file
+                or history.job_id != sample.job_id or history.start_time != sample.start_time):
+                self._fail("failed", "running job conflicts with independent history proof")
+                return
+            self._set_phase(
+                "printing", "owned running job independently confirmed",
+                last_eventtime=sample.eventtime, owned_filename=history.filename,
+                owned_job_id=history.job_id, owned_start_time=history.start_time,
+            )
+            return
+        self._state["last_eventtime"] = sample.eventtime
+        self._persist()
 
     def _completion_proof(
         self, sample: PrinterSnapshot, history: HistoryRecord
@@ -988,9 +982,8 @@ class TemperaturePrintLifecycle:
         return None
 
     def _observe_running(self, sample: PrinterSnapshot, now_mono: float) -> None:
-        if self.wall_time() >= self._request_from_state().expires_at:
-            self._fail("failed", "monitoring request expired; fresh result unavailable")
-            return
+        # Request/Start expiry prevents a new dispatch. An already owned job
+        # has no duration ceiling; identity and fresh status/history govern it.
         if sample.state == "printing":
             if not self._same_owned_job(sample):
                 self._fail("failed", "a replacement or mismatched job was observed")

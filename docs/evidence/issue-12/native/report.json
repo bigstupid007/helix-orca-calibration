@@ -3,7 +3,7 @@
   "dependency_image_id": "sha256:88e1d3fb6dbd3b7a1c7dfb57c7a2fbc5522c01473bf7c964509e8672ab3d7e35",
   "fixture_files": {
     ".helix-orca-print-generated.json": "bad1aa09497ff4468c0f76f4110c16e33976e46e42ab92b091cdb471fa0c8f5d",
-    "main.lua": "e5c02f4dd9b31260dae77ef1234a5cccb323d990c321e1ac901d7a12909aae62",
+    "main.lua": "8c299c0c94d25dd99f4d61283984abc722dcd79c5e86aea851bc834bd42d2e6d",
     "manifest.json": "40cf173fb4452ad18480e3339ebabf2ec52f06cf5283ec578589decf6850b198",
     "ui/orcacal__cancel_confirmation.xml": "810ab4add1c8a233ce73753a521fea5bee2a0f34df9c09e2d645ae7a8c9a0e88",
     "ui/orcacal__qualify-ack.xml": "79475e987ea314c74128e3fed77bd95f6e0125dba8fdc639dd13d42bd370ea35",
@@ -51,6 +51,10 @@
   "results": [
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -77,6 +81,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -103,6 +111,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -129,6 +141,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -155,6 +171,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -181,6 +201,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -207,6 +231,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -233,6 +261,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -259,6 +291,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -285,6 +321,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -311,6 +351,10 @@
     },
     {
       "assertions": [
+        "effective-220-context-required",
+        "post-start-expiry-does-not-end-owned-job",
+        "post-expiry-active-session-cannot-be-replaced",
+        "post-expiry-cancel-and-result-remain-guarded",
         "accepted-shell-loads",
         "receive-never-starts",
         "picker-locked-before-success",
@@ -448,7 +492,7 @@
     "xlarge_1280x720/returning.png": "acd0cf1669c97b34284f1335100e464056fbb1ceb4973e355297fc9f8dd0333b"
   },
   "sources": {
-    "integration/temperature-print/native.lua": "0b78249b71dcf7c97966e402ebc3cc1c6da01ff33956b2e48a36aff4261be1db",
+    "integration/temperature-print/native.lua": "947f5d01dbebf454c4450d750cbd2384ca3892f579e17cd17e3d4ca5924ff6d7",
     "integration/temperature-print/ui/orcacal__cancel_confirmation.xml": "810ab4add1c8a233ce73753a521fea5bee2a0f34df9c09e2d645ae7a8c9a0e88",
     "integration/temperature-print/ui/orcacal__temperature.xml": "1f5c57eaebb62c5e2ab68dded429a374e40c4caf9a5d6492819fe402c87561af",
     "integration/temperature-print/ui/orcacal__wizard.xml": "5acd72f663d8a73c7ae4c4495b8763b89be25d660c14f07a5bcafe29a289fd0b",
@@ -456,22 +500,22 @@
     "scripts/helix_dev.py": "3c9eb5a1c5d97986146922bca1b12941688103d78846189bf8c1ceb0f2da8f8b",
     "scripts/temperature-communication-plugin.py": "fd7e758cd01ae135fd15958324751abb99d586119a44ec9f3017c4337102355b",
     "scripts/temperature-communication-qualify.py": "5020e13ce0277e30c19f0046068c7832a1c2eea9b859bfd1c42f3b8e34c22b8c",
-    "scripts/temperature-print-companion.py": "c9408ae031eac9692f2bcf59c1165b5eacd7b7d14a6ac87a66f59687552e063d",
+    "scripts/temperature-print-companion.py": "1a8cdf5fc809e57794265e15bc22a11ad3df3e181a4a39be01a7b6e24ae80f00",
     "scripts/temperature-print-plugin.py": "dcc73f3767502c49f1613861ebe8e1e6087ff3b7b82420cfaef3d3a897c8908b",
-    "scripts/temperature-print-qualify.py": "b0edcd36e637ac67d256757c0b5f2426bf283429bbf1cbfec9a418b256b82ca4"
+    "scripts/temperature-print-qualify.py": "aec86010186c5c459f4c53da4c7bc68b7e47778acd592b2c2ebd0b869cd48159"
   },
   "storage": {
-    "large_1024x600/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "medium_800x480/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "micro_480x272/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "micro_portrait_272x480/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "phone_1080x2400_dpi405/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "portrait_480x800/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "small_480x400/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "tall_320x1480/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "tiny_480x320/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "ultrawide_1920x480/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf",
-    "xlarge_1280x720/config/plugin-data/orcacal.json": "d9951fb30c4f1c8a551fde1e3f25de77b27415bd8835b927fa24f2c685a7fdcf"
+    "large_1024x600/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "medium_800x480/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "micro_480x272/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "micro_portrait_272x480/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "phone_1080x2400_dpi405/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "portrait_480x800/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "small_480x400/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "tall_320x1480/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "tiny_480x320/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "ultrawide_1920x480/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a",
+    "xlarge_1280x720/config/plugin-data/orcacal.json": "5c36ef8842e26b0f3833755adcba6c3bef379c0d9f7afcff6736dad6b0cbb13a"
   },
   "synthetic_inputs": [
     "request",

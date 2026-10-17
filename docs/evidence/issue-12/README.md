@@ -8,15 +8,24 @@ or additional spool-label checkpoint.
 confirms the unchanged reviewed machine/configuration/version and idle queue;
 raw identities, configuration and endpoints remain private.
 
-`native/` is the complete passing, source-bound corrected beta.9 eleven-size
-matrix: 88 frames, eleven storage snapshots and the verifying report. Its
-job/authorization/clock/completion inputs are synthetic; a 1501-second fixture
-specifically tests Ready above the removed 20-minute limit. It is not the native
-G-code estimate.
+`native/` is the renewed complete passing, source-bound beta.9 eleven-target
+matrix: **88 frames and eleven storage snapshots**. It verifies effective-220
+context gating, no receipt-triggered Start, guarded one-shot intent, restart,
+independent-success selection, post-request-expiry monitoring/result/ACK, refusal
+to replace an expired active session and fresh post-expiry cancellation.
+All authorization/job/status/clock/completion inputs are synthetic; the
+1501-second estimate is a fixture, not the actual G-code estimate. Native
+clock jumps beyond request expiry are simulated, not elapsed hardware proof.
+The reused dependency image, candidate hashes and all matrix inputs are in the
+report; the run used network-none/read-only isolation and zero physical actions.
 
 ```sh
 python3 scripts/temperature-print-qualify.py verify docs/evidence/issue-12/native
 ```
+
+The superseded `ac84114` native bytes are preserved under
+[history](history/candidate-ac84114/README.md); earlier 210/205/200°C proof remains
+separate history. No partial capture was promoted.
 
 Corrected actual Windows native-export inspection and current companion
 round-trip proof remain pending reconnection of the existing test worker.

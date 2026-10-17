@@ -66,8 +66,8 @@ review, affected-surface Product Preflight and documentation reconciliation.
 Never relabel mock success as hardware proof.
 
 Current published shared Development System main is
-`2328bc55709d6dd1705fdec339d4a3982a81ffe2` (verified against GitHub); application
-main is `89165d15993ccfcd065b299e1980bb19749fdcaf`. Preserve accepted Issue #8
+`4a42a944b344427c8f925241191595eb57c6949c` (verified against GitHub on resume);
+application main is `89165d15993ccfcd065b299e1980bb19749fdcaf`. Preserve accepted Issue #8
 communication, Issue #10 baseline policy, normal profiles, private evidence,
 existing native shell and beta.4 harness. Alpha remains secondary only.
 
@@ -83,3 +83,46 @@ Read-only existing-target evidence may support safety review without operating
 hardware. Private operational data stays private. Ordinary repairs continue
 under this same correction; only a genuinely changed consequence needs a new
 Founder decision.
+
+## Resumed validation — 2026-10-17
+
+The resolved devbox storage incident is closed for this program. Resume checks
+found 358.6 GiB user-available on the output filesystem, 20% byte usage and
+29.7 million available inodes. Preserve the existing runtime/cache/evidence;
+no cleanup or storage investigation is required. Recheck available bytes and
+inodes before native export/capture and after transfer; avoid concurrent
+disk-intensive work, bound each export/capture, and stop if the planned output
+no longer fits with reaction headroom. The shared managed-run helper is not
+a substitute for the existing isolated Helix harness or Windows access guards.
+
+At the superseded initial resume checkpoint `ac84114`, all 231 dependency-free
+repository tests, the
+accepted beta.4 evidence, Issue #8 native evidence, corrected eleven-target
+Issue #12 evidence and whitespace validation pass. A private resume baseline
+records all sixteen pre-existing canonical file hashes and canonical HEAD.
+This initial source/evidence checkpoint is superseded by the reviewed repairs
+below; it is not evidence for the repaired runtime. Spare access is disconnected;
+only the documented owner-side unelevated launch
+is needed. Actual corrected export, current companion proof, final integrated
+review, documentation reconciliation and exact-head CI remain completion work.
+No physical authorization, action or installation is implied by this checkpoint.
+
+The resumed independent source review subsequently identified and corrected
+post-dispatch TTL/runner cutoffs, initial metadata/history lag handling,
+effective-220 binding and directly implicated slot/rejected-Start recovery.
+Final source re-review passes 54 affected tests; the complete repository suite
+passes 243 tests. These repairs preserve pre-Start expiry and one-shot safety
+while keeping an already owned job observable without a duration ceiling.
+The renewed native capture is recorded in the existing readiness/evidence
+reports. Exact-head CI is a separate GitHub gate owned by PR #13 current checks;
+it is not implied by local validation. Actual Windows export/current companion proof still
+requires the existing owner-side worker launch; it is not replaced by mock
+status, source review or historical exports.
+
+The renewed complete beta.9 matrix now passes and verifies all eleven targets,
+88 frames and eleven storage snapshots, including synthetic post-expiry
+monitoring, result/ACK and cancellation. Earlier corrected native bytes were
+preserved byte-for-byte as history before promotion. Owned capture containers
+were removed normally; output headroom remained about 359 GiB. This completes
+current source/native software proof, not actual Windows export or hardware
+qualification. No disk cleanup or historical storage investigation was reopened.

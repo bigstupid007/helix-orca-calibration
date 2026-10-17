@@ -45,7 +45,7 @@ local function valid(r)
         or not finite(r.file_bytes) or r.file_bytes%1~=0 or r.file_bytes<1 or r.file_bytes>20000000
         or not text(r.printer,128) or not text(r.filament,128) or not text(r.process,128)
         or not finite(r.nozzle_mm) or r.nozzle_mm<0.05 or r.nozzle_mm>2
-        or r.setting~="nozzle_temperature" or type(r.choices)~="table" or #r.choices~=3
+        or r.current~=220 or r.setting~="nozzle_temperature" or type(r.choices)~="table" or #r.choices~=3
         or not finite(r.ttl_seconds) or r.ttl_seconds%1~=0 or r.ttl_seconds<1 or r.ttl_seconds>3600
         or not finite(r.expires_at) or r.expires_at%1~=0 then return false end
     for i,v in ipairs(choices) do if r.choices[i]~=v then return false end end
@@ -106,7 +106,10 @@ local function clock()
     return r.eventtime,p.state,p.filename
 end
 local function live(t)
-    return session and finite(t) and t>=session.lease.issued_eventtime and t+1<session.lease.expires_eventtime
+    -- A retained one-shot Start keeps observation/cancel/result alive. Freshness
+    -- and the exact owned job remain mandatory; expiry still blocks new Start.
+    return session and finite(t) and t>=session.lease.issued_eventtime
+        and (session.start_intent~=nil or t+1<session.lease.expires_eventtime)
 end
 local function show(r)
     active:set(1); baseline:set(0)
@@ -142,7 +145,7 @@ local function receive(_,data)
     if session then
         if same(session.request,r) then return end
         local terminal=session.state=="returned" or session.state=="failed" or session.state=="cancelled"
-        local expired=type(session.lease)=="table" and finite(session.lease.expires_eventtime)
+        local expired=not session.start_intent and type(session.lease)=="table" and finite(session.lease.expires_eventtime)
             and t>=session.lease.expires_eventtime
         if not terminal and not expired then return end
         tombstones=bounded_tombstones(session.tombstones,session.request)
@@ -199,8 +202,8 @@ local function update(_,data)
 end
 local function intent(schema,t)
     local out={schema=schema,nonce=session.request.request_id..":"..string.format("%.0f",math.floor(t*1000000)),eventtime=t,
-        expires_eventtime=math.min(schema=="helix-orca-temperature-start/v1"
-            and session.lease.issued_eventtime+900 or t+30,session.lease.expires_eventtime),choices=choices}
+        expires_eventtime=schema=="helix-orca-temperature-start/v1"
+            and math.min(session.lease.issued_eventtime+900,session.lease.expires_eventtime) or t+30,choices=choices}
     for _,k in ipairs(identity_keys) do out[k]=session.request[k] end
     return out
 end
@@ -284,7 +287,7 @@ if ok and type(stored)=="table" and valid(stored.request) and type(stored.lease)
     end
     show(session.request)
 end
--- Missing/disconnected printer data and expired requests lock all actions.
+-- Missing/disconnected data locks actions; expiry retires only unstarted requests.
 helix.timer.every(1000,function()
     if not session or session.state=="uncertain" or session.state=="returned" then return end
     if query_busy then return end

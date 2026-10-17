@@ -308,3 +308,22 @@ estimate as information, with no print-length ceiling or combined-time input.
 The filament is confirmed at normal 220°C; no new label checkpoint exists.
 Request/command freshness limits remain independent of the estimate. A healthy
 correlated job is not failed merely for exceeding its native time estimate.
+
+Post-Start monitoring has no request-TTL or runner-duration cutoff. The 900-second
+Start window and original request/grant expiry still prohibit late dispatch;
+fresh machine/configuration/status and exact owned-job history govern an active
+job, including recovery, cancellation, completion and result return. A durable
+request-scoped `delivery.json` lifecycle marker is written before dispatch, so
+the originating companion cannot abandon a started or uncertain session merely
+because its original TTL elapsed. Only an expired unstarted or terminal slot
+may retire. Post-expiry results still require the retained exact identity and
+independently confirmed job/proof; they cannot retarget a newer request.
+
+Initial print_stats may precede metadata/history. Missing or previous metadata
+and an explicit 404 remain pending inside the original 30-second confirmation
+deadline, without ownership, cancellation, selection or redispatch. Contradictory
+proof, unexpected jobs, transport failures and deadline expiry remain locked.
+Deterministic preflight/authorization rejection consumes the tap and publishes
+failure; an ambiguous command publishes uncertainty. The readiness protocol and
+coordinator require original effective nozzle 220°C while preserving saved and
+edited values independently. Accepted communication source is unchanged.

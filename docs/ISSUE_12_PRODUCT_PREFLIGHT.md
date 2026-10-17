@@ -1,9 +1,10 @@
 # Issue #12 corrected candidate — affected-surface Product Preflight
 
 **Native: PASS. Overall affected surface: pending actual Windows 0.6.1 proof.**
-A separate read-only reviewer inspected individual original-resolution corrected
-native frames and the source-bound eleven-target report. No material native UX
-defect remains. Prior 210/205/200°C and Windows 0.6.0/205°C captures are historical.
+The renewed source-bound eleven-target capture passes. The lead inspected
+current micro, micro-portrait, 800×480, phone, ultrawide and tall frames for
+Ready, printing, cancellation, success and returned states. No material
+affected-surface native UX defect was found. Prior 210/205/200°C and Windows 0.6.0/205°C captures are historical.
 
 The existing Home → chooser → Temperature flow and original-context card remain
 intact. Receipt never starts printing; results stay locked. Ready shows exactly
@@ -18,8 +19,11 @@ the reviewed fixture selects 220°C. Returning waits for Orca acknowledgement;
 Returned displays 220°C and **NOT APPLIED**. No extra label checkpoint or
 combined-duration decision appears.
 
-The complete pinned beta.9 report verifies **11/11 targets, 88 PNGs and eleven
-storage snapshots**, with network disabled and zero physical actions. Job,
+The renewed pinned beta.9 report verifies **11/11 targets, 88 PNGs and eleven
+storage snapshots**, with network disabled and zero physical actions. The
+previous corrected capture is preserved as superseded history. The driver also
+proves result/ACK and guarded cancellation beyond synthetic request expiry,
+without weakening pre-Start freshness or allowing active-session replacement. Job,
 authorization, clock and completion inputs are synthetic. The visible
 1501-second/26-minute Ready fixture proves acceptance above the removed ceiling;
 it is not the actual file estimate. Actual Windows native export and the 0.6.1

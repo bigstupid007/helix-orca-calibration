@@ -32,8 +32,10 @@ accepted the retained layer-height input. The scale input was issued, but the
 devbox evidence volume then filled and ended the one-shot approved Spare worker
 before Scale Done, Slice, or Export could be independently confirmed. Space was
 later recovered losslessly by replacing a temporary duplicate with a link to
-its identical retained cache file. The documented existing worker still
-requires its owner-only unelevated restart. The isolated Orca session remains
+its identical retained cache file. The storage incident is now resolved, with 358.6 GiB available on resume;
+[bounded headroom checks](BUILD_PROGRAM_TEMPERATURE_PRINT.md#resumed-validation--2026-10-17)
+continue around export/capture. The documented existing worker still requires
+its owner-only unelevated restart. The isolated Orca session remains
 the intended recovery point. No alternate access route will be created.
 
 Consequently, this document does not yet claim a corrected G-code identity,

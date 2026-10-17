@@ -28,7 +28,7 @@ class ControllerTests(unittest.TestCase):
         clock=base.Clock();adapter=AdvancingFake();events=[]
         with tempfile.TemporaryDirectory() as d:
             state=controller.protocol.TemperatureCommunicationState(d,now=clock.wall_time)
-            target=original.target();target['printer']=target['printer'].copy()
+            target=original.target();target["effective_temperature"]=220;target['printer']=target['printer'].copy()
             target['printer']['selected_saved']=dict(target['printer']['selected_saved'],name=base.PRINTER)
             state.start_new(target)
             file={'name':base.FILE,'size':len(base.FILE_DATA),'sha256':base.FILE_SHA,'bands':[225,220,215]}
@@ -38,7 +38,7 @@ class ControllerTests(unittest.TestCase):
             def permit(c,intent):return c.issue_local_permit(intent,authorization_id='a'*32,deadline_monotonic=60)
             def write(value):controller.protocol.atomic_write_json(Path(d)/'print-readiness/inbox.json',value)
             with base.lifecycle.TemperaturePrintLifecycle(Path(d)/'journal.json',adapter,wall_time=clock.wall_time,monotonic=clock.monotonic) as c:
-                ctl=controller.NativePrintController(c,outbox,qual,event_sink=lambda e,v:events.append((e,v)),write_inbox=write,authorize_intent=permit)
+                ctl=controller.NativePrintController(c,outbox,qual,event_sink=lambda e,v:events.append((e,v)),write_inbox=write,write_delivery=lambda value:controller.protocol.atomic_write_json(Path(d)/"print-readiness/delivery.json",value),authorize_intent=permit)
                 ctl.offer();self.assertFalse(adapter.start_calls)
                 native={'print_session':{'request':copy.deepcopy(p)}}
                 ctl.step(native);self.assertFalse(adapter.start_calls)
@@ -47,12 +47,21 @@ class ControllerTests(unittest.TestCase):
                 native['print_session']['start_intent']=intent
                 ctl.step(native);self.assertEqual(adapter.start_calls,[base.FILE]);self.assertFalse(c.status().result_available)
                 adapter.show_printing();ctl.step(native);self.assertFalse(c.status().result_available)
-                adapter.show_complete();ctl.step(native);self.assertTrue(c.status().result_available)
+                clock.wall=9000;clock.mono=8050
+                self.assertFalse(state.can_start_new())
+                with self.assertRaises(controller.protocol.CommunicationProtocolError):state.start_new(target)
+                adapter.show_complete(eventtime=8103);ctl.step(native);self.assertTrue(c.status().result_available)
                 native['print_session']['result']={k:p[k] for k in ('request_id','origin_id','context_sha256','file_sha256','file','file_bytes','setting','physical_calibration','not_applied')}
                 native['print_session']['result'].update(schema=controller.protocol.RESULT_SCHEMA,value=220,job_id=c.status().job_id,completion_sha256=c.status().completion_proof_sha256)
                 ctl.step(native);state.poll_inbox()
                 self.assertEqual(state.instructions['status'],'NOT APPLIED');self.assertEqual(state.instructions['selected_value'],220)
                 self.assertEqual(state.target,target)
+                restored=controller.protocol.TemperatureCommunicationState(d,now=clock.wall_time)
+                self.assertEqual(restored.result,state.result)
+                wrong=dict(native['print_session']['result'],request_id='f'*32)
+                with self.assertRaises(controller.protocol.CommunicationProtocolError):
+                    controller.protocol.validate_selection_result(p,wrong,now=9000)
+                with self.assertRaises(controller.protocol.CommunicationProtocolError):state.send()
                 receipt=json.loads((Path(d)/'print-readiness/receipt.json').read_text())
                 ctl.acknowledge(receipt)
                 self.assertEqual(events[-1][0],'helix_orca_temperature_print.ack.v1')
@@ -84,7 +93,7 @@ class MoonrakerContractTests(unittest.TestCase):
         digest=hashlib.sha256(json.dumps(config,sort_keys=True,separators=(',',':')).encode()).hexdigest()
         reader=transport.MoonrakerPrintAdapter('http://192.168.2.5:7125','192.168.2.5','pinned',identity,configuration_sha256=digest)
         samples=[100.0]
-        def get(path):
+        def get(path,**options):
             if path=='/server/info':value={'moonraker_version':'pinned','klippy_state':'ready','failed_components':[]}
             elif path=='/machine/system_info':value={'system_info':{'network':network}}
             elif path=='/printer/objects/query?configfile':value={'status':{'configfile':{'settings':config}}}
@@ -99,6 +108,20 @@ class MoonrakerContractTests(unittest.TestCase):
         sample=reader.snapshot()
         self.assertEqual(sample.state,'standby');self.assertEqual(sample.printer_identity,identity)
         self.assertEqual(reader.history('000001').status,'printing')
+        previous_get=reader.reader._json_get
+        def lagging(path,**options):
+            if path.startswith(('/server/files/metadata?','/server/history/job?')):
+                self.assertTrue(options.get('allow_not_found'))
+                return None
+            value=previous_get(path,**options)
+            if path=='/printer/objects/query?print_stats':
+                value['result']['status']['print_stats']={'state':'printing','filename':'mini.gcode'}
+            return value
+        reader.reader._json_get=lagging
+        pending=reader.snapshot()
+        self.assertEqual(pending.filename,'mini.gcode')
+        self.assertIsNone(pending.job_id);self.assertIsNone(pending.start_time)
+        self.assertIsNone(reader.history('000001'))
         config['printer']={'max_velocity':999}
         with self.assertRaisesRegex(transport.lc.SafetyViolation,'configuration changed'):reader.snapshot()
 
@@ -106,7 +129,7 @@ class ControllerBoundaryTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name)
         self.clock=base.Clock();self.adapter=AdvancingFake();self.events=[]
-        t=original.target();t['printer']['selected_saved']['name']=base.PRINTER
+        t=original.target();t['effective_temperature']=220;t['printer']['selected_saved']['name']=base.PRINTER
         self.state=controller.protocol.TemperatureCommunicationState(self.root,now=self.clock.wall_time)
         self.state.start_new(t)
         self.state.select_file({'name':base.FILE,'size':len(base.FILE_DATA),'sha256':base.FILE_SHA,'bands':[225,220,215]},controller.protocol.validate_print_temperature_file)
@@ -122,7 +145,7 @@ class ControllerBoundaryTests(unittest.TestCase):
         return base.lifecycle.TemperaturePrintLifecycle(self.root/'journal.json',self.adapter,wall_time=self.clock.wall_time,monotonic=self.clock.monotonic)
     def make_controller(self):
         def permit(c,i):return c.issue_local_permit(i,authorization_id='a'*32,deadline_monotonic=60)
-        return controller.NativePrintController(self.c,self.outbox,self.qual,event_sink=lambda e,d:self.events.append((e,d)),write_inbox=lambda v:None,authorize_intent=permit)
+        return controller.NativePrintController(self.c,self.outbox,self.qual,event_sink=lambda e,d:self.events.append((e,d)),write_inbox=lambda v:None,write_delivery=lambda value:controller.protocol.atomic_write_json(self.root/"print-readiness/delivery.json",value),authorize_intent=permit)
     def printing(self):
         self.ctl.step(self.native);self.adapter.show_printing();self.ctl.step(self.native)
     def test_controller_restart_preserves_exact_binding_sequence_and_one_shot_dispatch(self):
@@ -132,7 +155,33 @@ class ControllerBoundaryTests(unittest.TestCase):
         self.assertGreater(self.events[-1][1]['sequence'],sequence)
         bad=copy.deepcopy(self.qual);bad['printer_config_sha256']='f'*64
         with self.assertRaises(controller.ControllerError):
-            controller.NativePrintController(self.c,self.outbox,bad,event_sink=lambda *x:None,write_inbox=lambda x:None)
+            controller.NativePrintController(self.c,self.outbox,bad,event_sink=lambda *x:None,write_inbox=lambda x:None,write_delivery=lambda x:None)
+    def test_predispatch_rejection_retires_native_and_delivery_without_a_start(self):
+        self.adapter.file_data=b'tampered'
+        with self.assertRaises(base.lifecycle.SafetyViolation):self.ctl.step(self.native)
+        self.assertEqual(self.c.status().phase,'start_rejected')
+        self.assertEqual(self.events[-1][1]['state'],'failed')
+        self.assertTrue(self.state.can_start_new())
+        self.assertFalse(self.adapter.start_calls)
+
+    def test_invalid_authorization_retires_consumed_native_tap(self):
+        def reject(c,intent):raise ValueError('Tap predates authorized offer')
+        self.ctl.authorize_intent=reject
+        with self.assertRaises(ValueError):self.ctl.step(self.native)
+        self.assertEqual(self.c.status().phase,'start_rejected')
+        self.assertEqual(self.events[-1][1]['state'],'failed')
+        self.assertTrue(self.state.can_start_new())
+        self.assertFalse(self.adapter.start_calls)
+
+    def test_ambiguous_start_keeps_uncertain_marker_and_never_retries(self):
+        self.adapter.start_error=RuntimeError('Lost command reply')
+        with self.assertRaises(base.lifecycle.SafetyViolation):self.ctl.step(self.native)
+        self.assertEqual(self.events[-1][1]['state'],'uncertain')
+        self.assertFalse(self.state.can_start_new())
+        self.ctl.step(self.native)
+        self.assertEqual(self.adapter.start_calls,[base.FILE])
+        self.assertFalse(self.c.status().result_available)
+
     def test_history_lag_is_nonterminal_then_same_job_success_unlocks(self):
         self.printing();self.adapter.show_complete(history_status='printing');self.ctl.step(self.native)
         self.assertEqual(self.events[-1][1]['state'],'confirming');self.assertFalse(self.c.status().result_available)

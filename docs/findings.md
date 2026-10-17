@@ -401,3 +401,12 @@ Moonraker version, idle state and empty queue. Successful history uses
 `completed`; print_stats uses `complete`; start RPC success proves neither.
 No physical action occurred. Original profile identity remains distinct from
 physical-machine binding, and returned instructions remain NOT APPLIED.
+
+Resumed independent review corrected a latent one-hour active-job cutoff and
+initial metadata/history lag handling. The effective-220 context is now enforced
+without collapsing saved and edited values. Durable local lifecycle status
+prevents request expiry from discarding a started/uncertain original target;
+late results still require that exact retained request and owned completion
+proof. Deterministic rejected Start and ambiguous dispatch have distinct
+terminal/uncertain recovery. The 54 focused safety tests pass independent review.
+No native-mock observation is hardware proof.

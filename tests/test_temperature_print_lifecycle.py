@@ -184,6 +184,7 @@ def request(**updates):
         "file": FILE,
         "file_bytes": len(FILE_DATA),
         "printer": PRINTER,
+        "current": 220,
         "choices": [225, 220, 215],
         "expires_at": 4_600,
         "ttl_seconds": 3_600,
@@ -305,6 +306,76 @@ class TemperaturePrintLifecycleTests(unittest.TestCase):
         status=self.coordinator.poll()
         self.assertEqual(status.phase,'printing')
         self.assertFalse(status.result_available)
+
+    def test_owned_job_monitoring_and_recovery_survive_request_expiry(self):
+        self.dispatch(); self.confirm_printing()
+        self.clock.wall=9000; self.clock.mono=8050
+        self.adapter.current=replace(self.adapter.current,eventtime=8101)
+        self.assertEqual(self.coordinator.poll().phase,'printing')
+        self.coordinator.close()
+        self.coordinator=lifecycle.TemperaturePrintLifecycle(self.path,self.adapter,
+            wall_time=self.clock.wall_time,monotonic=self.clock.monotonic)
+        self.adapter.current=replace(self.adapter.current,eventtime=8102)
+        self.assertEqual(self.coordinator.poll().phase,'printing')
+        self.adapter.show_complete(eventtime=8103)
+        self.assertTrue(self.coordinator.poll().result_available)
+        self.assertEqual(self.adapter.start_calls,[FILE])
+
+    def test_late_cancel_keeps_its_freshness_and_owned_job_checks(self):
+        self.dispatch(); self.confirm_printing()
+        self.clock.wall=9000; self.clock.mono=8050
+        self.adapter.current=replace(self.adapter.current,eventtime=8101)
+        self.assertEqual(self.coordinator.cancel().phase,'cancel_dispatched')
+        self.adapter.show_cancelled(eventtime=8102)
+        self.assertEqual(self.coordinator.poll().phase,'cancelled')
+        self.assertFalse(self.coordinator.status().result_available)
+        self.assertEqual(self.adapter.cancel_calls,1)
+
+    def test_start_metadata_and_history_lag_wait_without_redispatch(self):
+        self.dispatch(); self.adapter.show_printing()
+        actual=self.adapter.current; record=self.adapter.records.pop(actual.job_id)
+        self.adapter.current=replace(actual,job_id=None,start_time=None)
+        self.assertEqual(self.coordinator.poll().phase,'start_dispatched')
+        self.adapter.current=replace(actual,eventtime=103)
+        self.assertEqual(self.coordinator.poll().phase,'start_dispatched')
+        self.adapter.records[actual.job_id]=record
+        self.adapter.current=replace(actual,eventtime=104)
+        self.assertEqual(self.coordinator.poll().phase,'printing')
+        self.assertEqual(self.adapter.start_calls,[FILE])
+        self.assertFalse(self.coordinator.status().result_available)
+
+    def test_previous_file_metadata_waits_but_conflicting_new_history_fails(self):
+        self.dispatch(); self.adapter.show_printing()
+        actual=self.adapter.current
+        self.adapter.current=replace(actual,job_id='prior-job',start_time=1)
+        self.assertEqual(self.coordinator.poll().phase,'start_dispatched')
+        self.adapter.current=replace(actual,eventtime=103)
+        self.adapter.records[actual.job_id]=replace(self.adapter.records[actual.job_id],filename='other.gcode')
+        self.assertEqual(self.coordinator.poll().phase,'failed')
+        self.assertEqual(self.adapter.start_calls,[FILE])
+
+    def test_matching_history_arriving_after_confirmation_deadline_stays_locked(self):
+        self.dispatch(); self.adapter.show_printing()
+        self.clock.mono=81
+        self.assertEqual(self.coordinator.poll().phase,'start_uncertain')
+        self.assertFalse(self.coordinator.status().result_available)
+        self.assertEqual(self.adapter.start_calls,[FILE])
+
+    def test_start_history_lag_deadline_remains_bounded_after_restart(self):
+        self.dispatch(); self.adapter.show_printing()
+        self.adapter.records.pop(self.adapter.current.job_id)
+        self.assertEqual(self.coordinator.poll().phase,'start_dispatched')
+        self.coordinator.close()
+        self.coordinator=lifecycle.TemperaturePrintLifecycle(self.path,self.adapter,
+            wall_time=self.clock.wall_time,monotonic=self.clock.monotonic)
+        self.clock.mono=81; self.adapter.current=replace(self.adapter.current,eventtime=104)
+        self.assertEqual(self.coordinator.poll().phase,'start_uncertain')
+        self.assertEqual(self.adapter.start_calls,[FILE])
+
+    def test_effective_220_context_is_required_before_binding(self):
+        for value in (215,219,True,None):
+            with self.assertRaises(lifecycle.ValidationError):self.bind(request_value=request(current=value))
+        self.assertFalse(self.adapter.start_calls)
 
     def test_requires_exact_three_descending_choices_and_verified_suitability(self):
         with self.assertRaises(lifecycle.ValidationError):

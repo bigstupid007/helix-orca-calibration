@@ -17,10 +17,14 @@ and the existing mock harness remain preserved. October 15 stays preferred;
 Alpha has no physical adoption.
 
 [Current validation and readiness](docs/TEMPERATURE_PRINT_READINESS.md) tracks
-the corrected export and evidence, including any outstanding qualification. No physical print, heating, motion,
-firmware change, profile writeback or physical activation is authorized by this
-candidate; physical execution requires separate Founder authorization. Leave
-the PR unmerged for Founder Review.
+the corrected export and evidence. The resumed source passes 243 tests and
+independent review; the renewed eleven-target native evidence verifies. Actual
+Windows export/current companion proof await the
+existing Spare worker launch; the devbox storage incident is resolved. The readiness record owns local evidence; PR #13 owns current
+exact-head CI status, which is not implied by local validation. No physical print, heating, motion, firmware change,
+profile writeback or physical activation is authorized by this candidate.
+Physical execution requires separate Founder authorization. Leave the PR
+unmerged for Founder Review.
 
 ## Issue #1 — native Helix calibration foundation
 

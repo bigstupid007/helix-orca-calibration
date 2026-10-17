@@ -32,8 +32,9 @@ class MoonrakerPrintAdapter:
         self.expected_identity=physical_identity
         if type(actions) is not bool:raise TypeError('actions is a local activation switch')
         self.actions=actions
-    def _get(self,path):
-        value=self.reader._json_get(path)
+    def _get(self,path,*,allow_not_found=False):
+        value=self.reader._json_get(path,allow_not_found=True) if allow_not_found else self.reader._json_get(path)
+        if value is None and allow_not_found:return None
         if not isinstance(value,dict) or not isinstance(value.get('result'),dict):raise lc.SafetyViolation('Missing Moonraker result')
         return value['result']
     def _identity(self):
@@ -66,7 +67,7 @@ class MoonrakerPrintAdapter:
         job_id=start=None
         if filename:
             lc._file_name(filename)
-            metadata=self._get('/server/files/metadata?filename='+quote(filename,safe=''))
+            metadata=self._get('/server/files/metadata?filename='+quote(filename,safe=''),allow_not_found=True) or {}
             job_id=metadata.get('job_id');start=metadata.get('print_start_time')
         final=self._get('/printer/objects/query?print_stats')
         current=final['status']['print_stats']
@@ -89,7 +90,9 @@ class MoonrakerPrintAdapter:
             item=values[0]
         else:
             if not re.fullmatch('[0-9A-Fa-f]{6,64}',job_id):raise lc.SafetyViolation('Invalid Moonraker job ID')
-            item=self._get('/server/history/job?uid='+quote(job_id,safe=''))['job']
+            result=self._get('/server/history/job?uid='+quote(job_id,safe=''),allow_not_found=True)
+            if result is None:return None
+            item=result['job']
         phase={'in_progress':'printing','completed':'completed','cancelled':'cancelled','error':'failed','interrupted':'failed','klippy_shutdown':'failed','klippy_disconnect':'failed'}.get(item.get('status'))
         if phase is None:raise lc.SafetyViolation('Unknown history outcome')
         return lc.HistoryRecord(job_id=item['job_id'],filename=item['filename'],status=phase,start_time=item['start_time'],end_time=item.get('end_time'))

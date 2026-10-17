@@ -23,7 +23,7 @@ REQUEST.update(schema='helix-orca-temperature-print-session/v1',physical_calibra
                choices=[225,220,215],file='miniature-temperature-225-215.gcode',ttl_seconds=3600,
                file_bytes=200000,file_sha256='a'*64,context_sha256='b'*64)
 LEASE={'issued_eventtime':1000.0,'expires_eventtime':4600.0}
-ASSERTIONS=['accepted-shell-loads','receive-never-starts','picker-locked-before-success',
+ASSERTIONS=['effective-220-context-required','post-start-expiry-does-not-end-owned-job','post-expiry-active-session-cannot-be-replaced','post-expiry-cancel-and-result-remain-guarded','accepted-shell-loads','receive-never-starts','picker-locked-before-success',
     'authorized-ready-needs-native-start','native-start-persists-once','rpc-ack-does-not-unlock',
     'matching-printing-keeps-picker-locked','restart-never-redispatches-and-recovers-verified-state','history-lag-stays-nonterminal','independent-success-enables-three-choices',
     'native-220-result-has-completion-proof','original-context-preserved','native-back-and-horizontal-fit','terminal-session-retires-with-replay-tombstone','waiting-result-survives-restart-and-exact-ack','cancel-confirmation-and-late-cancel-remain-guarded','cancelled-restart-allows-fresh-request-without-cleanup']
@@ -41,6 +41,9 @@ def fixture(directory):
 local fixture_state="standby"
 local fixture_filename=""
 local fixture_eventtime=1000.25
+if session and session.start_intent then
+    fixture_eventtime=session.request.request_id==string.rep("3",32) and 9000.25 or 5000.25
+end
 local original_call=helix.moonraker.call
 helix.moonraker.call=function(method,params)
     if method=="printer.objects.query" then
@@ -52,6 +55,10 @@ local fixture_request=helix.json.decode([==[REQUEST]==])
 local fixture_lease=helix.json.decode([==[LEASE]==])
 helix.ui.on("qualify_request",function()
     if not session then
+        fixture_request.current=215
+        receive("fixture",{session=fixture_request,lease=fixture_lease})
+        if session then error("Wrong effective context committed a session") end
+        fixture_request.current=220
         query_busy=true; receive("fixture",{session=fixture_request,lease=fixture_lease}); query_busy=false
         if session then error("Busy receive committed a session") end
     end
@@ -66,7 +73,7 @@ local function fixture_status(state,n)
 end
 helix.ui.on("qualify_ready",function() fixture_status("ready",1) end)
 helix.ui.on("qualify_printing",function()
-    if session.request.request_id==string.rep("3",32) then fixture_eventtime=2000.25 end
+    if session.request.request_id==string.rep("3",32) then fixture_eventtime=9000.25 else fixture_eventtime=5000.25 end
     fixture_state="printing"; fixture_filename=session.request.file; fixture_status("printing",2)
 end)
 helix.ui.on("qualify_confirming",function()
@@ -89,7 +96,7 @@ helix.ui.on("qualify_fresh",function()
     local fresh=helix.json.decode([==[REQUEST]==])
     local newer=session and session.state=="cancelled"
     fresh.request_id=string.rep(newer and "5" or "3",32); fresh.origin_id=string.rep(newer and "6" or "4",32)
-    receive("fixture",{session=fresh,lease=fixture_lease})
+    receive("fixture",{session=fresh,lease={issued_eventtime=fixture_eventtime,expires_eventtime=fixture_eventtime+3600}})
 end)
 '''.replace('REQUEST',request).replace('LEASE',lease)
     with (target/'main.lua').open('a') as f:f.write(hook)
@@ -203,6 +210,9 @@ def viewport(entry,output,plugins):
         trigger(name,'printing',w,h);open_detail(name,w,h)
         require(value(name,'tp_cancel_on')==1 and read_storage(work)['start_intent']==intent,'Verified recovery lost cancellation or changed Start')
         trigger(name,'confirming',w,h);open_detail(name,w,h)
+        trigger(name,'fresh',w,h)
+        stable_storage(work,lambda s:s['request']['request_id']==REQUEST['request_id'],'Expired active session was replaced')
+        open_detail(name,w,h)
         require(value(name,'tc_choice_on')==0 and read_storage(work,state='confirming')['state']=='confirming','History lag became terminal or unlocked result')
         trigger(name,'complete',w,h);open_detail(name,w,h)
         require(value(name,'tc_choice_on')==1 and value(name,'tp_cancel_on')==0,'Confirmed success did not unlock result')
@@ -241,7 +251,7 @@ def viewport(entry,output,plugins):
         stable_storage(work,lambda s:'cancel_intent' not in s and s.get('state')=='printing','Back cancelled the job')
         tap(name,'orcacal__print_cancel',w,h);tap(name,'orcacal__confirm_cancel',w,h)
         cancel=read_storage(work,key='cancel_intent')['cancel_intent']
-        require(cancel['expires_eventtime']>cancel['eventtime'] and cancel['eventtime']>LEASE['issued_eventtime']+900,'Late cancellation was wrongly tied to Start expiry')
+        require(cancel['expires_eventtime']>cancel['eventtime'] and cancel['eventtime']>read_storage(work)['lease']['expires_eventtime'],'Late cancellation was wrongly tied to Start expiry')
         trigger(name,'complete',w,h);open_detail(name,w,h)
         require(value(name,'tc_choice_on')==0,'Cancelled job unlocked the picker')
         read_storage(work,state='cancelled')
