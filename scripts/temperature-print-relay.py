@@ -59,8 +59,8 @@ def read(path):
     if path.is_symlink() or not path.is_file() or path.stat().st_size>262144:raise ValueError('Bounded private JSON file required')
     return json.loads(path.read_text())
 
-def validate_grant(grant,payload,qualification,now):
-    required={'schema','founder_authorization_reference','authorized','native_screen_start_only','request_id','origin_id','context_sha256','file_sha256','file','file_bytes','printer','physical_printer_identity','printer_config_sha256','qualification_sha256','expires_at'}
+def validate_grant(grant,payload,qualification,now,*,allow_expired=False):
+    required={'schema','founder_authorization_reference','authorized','native_screen_start_only','request_id','origin_id','context_sha256','file_sha256','file','file_bytes','printer','physical_printer_identity','printer_config_sha256','qualification_sha256','moonraker_version','expires_at'}
     if not isinstance(grant,dict) or set(grant)!=required or grant['schema']!='helix-orca-physical-test-authorization/v1':raise ValueError('Exact private physical authorization required')
     if grant['authorized'] is not True or grant['native_screen_start_only'] is not True:raise ValueError('Physical test is not authorized')
     digest=hashlib.sha256(json.dumps(qualification,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
@@ -69,16 +69,17 @@ def validate_grant(grant,payload,qualification,now):
     if not isinstance(reference,str) or not reference.strip() or len(reference)>512:raise ValueError('Explicit Founder instruction reference required')
     for k in ('request_id','origin_id','context_sha256','file_sha256','file','file_bytes','printer'):
         if type(grant[k]) is not type(payload[k]) or grant[k]!=payload[k]:raise ValueError('Authorization request binding differs')
-    for k in ('physical_printer_identity','printer_config_sha256'):
+    for k in ('physical_printer_identity','printer_config_sha256','moonraker_version'):
         if grant[k]!=qualification[k]:raise ValueError('Authorization qualification binding differs')
-    if type(grant['expires_at']) is not int or not now<grant['expires_at']<=payload['expires_at']:raise ValueError('Authorization expired or exceeds request lifetime')
+    created=payload['expires_at']-payload['ttl_seconds']
+    if type(grant['expires_at']) is not int or not created<grant['expires_at']<=payload['expires_at'] or (not allow_expired and now>=grant['expires_at']):raise ValueError('Authorization expired or exceeds request lifetime')
     return copy.deepcopy(grant)
 
 def execute(args,outbox,qualification):
     if args.trusted_lan_ack!=transport.accepted.TRUSTED_LAN_ACK:raise ValueError('Existing trusted-LAN limitation acknowledgement required')
-    grant=validate_grant(read(args.founder_authorization),outbox['payload'],qualification,time.time())
+    grant=validate_grant(read(args.founder_authorization),outbox['payload'],qualification,time.time(),allow_expired=args.resume)
     if args.journal.exists()!=args.resume:raise ValueError('Existing journal requires --resume; a new run requires a new journal')
-    physical=transport.MoonrakerPrintAdapter(args.moonraker,args.expected_host,args.expected_version,
+    physical=transport.MoonrakerPrintAdapter(args.moonraker,args.expected_host,qualification['moonraker_version'],
         qualification['physical_printer_identity'],configuration_sha256=qualification['printer_config_sha256'],actions=True)
     artifacts=PrintArtifacts(args.communication_dir);events=PrintEvents(physical)
     if artifacts.read_json('outbox.json')!=outbox:raise ValueError('Originating Orca outbox differs')
@@ -122,15 +123,18 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--outbox',type=Path,required=True);p.add_argument('--qualification',type=Path,required=True)
     p.add_argument('--execute',action='store_true');p.add_argument('--resume',action='store_true');p.add_argument('--founder-authorization',type=Path)
-    p.add_argument('--moonraker');p.add_argument('--expected-host');p.add_argument('--expected-version')
+    p.add_argument('--moonraker');p.add_argument('--expected-host');p.add_argument('--expected-version',help='Optional compatibility assertion; must equal the qualification pin')
     p.add_argument('--communication-dir');p.add_argument('--journal',type=Path);p.add_argument('--trusted-lan-ack')
-    a=p.parse_args();outbox=controller.protocol.validate_outbox(read(a.outbox));qualification=read(a.qualification)
+    a=p.parse_args();raw=read(a.outbox)
+    validation_time=raw['payload']['expires_at']-raw['payload']['ttl_seconds'] if a.resume else time.time()
+    outbox=controller.protocol.validate_outbox(raw,now=validation_time);qualification=read(a.qualification)
     q=transport.lc.GcodeQualification.from_mapping(qualification)
-    q.assert_matches(transport.lc.BoundRequest.from_mapping(outbox['payload'],time.time()))
+    q.assert_matches(transport.lc.BoundRequest.from_mapping(outbox['payload'],validation_time))
     if not a.execute:
         print(json.dumps({'offline_preflight':True,'physical_actions':False,'qualified_duration_s':q.estimated_duration_s}));return
-    if not all((a.founder_authorization,a.moonraker,a.expected_host,a.expected_version,a.communication_dir,a.journal)):
+    if not all((a.founder_authorization,a.moonraker,a.expected_host,a.communication_dir,a.journal)):
         p.error('Execution requires separate explicit Founder authorization and every exact private target binding')
+    if a.expected_version is not None and a.expected_version!=qualification['moonraker_version']:raise ValueError('CLI version differs from reviewed qualification')
     execute(a,outbox,qualification)
 
 if __name__=='__main__':main()

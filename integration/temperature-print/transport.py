@@ -74,7 +74,7 @@ class MoonrakerPrintAdapter:
             raise lc.SafetyViolation('Printer job changed during snapshot')
         if time.monotonic()-began>5:raise lc.SafetyViolation('Printer snapshot exceeded its freshness bound')
         return lc.PrinterSnapshot(connected=True,ready=True,eventtime=final['eventtime'],state=current['state'],
-            filename=filename,job_id=job_id,start_time=start,queue_job_ids=queued,printer_identity=identity,configuration_sha256=self.expected_configuration)
+            filename=filename,job_id=job_id,start_time=start,queue_job_ids=queued,printer_identity=identity,configuration_sha256=self.expected_configuration,moonraker_version=server['moonraker_version'])
     def read_file_bytes(self,filename):
         lc._file_name(filename)
         request=Request(self.reader.base_url+'/server/files/gcodes/'+quote(filename,safe=''),headers=self.reader._headers('application/octet-stream'))

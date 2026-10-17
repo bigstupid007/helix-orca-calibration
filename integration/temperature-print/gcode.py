@@ -56,7 +56,10 @@ def inspect(data:bytes, filename:str):
         if any(not math.isfinite(v) for v in fields.values()): raise GcodeError('Non-finite motion or temperature')
         if cmd not in SAFE_COMMANDS: unresolved.add(cmd)
         if cmd=='PRINT_START':
-            start_arguments.append({k:float(v) for k,v in re.findall(r'([A-Za-z_]+)=('+NUMBER+r')',code)})
+            pairs=re.findall(r'([A-Za-z_]+)=('+NUMBER+r')',code[len(cmd):])
+            if not re.fullmatch(r'\s*(?:[A-Za-z_]+='+NUMBER+r'\s*)*',code[len(cmd):]) or len({k for k,v in pairs})!=len(pairs):
+                raise GcodeError('Duplicate or malformed PRINT_START arguments')
+            start_arguments.append({k:float(v) for k,v in pairs})
         if cmd in ('M140','M190'):
             if 'S' not in fields:raise GcodeError('Bed target unavailable')
             bed_targets.append(fields['S'])
@@ -103,7 +106,7 @@ def inspect(data:bytes, filename:str):
 def qualify(report, *, request, suitability):
     printer=request["printer"]
     """Bind reviewed private printer/filament/macro evidence, never infer suitability."""
-    required={'file_sha256','printer','filament_range_c','motion_bounds','macro_sources_sha256','native_export_verified','printer_config_sha256','physical_printer_identity','macro_safety_reviewed','printer_safety_reviewed','startup_estimated_duration_s','startup_estimate_basis','start_required_arguments','bed_range_c'}
+    required={'file_sha256','printer','filament_range_c','motion_bounds','macro_sources_sha256','native_export_verified','printer_config_sha256','physical_printer_identity','macro_safety_reviewed','printer_safety_reviewed','startup_estimated_duration_s','startup_estimate_basis','start_required_arguments','bed_range_c','moonraker_version'}
     if not isinstance(suitability,dict) or set(suitability)!=required: raise GcodeError('Suitability evidence unavailable')
     if suitability['macro_safety_reviewed'] is not True or suitability['printer_safety_reviewed'] is not True:
         raise GcodeError('Printer/macro safety review unavailable')
@@ -119,9 +122,14 @@ def qualify(report, *, request, suitability):
     total=report['estimated_duration_s']+allowance
     if not 600<=total<=1200:raise GcodeError('Combined estimate is outside the requested 10–20-minute target')
     starts=report['start_arguments']
-    if len(starts)!=1 or not set(suitability['start_required_arguments']).issubset(starts[0]):
+    if len(starts)!=1 or set(starts[0])!=set(suitability['start_required_arguments']) or set(starts[0])!={'BED_TEMP','EXTRUDER_TEMP'}:
         raise GcodeError('PRINT_START arguments do not match the reviewed printer macro')
     bed_low,bed_high=suitability['bed_range_c']
+    if not all(type(n) in (int,float) and math.isfinite(n) for n in (bed_low,bed_high)):
+        raise GcodeError('Reviewed bed range is unavailable')
+    if starts[0]['EXTRUDER_TEMP']!=CHOICES[0] or not bed_low<starts[0]['BED_TEMP']<=bed_high:
+        raise GcodeError('PRINT_START temperature values differ from qualified targets')
+    if any(v>0 and v!=starts[0]['BED_TEMP'] for v in report['bed_targets_c']):raise GcodeError('Explicit bed target differs from reviewed macro target')
     if any(not bed_low<=value<=bed_high for value in report['bed_targets_c']):raise GcodeError('Bed temperature exceeds reviewed bounds')
     if not report['within_first_test_limit']: raise GcodeError('Estimate exceeds the maximum 20 minutes')
     if not report['target_10_to_20_minutes']:raise GcodeError('Output is outside the requested 10–20-minute target')
@@ -139,7 +147,7 @@ def qualify(report, *, request, suitability):
     return {'schema':'helix-orca-temperature-gcode-qualification/v1',
         **{k:report[k] for k in ('file','file_bytes','file_sha256','choices','estimated_duration_s')},
         **{k:request[k] for k in ('request_id','origin_id','context_sha256')},
-        'physical_printer_identity':suitability['physical_printer_identity'],'printer_config_sha256':suitability['printer_config_sha256'],'band_count':3,'temperature_order_verified':True,
+        'moonraker_version':suitability['moonraker_version'],'physical_printer_identity':suitability['physical_printer_identity'],'printer_config_sha256':suitability['printer_config_sha256'],'band_count':3,'temperature_order_verified':True,
         'native_estimated_duration_s':report['estimated_duration_s'],'startup_estimated_duration_s':allowance,'estimated_duration_s':total,
         'printer':printer,'suitable':True,'geometry_verified':True,'temperature_commands_verified':True,
         'file_identity_verified':True,'inspection_sha256':hashlib.sha256(__import__('json').dumps(report,sort_keys=True).encode()).hexdigest(),

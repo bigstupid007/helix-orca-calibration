@@ -17,7 +17,7 @@ transport=load('print_transport_test',ROOT/'integration/temperature-print/transp
 
 class AdvancingFake(base.FakeAdapter):
     def snapshot(self):
-        sample=replace(self.current,printer_identity=base.PHYSICAL_PRINTER_IDENTITY,configuration_sha256=base.PRINTER_CONFIG_SHA256)
+        sample=replace(self.current,printer_identity=base.PHYSICAL_PRINTER_IDENTITY,configuration_sha256=base.PRINTER_CONFIG_SHA256,moonraker_version=base.MOONRAKER_VERSION)
         if self.last_snapshot_eventtime is not None:
             sample=replace(sample,eventtime=max(sample.eventtime,self.last_snapshot_eventtime+.1))
         self.last_snapshot_eventtime=sample.eventtime
@@ -157,10 +157,15 @@ class AuthorizationTests(unittest.TestCase):
         fields=('request_id','origin_id','context_sha256','file_sha256','file','file_bytes','printer')
         grant={k:p[k] for k in fields}
         grant.update(schema='helix-orca-physical-test-authorization/v1',founder_authorization_reference='SYNTHETIC TEST ONLY',authorized=True,native_screen_start_only=True,
-            physical_printer_identity=q['physical_printer_identity'],printer_config_sha256=q['printer_config_sha256'],expires_at=1900,
+            physical_printer_identity=q['physical_printer_identity'],printer_config_sha256=q['printer_config_sha256'],moonraker_version=q['moonraker_version'],expires_at=1900,
             qualification_sha256=hashlib.sha256(json.dumps(q,sort_keys=True,separators=(',',':')).encode()).hexdigest())
         self.assertEqual(runner.validate_grant(grant,p,q,1000),grant)
-        for key,bad in [('authorized',False),('native_screen_start_only',False),('qualification_sha256','f'*64),('file_sha256','f'*64),('expires_at',999)]:
+        for key,bad in [('authorized',False),('native_screen_start_only',False),('qualification_sha256','f'*64),('file_sha256','f'*64),('expires_at',999),('moonraker_version','changed')]:
             changed=dict(grant);changed[key]=bad
             with self.assertRaises(ValueError):runner.validate_grant(changed,p,q,1000)
         with self.assertRaises(ValueError):runner.validate_grant({'authorized':True},p,q,1000)
+
+        with self.assertRaises(ValueError):runner.validate_grant(grant,p,q,2000)
+        self.assertEqual(runner.validate_grant(grant,p,q,2000,allow_expired=True),grant)
+        changed=dict(grant,expires_at=p['expires_at']+1)
+        with self.assertRaises(ValueError):runner.validate_grant(changed,p,q,2000,allow_expired=True)

@@ -15,7 +15,7 @@ def generate(output):
     base.generate(output)  # verifies unchanged accepted sources; refuses overwrite
     root = ROOT/'integration/temperature-print'
     (output/'main.lua').write_bytes((base.BASE/'main.lua').read_bytes()+b'\n'+(root/'native.lua').read_bytes())
-    for name in ('orcacal__wizard.xml','orcacal__temperature.xml'):
+    for name in ('orcacal__wizard.xml','orcacal__temperature.xml','orcacal__cancel_confirmation.xml'):
         (output/'ui'/name).write_bytes((root/'ui'/name).read_bytes())
     manifest=json.loads((output/'manifest.json').read_text())
     manifest.update(version='0.4.0-issue12-readiness',description='Three-band Temperature readiness; storage intents only; physical authorization required.')

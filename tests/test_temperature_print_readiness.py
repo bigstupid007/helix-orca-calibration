@@ -72,3 +72,19 @@ class ArtifactGateTests(unittest.TestCase):
         r=gcode.inspect(sample()+b'PRINT_END\n','mini.gcode')
         self.assertEqual(r['unresolved_commands'],['PRINT_END'])
         with self.assertRaises(gcode.GcodeError):gcode.qualify(r,request={'printer':'Voron'},suitability={})
+
+    def test_start_macro_values_and_argument_ambiguity_are_rejected(self):
+        data=sample().replace(b'G90\n',b'PRINT_START BED_TEMP=60 EXTRUDER_TEMP=210\nG90\n')
+        r=gcode.inspect(data,'mini.gcode')
+        request={k:r[k] for k in ('file','file_bytes','file_sha256','choices')}
+        request.update(printer='Voron',request_id='1'*32,origin_id='2'*32,context_sha256='3'*64)
+        evidence=dict(file_sha256=r['file_sha256'],printer='Voron',filament_range_c=[200,230],motion_bounds={a:[0,300] for a in 'XYZ'},
+            macro_sources_sha256={'PRINT_START':'4'*64},native_export_verified=True,printer_config_sha256='5'*64,physical_printer_identity='6'*64,
+            macro_safety_reviewed=True,printer_safety_reviewed=True,startup_estimated_duration_s=0,startup_estimate_basis='SYNTHETIC TEST ONLY',
+            start_required_arguments=['BED_TEMP','EXTRUDER_TEMP'],bed_range_c=[0,60],moonraker_version='pinned')
+        self.assertTrue(gcode.qualify(r,request=request,suitability=evidence)['suitable'])
+        for args in ('BED_TEMP=150 EXTRUDER_TEMP=500','BED_TEMP=60 EXTRUDER_TEMP=500','BED_TEMP=0 EXTRUDER_TEMP=210','BED_TEMP=60 EXTRUDER_TEMP=205'):
+            bad=copy.deepcopy(r);bad['start_arguments']=[{k:float(v) for k,v in (a.split('=') for a in args.split())}]
+            with self.assertRaises(gcode.GcodeError):gcode.qualify(bad,request=request,suitability=evidence)
+        for args in (b'BED_TEMP=60 EXTRUDER_TEMP=210 EXTRUDER_TEMP=500',b'BED_TEMP=60 EXTRUDER_TEMP=210BAD'):
+            with self.assertRaises(gcode.GcodeError):gcode.inspect(data.replace(b'BED_TEMP=60 EXTRUDER_TEMP=210',args),'mini.gcode')

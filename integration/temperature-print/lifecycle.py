@@ -182,6 +182,7 @@ class GcodeQualification:
     printer: str
     physical_printer_identity: str
     printer_config_sha256: str
+    moonraker_version: str
     choices: tuple[int, int, int]
     estimated_duration_s: float
 
@@ -226,6 +227,7 @@ class GcodeQualification:
                 "qualification physical_printer_identity",
             ),
             printer_config_sha256=_hex(value.get("printer_config_sha256"), _HEX64, "printer_config_sha256"),
+            moonraker_version=_string(value.get("moonraker_version"), "reviewed Moonraker version", 128),
             choices=_choices(value.get("choices")),
             estimated_duration_s=duration,
         )
@@ -255,6 +257,7 @@ class GcodeQualification:
             "printer": self.printer,
             "physical_printer_identity": self.physical_printer_identity,
             "printer_config_sha256": self.printer_config_sha256,
+            "moonraker_version": self.moonraker_version,
             "choices": list(self.choices),
             "estimated_duration_s": self.estimated_duration_s,
         }
@@ -375,6 +378,7 @@ class PhysicalPermit:
     printer: str
     physical_printer_identity: str
     printer_config_sha256: str
+    moonraker_version: str
     nonce: str
     deadline_monotonic: float
 
@@ -401,6 +405,7 @@ class PhysicalPermit:
             self, "physical_printer_identity", qualification.physical_printer_identity
         )
         object.__setattr__(self, "printer_config_sha256", qualification.printer_config_sha256)
+        object.__setattr__(self, "moonraker_version", qualification.moonraker_version)
         object.__setattr__(self, "nonce", intent.nonce)
         object.__setattr__(self, "deadline_monotonic", deadline_monotonic)
 
@@ -437,6 +442,7 @@ class PhysicalPermit:
             "printer": request.printer,
             "physical_printer_identity": qualification.physical_printer_identity,
             "printer_config_sha256": qualification.printer_config_sha256,
+            "moonraker_version": qualification.moonraker_version,
             "nonce": intent.nonce,
         }
         for name, value in expected.items():
@@ -458,6 +464,7 @@ class PrinterSnapshot:
     queue_job_ids: tuple[str, ...] = ()
     printer_identity: Optional[str] = None
     configuration_sha256: Optional[str] = None
+    moonraker_version: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -651,6 +658,7 @@ class TemperaturePrintLifecycle:
             printer=value["printer"],
             physical_printer_identity=value["physical_printer_identity"],
             printer_config_sha256=value["printer_config_sha256"],
+            moonraker_version=value["moonraker_version"],
             choices=tuple(value["choices"]),
             estimated_duration_s=value["estimated_duration_s"],
         )
@@ -733,6 +741,8 @@ class TemperaturePrintLifecycle:
             raise SafetyViolation("physical printer identity does not match request")
         if _hex(sample.configuration_sha256, _HEX64, "snapshot configuration_sha256") != self._qualification_from_state().printer_config_sha256:
             raise SafetyViolation("reviewed printer configuration does not match qualification")
+        if sample.moonraker_version != self._qualification_from_state().moonraker_version:
+            raise SafetyViolation("Moonraker version differs from reviewed qualification")
         if not isinstance(sample.queue_job_ids, tuple) or any(
             not isinstance(item, str) or not item for item in sample.queue_job_ids
         ):

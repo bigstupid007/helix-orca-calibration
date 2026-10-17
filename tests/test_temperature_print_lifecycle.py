@@ -25,6 +25,7 @@ REQUEST_ID = "1" * 32
 ORIGIN_ID = "2" * 32
 CONTEXT_SHA = "3" * 64
 PRINTER = "Voron 2.4 300"
+MOONRAKER_VERSION = "v0.10.0-31-gd5ee171"
 PRINTER_CONFIG_SHA256 = "e" * 64
 PHYSICAL_PRINTER_IDENTITY = "4" * 64
 FILE = "mini-temperature-210-200.gcode"
@@ -75,6 +76,8 @@ class FakeAdapter:
         if self.snapshot_error:
             raise self.snapshot_error
         sample = self.snapshot_sequence.pop(0) if self.snapshot_sequence else self.current
+        if sample.moonraker_version is None:
+            sample = replace(sample, moonraker_version=MOONRAKER_VERSION)
         if sample.configuration_sha256 is None:
             sample = replace(sample, configuration_sha256=PRINTER_CONFIG_SHA256)
         if sample.printer_identity is None:
@@ -201,6 +204,7 @@ def qualification(**updates):
         "printer": PRINTER,
         "physical_printer_identity": PHYSICAL_PRINTER_IDENTITY,
         "printer_config_sha256": PRINTER_CONFIG_SHA256,
+        "moonraker_version": MOONRAKER_VERSION,
         "choices": [210, 205, 200],
         "band_count": 3,
         "estimated_duration_s": 900,

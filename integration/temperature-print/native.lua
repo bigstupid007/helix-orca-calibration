@@ -56,11 +56,11 @@ local function valid(r)
 end
 local messages = {
     received="Not authorized for a physical test · nothing started",
-    ready="Three bands · 210 → 205 → 200°C · press Start here when ready",
+    ready="Authorized · 210 / 205 / 200°C",
     starting="Start requested · waiting for the printer to confirm",
     confirming="Print ended · verifying successful completion",
     recovering="Reconnecting · waiting for verified printer state",
-    printing="Printing · result selection stays locked until success is confirmed",
+    printing="Printing · use the Helix Print screen for progress; result stays locked",
     cancelling="Cancellation requested · waiting for the printer to confirm",
     complete="Print completed successfully · choose the best temperature band",
     failed="Print failed · result unavailable",
@@ -75,7 +75,11 @@ local function render()
     choice:set(session and session.state=="complete" and session.proof and 1 or 0)
     waiting:set(session and session.state=="waiting" and 1 or 0)
     returned:set(session and session.state=="returned" and 1 or 0)
-    status:set(session and messages[session.state] or "")
+    local message=session and messages[session.state] or ""
+    if session and session.state=="ready" and finite(session.estimated_duration_s) then
+        message=message.." · Estimate "..math.ceil(session.estimated_duration_s/60).." min · Start here"
+    end
+    status:set(message)
 end
 local function persist()
     local ok = pcall(helix.storage.set,"print_session",session)
@@ -189,6 +193,7 @@ local function update(_,data)
     elseif data.state=="cancelling" then
         if not session.cancel_intent then return end
     elseif data.state=="received" or data.state=="returned" or data.state=="waiting" then return end
+    if data.state=="ready" then session.estimated_duration_s=data.estimated_duration_s end
     session.status_sequence=data.sequence; session.state=data.state; session.recovery_required=false
     persist(); render()
 end
@@ -210,7 +215,8 @@ helix.ui.on("print_start",function()
     session.start_intent=intent("helix-orca-temperature-start/v1",t)
     session.state="starting"; persist(); render()
 end)
-helix.ui.on("print_cancel",function()
+local cancel_handle=nil
+local function commit_cancel()
     if not session or session.state~="printing" or session.cancel_intent then return end
     if query_busy then return end
     local t,state,name=clock()
@@ -219,7 +225,13 @@ helix.ui.on("print_cancel",function()
     end
     session.cancel_intent=intent("helix-orca-temperature-cancel/v1",t)
     session.state="cancelling"; persist(); render()
+    if cancel_handle then cancel_handle.close(); cancel_handle=nil end
+end
+helix.ui.on("print_cancel",function()
+    if not session or session.state~="printing" or session.cancel_intent or cancel_handle then return end
+    cancel_handle=helix.ui.overlay("orcacal__cancel_confirmation",{on_close=function() cancel_handle=nil end})
 end)
+helix.ui.on("confirm_cancel",commit_cancel)
 helix.ui.on("return_selection",function()
     if not session or session.state~="complete" or not session.proof or session.cancel_intent then return end
     if query_busy then return end
@@ -248,10 +260,29 @@ local function acknowledgement(_,data)
 end
 helix.moonraker.on_agent_event(ACK_EVENT,acknowledgement)
 -- Reload/restart cannot redispatch, re-enable Start, or restore unconfirmed success.
+local function valid_stored_result(r,request)
+    if type(r)~="table" or r.schema~="helix-orca-temperature-print-selection/v1"
+        or r.physical_calibration~=true or r.not_applied~=true
+        or not text(r.job_id,64) or not hex(r.completion_sha256,64)
+        or (r.value~=210 and r.value~=205 and r.value~=200) then return false end
+    for _,k in ipairs({"request_id","origin_id","context_sha256","file_sha256","file","file_bytes","setting"}) do
+        if r[k]~=request[k] then return false end
+    end
+    return true
+end
 local ok,stored=pcall(helix.storage.get,"print_session")
-if ok and type(stored)=="table" and valid(stored.request) then
-    session=stored; session.state="recovering"; session.proof=nil
-    session.recovery_required=true; show(session.request)
+if ok and type(stored)=="table" and valid(stored.request) and type(stored.lease)=="table"
+    and finite(stored.lease.issued_eventtime) and finite(stored.lease.expires_eventtime) then
+    session=stored
+    if stored.state=="failed" or stored.state=="cancelled" then
+        session.proof=nil; session.recovery_required=false
+    elseif (stored.state=="returned" or stored.state=="waiting") and valid_stored_result(stored.result,stored.request) then
+        session.proof={job_id=stored.result.job_id,completion_sha256=stored.result.completion_sha256}
+        session.recovery_required=false; selected:set(stored.result.value.."°C")
+    else
+        session.state="recovering"; session.proof=nil; session.recovery_required=true
+    end
+    show(session.request)
 end
 -- Missing/disconnected printer data and expired requests lock all actions.
 helix.timer.every(1000,function()
