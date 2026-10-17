@@ -326,13 +326,17 @@ heating, motion, homing, macro execution or other consequential printer action**
 Separate explicit Founder review and physical-test authorization remain required.
 No merge, deployment or production enablement is authorized.
 
-Use exactly THREE native Orca Temperature bands; illustrative PLA values are
-210/205/200°C bottom to top, subject to the actual filament. Target 10–20 minutes;
-a proposed first-test estimate above 1200 seconds is disqualified. Missing
-filament, geometry, macro safety or duration evidence blocks physical readiness.
-Normal native Orca preparation/slicing/export is allowed in the qualified
-isolated October 15 nightly; never generate custom or hand-edited print G-code.
-Alpha remains secondary only, with no physical adoption.
+The direct Founder correction on 2026-10-17 supersedes earlier AI constraints:
+exactly THREE native Orca Temperature bands **225/220/215°C bottom to top**;
+confirmed filament, normal nozzle **220°C**. Remove the hard 20-minute ceiling,
+combined-time qualification requirement and spool-label approval checkpoint.
+Print-time estimates are reported information, not duration gates. Preserve
+request freshness, job monitoring, cancellation and failure recovery; do not fail
+a healthy job merely because it exceeds the native estimate. Native Orca
+preparation/slicing/export in the isolated October 15 nightly remains allowed;
+no custom generator or hand-edited print G-code. Update the same Issue #12 /
+PR #13 and return it reviewed, unmerged, ready for Founder Review. Physical
+execution remains separately authorized. Alpha has no physical adoption.
 
 Preserve all accepted sources/evidence, original profile context, normal Orca,
 private payloads and the existing mock harness. New `temperature-print`

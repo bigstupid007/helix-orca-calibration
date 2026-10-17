@@ -26,15 +26,13 @@ QUALIFICATION_SCHEMA = "helix-orca-temperature-gcode-qualification/v1"
 START_SCHEMA = "helix-orca-temperature-start/v1"
 JOURNAL_SCHEMA = "helix-orca-temperature-print-journal/v1"
 COMPLETION_PROOF_SCHEMA = "helix-orca-temperature-completion-proof/v1"
-CHOICES = (210, 205, 200)
+CHOICES = (225, 220, 215)
 MAX_FILE_BYTES = 20 * 1024 * 1024
-MAX_ESTIMATED_DURATION_S = 20 * 60
 MAX_REQUEST_TTL_S = 60 * 60
 MAX_START_LIFETIME_S = 15 * 60
 START_CONFIRMATION_TIMEOUT_S = 30.0
 COMPLETION_CONFIRMATION_TIMEOUT_S = 30.0
 CANCEL_CONFIRMATION_TIMEOUT_S = 30.0
-RUN_OVERRUN_GRACE_S = 5 * 60
 
 _HEX32 = re.compile(r"^[0-9a-f]{32}$")
 _HEX64 = re.compile(r"^[0-9a-f]{64}$")
@@ -99,7 +97,7 @@ def _choices(value: Any) -> tuple[int, int, int]:
         raise ValidationError("choices must be the exact three-band sequence")
     converted = tuple(value)
     if converted != CHOICES:
-        raise ValidationError("choices must be exactly [210, 205, 200]")
+        raise ValidationError("choices must be exactly [225, 220, 215]")
     return CHOICES
 
 
@@ -205,10 +203,6 @@ class GcodeQualification:
         duration = _finite_number(
             value.get("estimated_duration_s"), "estimated_duration_s", 0.001
         )
-        if duration > MAX_ESTIMATED_DURATION_S:
-            raise ValidationError("qualified duration exceeds the 20-minute maximum")
-        if duration < 600:
-            raise ValidationError("qualified duration is below the requested 10-minute target")
         return cls(
             request_id=_hex(value.get("request_id"), _HEX32, "qualification request_id"),
             origin_id=_hex(value.get("origin_id"), _HEX32, "qualification origin_id"),
@@ -947,11 +941,6 @@ class TemperaturePrintLifecycle:
             owned_filename=history.filename,
             owned_job_id=history.job_id,
             owned_start_time=history.start_time,
-            run_deadline_monotonic=(
-                now_mono
-                + self._qualification_from_state().estimated_duration_s
-                + RUN_OVERRUN_GRACE_S
-            ),
         )
 
     def _completion_proof(
@@ -999,8 +988,8 @@ class TemperaturePrintLifecycle:
         return None
 
     def _observe_running(self, sample: PrinterSnapshot, now_mono: float) -> None:
-        if now_mono > self._state["run_deadline_monotonic"]:
-            self._fail("failed", "print exceeded the bounded monitoring timeout")
+        if self.wall_time() >= self._request_from_state().expires_at:
+            self._fail("failed", "monitoring request expired; fresh result unavailable")
             return
         if sample.state == "printing":
             if not self._same_owned_job(sample):

@@ -25,7 +25,7 @@ local selected = helix.subject.string("tc_returned_value", "")
 local session = nil
 local detail_handle = nil
 local wizard_handle = nil
-local choices = {210,205,200}
+local choices = {225,220,215}
 local identity_keys = {"request_id","origin_id","context_sha256","file_sha256","file","file_bytes","printer"}
 local function finite(n) return type(n)=="number" and n==n and n>-math.huge and n<math.huge end
 local function hex(s,n) return type(s)=="string" and #s==n and s:match("^[0-9a-f]+$")~=nil end
@@ -56,7 +56,7 @@ local function valid(r)
 end
 local messages = {
     received="Not authorized for a physical test · nothing started",
-    ready="Authorized · 210 / 205 / 200°C",
+    ready="Authorized · 225 / 220 / 215°C",
     starting="Start requested · waiting for the printer to confirm",
     confirming="Print ended · verifying successful completion",
     recovering="Reconnecting · waiting for verified printer state",
@@ -173,7 +173,7 @@ local function update(_,data)
     if data.state=="ready" then
         if (session.state~="received" and session.state~="recovering") or session.start_intent or data.authorized~=true
             or t>=session.lease.issued_eventtime+900
-            or not finite(data.estimated_duration_s) or data.estimated_duration_s<=0 or data.estimated_duration_s>1200
+            or not finite(data.estimated_duration_s) or data.estimated_duration_s<=0
             or (state~="standby" and state~="complete" and state~="cancelled") then return end
     elseif data.state=="printing" then
         if not session.start_intent or state~="printing" or name~=session.request.file
@@ -264,7 +264,7 @@ local function valid_stored_result(r,request)
     if type(r)~="table" or r.schema~="helix-orca-temperature-print-selection/v1"
         or r.physical_calibration~=true or r.not_applied~=true
         or not text(r.job_id,64) or not hex(r.completion_sha256,64)
-        or (r.value~=210 and r.value~=205 and r.value~=200) then return false end
+        or (r.value~=225 and r.value~=220 and r.value~=215) then return false end
     for _,k in ipairs({"request_id","origin_id","context_sha256","file_sha256","file","file_bytes","setting"}) do
         if r[k]~=request[k] then return false end
     end

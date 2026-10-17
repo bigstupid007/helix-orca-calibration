@@ -41,7 +41,7 @@
         <bind_flag_if_eq subject="orcacal__tc_active_on" flag="hidden" ref_value="0"/>
       </text_small>
       <lv_dropdown name="orcacal__temperature_selector"
-                   options="210°C&#10;205°C&#10;200°C"
+                   options="225°C&#10;220°C&#10;215°C"
                    bind_value="orcacal__tc_choice_idx" width="100%">
         <bind_flag_if_eq subject="orcacal__tc_choice_on" flag="hidden" ref_value="0"/>
       </lv_dropdown>

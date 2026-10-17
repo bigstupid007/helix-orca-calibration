@@ -31,7 +31,7 @@ class ControllerTests(unittest.TestCase):
             target=original.target();target['printer']=target['printer'].copy()
             target['printer']['selected_saved']=dict(target['printer']['selected_saved'],name=base.PRINTER)
             state.start_new(target)
-            file={'name':base.FILE,'size':len(base.FILE_DATA),'sha256':base.FILE_SHA,'bands':[210,205,200]}
+            file={'name':base.FILE,'size':len(base.FILE_DATA),'sha256':base.FILE_SHA,'bands':[225,220,215]}
             state.select_file(file,controller.protocol.validate_print_temperature_file);state.send()
             outbox=json.loads((Path(d)/'print-readiness/outbox.json').read_text());p=outbox['payload']
             qual=base.qualification(**{k:p[k] for k in ('request_id','origin_id','context_sha256')})
@@ -49,9 +49,9 @@ class ControllerTests(unittest.TestCase):
                 adapter.show_printing();ctl.step(native);self.assertFalse(c.status().result_available)
                 adapter.show_complete();ctl.step(native);self.assertTrue(c.status().result_available)
                 native['print_session']['result']={k:p[k] for k in ('request_id','origin_id','context_sha256','file_sha256','file','file_bytes','setting','physical_calibration','not_applied')}
-                native['print_session']['result'].update(schema=controller.protocol.RESULT_SCHEMA,value=205,job_id=c.status().job_id,completion_sha256=c.status().completion_proof_sha256)
+                native['print_session']['result'].update(schema=controller.protocol.RESULT_SCHEMA,value=220,job_id=c.status().job_id,completion_sha256=c.status().completion_proof_sha256)
                 ctl.step(native);state.poll_inbox()
-                self.assertEqual(state.instructions['status'],'NOT APPLIED');self.assertEqual(state.instructions['selected_value'],205)
+                self.assertEqual(state.instructions['status'],'NOT APPLIED');self.assertEqual(state.instructions['selected_value'],220)
                 self.assertEqual(state.target,target)
                 receipt=json.loads((Path(d)/'print-readiness/receipt.json').read_text())
                 ctl.acknowledge(receipt)
@@ -109,7 +109,7 @@ class ControllerBoundaryTests(unittest.TestCase):
         t=original.target();t['printer']['selected_saved']['name']=base.PRINTER
         self.state=controller.protocol.TemperatureCommunicationState(self.root,now=self.clock.wall_time)
         self.state.start_new(t)
-        self.state.select_file({'name':base.FILE,'size':len(base.FILE_DATA),'sha256':base.FILE_SHA,'bands':[210,205,200]},controller.protocol.validate_print_temperature_file)
+        self.state.select_file({'name':base.FILE,'size':len(base.FILE_DATA),'sha256':base.FILE_SHA,'bands':[225,220,215]},controller.protocol.validate_print_temperature_file)
         self.state.send();self.outbox=json.loads((self.root/'print-readiness/outbox.json').read_text());self.p=self.outbox['payload']
         self.qual=base.qualification(**{k:self.p[k] for k in ('request_id','origin_id','context_sha256')})
         self.c=self.coordinator()

@@ -8,8 +8,7 @@ import hashlib
 import math
 import re
 
-CHOICES = [210, 205, 200]
-MAX_ESTIMATED_SECONDS = 1200
+CHOICES = [225, 220, 215]
 NUMBER = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)"
 SAFE_COMMANDS = frozenset(('G0','G1','G4','G21','G28','G90','G91','G92','M82','M83','M84','M104','M106','M107','M109','M117','M140','M190','M201','M203','M204','M205','M220','M221','M73','M400','M900'))
 
@@ -98,15 +97,14 @@ def inspect(data:bytes, filename:str):
     if any(spans[i]['max_z']>spans[i+1]['min_z'] for i in (0,1)): raise GcodeError('Temperature bands overlap or reverse in Z')
     return {'schema':'helix-orca-temperature-gcode-inspection/v1','file':filename,'file_bytes':len(data),
         'file_sha256':hashlib.sha256(data).hexdigest(),'choices':list(CHOICES),
-        'estimated_duration_s':duration,'within_first_test_limit':duration<=MAX_ESTIMATED_SECONDS,
-        'target_10_to_20_minutes':600<=duration<=1200,'bands':spans,
+        'estimated_duration_s':duration,'estimate_basis':'native Orca normal-mode estimate; macro overhead not included','bands':spans,
         'motion_bounds':{a:[min(p[a] for p in points if p[a] is not None),max(p[a] for p in points if p[a] is not None)] for a in 'XYZ'},
         'unresolved_commands':sorted(unresolved),'start_arguments':start_arguments,'bed_targets_c':sorted(set(bed_targets)),'physical_ready':False}
 
 def qualify(report, *, request, suitability):
     printer=request["printer"]
     """Bind reviewed private printer/filament/macro evidence, never infer suitability."""
-    required={'file_sha256','printer','filament_range_c','motion_bounds','macro_sources_sha256','native_export_verified','printer_config_sha256','physical_printer_identity','macro_safety_reviewed','printer_safety_reviewed','startup_estimated_duration_s','startup_estimate_basis','start_required_arguments','bed_range_c','moonraker_version'}
+    required={'file_sha256','printer','filament_range_c','motion_bounds','macro_sources_sha256','native_export_verified','printer_config_sha256','physical_printer_identity','macro_safety_reviewed','printer_safety_reviewed','start_required_arguments','bed_range_c','moonraker_version'}
     if not isinstance(suitability,dict) or set(suitability)!=required: raise GcodeError('Suitability evidence unavailable')
     if suitability['macro_safety_reviewed'] is not True or suitability['printer_safety_reviewed'] is not True:
         raise GcodeError('Printer/macro safety review unavailable')
@@ -115,12 +113,9 @@ def qualify(report, *, request, suitability):
         if request[key]!=report[key]:raise GcodeError('Request differs from inspected native file')
     if suitability['file_sha256']!=report['file_sha256'] or suitability['printer']!=printer or suitability['native_export_verified'] is not True:
         raise GcodeError('Suitability provenance mismatch')
-    allowance=suitability['startup_estimated_duration_s']
-    basis=suitability['startup_estimate_basis']
-    if type(allowance) not in (int,float) or not math.isfinite(allowance) or allowance<0 or not isinstance(basis,str) or not basis.strip():
-        raise GcodeError('Opaque macro/startup estimate is unavailable')
-    total=report['estimated_duration_s']+allowance
-    if not 600<=total<=1200:raise GcodeError('Combined estimate is outside the requested 10–20-minute target')
+    duration=report.get('estimated_duration_s')
+    if type(duration) not in (int,float) or not math.isfinite(duration) or duration<=0:
+        raise GcodeError('Native print-time estimate is unavailable or malformed')
     starts=report['start_arguments']
     if len(starts)!=1 or set(starts[0])!=set(suitability['start_required_arguments']) or set(starts[0])!={'BED_TEMP','EXTRUDER_TEMP'}:
         raise GcodeError('PRINT_START arguments do not match the reviewed printer macro')
@@ -131,10 +126,8 @@ def qualify(report, *, request, suitability):
         raise GcodeError('PRINT_START temperature values differ from qualified targets')
     if any(v>0 and v!=starts[0]['BED_TEMP'] for v in report['bed_targets_c']):raise GcodeError('Explicit bed target differs from reviewed macro target')
     if any(not bed_low<=value<=bed_high for value in report['bed_targets_c']):raise GcodeError('Bed temperature exceeds reviewed bounds')
-    if not report['within_first_test_limit']: raise GcodeError('Estimate exceeds the maximum 20 minutes')
-    if not report['target_10_to_20_minutes']:raise GcodeError('Output is outside the requested 10–20-minute target')
     low,high=suitability['filament_range_c']
-    if not all(type(n) in (int,float) and math.isfinite(n) for n in (low,high)) or not low<=200<=210<=high:
+    if not all(type(n) in (int,float) and math.isfinite(n) for n in (low,high)) or not low<=min(CHOICES)<=max(CHOICES)<=high:
         raise GcodeError('Filament suitability is unqualified')
     if not re.fullmatch('[a-f0-9]{64}',suitability['printer_config_sha256']): raise GcodeError('Printer configuration unqualified')
     sources=suitability['macro_sources_sha256']
@@ -148,7 +141,7 @@ def qualify(report, *, request, suitability):
         **{k:report[k] for k in ('file','file_bytes','file_sha256','choices','estimated_duration_s')},
         **{k:request[k] for k in ('request_id','origin_id','context_sha256')},
         'moonraker_version':suitability['moonraker_version'],'physical_printer_identity':suitability['physical_printer_identity'],'printer_config_sha256':suitability['printer_config_sha256'],'band_count':3,'temperature_order_verified':True,
-        'native_estimated_duration_s':report['estimated_duration_s'],'startup_estimated_duration_s':allowance,'estimated_duration_s':total,
+        'native_estimated_duration_s':duration,'estimate_basis':'native Orca normal-mode estimate; macro overhead not included',
         'printer':printer,'suitable':True,'geometry_verified':True,'temperature_commands_verified':True,
         'file_identity_verified':True,'inspection_sha256':hashlib.sha256(__import__('json').dumps(report,sort_keys=True).encode()).hexdigest(),
         'suitability_sha256':hashlib.sha256(__import__('json').dumps(suitability,sort_keys=True).encode()).hexdigest()}

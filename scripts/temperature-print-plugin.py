@@ -18,7 +18,7 @@ def generate(output):
     for name in ('orcacal__wizard.xml','orcacal__temperature.xml','orcacal__cancel_confirmation.xml'):
         (output/'ui'/name).write_bytes((root/'ui'/name).read_bytes())
     manifest=json.loads((output/'manifest.json').read_text())
-    manifest.update(version='0.4.0-issue12-readiness',description='Three-band Temperature readiness; storage intents only; physical authorization required.')
+    manifest.update(version='0.4.1-issue12-corrected',description='Three-band Temperature readiness; storage intents only; physical authorization required.')
     (output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     (output/base.MARKER_NAME).unlink()
     (output/'.helix-orca-print-generated.json').write_text(json.dumps({'schema':'helix-orca-temperature-print-generated/v1','physical_activation':False})+'\n')

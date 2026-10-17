@@ -20,13 +20,13 @@ pgen=load('print_native_generator',ROOT/'scripts/temperature-print-plugin.py')
 REQUEST=dict(q.VALID_REQUEST)
 REQUEST.pop('simulation_only')
 REQUEST.update(schema='helix-orca-temperature-print-session/v1',physical_calibration=True,
-               choices=[210,205,200],file='miniature-temperature-210-200.gcode',ttl_seconds=3600,
+               choices=[225,220,215],file='miniature-temperature-225-215.gcode',ttl_seconds=3600,
                file_bytes=200000,file_sha256='a'*64,context_sha256='b'*64)
 LEASE={'issued_eventtime':1000.0,'expires_eventtime':4600.0}
 ASSERTIONS=['accepted-shell-loads','receive-never-starts','picker-locked-before-success',
     'authorized-ready-needs-native-start','native-start-persists-once','rpc-ack-does-not-unlock',
     'matching-printing-keeps-picker-locked','restart-never-redispatches-and-recovers-verified-state','history-lag-stays-nonterminal','independent-success-enables-three-choices',
-    'native-205-result-has-completion-proof','original-context-preserved','native-back-and-horizontal-fit','terminal-session-retires-with-replay-tombstone','waiting-result-survives-restart-and-exact-ack','cancel-confirmation-and-late-cancel-remain-guarded','cancelled-restart-allows-fresh-request-without-cleanup']
+    'native-220-result-has-completion-proof','original-context-preserved','native-back-and-horizontal-fit','terminal-session-retires-with-replay-tombstone','waiting-result-survives-restart-and-exact-ack','cancel-confirmation-and-late-cancel-remain-guarded','cancelled-restart-allows-fresh-request-without-cleanup']
 SOURCES=['scripts/temperature-print-plugin.py','scripts/temperature-print-qualify.py',
 'integration/temperature-print/native.lua','integration/temperature-print/ui/orcacal__temperature.xml',
 'integration/temperature-print/ui/orcacal__wizard.xml','integration/temperature-print/ui/orcacal__cancel_confirmation.xml','scripts/temperature-print-companion.py',
@@ -60,7 +60,7 @@ end)
 local function fixture_status(state,n)
     n=math.max(n,(session.status_sequence or 0)+1)
     local d={schema="helix-orca-temperature-print-status/v1",state=state,sequence=n,eventtime=fixture_eventtime,
-        authorized=true,estimated_duration_s=900,job_id="000001",completion_sha256=string.rep("c",64)}
+        authorized=true,estimated_duration_s=1501,job_id="000001",completion_sha256=string.rep("c",64)}
     for _,k in ipairs(identity_keys) do d[k]=session.request[k] end
     update("fixture",d)
 end
@@ -104,7 +104,7 @@ end)
 def settings(path):
     q.seed_settings(path)
     s=json.loads((path/'settings-test.json').read_text())
-    s['plugins']['enabled']['orcacal']['version']='0.4.0-issue12-readiness'
+    s['plugins']['enabled']['orcacal']['version']='0.4.1-issue12-corrected'
     widgets=s['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']
     keep=[w for w in widgets if w['id']=='orcacal__tile' or not w['enabled']]
     for i,action in enumerate(('request','ready','printing','confirming','complete','ack','fresh')):
@@ -211,7 +211,7 @@ def viewport(entry,output,plugins):
         a._screenshot(name,work,'completed.png')
         tap(name,'orcacal__return_selection',w,h)
         s=read_storage(work,key='result',state='waiting')
-        require(s['result']['value']==205 and s['result']['job_id']=='000001' and s['result']['completion_sha256']=='c'*64,'Result proof invalid')
+        require(s['result']['value']==220 and s['result']['job_id']=='000001' and s['result']['completion_sha256']=='c'*64,'Result proof invalid')
         require(s['request']==REQUEST,'Original context changed')
         a.json_write(work/'selection.json',s['result'])
         a._screenshot(name,work,'returning.png')

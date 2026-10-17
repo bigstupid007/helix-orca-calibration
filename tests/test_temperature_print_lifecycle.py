@@ -19,7 +19,7 @@ sys.modules[SPEC.name] = lifecycle
 SPEC.loader.exec_module(lifecycle)
 
 
-FILE_DATA = b"; miniature temperature tower\nM104 S210\nM104 S205\nM104 S200\n"
+FILE_DATA = b"; miniature temperature tower\nM104 S225\nM104 S220\nM104 S215\n"
 FILE_SHA = hashlib.sha256(FILE_DATA).hexdigest()
 REQUEST_ID = "1" * 32
 ORIGIN_ID = "2" * 32
@@ -28,7 +28,7 @@ PRINTER = "Voron 2.4 300"
 MOONRAKER_VERSION = "v0.10.0-31-gd5ee171"
 PRINTER_CONFIG_SHA256 = "e" * 64
 PHYSICAL_PRINTER_IDENTITY = "4" * 64
-FILE = "mini-temperature-210-200.gcode"
+FILE = "mini-temperature-225-215.gcode"
 
 
 class Clock:
@@ -184,7 +184,7 @@ def request(**updates):
         "file": FILE,
         "file_bytes": len(FILE_DATA),
         "printer": PRINTER,
-        "choices": [210, 205, 200],
+        "choices": [225, 220, 215],
         "expires_at": 4_600,
         "ttl_seconds": 3_600,
     }
@@ -205,7 +205,7 @@ def qualification(**updates):
         "physical_printer_identity": PHYSICAL_PRINTER_IDENTITY,
         "printer_config_sha256": PRINTER_CONFIG_SHA256,
         "moonraker_version": MOONRAKER_VERSION,
-        "choices": [210, 205, 200],
+        "choices": [225, 220, 215],
         "band_count": 3,
         "estimated_duration_s": 900,
         "suitable": True,
@@ -228,7 +228,7 @@ def start_intent(**updates):
         "file": FILE,
         "file_bytes": len(FILE_DATA),
         "printer": PRINTER,
-        "choices": [210, 205, 200],
+        "choices": [225, 220, 215],
         "nonce": REQUEST_ID + ":100000000",
         "eventtime": 100.0,
         "expires_eventtime": 1_000.0,
@@ -288,15 +288,27 @@ class TemperaturePrintLifecycleTests(unittest.TestCase):
         self.assertEqual(self.adapter.start_calls, [])
         self.assertFalse(status.result_available)
 
-    def test_qualification_rejects_duration_over_twenty_minutes(self):
-        with self.assertRaises(lifecycle.ValidationError):
-            self.bind(qualification_value=qualification(estimated_duration_s=1_200.01))
+    def test_qualification_reports_duration_without_a_print_length_gate(self):
+        for duration in (60,1200,1200.01,3600):
+            qualified=lifecycle.GcodeQualification.from_mapping(qualification(estimated_duration_s=duration))
+            self.assertEqual(qualified.estimated_duration_s,duration)
+        for duration in (0,-1,True,float('nan'),float('inf')):
+            with self.assertRaises(lifecycle.ValidationError):
+                lifecycle.GcodeQualification.from_mapping(qualification(estimated_duration_s=duration))
         self.assertEqual(self.adapter.start_calls, [])
-        self.assertFalse(self.path.exists())
+
+    def test_healthy_correlated_job_can_exceed_its_native_estimate(self):
+        self.dispatch();self.confirm_printing()
+        self.clock.mono=2000
+        self.clock.wall=2500
+        self.adapter.current=replace(self.adapter.current,eventtime=2001)
+        status=self.coordinator.poll()
+        self.assertEqual(status.phase,'printing')
+        self.assertFalse(status.result_available)
 
     def test_requires_exact_three_descending_choices_and_verified_suitability(self):
         with self.assertRaises(lifecycle.ValidationError):
-            self.bind(request_value=request(choices=[200, 205, 210]))
+            self.bind(request_value=request(choices=[215, 220, 225]))
         with self.assertRaises(lifecycle.ValidationError):
             self.bind(qualification_value=qualification(suitable=False))
         self.assertEqual(self.adapter.start_calls, [])
