@@ -379,23 +379,25 @@ merge, main verification and Issue #10 closure. Alpha physical integration and
 production adoption remain unauthorized; see [acceptance](ISSUE_10_ACCEPTANCE.md).
 
 
-## Issue #12 offline first-print findings
+## Issue #12 corrected native investigation
 
-Exact October 15 native Temperature generation supports inclusive descending
-210/205/200°C bands and clips standard Cartesian geometry to approximately
-30 mm high. The initial actual native 0.20 mm slice estimates 25m17s; three
-bands alone do not meet the 20-minute bound. Native uniform 70% scale and
-unsaved 0.28 mm layers produce 75 layers with three equal 25-layer bands and
-a 12m00s model estimate. The final export uses native
-`PRINT_START BED_TEMP=60 EXTRUDER_TEMP=210`; earlier incompatible ABI output
-is rejected. Cold-start overhead remains unqualified. Actual records are
-summarized in [the readiness report](TEMPERATURE_PRINT_READINESS.md).
+The direct Founder correction of 2026-10-17 controls exactly three bands:
+225/220/215°C bottom to top, with confirmed filament and normal nozzle 220°C.
+Earlier 210/205/200°C exports and the AI-generated timing/label constraints are
+superseded; historical evidence remains under `docs/evidence/issue-12/history/`.
+The corrected actual native export, transitions, geometry, macro ABI, identity
+and estimate remain pending the existing Windows worker restart; current status is recorded in [Windows qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md)
+and [readiness](TEMPERATURE_PRINT_READINESS.md).
 
-Read-only existing-target inspection confirms the accepted Moonraker version,
-ready/standby state, empty paused queue, live history and 0.4 mm nozzle. Its
-cold PRINT_START macro includes homing, QGL, bed/hotend waits and purge; opaque
-macro time must not silently disappear from the proposed duration. Primary
-MCU CAN identity and host MACs are available; CPU serial is unavailable. Raw
-configuration and physical identity remain private. Saved profile identity
-alone cannot prove physical-machine suitability. Successful history uses
+Native preparation uses the existing Temperature tool and normal slicing/export;
+no custom generator or exported-file edit is used. The physical macro expects
+`PRINT_START BED_TEMP=60 EXTRUDER_TEMP=225`. Existing QGL, saved 60°C mesh and
+exclude-object support were reviewed read-only. Native time excludes opaque
+printer-macro activity, which is an estimate limitation rather than a combined
+qualification gate. No print-length threshold is imposed.
+
+Read-only refresh confirms unchanged reviewed machine/configuration and accepted
+Moonraker version, idle state and empty queue. Successful history uses
 `completed`; print_stats uses `complete`; start RPC success proves neither.
+No physical action occurred. Original profile identity remains distinct from
+physical-machine binding, and returned instructions remain NOT APPLIED.

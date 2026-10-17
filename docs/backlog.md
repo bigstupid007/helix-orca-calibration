@@ -244,11 +244,13 @@ application, broader hardware operation or security/access expansion is included
 ## Issue #12 — first controlled physical Temperature readiness
 
 Approved under [the single governing Build Program](BUILD_PROGRAM_TEMPERATURE_PRINT.md):
-exactly three miniature native bands, target 10–20 minutes and maximum proposed
-estimate 20 minutes, native-screen Start only, real-state and same-job success
+exactly three miniature native bands, 225/220/215°C bottom to top, confirmed
+filament with normal nozzle 220°C, native-screen Start only, real-state and same-job success
 proof, cancellation/failure safeguards and original-profile NOT APPLIED return.
 Implementation and isolated qualification are authorized; all hardware actions,
 physical installation, profile writeback, Alpha adoption and merge remain
 excluded. [The readiness report](TEMPERATURE_PRINT_READINESS.md) records proof
-and unresolved physical gates. Earlier accepted proofs and deferred UX remain
+and the separate physical-execution boundary. The Founder correction removes
+the earlier AI-generated 20-minute/combined-estimate gates and spool-label
+checkpoint. Earlier accepted proofs and deferred UX remain
 preserved; this increment does not authorize a UX redesign.

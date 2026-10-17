@@ -38,13 +38,14 @@ uses this sequence:
 The request schema is
 `helix-orca-temperature-print-session/v1`. It preserves the Issue #8 identity
 fields, requires `physical_calibration: true`, `not_applied: true`, exactly
-`choices: [210, 205, 200]`, and a 3600-second original lifetime. The required
+`choices: [225, 220, 215]`, and a 3600-second original lifetime. The required
 offline report schema is
 `helix-orca-temperature-gcode-qualification/v1`; its exact request/file/printer
 binding, three bands, geometry, temperature commands and ordering, file
-identity, suitability and combined native-plus-startup duration must all pass.
-The target is 600–1200 seconds. Durations above 1200 seconds
-are rejected. This local reviewed qualification also binds
+identity and suitability must all pass. The native estimate must be finite
+and positive; it is reported without a print-duration ceiling or startup/end
+allowance requirement. The confirmed filament has normal nozzle 220°C; no
+spool-label approval checkpoint exists. This local reviewed qualification also binds
 `physical_printer_identity` as a lowercase SHA-256 digest of the locally
 reviewed target identity, which is separate from the Orca saved-preset
 `printer` label. Qualification and grant also bind `printer_config_sha256` and
@@ -92,8 +93,10 @@ An awaiting request requires that same live grant; expiry retires it. A native
 tap must follow the authorized offer. The runner creates no grant. No execution command was invoked in Issue #12.
 
 `gcode.py` reads normal native exports only. It verifies three ordered explicit
-and extruding bands, geometry, native time and exact bytes; unresolved macros,
-actual filament/machine safety and a substantiated allowance for all opaque macros (startup and normal end) must be
-reviewed before it can produce a request-bound qualification. The actual
-12-minute export remains unqualified for physical use because its combined
-cold-start total is unknown. See `docs/TEMPERATURE_PRINT_READINESS.md`.
+and extruding bands, geometry, native time and exact bytes; unresolved command
+behavior and machine/material suitability remain reviewed technical evidence.
+The material is already Founder-confirmed. No combined-time allowance or
+print-duration threshold is required. A healthy matching job may exceed its
+native estimate; monitoring retains separate request-expiry, connection,
+identity and job checks. Physical execution remains separately authorized.
+See `docs/TEMPERATURE_PRINT_READINESS.md`.

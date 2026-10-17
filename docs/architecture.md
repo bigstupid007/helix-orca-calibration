@@ -302,4 +302,9 @@ the Orca saved-preset label. The future adapter pins both that identity and the
 reviewed configuration and defaults to actions disabled. No live orchestration,
 permit issuance, hardware activation or physical derivative installation occurs
 in this build. [Readiness authority](BUILD_PROGRAM_TEMPERATURE_PRINT.md) controls
-this increment; [the report](TEMPERATURE_PRINT_READINESS.md) owns remaining gates.
+this increment; [the report](TEMPERATURE_PRINT_READINESS.md) owns current validation.
+The 2026-10-17 correction fixes choices to 225/220/215°C and treats the native
+estimate as information, with no print-length ceiling or combined-time input.
+The filament is confirmed at normal 220°C; no new label checkpoint exists.
+Request/command freshness limits remain independent of the estimate. A healthy
+correlated job is not failed merely for exceeding its native time estimate.

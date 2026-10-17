@@ -1,26 +1,29 @@
-# Issue #12 readiness evidence
+# Issue #12 corrected-candidate evidence
 
-`native/` is the complete passing pinned beta.9 eleven-target capture: 88
-native PNGs, eleven persisted storage snapshots and a source/fixture/runtime
-bound report. It uses `--test`, Docker `--network none`, read-only runtime/plugin
-mounts and the existing private control socket. Authorization, printer clock,
-status, jobs and completion proof are synthetic; physical actions are zero.
+The controlling correction is exactly **225/220/215°C bottom to top**, normal
+nozzle **220°C**, confirmed filament, and no hard duration/combined-estimate gate
+or additional spool-label checkpoint.
+
+`read-only-suitability.json` is the sanitized current GET-only refresh. It
+confirms the unchanged reviewed machine/configuration/version and idle queue;
+raw identities, configuration and endpoints remain private.
+
+`native/` is the complete passing, source-bound corrected beta.9 eleven-size
+matrix: 88 frames, eleven storage snapshots and the verifying report. Its
+job/authorization/clock/completion inputs are synthetic; a 1501-second fixture
+specifically tests Ready above the removed 20-minute limit. It is not the native
+G-code estimate.
 
 ```sh
 python3 scripts/temperature-print-qualify.py verify docs/evidence/issue-12/native
 ```
 
-`native-gcode-inspection.json` records read-only inspection of the actual
-October 15 native export. `read-only-suitability.json` sanitizes the existing
-physical target's bounded GET-only review. `windows-mock-roundtrip.json` binds
-the fresh actual Windows request, exact native mock result and actual Windows
-NOT APPLIED receipt through private artifact hashes. Raw Windows frames,
-G-code, target addresses, identifiers, configuration and payloads remain in
-private XDG state.
+Corrected actual Windows native-export inspection and current companion
+round-trip proof remain pending reconnection of the existing test worker.
+Earlier files and screenshots are [superseded history](history/README.md),
+never evidence of the corrected export. Raw G-code, Windows frames and payloads
+remain private. No physical action is authorized or performed.
 
-These artifacts do not prove physical execution. The combined estimate for
-native printing plus all opaque printer-macro overhead remains unqualified;
-no live qualification, Founder grant or physical test was issued. See
-[the readiness report](../../TEMPERATURE_PRINT_READINESS.md),
+See the [readiness report](../../TEMPERATURE_PRINT_READINESS.md),
 [engineering review](../../ISSUE_12_ENGINEERING_REVIEW.md) and
 [Product Preflight](../../ISSUE_12_PRODUCT_PREFLIGHT.md).
