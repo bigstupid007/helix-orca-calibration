@@ -88,3 +88,21 @@ class ArtifactGateTests(unittest.TestCase):
             with self.assertRaises(gcode.GcodeError):gcode.qualify(bad,request=request,suitability=evidence)
         for args in (b'BED_TEMP=60 EXTRUDER_TEMP=210 EXTRUDER_TEMP=500',b'BED_TEMP=60 EXTRUDER_TEMP=210BAD'):
             with self.assertRaises(gcode.GcodeError):gcode.inspect(data.replace(b'BED_TEMP=60 EXTRUDER_TEMP=210',args),'mini.gcode')
+
+
+class NativeEvidenceObservationTests(unittest.TestCase):
+    def test_negative_check_observes_a_delayed_forbidden_write(self):
+        driver=load('print_driver_observation_test',ROOT/'scripts/temperature-print-qualify.py')
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);path=root/'config/plugin-data/orcacal.json';path.parent.mkdir(parents=True)
+            path.write_text(json.dumps({'print_session':{'state':'printing'}}))
+            class Clock:
+                now=0
+                def monotonic(self):return self.now
+                def sleep(self,seconds):
+                    self.now+=seconds
+                    path.write_text(json.dumps({'print_session':{'state':'cancelling','cancel_intent':{}}}))
+            clock=Clock();driver.time=clock
+            with self.assertRaisesRegex(ValueError,'forbidden'):
+                driver.stable_storage(root,lambda s:'cancel_intent' not in s,'forbidden delayed write',duration=1)
+            self.assertGreater(clock.now,0)
