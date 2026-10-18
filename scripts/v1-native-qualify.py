@@ -19,7 +19,7 @@ q=load('v1_native_q',ROOT/'scripts/temperature-communication-qualify.py')
 a=q.accepted
 builder=load('v1_native_builder',ROOT/'scripts/v1-native-plugin.py')
 contract=load('v1_native_contract',ROOT/'integration/v1_contract.py')
-ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent']
+ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block']
 def hashes():
     paths=[ROOT/'scripts/v1-native-plugin.py',ROOT/'scripts/v1-native-qualify.py',ROOT/'integration/v1_contract.py',ROOT/'scripts/temperature-communication-plugin.py',ROOT/'scripts/temperature-communication-qualify.py',ROOT/'scripts/helix-beta9-qualify.py',ROOT/'scripts/helix_dev.py']+list((ROOT/'integration/v1-native').rglob('*'))
     return {str(p.relative_to(ROOT)):q.sha256(p) for p in sorted(paths) if p.is_file()}
@@ -178,6 +178,18 @@ def drive(entry,name,work):
     tap(name,'orcacal__v1_choose_temperature',w,h,work);tap(name,'orcacal__v1_generate_temperature',w,h,work);signal(name,10)
     require(value(name,'confirm_on')==0 and value(name,'start_on')==0,'Blocked generation unlocked execution')
     a._screenshot(name,work,'blocked.png')
+    blocked_request=storage(work)['request']['request_id']
+    q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
+    tap(name,'orcacal__v1_choose_flow_ratio_yolo',w,h,work);tap(name,'orcacal__v1_generate_flow_ratio_yolo',w,h,work)
+    signal(name,2)
+    require(value(name,'phase')=='preparing','Fresh nonce did not retire blocked work')
+    deadline=time.monotonic()+5
+    while True:
+        next_request=storage(work)['request']
+        if next_request['request_id']!=blocked_request:break
+        if time.monotonic()>deadline:raise ValueError('Fresh request was not durable')
+        time.sleep(.1)
+    require(next_request['calibration']=='flow_ratio_yolo' and next_request['context_sha256']=='b'*64,'Next calibration retargeted context')
     logs=a.run(['docker','logs',name],capture=True,check=False)
     (work/'runtime.log').write_text(logs.stdout+logs.stderr)
     require('[plugin orcacal]' not in logs.stdout+logs.stderr,'Native runtime error')

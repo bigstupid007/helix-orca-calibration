@@ -194,7 +194,7 @@ local function v1_receive_status(_,d)
         preparing={preparing=true,blocked=true,review=true,failed=true,uncertain=true},
         review={review=true,confirmed=true,blocked=true,failed=true,uncertain=true},
         confirmed={confirmed=true,blocked=true,failed=true,uncertain=true},
-        starting={starting=true,printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
+        starting={starting=true,blocked=true,printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
         printing={printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
         verifying={verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
         uncertain={blocked=true,review=true,confirmed=true,starting=true,printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
