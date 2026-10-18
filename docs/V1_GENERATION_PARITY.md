@@ -164,3 +164,55 @@ G-code, reports and the checkpoint source are retained beneath
 The earlier rejected size-bound attempt remains separately preserved as
 `141c9c965b0345bbaa358c4834bcddad`. The lab and its references were read-only
 throughout. No screenshot evidence was promoted from this generator checkpoint.
+
+The first checkpoint's machine-limit mismatch is now traced: its experimental
+snapshot builder found option definitions by regular expression over literal
+`PrintConfig::add` calls. Orca registers per-axis acceleration/speed/jerk options
+in a C++ loop, so the builder silently excluded those existing exported values.
+Stock defaults then supplied M201/M203. This is a reproducible fixture capture
+bug, not evidence of native vector deserialization failure or a reason to ignore
+machine limits. Follow-up snapshot capture must preserve all exported native
+options, including dynamically registered axes; original checkpoint artifacts
+remain preserved. Actual host snapshots use Orca's resolved keys directly.
+
+`prepare_inputs(request,snapshot,output_dir,config)` exposes the common stock
+staging boundary to the native-engine worker: it returns validated request and
+snapshot, the job/model paths, profile maps, merged native serialized effective
+configuration and exact comparison inputs. It does not invoke slicing. The
+bundle also retains `native-effective.json`. A native Temperature adapter using
+`Calib_Params` must retain the original effective layer hook rather than append
+both its native ramp and the stock recipe ramp. Other families still need their
+own source-verified native preparation; this helper does not claim to prepare
+Retraction, MVS or PA Pattern.
+
+To register a newly captured genuine native reference, use:
+
+```sh
+python3 scripts/v1-generation.py native-reference \
+  --native-gcode /absolute/native.gcode \
+  --native-context /absolute/pre-calibration-native-context.json \
+  --calibration temperature --parameters /absolute/parameters.json \
+  --source-commit 6a7763f08d1a175a464a00ce13f0b5a815662fc4 \
+  --evidence /absolute/native-inputs-and-dialog-capture.png \
+  --evidence /absolute/native-slice-export-action-record.json \
+  --output /absolute/new-native-reference.json
+```
+
+The context must be independently captured from that native run before preparing
+its calibration; substituting a candidate's context does not establish this
+provenance. Registration rehashes all evidence, checks exact runtime/source,
+validates native inputs and refuses to overwrite an existing manifest. It does
+not declare qualification. The old lab has genuine native G-code, screenshots
+and a provenance-bound original resolved-profile export, but it did not capture
+the complete pre-calibration V1 saved/edited/effective context object. Its native
+files therefore remain valuable independent behavioral evidence; registration
+must not manufacture the missing exact V1 snapshot.
+
+Parity reports now explicitly measure complete heater streams, machine-limit
+streams, M73 estimate streams, motion/extrusion streams, actual model extrusion,
+printed XY bounds and model-move counts separately. These observations explain
+which differences remain. They never waive any executable difference. Native
+Klipper profiles whose inherited PRINT_START/PRINT_END macros hide heater waits
+or shutdown currently fail the visible-wait/shutdown invariants until those exact
+macro semantics are independently qualified; preserving the inherited macro
+text does not prove its executed behavior.

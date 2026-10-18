@@ -106,6 +106,30 @@ class StockGeneration(unittest.TestCase):
             self.run_generation()
         self.assertFalse((self.root / 'job/prepared.json').exists())
 
+    def test_staging_is_shared_with_native_adapter_without_slicing(self):
+        del self.config['executable']
+        staged = generation.prepare_inputs(self.request, self.snapshot, self.root / 'job', self.config)
+        self.assertEqual(staged['native_effective']['nozzle_temperature'], '230')
+        self.assertTrue((self.root / 'job/native-effective.json').is_file())
+        self.assertFalse((self.root / 'job/invocation.json').exists())
+
+    def test_effective_post_processing_must_be_known(self):
+        del self.snapshot['effective']['post_process']
+        for role in ('printer', 'process', 'filament'):
+            for state in ('saved', 'edited'):
+                self.snapshot[role][state]['config'].pop('post_process')
+        self.request['context_sha256'] = contract.digest(self.snapshot)
+        with self.assertRaisesRegex(generation.GenerationBlocked, 'post_process is unavailable'):
+            self.run_generation()
+
+    def test_klipper_temperature_can_attempt_but_still_needs_native_parity(self):
+        self.snapshot['effective']['gcode_flavor'] = 'klipper'
+        self.request['context_sha256'] = contract.digest(self.snapshot)
+        result = self.run_generation()
+        self.assertFalse(result['parity']['qualified'])
+        machine = json.loads((self.root / 'job/machine.json').read_text())
+        self.assertEqual(machine['gcode_flavor'], 'klipper')
+
     def test_native_yolo_assets_keep_all_labels_and_distinct_object_ratios(self):
         asset = self.root / 'Orca-LinearFlow.3mf'
         ns = 'http://schemas.microsoft.com/3dmanufacturing/core/2015/02'

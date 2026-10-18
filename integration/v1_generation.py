@@ -95,7 +95,9 @@ def _configs(snapshot):
         for key in list(config):
             if key.startswith('print_host') or key in ('printhost_apikey', 'printhost_user', 'printhost_password'):
                 config.pop(key)
-    if effective.get('post_process', '') not in ('', '""'):
+    if 'post_process' not in effective:
+        _blocked('effective_unavailable', 'Effective post_process is unavailable.')
+    if effective['post_process'] not in ('', '""'):
         _blocked('post_process', 'External post-processing is outside the qualified generation route.')
     result['process']['post_process'] = []
     return result
@@ -103,6 +105,8 @@ def _configs(snapshot):
 
 def _temperature(request, snapshot, destination, config, profiles):
     p = request['parameters']
+    if p['start'] % 5 or p['end'] % 5:
+        _blocked('temperature_bands', 'Native standard tower requires start and end individually divisible by five.')
     if not p['scale'] or snapshot['nozzle_mm'] not in (0.4, 0.6) or snapshot['effective'].get('gcode_flavor') not in ('marlin', 'klipper'):
         _blocked('temperature_envelope', 'Stock Temperature recipe currently supports scaled 0.4/0.6 mm single-tool Marlin/Klipper towers only; other inputs need native qualification.')
     model = config.get('temperature_model')
@@ -233,7 +237,8 @@ def _flow(request, snapshot, destination, config, profiles):
     return output
 
 
-def generate(request, snapshot, output_dir, config):
+def prepare_inputs(request, snapshot, output_dir, config):
+    """Stage the shared stock recipe bundle without invoking a slicer."""
     request = contract.validate_request(request, now=config.get('now'))
     snapshot = contract.validate_context(snapshot)
     if request['context_sha256'] != contract.digest(snapshot) or request['origin_id'] != snapshot['origin_id']:
@@ -244,7 +249,6 @@ def generate(request, snapshot, output_dir, config):
     source = config.get('source_commit')
     if parity.PINS.get(source) != snapshot['runtime'] or config.get('runtime') != snapshot['runtime']:
         _blocked('runtime_pin', 'Snapshot and configured exact engine source/runtime differ.')
-    executable = _checked_file({'path': config.get('executable', ''), 'sha256': config.get('executable_sha256')}, maximum=2 * 1024**3)
     effective = snapshot['effective']
     if effective.get('belt_printer') not in ('0', 'false'):
         _blocked('belt_unavailable', 'Explicit non-belt effective configuration is required.')
@@ -261,6 +265,26 @@ def generate(request, snapshot, output_dir, config):
     model = (_temperature if kind == 'temperature' else _flow)(request, snapshot, destination, config, profiles)
     for role, value in profiles.items():
         (destination / (role + '.json')).write_bytes(contract.canonical(value))
+    merged = copy.deepcopy(snapshot['effective'])
+    for profile in profiles.values():
+        merged.update({key: value for key, value in profile.items()
+                       if key not in ('name', 'from', 'type', 'instantiation', 'post_process')})
+    merged['post_process'] = ''
+    for key in list(merged):
+        if key.startswith('print_host') or key in ('printhost_apikey', 'printhost_user', 'printhost_password'):
+            merged.pop(key)
+    (destination / 'native-effective.json').write_bytes(contract.canonical(merged))
+    inputs = parity.generation_inputs(request, snapshot, source)
+    (destination / 'inputs.json').write_bytes(contract.canonical(inputs))
+    return {'request': request, 'snapshot': snapshot, 'destination': destination,
+            'model': model, 'profiles': profiles, 'native_effective': merged, 'inputs': inputs}
+
+
+def generate(request, snapshot, output_dir, config):
+    executable = _checked_file({'path': config.get('executable', ''), 'sha256': config.get('executable_sha256')}, maximum=2 * 1024**3)
+    staged = prepare_inputs(request, snapshot, output_dir, config)
+    request, snapshot, destination = staged['request'], staged['snapshot'], staged['destination']
+    model, source, bed = staged['model'], config['source_commit'], snapshot['effective']['curr_bed_type']
     data = destination / 'orca-data'
     data.mkdir()
     argv = [str(executable), '--datadir', str(data), '--load-settings', str(destination / 'machine.json') + ';' + str(destination / 'process.json'),

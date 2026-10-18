@@ -104,7 +104,8 @@ def analyze(text):
             object_names.add(object_name)
             moves.append({'line': line, 'layer': layer, 'z': xyz['Z'],
                           'nozzle': nozzle, 'bed': bed, 'e': delta,
-                          'distance': distance, 'feed': feed, 'object': object_name})
+                          'distance': distance, 'feed': feed, 'object': object_name,
+                          'xy_start': [old['X'], old['Y']], 'xy_end': [xyz['X'], xyz['Y']]})
     return {'moves': moves, 'retracts': retracts, 'heaters': heaters,
             'objects': sorted(object_names), 'layers': layer + 1}
 
@@ -162,6 +163,52 @@ def invariants(text, inputs):
             'objects': d['objects'], 'executable_commands': len(executable(text))}
 
 
+def observations(candidate_text, native_text):
+    """Measurements explain differences without relaxing the qualification gate."""
+    a, b = analyze(candidate_text), analyze(native_text)
+    ac, bc = executable(candidate_text), executable(native_text)
+    def op_stream(commands, allowed):
+        return [line for line in commands if line.split()[0] in allowed]
+    def bounds(data):
+        return {axis: [min(m[pos][i] for m in data['moves'] for pos in ('xy_start', 'xy_end')),
+                       max(m[pos][i] for m in data['moves'] for pos in ('xy_start', 'xy_end'))]
+                for i, axis in enumerate('XY')} if data['moves'] else None
+    heaters = lambda d: [(h['op'], h['target'], h['layer']) for h in d['heaters']]
+    return {
+        'heater_stream_equal': heaters(a) == heaters(b),
+        'machine_limits_equal': op_stream(ac, {'M201', 'M203', 'M205', 'M566'}) == op_stream(bc, {'M201', 'M203', 'M205', 'M566'}),
+        'progress_estimates_equal': op_stream(ac, {'M73'}) == op_stream(bc, {'M73'}),
+        'motion_extrusion_equal': op_stream(ac, {'G0', 'G1', 'G2', 'G3', 'G92'}) == op_stream(bc, {'G0', 'G1', 'G2', 'G3', 'G92'}),
+        'candidate_model_extrusion_mm': sum(m['e'] for m in a['moves']),
+        'native_model_extrusion_mm': sum(m['e'] for m in b['moves']),
+        'candidate_printed_xy_bounds_mm': bounds(a), 'native_printed_xy_bounds_mm': bounds(b),
+        'candidate_model_moves': len(a['moves']), 'native_model_moves': len(b['moves']),
+        'qualification': 'Measurements only. Every executable difference still blocks exact-executable-v1.'}
+
+
+def create_native_reference(native, context, calibration, parameters, source_commit, evidence):
+    """Register independently captured native inputs; no candidate is accepted.
+
+    Caller must supply the native run's complete pre-calibration context and
+    retained UI action evidence. A legacy lab run without that full snapshot
+    cannot be upgraded into exact V1 input provenance by this utility.
+    """
+    from integration.v1_contract import validate_context, validate_parameters
+    context = validate_context(context)
+    parameters = validate_parameters(calibration, parameters)
+    if PINS.get(source_commit) != context['runtime']:
+        raise ValueError('native source/runtime pin mismatch')
+    if len(evidence) < 2:
+        raise ValueError('retain independent native input/dialog and export/action evidence')
+    inputs = generation_inputs({'calibration': calibration, 'parameters': parameters,
+                                'context_sha256': digest(context)}, context, source_commit)
+    return {'schema': 'helix-orca-v1-native-reference/v1', 'method': 'native_orca_ui',
+            'imported_candidate': False, 'inputs_sha256': digest(inputs),
+            'source_commit': source_commit, 'runtime': context['runtime'],
+            'artifact': file_record(native),
+            'evidence': [{'path': str(Path(path).resolve()), 'artifact': file_record(path)} for path in evidence]}
+
+
 def evaluate(candidate, native, manifest, inputs):
     """Retain every difference. A caller-supplied qualified flag has no authority."""
     report = {'schema': 'helix-orca-v1-parity/v1', 'qualified': False,
@@ -195,6 +242,7 @@ def evaluate(candidate, native, manifest, inputs):
         b = Path(native).read_text(encoding='utf-8')
         report['candidate_invariants'] = invariants(a, inputs)
         report['native_invariants'] = invariants(b, inputs)
+        report['observations'] = observations(a, b)
         ac, bc = executable(a), executable(b)
         mismatches = []
         for index in range(max(len(ac), len(bc))):

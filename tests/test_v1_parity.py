@@ -65,6 +65,8 @@ class NativeParity(unittest.TestCase):
         self.assertFalse(report['qualified'])
         self.assertTrue(report['differences'])
         self.assertIn('executable behavior', report['reason'])
+        self.assertFalse(report['observations']['motion_extrusion_equal'])
+        self.assertTrue(report['observations']['heater_stream_equal'])
 
     def test_bed_change_blocks_even_with_correct_nozzle(self):
         self.candidate.write_text(self.candidate.read_text().replace('M140 S60', 'M140 S35'))
@@ -86,6 +88,21 @@ class NativeParity(unittest.TestCase):
     def test_shutdown_and_external_actions_rejected(self):
         self.candidate.write_text(self.candidate.read_text().replace('M104 S0', 'SAVE_CONFIG'))
         self.assertFalse(self.evaluate()['qualified'])
+
+    def test_native_manifest_requires_independent_full_native_context(self):
+        context = {'schema': 'helix-orca-v1-context/v1', 'origin_id': '1' * 32,
+                   'runtime': self.inputs['runtime'], 'nozzle_mm': .4,
+                   'effective': {'gcode_flavor': 'marlin'}}
+        for role in ('printer', 'process', 'filament'):
+            context[role] = {state: {'name': role, 'config': {'gcode_flavor': 'marlin'}} for state in ('saved', 'edited')}
+        evidence = [self.manifest['evidence'][0]['path'], str(self.native)]
+        created = parity.create_native_reference(self.native, context, 'temperature', self.inputs['parameters'],
+                                                 self.inputs['source_commit'], evidence)
+        self.assertFalse('qualified' in created)
+        self.assertEqual(created['artifact'], parity.file_record(self.native))
+        with self.assertRaises(ValueError):
+            parity.create_native_reference(self.native, context, 'temperature', self.inputs['parameters'],
+                                            self.inputs['source_commit'], [])
 
     def test_qualified_report_is_recomputed_from_retained_bytes(self):
         report = self.evaluate()
