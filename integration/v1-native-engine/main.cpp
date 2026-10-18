@@ -238,6 +238,8 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
     if(params.end<params.start+params.step || (params.end-params.start)/params.step>1000)
         throw std::runtime_error("Unsupported native PA sample count");
     params.mode=CalibMode::Calib_PA_Pattern;params.print_numbers=true;
+    for(const std::string key:{"overhang_reverse","precise_z_height","wipe_inward"})
+        config.set_key_value(key,new ConfigOptionBool(false));
     // V1 retained context has no vendor object. Klipper proves this is not the
     // Bambu Marlin writer; reject other flavors rather than infer vendor names.
     if(config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value!=gcfKlipper)
