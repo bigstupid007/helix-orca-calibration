@@ -34,6 +34,7 @@ def load(name, path):
 
 def bounded_command(command, evidence, label):
     """Keep capped first output and diagnostic tail independently of log volume."""
+    print(json.dumps({'stage':label,'state':'started'}),flush=True)
     start = time.monotonic()
     tail, kept, total = b'', 0, 0
     with (evidence / (label + '.log')).open('wb') as log:
@@ -146,6 +147,10 @@ def build(args):
             dirty_input=sha(LOCK),paths=[str(args.cache),str(args.source),str(args.downloads),str(ROOT)],
             reserve=10*1024**3,peak=16*1024**3,margin=2*1024**3,timeout=7200,adapter=adapter) as run:
         stage_download_tree(args.cache,args.downloads)
+        # ExternalProject configure creates download dirs for optional targets too.
+        for directory in (args.source/'deps').iterdir():
+            if directory.is_dir():
+                (tree/directory.name).mkdir(mode=0o700,exist_ok=True)
         print('Managed native build: '+str(run.directory),flush=True)
         cid=run.container(IMAGE,[],memory=12*1024**3,cpus=6,pids=512)
         run.execute([sys.executable,str(Path(__file__).resolve()),'_follow','--container',cid],cwd=ROOT)
