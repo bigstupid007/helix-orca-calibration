@@ -429,3 +429,22 @@ flattening it to STL would lose the calibration. Recipe arithmetic mirrors the
 source's float32 nozzle/width/label-modifier operations before native double
 configuration values. Actual Windows slicing and independently prepared native
 YOLO comparison are still required; staging alone is not qualification.
+
+The source-only Windows parity runner executes the shared contract/evaluator
+locally using the existing isolated Python. It verifies the exact generation
+bundle, retained input members, executable/helper/archive fingerprints and CLI
+output binding, then creates the native manifest from independently retained UI
+evidence. Full reports, inputs, manifests and prepared descriptors remain in a
+new Windows-only report directory. A qualified result is recomputed from its
+retained bytes before any summary is returned.
+
+Its stdout contains only fixed-key hashes, scalar counts, invariant flags,
+bounded temperatures and classified comparison disposition. It emits no raw
+executable lines, paths, profile names, effective configurations, hook strings
+or raw exception messages. Historical request inspection uses its original
+creation time because this is evidence evaluation, not a live dispatch gate;
+`physical_actions`, `physical_readiness` and `hardware_abi_qualified` stay false.
+The runner and two shared modules can be transferred as curated source without
+moving the native G-code or full native project off Windows. Tests verify
+privacy, provenance tampering and changed candidate rejection with explicitly
+synthetic evidence; those tests do not represent a native qualification.
