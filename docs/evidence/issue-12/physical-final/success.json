@@ -1,0 +1,39 @@
+{
+  "schema": "helix-orca-final-physical-success/v1",
+  "accepted_candidate_commit": "f7562bf2bd1f747f9fbc966425dec33e196e22c7",
+  "installed_plugin_version": "0.4.3-issue12-auto",
+  "actual_hardware": true,
+  "founder_initiated_on_physical_helixscreen": true,
+  "bands_c_bottom_to_top": [
+    225,
+    220,
+    215
+  ],
+  "normal_original_c": 220,
+  "selected_c": 220,
+  "setting": "nozzle_temperature",
+  "status": "NOT APPLIED",
+  "independent_same_job_history": "completed",
+  "actual_history_elapsed_s": 997.3484079837799,
+  "print_stats_print_duration_s": 795.5345767120016,
+  "automatic_presentation_claim_bound": true,
+  "founder_confirms_automatic_chooser_on_completion": true,
+  "native_state": "returned",
+  "originating_receipt_exact": true,
+  "delivery": "delivered",
+  "saved_widget_cells": [
+    1,
+    1
+  ],
+  "isolated_saved_profiles_unchanged": 12,
+  "normal_profile_settings_files_unchanged": 1429,
+  "original_context_preserved": true,
+  "prior_hardware_evidence_and_rollback_preserved": true,
+  "normal_native_accounting_preserved": true,
+  "physical_post_final_pending_dismissal_reopen": "not separately reported; do not infer from acceptance",
+  "separate_synthetic_coverage": "11 viewports; 133 frames; dismissal/reopen/restart/duplicate/rejection/context tests",
+  "accepted_date": "2026-10-18",
+  "timezone": "America/Chicago",
+  "raw_evidence": "Private XDG state; exact actual journal/native/history/Orca artifacts and preservation manifest",
+  "closeout_new_physical_actions": 0
+}

@@ -5,8 +5,10 @@ personal-printer test and **accepts temporary overlap with an existing native
 HelixScreen dialog**. This supersedes the earlier modal-coordination blocker
 recorded at 7cc0b4d. The missing modal-aware API is still a real host limitation;
 it is an accepted test risk, not a technical claim of modal safety.
-No printer deployment, physical print, notification preference change, timed
-modal workaround or upstream patch is authorized.
+The later separate plugin deployment and final physical print succeeded and
+Founder accepted them; see [acceptance](ISSUE_12_ACCEPTANCE.md). No further
+physical execution, notification preference change, timed modal workaround or
+upstream patch is authorized by closeout.
 
 ## Verified supported API
 
@@ -89,5 +91,6 @@ Its final status/counts belong in readiness and Product Preflight, separate from
 the actual c1eee43 physical success.
 
 The 1×1 manifest cells / 2×2 internal tracks and allowed XML tile are unchanged.
-Existing physical saved placements are not migrated. No fixture result is a claim
+Product code does not migrate saved placement; the owner subsequently used
+native remove/re-add to save the verified physical 1×1 tile. No fixture result is a claim
 of physical installation or another real print.

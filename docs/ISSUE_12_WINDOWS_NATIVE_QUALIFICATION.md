@@ -2,7 +2,9 @@
 
 Status: **PASS — corrected native export and actual Windows companion round trip.**
 
-This is the preserved pre-physical readiness qualification. The subsequent
+This is the preserved pre-physical readiness qualification. Current Founder
+acceptance of the final actual print/automatic chooser/NOT APPLIED return and
+the governed closeout are recorded in [Issue #12 acceptance](ISSUE_12_ACCEPTANCE.md). The subsequent
 Founder-initiated physical calibration also succeeded and returned actual
 220°C NOT APPLIED; [its separate evidence](evidence/issue-12/physical-first/README.md)
 is not synthetic Windows/mock proof. The later compact-widget build changes no
@@ -91,7 +93,9 @@ The consumed mock request and synthetic completion cannot authorize a physical
 test. A later separately authorized test uses a fresh original request, current
 identity/configuration qualification and explicit native Start through the
 existing safeguards. No live permit, physical derivative install or activation
-has occurred. PR #13 remains unmerged for Founder Review.
+had occurred at that readiness capture. The later deployment, physical tests
+and Founder-authorized merge supersede that historical restriction; the
+qualification artifacts and their original proof boundary remain unchanged.
 
 Earlier 210/205/200°C and 0.6.0 evidence remains
 [superseded history](evidence/issue-12/history/README.md).

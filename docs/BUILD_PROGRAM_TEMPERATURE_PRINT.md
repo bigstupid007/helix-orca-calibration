@@ -1,11 +1,17 @@
 # Issue #12 Build Program — physical milestone and bounded UX follow-up
 
-Continue [Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12)
-and [PR #13](https://github.com/bigstupid007/helix-orca-calibration/pull/13),
-open and unmerged. Current shared Development System main is
-`4a42a944b344427c8f925241191595eb57c6949c`, verified against GitHub;
-application main remains `89165d15993ccfcd065b299e1980bb19749fdcaf`.
-Direct Founder instructions and application AGENTS.md govern this continuation.
+Founder accepted [Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12)
+and [PR #13](https://github.com/bigstupid007/helix-orca-calibration/pull/13) on
+2026-10-18 after the final actual print, automatic chooser and original-context
+220°C NOT APPLIED return. [The acceptance record](ISSUE_12_ACCEPTANCE.md) is
+current closeout authority: documentation/evidence reconciliation, exact-head
+validation, merge commit, clean main verification and Issue closure, then stop.
+Current shared authority is `4a42a944b344427c8f925241191595eb57c6949c`.
+
+The following stage descriptions preserve the program's earlier authorization
+boundaries. Later separately approved deployment and final physical execution
+are completed, consumed grants; their success authorizes no rerun. The merge
+restriction below is superseded only by the explicit closeout instruction.
 
 ## Completed physical milestone
 
@@ -80,7 +86,7 @@ Run relevant repository checks, fresh independent review, affected-surface Produ
 Preflight and exact-head CI. Archive prior capture bytes before complete passing
 promotion. Preserve real physical success separately from all synthetic proof.
 
-## Consequence and preservation boundary
+## Historical build-stage consequence and preservation boundary
 
 This follow-up authorizes **no new print, heating, motion, printer configuration,
 profile writeback, upstream change, physical deployment, merge or release**.
@@ -93,3 +99,18 @@ The storage incident remains resolved. Check available bytes/inodes around nativ
 capture and promotion, serialize disk-intensive work through the existing shared
 lock, reuse the verified runtime/image, and retain owned output in XDG state.
 Do not reopen the completed storage investigation or perform broad cleanup.
+
+## Final accepted disposition
+
+Installed runtime `f7562bf` / 0.4.3-issue12-auto and the owner-saved 1×1 widget
+remain working. Independent history records 997.3484 seconds for the final
+Founder-started print; Founder confirms actual automatic chooser presentation.
+The selected 220°C, native returned state, exact originating Orca receipt and
+terminal delivered status match. Profiles, accepted communication artifacts,
+prior real/synthetic proof and rollback material remain preserved. See
+[final physical proof](evidence/issue-12/physical-final/README.md).
+
+Closeout is documentation/evidence only; it does not change the installed
+candidate. No further physical execution, configuration/profile change, release
+or product expansion is authorized. After merge/main verification and closure,
+stop implementation for the fresh Founder-led overall product-goal review.

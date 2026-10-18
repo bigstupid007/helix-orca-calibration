@@ -1,10 +1,22 @@
-# Temperature calibration — physical success and current UX candidate
+# Temperature calibration — accepted physical milestone
 
 [Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12) /
-[PR #13](https://github.com/bigstupid007/helix-orca-calibration/pull/13) remain
-open and unmerged under the [current Build Program](BUILD_PROGRAM_TEMPERATURE_PRINT.md).
+[PR #13](https://github.com/bigstupid007/helix-orca-calibration/pull/13) are
+Founder-accepted under the [Build Program](BUILD_PROGRAM_TEMPERATURE_PRINT.md).
+[Acceptance and governed closeout](ISSUE_12_ACCEPTANCE.md) supersede earlier
+unmerged/deployment restrictions and own the current stop boundary.
 
 ## Current disposition
+
+**Founder accepted on 2026-10-18.** The separately deployed **0.4.3-issue12-auto**
+at `f7562bf` passed the final Founder-started physical print, actual automatic
+chooser presentation and exact original-context **220°C / NOT APPLIED** return.
+New-job history elapsed 997.3484 seconds; its native returned result and original
+Orca receipt/delivered status match. All 12 isolated and 1,429 normal profile/
+settings files remain unchanged. [Final physical proof](evidence/issue-12/physical-final/README.md)
+is distinct from the earlier milestone and synthetic matrix. Closeout adds no
+new execution; implementation stops for a fresh Founder-led overall-goal review.
+
 
 The first controlled physical calibration **SUCCEEDED** at baseline `c1eee43`:
 225/220/215°C bottom to top, normal original nozzle 220°C, selected 220°C returned
@@ -22,7 +34,8 @@ exact-job completion checks. Dismiss/manual reopen, duplicate/restart suppressio
 and the retained **1×1** home tile pass renewed source-bound qualification.
 [API semantics and accepted limitation](ISSUE_12_COMPLETION_UX_API_GATE.md) include
 the conservative crash-recovery/manual fallback. No delay, notification preference
-change or upstream patch is used. No candidate is deployed to the printer.
+change or upstream patch is used. The candidate was subsequently deployed under a separate explicit grant;
+installation and rollback verification are recorded in acceptance.
 
 ## Preserved physical baseline and qualified file
 
@@ -48,7 +61,8 @@ The earlier [Windows native qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION
 records preparation and the original synthetic return test. That synthetic
 proof is not the later actual physical success. The old pre-physical accepted
 companion restoration occurred before the Founder-authorized physical staging;
-this UX build performs no installation or rollback on the real target.
+the later explicit plugin deployment is separately recorded. Closeout performs
+no installation or rollback on the real target.
 
 ## Supported UX change and result preservation
 
@@ -58,7 +72,8 @@ identity, short lifecycle status (Ready, Print, Pick, Send, Done and locked/erro
 states), and the native tile → chooser → Temperature interaction. The compact
 layout uses allowed XML primitives and native type/icon tokens. The fresh test
 placement is 1×1; existing saved placement overrides a new manifest default,
-so migration of a previously placed 3×2 tile is not claimed or performed.
+so the owner used native remove/re-add to save the physical 1×1 placement.
+Automatic or remote settings migration is not claimed.
 
 After a selection is committed, `waiting` and `returned` are immutable to later
 status events and the liveness timer. At the native UI boundary, an already-emitted exact acknowledgement can finish
@@ -100,9 +115,10 @@ modal arbitration is claimed. Result handling remains exactly-once, NOT APPLIED.
 All native authorization/job/clock/completion inputs in the new UI validation
 are synthetic, with Docker network disabled and runtime/plugin mounts read-only.
 They do not prove actual physical deployment or automatic modal arbitration.
-Actual first-print proof stays separately labeled. Native screenshots prove
+Actual first and final physical proofs stay separately labeled. Native screenshots prove
 pixel fit, not hardware touch accuracy. No new print, heat, motion, configuration,
-profile writeback, upstream patch, deployment, merge or release occurs here.
+profile writeback, upstream patch, deployment or release occurs in closeout.
+The separately authorized merge is governed by the acceptance record.
 
 ```sh
 python3 -m unittest discover -s tests -v

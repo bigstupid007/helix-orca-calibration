@@ -2,7 +2,8 @@
 
 Authority is the current direct Founder instruction, application AGENTS.md and
 shared Development System main `4a42a944b344427c8f925241191595eb57c6949c`,
-verified against GitHub. PR #13 remains unmerged. The first successful physical
+verified against GitHub. Founder has now accepted PR #13 for governed closeout;
+the technical implementation remains the tested f7562bf runtime. The first successful physical
 baseline is `c1eee4374fb0286e1a3973d8e29107bfc64ee99f`.
 
 ## Actual physical milestone preserved
@@ -104,9 +105,26 @@ Product Preflight PASS with no material findings. The exact 167-file inventory,
 PNG dimensions/metadata and public privacy checks pass. PR #13 owns exact-head
 CI. No AI gate is Founder acceptance.
 
-The final native capture uses the pinned beta.9 binary, reused dependency image,
+The accepted synthetic native capture uses the pinned beta.9 binary, reused dependency image,
 Docker network-none isolation, read-only runtime/plugin mounts and private
 control sockets. All authorization/job/clock/completion data is synthetic.
-It is separate from the real c1eee43 physical success. New physical printing,
-heating, motion, configuration, profile writeback, upstream changes, deployment,
-merge and release remain prohibited for this build.
+It is separate from the real c1eee43 physical success. At capture time, that
+synthetic build granted no physical action, deployment, merge or release.
+The later separately authorized deployment and Founder-approved merge closeout
+are recorded below and in acceptance. No further physical action, deployment,
+configuration/profile change, upstream patch or release is authorized.
+
+## Founder acceptance and physical closeout evidence
+
+Founder accepted Issue #12 / PR #13 on 2026-10-18 after actual deployment of
+0.4.3-issue12-auto, a working physical 1×1 tile, final Founder-started print and
+actual automatic chooser. Independent new-job history elapsed 997.3484 seconds;
+native 220°C result, exact original Orca receipt and delivered status match.
+All 12 isolated and 1,429 normal profile/settings files retain their fingerprints.
+Only normal Helix thermal/spool/start-history accounting changed through the run.
+No product code or existing captured evidence changes during closeout.
+
+The final hardware record and Founder statement are separate from synthetic
+multi-page/dismissal/restart/duplicate tests. Pending dismissal after the final
+print was not separately reported; acceptance does not invent that observation.
+See [acceptance](ISSUE_12_ACCEPTANCE.md) and [physical-final](evidence/issue-12/physical-final/README.md).

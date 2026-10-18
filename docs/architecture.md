@@ -368,8 +368,9 @@ crash may have lost a deferred claim write. Dismissal retains selection and the
 normal tile → Temperature reopening path. Original live return/recovery gates,
 1×1 tile, context/NOT APPLIED and physical baseline remain unchanged. Renewed
 native synthetic proof is separate from real hardware success. Queued-overlay
-migration remains future work; no upstream patch, deployment or physical action
-is authorized. Current semantics: `ISSUE_12_COMPLETION_UX_API_GATE.md`.
+migration remains future work. Later separately authorized deployment and
+physical execution succeeded; no further deployment or physical action is
+authorized by closeout. Current semantics: `ISSUE_12_COMPLETION_UX_API_GATE.md`.
 
 The automatic component shares the exact Temperature layout/bindings/actions
 with distinct owned widget names. After its successful push, only tracked plugin
@@ -377,3 +378,18 @@ preparation views retire; native pages/dialogs remain, and backing out cannot
 resurface an old manual chooser. The source-bound test includes buried manual
 Temperature under Print Status at every size and manual Temperature on top at
 800×480. No new navigation API or notification setting is used.
+
+## Issue #12 accepted physical outcome and stop boundary
+
+Founder accepted the actual final print, automatic native Temperature chooser
+and original-context 220°C / NOT APPLIED return on 2026-10-18. Independent job
+history, bound native result and original receipt/delivery agree. Installed
+f7562bf / 0.4.3-issue12-auto, owner-saved 1×1 tile and rollback material remain
+preserved. Closeout is documentation/evidence only; it does not change product
+or printer settings. Normal native thermal/spool/start-history accounting is
+retained. Hardware observations remain separate from synthetic coverage.
+See [acceptance](ISSUE_12_ACCEPTANCE.md) for exact scope and proof limits.
+
+After merge/main verification and Issue closure, stop implementation. A fresh
+Founder-led review of the overall product goal comes next; no successor build
+or further physical action is implied.

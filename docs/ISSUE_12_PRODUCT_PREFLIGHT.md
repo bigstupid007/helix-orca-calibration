@@ -17,7 +17,8 @@ uncertain, unrelated or unverified jobs must not present the chooser.
 
 The 1×1 native tile retains tune icon, full Orca Calibration identity, short
 status and tap navigation. Fresh logical 1×1 cells are 2×2 internal tracks.
-No chooser/dashboard redesign or physical saved-placement migration is included.
+No chooser/dashboard redesign or automatic placement migration is included.
+The later owner native re-add verified physical 1×1 saved placement.
 All eleven supported viewports pass the renewed source-bound native capture:
 133 frames, eleven geometry records, eleven presentation records and eleven
 storage snapshots. Actual overlays and navigation restoration are asserted at
@@ -46,13 +47,14 @@ above. The 800×480 [Home](evidence/issue-12/native/medium_800x480/automatic-hom
 automatically; `home-1x1.png` shows the compact tile at upper left. Other labeled
 home controls are test inputs, absent from product. Judge presentation clarity,
 native appearance, result wording and the compact tile's readability/density.
-This is captured synthetic evidence, not an installed working physical candidate;
+This section describes captured synthetic evidence; the later installed physical
+candidate and Founder observations are separately recorded below;
 no step here instructs the Founder to operate the real screen or install it.
 
 The actual c1eee43 first 225/220/215°C print and 220°C NOT APPLIED return remain
 separately preserved in [physical-first](evidence/issue-12/physical-first/README.md).
 New authorization/job/clock/completion inputs are synthetic, with network-none
-and read-only runtime/plugin mounts. No modified component is deployed. Pixel fit
+and read-only runtime/plugin mounts. Those captures performed no deployment. Pixel fit
 does not claim physical touch accuracy. [Readiness](TEMPERATURE_PRINT_READINESS.md)
 records final qualification and exact-head CI ownership.
 
@@ -65,3 +67,18 @@ verifies. PNG dimensions match targets and contain no metadata; public JSON and
 privacy scans pass. Earlier captures and actual physical proof remain unchanged.
 The accepted overlap/crash-recovery limits above remain explicit. This is AI
 Product Preflight, not Founder acceptance or deployment authority.
+
+## Subsequent actual deployment, final print and Founder acceptance
+
+Founder accepted the milestone on 2026-10-18, separately from this AI gate.
+Owner observations verify Enabled load, physical compact 1×1 tile and retained
+returned-result Back/reopen. The final separately authorized actual print at
+`f7562bf` completed in 997.3484 seconds and Founder confirms automatic chooser
+appearance. Readback confirms selected 220°C / NOT APPLIED, exact original-context
+receipt and delivered state; original profiles remain unchanged.
+
+Post-final-print pending dismissal/reopening was not separately reported. Do not
+relabel synthetic restart/duplicate/dismissal coverage as another physical run.
+The existing overlap and conservative crash-recovery limitations remain.
+[Acceptance](ISSUE_12_ACCEPTANCE.md) records the governed closeout and stop
+boundary. No new test or implementation is authorized by this reconciliation.

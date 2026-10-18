@@ -3,6 +3,16 @@
 The calibration remains exactly **225/220/215°C bottom to top**, normal original
 nozzle **220°C**, no duration/combined-estimate gate or extra spool-label check.
 
+## Final accepted hardware outcome
+
+[physical-final](physical-final/README.md) records the later actual Founder-started
+f7562bf print, independent 997.3484-second completion, Founder-observed automatic
+chooser and exact original-context 220°C / NOT APPLIED return. Founder accepted
+Issue #12 / PR #13 on 2026-10-18. Raw hardware artifacts and rollback material
+remain private and preserved. This new sanitized summary does not rewrite the
+first-print record or turn synthetic coverage into hardware observations.
+[Acceptance](../../ISSUE_12_ACCEPTANCE.md) records the proof limits and stop.
+
 ## Actual physical milestone preserved
 
 [`physical-first/`](physical-first/README.md) records actual Founder-started
@@ -40,15 +50,16 @@ post-expiry monitoring/cancel/result and exactly-once NOT APPLIED handling.
 
 The retained 1×1 tile (2×2 internal tracks) contains its icon, full identity and
 status without overlap/clipping; actual native taps reach chooser/Temperature.
-No saved physical dashboard placement is migrated. Existing live return/recovery
+The capture performs no physical saved-placement migration. The later owner
+native re-add and actual 1×1 verification are recorded in physical-final. Existing live return/recovery
 and coordinator/relay checks remain unchanged; broader replacement-job delivery
 is not claimed.
 
 All authorization/job/status/clock/completion inputs are **synthetic** in Docker
 network-none/read-only runtime/plugin isolation, with zero physical actions. The
 1501-second fixture estimate is not the actual G-code estimate. A simulated lost
-host write is not a new disk-space incident. No current proof claims a physical
-installation or another real print.
+host write is not a new disk-space incident. This synthetic matrix does not claim a physical installation or real print;
+those separately authorized observations belong to physical-final.
 
 The Founder explicitly accepts temporary native-dialog overlap for this test;
 no modal priority/deferral is claimed. The product uses existing `helix.ui.overlay`
@@ -79,7 +90,8 @@ checks or permission for another print.
 **synthetic** completion inputs; it is not the later actual physical success.
 Its accepted 0.5.0 restoration/profile-preservation observations predate separately
 authorized physical staging. This UX build changes no Windows component and
-performs no physical installation/rollback. Raw G-code, Windows frames, target
+performed no physical installation/rollback during its build capture. The later
+authorized deployment is separately recorded. Raw G-code, Windows frames, target
 data and operational payloads remain private.
 
 [Readiness](../../TEMPERATURE_PRINT_READINESS.md) ·

@@ -409,3 +409,26 @@ page independence, duplicates, dismissal/restart, lifecycle locks and all eleven
 viewports; obtain fresh independent review, Product Preflight and exact-head CI.
 Preserve physical baseline/evidence and prior captures. No new physical print,
 deployment, firmware/configuration change, profile writeback or merge is approved.
+
+## Issue #12 Founder acceptance and closeout
+
+Founder accepted Issue #12 / PR #13 on 2026-10-18 as the completed physical
+Temperature calibration milestone at tested `f7562bf2bd1f747f9fbc966425dec33e196e22c7`.
+Founder confirms the final physical print, automatic chooser and successful
+original-Orca NOT APPLIED return. Readback verifies selected 220°C and the exact
+originating receipt/delivered status. The current instruction authorizes only
+documentation/evidence reconciliation, required exact-head validation, governed
+merge commit, clean detached main verification and Issue closure. It supersedes
+the earlier keep-unmerged gate for PR #13 only; preserve branch references.
+
+Preserve the installed 0.4.3-issue12-auto, working 1×1 saved widget, printer
+configuration, original profiles/context, all accepted communication artifacts,
+physical/synthetic evidence, rollback material and dirty canonical work. No
+new print, upload, heat, motion, state reset, firmware/configuration/security
+change, profile writeback, deployment or unrelated development is authorized.
+Record normal native print accounting truthfully; never restore settings just
+to make a pre-print snapshot identical. See `docs/ISSUE_12_ACCEPTANCE.md`.
+
+After governed closeout, **stop implementation**. The next activity is a fresh
+Founder-led review of the overall Helix–Orca product goal, not another build.
+Deferred work remains unapproved; do not launch a new feature or calibration.

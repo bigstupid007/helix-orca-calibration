@@ -8,8 +8,11 @@ adapter with actions disabled by default. The one-request
 execution requires a separate exact private Founder grant and native intent.
 The first separately authorized physical run at `c1eee43` succeeded and returned
 220°C NOT APPLIED; [its actual evidence](../../docs/evidence/issue-12/physical-first/README.md)
-is preserved separately. The current UX build activates no physical adapter;
-repository tests use injected fake adapters and native UX capture is synthetic.
+is preserved separately. The later 0.4.3-issue12-auto deployment and final real
+print/automatic chooser/220°C NOT APPLIED return were Founder-accepted on
+2026-10-18. [Acceptance](../../docs/ISSUE_12_ACCEPTANCE.md) records closeout and
+the stop boundary. Repository tests use injected fake adapters and native UX
+capture remains synthetic; no new live run is authorized.
 
 The caller constructs `TemperaturePrintLifecycle(journal_path, adapter)`, then
 uses this sequence:
@@ -171,3 +174,11 @@ After the automatic push, only tracked plugin preparation overlays retire.
 Native pages and unrelated dialogs remain, so dismissal cannot expose a stale
 manual chooser underneath Print Status. Manual reopening uses the same accepted
 navigation and never clears the completion claim.
+
+## Accepted operational disposition
+
+The actual working installation and owner-saved 1×1 placement are retained;
+product code still performs no saved-layout migration. Closeout changes only
+canonical documentation and the sanitized physical summary. Future queued API
+migration or another calibration is not current implementation authority.
+After closeout, stop for the fresh Founder-led overall-goal review.

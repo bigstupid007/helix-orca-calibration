@@ -230,12 +230,13 @@ application, broader hardware operation or security/access expansion is included
 ## Deferred — requires new approval
 
 - Moonraker coordination/networking beyond the accepted Issue #6 display
-  route and Issue #8 storage-only, correlated non-printing return with its
-  exact owner-approved file bridge and trusted-LAN boundary.
-- G-code generation, modification, or execution, and upload beyond the
-  accepted normal Orca Upload-only display request.
+  route, Issue #8 correlated return and the bounded Issue #12 physical
+  Temperature proof, preserving the exact owner-approved bridge and trusted LAN.
+- Custom G-code generation/modification or execution/upload beyond accepted
+  native Orca Temperature preparation and separately authorized exact-file tests.
 - Real print start/monitoring, measured calibration results or scoring beyond
-  the accepted simulated, NOT APPLIED Temperature-selection return.
+  the accepted bounded physical Temperature milestone in Issue #12; any new
+  physical run or broader scoring still needs new approval.
 - Orca preset mutation or writeback.
 - Additional calibration modules beyond a separately approved increment.
 - Picker/profile-browser expansion beyond the bounded Issue #4 flow.
@@ -280,17 +281,18 @@ is required before implementing that part. Do not treat the compact candidate
 or synthetic capture as completion of both UX corrections. Existing deferred
 visual polish and unrelated dashboard work remain outside scope.
 
-## Issue #12 current completion UX candidate
+## Issue #12 — accepted physical milestone; implementation stopped
 
-The Founder explicitly supersedes the prior modal blocker for this personal
-printer test, accepting temporary native-dialog overlap. The automatic chooser
-and retained 1×1 widget are implemented in the same unmerged PR #13; final proof
-and review status are recorded in [readiness](TEMPERATURE_PRINT_READINESS.md).
-The prior historical checkpoint above is superseded for this test only.
+Founder accepted the final real print, automatic Temperature chooser and
+original-Orca 220°C / NOT APPLIED return on 2026-10-18. Installed f7562bf and the
+working physical 1×1 widget remain preserved. [Acceptance](ISSUE_12_ACCEPTANCE.md)
+owns documentation/evidence closeout, guarded merge/main verification and Issue
+closure. Earlier unmerged/readiness stages above are historical.
 
-Future work is migration of the isolated presentation adapter to Preston's
-queued-overlay API when available, with renewed qualification. Existing
-unrelated dashboard/chooser polish remains deferred. No deployment or another
-physical print is authorized. Precise current lifecycle/recovery limits belong
-in [the API record](ISSUE_12_COMPLETION_UX_API_GATE.md), and real physical success
-remains separately preserved.
+**The next activity is a fresh Founder-led review of the overall Helix–Orca
+product goal, not another build.** Queued-overlay migration, deferred UX,
+additional modules, scoring, broader automation and profile writeback remain
+unapproved topics. Do not create or launch implementation work automatically.
+Further print, deployment or firmware/configuration/security changes require
+separate authority. The accepted temporary modal-overlap and crash/manual
+recovery limitations remain in the [API record](ISSUE_12_COMPLETION_UX_API_GATE.md).
