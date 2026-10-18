@@ -162,6 +162,23 @@ class NativeParity(unittest.TestCase):
         self.assertFalse(report['observations']['progress_estimates_equal'])
         self.assertTrue(report['observations']['motion_extrusion_equal'])
 
+    def test_klipper_dynamic_acceleration_is_measured_separately_from_static_limits(self):
+        self.candidate.write_text('SET_VELOCITY_LIMIT ACCEL=3000\n' + self.candidate.read_text())
+        self.native.write_text('SET_VELOCITY_LIMIT ACCEL=6000\n' + self.native.read_text())
+        self.manifest['artifact'] = parity.file_record(self.native)
+        report = self.evaluate()
+        self.assertFalse(report['qualified'])
+        self.assertFalse(report['observations']['static_machine_limit_commands_present'])
+        self.assertFalse(report['observations']['dynamic_acceleration_stream_equal'])
+        self.assertFalse(report['observations']['dynamic_acceleration_unique_values_equal'])
+
+    def test_global_settings_difference_requires_native_object_evidence(self):
+        a = temperature_gcode() + '; brim_type = outer_only\n; brim_object_gap = 0\n'
+        b = temperature_gcode() + '; brim_type = no_brim\n; brim_object_gap = 0.1\n'
+        data = parity.compare_emitted_settings(a, b)
+        self.assertEqual(len(data['differences']), 2)
+        self.assertTrue(all('object' in item['classification'] for item in data['differences']))
+
     def test_native_manifest_requires_independent_full_native_context(self):
         context = {'schema': 'helix-orca-v1-context/v1', 'origin_id': '1' * 32,
                    'runtime': self.inputs['runtime'], 'nozzle_mm': .4,

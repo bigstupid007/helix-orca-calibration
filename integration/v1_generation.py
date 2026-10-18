@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
+import struct
 import xml.etree.ElementTree as ET
 import zipfile
 
@@ -181,8 +182,13 @@ def _flow(request, snapshot, destination, config, profiles):
     if asset.get('source_commit') != config['source_commit']:
         _blocked('flow_asset', 'Native YOLO asset source pin does not match the engine.')
     source = _checked_file(asset)
-    layer_height = _numeric(effective, 'layer_height')
-    width = _numeric(effective, 'line_width')
+    f32 = lambda value: struct.unpack('f', struct.pack('f', value))[0]
+    layer_height = f32(_numeric(effective, 'layer_height'))
+    width = f32(_numeric(effective, 'line_width'))
+    native_nozzle = f32(nozzle)
+    native_layer = native_nozzle / 2.0
+    native_initial = max(_numeric(effective, 'initial_layer_print_height'), native_layer)
+    native_surface_width = f32(native_nozzle * f32(1.2))
     if not layer_height > 0 or not width >= layer_height:
         _blocked('flow_speed', 'YOLO needs explicit absolute line width at least the original layer height.')
     area = layer_height * (width - layer_height * (1 - math.pi / 4))
@@ -198,8 +204,8 @@ def _flow(request, snapshot, destination, config, profiles):
         'sparse_infill_density': '35%', 'min_width_top_surface': '100%',
         'bottom_shell_layers': '2', 'top_shell_layers': '5', 'top_shell_thickness': '0',
         'bottom_shell_thickness': '0', 'detect_thin_wall': '1', 'filter_out_gap_fill': '0',
-        'sparse_infill_pattern': 'rectilinear', 'top_surface_line_width': '0.48',
-        'internal_solid_infill_line_width': '0.48', 'top_surface_pattern': 'archimedeanchords',
+        'sparse_infill_pattern': 'rectilinear', 'top_surface_line_width': repr(native_surface_width),
+        'internal_solid_infill_line_width': repr(native_surface_width), 'top_surface_pattern': 'archimedeanchords',
         'top_solid_infill_flow_ratio': '1', 'infill_direction': '45', 'solid_infill_direction': '135',
         'center_of_surface_pattern': 'each_surface', 'separated_infills': '0',
         'align_infill_direction_to_model': '1', 'ironing_type': 'no ironing',
@@ -226,7 +232,7 @@ def _flow(request, snapshot, destination, config, profiles):
                 _blocked('flow_asset', 'Malformed YOLO modifier.')
             seen.add(modifier)
             node = ET.SubElement(model_settings, 'object', {'id': obj.attrib['id']})
-            for key, value in {'name': name, **settings, 'print_flow_ratio': str((flow + modifier) / flow)}.items():
+            for key, value in {'name': name, **settings, 'print_flow_ratio': repr((flow + f32(modifier)) / flow)}.items():
                 ET.SubElement(node, 'metadata', {'key': key, 'value': value})
         if seen != expected or len(objects) != 11:
             _blocked('flow_asset', 'YOLO requires all eleven native patches, without duplicates.')
@@ -237,7 +243,7 @@ def _flow(request, snapshot, destination, config, profiles):
                     target.writestr(info.filename, archive.read(info))
             target.writestr('Metadata/model_settings.config', ET.tostring(model_settings, encoding='utf-8', xml_declaration=True))
     profiles['machine']['resonance_avoidance'] = '0'
-    profiles['process'].update({'layer_height': '0.2', 'initial_layer_print_height': '0.2',
+    profiles['process'].update({'layer_height': repr(native_layer), 'initial_layer_print_height': repr(native_initial),
                                'alternate_extra_wall': '0', 'reduce_crossing_wall': '1',
                                'enable_wrapping_detection': '0', 'max_volumetric_extrusion_rate_slope': '0'})
     return output

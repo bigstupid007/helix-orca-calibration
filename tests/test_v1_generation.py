@@ -171,6 +171,11 @@ class StockGeneration(unittest.TestCase):
         self.assertEqual({x['name'] for x in objects}, set(names))
         self.assertEqual(len({x['print_flow_ratio'] for x in objects}), 11)
         self.assertTrue(all(x['calib_flowrate_topinfill_special_order'] == '1' for x in objects))
+        by_name = {item['name']: item for item in objects}
+        self.assertEqual(float(by_name['flowrate_0.01']['print_flow_ratio']), 1.0099999997764826)
+        self.assertEqual(float(by_name['flowrate_0']['top_surface_line_width']), 0.48000001907348633)
+        process = json.loads((self.root / 'job/process.json').read_text())
+        self.assertEqual(float(process['layer_height']), 0.20000000298023224)
 
 
 if __name__ == '__main__':

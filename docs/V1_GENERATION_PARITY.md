@@ -346,3 +346,86 @@ with explicit bed selection and strict mode. The original native macro hook is
 preserved. Staging is not Windows slicing, native parity or physical readiness;
 the lead owns actual Windows execution and the independent native reference.
 No private snapshot, profile name or operational path is promoted here.
+
+## Actual October15 Windows Temperature comparison
+
+The actual preferred Windows executable (SHA-256
+`e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759`)
+prepared the stock CLI candidate from the complete independently captured R4
+context. The lead independently used the native Calibration menu with
+230→190°C, fixed 5°C step and nozzle auto-scale enabled. Retained native
+parameter/slice/export screenshots, the pre-calibration context and actual
+export bind the native reference. Candidate helper code, transferred bundle,
+invocation and all resulting artifact hashes are verified. CLI exit was zero.
+No UI automation or test worker is claimed as a shipping generation API.
+
+| Actual artifact | Native UI | Programmatic stock CLI |
+| --- | --- | --- |
+| G-code bytes | 3,028,201 | 2,965,977 |
+| G-code SHA-256 | `512eb13a80788bd22f928b1b073382070a7c43b5c667efd08ffcc05e550e29b7` | `7bcb855addd5747b4c8a2d8eb2c606b7d4415ff8b82ebe9543f7e3a840e9e544` |
+| Fixed 0.2 mm layers | 450 | 450 |
+| Actual deposited temperature sections | 230→190°C, nine sections | Exact same nine sections |
+| Model positive-E XY moves | 59,562 | 59,464 |
+| Model emitted E, mm | 5558.07546 | 5558.38590 |
+| Geometry triangles / vertices | 27,238 / 13,585 | 27,280 / 13,606 |
+| Exact degenerate triangles | 0 | 4 |
+| Signed mesh volume, mm³ | 20517.682389683 | 20517.590425722 |
+
+**Qualification remains blocked under `exact-executable-v1`.** Both files pass
+all actual-deposition temperature/Z checks, complete nozzle/bed streams and
+original visible-wait macro semantics. Printed XY bounds, G90/M83 modes,
+PRINT_START/PRINT_END invocations and the pressure-advance command match.
+This is command comparison only: the preserved original EXTRUDER/BED macro ABI
+is not newly certified for the actual printer; macro internals remain unobserved
+and `physical_readiness` is false.
+
+The exact differences remain retained and classified:
+
+- Model extrusion differs by +0.0055854%; toolpaths have 98 fewer positive-E
+  model moves. This is a measured difference, not an assertion of print-quality
+  equivalence.
+- Dynamic Klipper acceleration streams contain 11,749 native versus 11,740 CLI
+  commands. Their exact allowed values match (1500, 2000, 3000, 3500, 6000,
+  7000 and 8000 mm/s²), but their sequences differ. Static Marlin-style limit
+  streams are absent in these Klipper files; an empty equal stream is not proof
+  of identical dynamic acceleration.
+- Both files contain 175 M73 commands, with differing estimates/sequence values.
+- Exclusion-object identifiers differ with the model names. Their derived
+  exclusion polygons also differ: the symmetric maximum polygon-vertex to
+  opposite-edge distance is 0.00931385 mm. This is a polygon measurement,
+  not a full mesh-surface bound.
+- Eight global emitted-setting differences are retained. The brim type/gap
+  difference is resolved by independently inspected native **object** overrides:
+  native object and candidate effective settings both use outer-only 5 mm brim
+  with zero gap. Native global no-brim/0.1 mm values do not describe that object.
+  The remaining differences are the stock layer template replacing native
+  transient calibration state and retained preset identity/bookkeeping columns.
+  None waives an executable difference.
+
+The native full project remains in its isolated Windows evidence directory.
+The standard-library whitelist utility inspected both projects **on Windows**
+with Python `-I -S` and returned only bounded settings/scalar geometry metrics;
+no full native project, profile text, hooks or vertex arrays were transferred.
+Its executed source SHA-256 is
+`a11979d38e87073576c495e743028252e0de8b9ea10d33b4ba2287b5f2080bcb`.
+The native retained project is 341,982 bytes with SHA-256
+`f6ac5e0a1bf46f7caeb826c0059dd0044a451be253a707fa81a51689fc6fbdbd`.
+Its existence/hash is established by the Windows-local sanitized report, not
+by a fabricated local copy. Both meshes have finite coordinates, valid indices
+and zero indexed boundary/nonmanifold edges. Candidate-minus-native extent
+changes are −0.0000076, −0.00001526 and −0.0001984 mm in XYZ. These scalar
+measurements establish neither full-surface equivalence nor physical quality.
+
+The native provenance manifest and raw comparison remain private. They bind
+exact inputs, actual G-code bytes, UI evidence and the Windows-local metrics
+report. No real printer action, settings/profile write or new physical test
+occurred. The reusable report now distinguishes global emitted settings,
+per-object evidence, static limit opcodes and dynamic acceleration streams.
+
+A matching YOLO Recommended pass1 Windows bundle has also been staged from the
+same complete original R4 context and exact native `Orca-LinearFlow.3mf` asset.
+It preserves all eleven objects and native per-object ratios in a 3MF input;
+flattening it to STL would lose the calibration. Recipe arithmetic mirrors the
+source's float32 nozzle/width/label-modifier operations before native double
+configuration values. Actual Windows slicing and independently prepared native
+YOLO comparison are still required; staging alone is not qualification.

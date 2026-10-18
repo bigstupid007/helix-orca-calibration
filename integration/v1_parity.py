@@ -272,6 +272,32 @@ def invariants(text, inputs):
             'macro_semantics': macro_semantics, 'physical_readiness': False}
 
 
+def emitted_settings(text):
+    """Global emitted settings only; native object overrides remain separate."""
+    return dict(re.findall(r'^; ([a-zA-Z0-9_]+) = (.*)$', text, re.M))
+
+
+def compare_emitted_settings(candidate_text, native_text):
+    a, b = emitted_settings(candidate_text), emitted_settings(native_text)
+    differences = []
+    bookkeeping = {'different_settings_to_system', 'filament_ids', 'filament_plugin_config_overrides',
+                   'inherits_group', 'print_compatible_printers'}
+    for key in sorted(set(a) | set(b)):
+        if a.get(key) == b.get(key):
+            continue
+        if key in ('brim_type', 'brim_width', 'brim_object_gap', 'layer_height'):
+            kind = 'global-versus-object override requires independent native object settings'
+        elif key == 'layer_change_gcode':
+            kind = 'stock template versus transient native calibration state; executable comparison required'
+        elif key in bookkeeping:
+            kind = 'preset identity or bookkeeping difference retained; no equality waiver'
+        else:
+            kind = 'unclassified effective setting difference'
+        differences.append({'key': key, 'candidate': a.get(key), 'native': b.get(key), 'classification': kind})
+    return {'candidate_global_keys': len(a), 'native_global_keys': len(b), 'differences': differences,
+            'limitation': 'Global footer values do not establish native per-object effective settings. No difference is waived.'}
+
+
 def observations(candidate_text, native_text):
     """Measurements explain differences without relaxing the qualification gate."""
     a, b = analyze(candidate_text), analyze(native_text)
@@ -286,6 +312,11 @@ def observations(candidate_text, native_text):
     return {
         'heater_stream_equal': heaters(a) == heaters(b),
         'machine_limits_equal': op_stream(ac, {'M201', 'M203', 'M205', 'M566'}) == op_stream(bc, {'M201', 'M203', 'M205', 'M566'}),
+        'static_machine_limit_commands_present': bool(op_stream(ac, {'M201', 'M203', 'M205', 'M566'}) or op_stream(bc, {'M201', 'M203', 'M205', 'M566'})),
+        'dynamic_acceleration_stream_equal': op_stream(ac, {'M204', 'SET_VELOCITY_LIMIT'}) == op_stream(bc, {'M204', 'SET_VELOCITY_LIMIT'}),
+        'dynamic_acceleration_unique_values_equal': set(op_stream(ac, {'M204', 'SET_VELOCITY_LIMIT'})) == set(op_stream(bc, {'M204', 'SET_VELOCITY_LIMIT'})),
+        'candidate_dynamic_acceleration_commands': len(op_stream(ac, {'M204', 'SET_VELOCITY_LIMIT'})),
+        'native_dynamic_acceleration_commands': len(op_stream(bc, {'M204', 'SET_VELOCITY_LIMIT'})),
         'progress_estimates_equal': op_stream(ac, {'M73'}) == op_stream(bc, {'M73'}),
         'motion_extrusion_equal': op_stream(ac, {'G0', 'G1', 'G2', 'G3', 'G92'}) == op_stream(bc, {'G0', 'G1', 'G2', 'G3', 'G92'}),
         'candidate_model_extrusion_mm': sum(m['e'] for m in a['moves']),
@@ -352,6 +383,7 @@ def evaluate(candidate, native, manifest, inputs):
         report['candidate_invariants'] = invariants(a, inputs)
         report['native_invariants'] = invariants(b, inputs)
         report['observations'] = observations(a, b)
+        report['emitted_settings'] = compare_emitted_settings(a, b)
         ac, bc = executable(a), executable(b)
         mismatches = []
         for index in range(max(len(ac), len(bc))):
