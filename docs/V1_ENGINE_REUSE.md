@@ -197,9 +197,8 @@ providing a measured source-expansion component of the 16 GiB peak bound.
 
 Separate experimental C++ adapter sources now live in
 `integration/v1-native-engine/`. They reproduce three native tower setup
-paths using actual `Model`/`Cut`/`Flow`/`Print` interfaces and an app-owned
-CMake target injection. They remain explicitly uncompiled/unqualified; PA
-Pattern is still an unimplemented route. The next managed build attempts that
+paths and the PA Pattern generator/arrangement/custom-G-code path using actual `Model`/`Cut`/`Flow`/`Print` interfaces and an app-owned
+CMake target injection. They remain explicitly uncompiled/unqualified. The next managed build attempts that
 actual executable only after the dependency/static-engine gates pass. It must
 not be advertised to the product before native parity and integration.
 
@@ -210,3 +209,21 @@ retained this exact environment gate and cleared its runtime. The owned-prefix
 bootstrap now also locks Autoconf, Automake and Libtool to checksums published
 in their GNU release announcements. This is standard build tooling inside the
 owned cache; there is no host installation, new image or upstream source edit.
+
+The next retained run `8cc9f4c55cd24f999c65bf2f9dd7fddb` built the real
+Autotools prerequisites and reached MPFR compilation. MPFR's documentation
+regeneration requires `makeinfo`, another declared Orca Linux prerequisite.
+The exact owned container was removed, `runtime_clear` is true, and no OOM
+occurred. GNU Texinfo 7.1.1 is now source/checksum locked using the primary
+Debian source-control file's SHA-256 for its unmodified upstream tarball; the
+archive still comes directly from GNU. No documentation generator is stubbed.
+
+PA Pattern now has a downstream source implementation of Plater.cpp
+16808–17050, using `CalibPressureAdvance::find_optimal_PA_speed`,
+`CalibPressureAdvancePattern`, native arrangement and the actual per-plate
+`generate_custom_gcodes` result. It retains the default speed/acceleration
+selection and printed numbers. It requires Klipper flavor because V1's
+retained context lacks the native vendor object needed to prove Bambu writer
+selection for other firmware. The one pattern is arranged before generation;
+its anchor must not subsequently be recentered independently of custom paths.
+This remains uncompiled source until the native target build passes.

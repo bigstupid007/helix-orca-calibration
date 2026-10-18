@@ -75,7 +75,7 @@ def compile_offline():
     os.environ['PATH'] = '/build/bootstrap-prefix/bin:' + os.environ['PATH']
     for item in lock.get('bootstrap_sources', []):
         name = item['target'].removeprefix('dep_')
-        binary = {'m4':'m4','autoconf':'autoreconf','automake':'automake','libtool':'libtoolize'}[name]
+        binary = {'m4':'m4','autoconf':'autoreconf','automake':'automake','libtool':'libtoolize','texinfo':'makeinfo'}[name]
         installed = Path('/build/bootstrap-prefix/bin')/binary
         if installed.exists(): continue
         work = Path('/build/bootstrap')

@@ -3,7 +3,9 @@
 // https://github.com/OrcaSlicer/OrcaSlicer/blob/6a7763f08d1a175a464a00ce13f0b5a815662fc4/LICENSE.txt
 // Separate, source-pinned adapter. No Orca application source is modified.
 // Experimental until compiled and independently compared with native UI output.
+#include "libslic3r/Arrange.hpp"
 #include "libslic3r/BuildVolume.hpp"
+#include "libslic3r/TriangleMesh.hpp"
 #include "libslic3r/CutUtils.hpp"
 #include "libslic3r/Flow.hpp"
 #include "libslic3r/Model.hpp"
@@ -225,6 +227,79 @@ static void volumetric(Model &model,DynamicPrintConfig &config,Calib_Params &par
     params.start/=volume;params.end/=volume;params.step/=volume;
 }
 
+// Plater::_calib_pa_pattern/_calib_pa_pattern_gen_gcode, exact pinned source.
+// One default-speed/default-acceleration pattern; no batch-mode reinterpretation.
+static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Params &params,
+                             const json &parameters)
+{
+    params.start=number(parameters.at("start"),0,5);
+    params.end=number(parameters.at("end"),0,5);
+    params.step=number(parameters.at("step"),0.001,5);
+    if(params.end<params.start+params.step || (params.end-params.start)/params.step>1000)
+        throw std::runtime_error("Unsupported native PA sample count");
+    params.mode=CalibMode::Calib_PA_Pattern;params.print_numbers=true;
+    // V1 retained context has no vendor object. Klipper proves this is not the
+    // Bambu Marlin writer; reject other flavors rather than infer vendor names.
+    if(config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value!=gcfKlipper)
+        throw std::runtime_error("Native PA currently requires retained Klipper flavor");
+    constexpr bool is_bbl_machine=false;
+    const double nozzle=config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
+    for(const std::string key:{"filament_retract_when_changing_layer","filament_wipe"})
+        config.set_key_value(key,new ConfigOptionBoolsNullable(1,false));
+    for(const std::string key:{"wipe","retract_when_changing_layer"})
+        config.set_key_value(key,new ConfigOptionBools(1,false));
+    config.set_key_value("resonance_avoidance",new ConfigOptionBool(false));
+    double accel=config.get_abs_value_at("outer_wall_acceleration",0);
+    if(accel==0) accel=config.get_abs_value_at("inner_wall_acceleration",0);
+    if(accel==0) accel=config.get_abs_value_at("default_acceleration",0);
+    config.set_key_value("outer_wall_acceleration",new ConfigOptionFloatsNullable(1,accel));
+    config.set_key_value("print_sequence",new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
+    if(config.get_abs_value_at("default_jerk",0)>0) {
+        double jerk=config.get_abs_value_at("outer_wall_jerk",0);
+        if(jerk==0) jerk=config.get_abs_value_at("inner_wall_jerk",0);
+        if(jerk==0) jerk=config.get_abs_value_at("default_jerk",0);
+        for(const std::string key:{"default_jerk","outer_wall_jerk","inner_wall_jerk","top_surface_jerk","infill_jerk","travel_jerk"})
+            config.set_key_value(key,new ConfigOptionFloatsNullable(1,jerk));
+    }
+    const SuggestedConfigCalibPAPattern suggested;
+    for(const auto &item:suggested.floats_pairs)
+        config.set_key_value(item.first,new ConfigOptionFloatsNullable(1,item.second[0]));
+    for(const auto &item:suggested.nozzle_ratio_pairs)
+        config.set_key_value(item.first,new ConfigOptionFloatOrPercent(nozzle*item.second/100,false));
+    for(const auto &item:suggested.int_pairs)
+        config.set_key_value(item.first,new ConfigOptionInt(item.second));
+    config.set_key_value(suggested.brim_pair.first,new ConfigOptionEnum<BrimType>(suggested.brim_pair.second));
+    config.set_key_value("enable_wrapping_detection",new ConfigOptionBool(false));
+    const double speed=CalibPressureAdvance::find_optimal_PA_speed(config,
+        config.get_abs_value("line_width",nozzle),config.get_abs_value("layer_height"),0,0);
+    config.set_key_value("outer_wall_speed",new ConfigOptionFloatsNullable(1,speed));
+    // GUI primitive side length is bed-relative; subsequent native bbox scaling
+    // cancels its magnitude. Preserve its centered, axis-aligned cube topology.
+    auto *cube=model.add_object();cube->add_instance();
+    const TriangleMesh mesh(its_make_cube(20,20,20));
+    cube->add_volume(mesh);cube->translate(-mesh.bounding_box().center());
+    cube->config.set_key_value("extruder",new ConfigOptionInt(1));cube->ensure_on_bed();
+    CalibPressureAdvancePattern pattern(params,config,is_bbl_machine,*cube,Vec3d::Zero());
+    auto bounds=cube->raw_bounding_box();
+    cube->scale((pattern.print_size_x()+4)/bounds.size().x(),
+                (pattern.print_size_y()+4)/bounds.size().y(),pattern.max_layer_z()/bounds.size().z());
+    arrangement::ArrangeParams arrangement_params;
+    const Points bedpts=arrangement::get_shrink_bedpts(&config,arrangement_params);
+    arrangement::ArrangePolygon polygon;cube->instances[0]->get_arrange_polygon(&polygon);polygon.bed_idx=0;
+    arrangement::ArrangePolygons polygons{polygon};
+    arrangement::arrange(polygons,bedpts,arrangement_params);
+    if(polygons[0].bed_idx!=0) throw std::runtime_error("Native PA cannot fit selected plate");
+    bounds=cube->raw_bounding_box();
+    cube->scale(pattern.handle_xy_size()/bounds.size().x(),pattern.handle_xy_size()/bounds.size().y(),
+                pattern.max_layer_z()/bounds.size().z());
+    cube->name="pa_pattern_"+std::to_string(int(speed))+"_"+std::to_string(int(accel));
+    cube->instances[0]->set_offset(Vec3d(unscale<double>(polygons[0].translation(X)),
+        unscale<double>(polygons[0].translation(Y)),0)+pattern.handle_pos_offset());
+    cube->ensure_on_bed();
+    model.calib_pa_pattern=std::make_unique<CalibPressureAdvancePattern>(pattern);
+    model.plates_custom_gcodes[0]=pattern.generate_custom_gcodes(config,is_bbl_machine,*cube,Vec3d::Zero());
+}
+
 int main(int argc,char **argv)
 {
     try {
@@ -247,11 +322,12 @@ int main(int argc,char **argv)
         Model model;Calib_Params params;
         if(calibration=="temperature") temperature(model,config,params,request.at("parameters"),resources);
         else if(calibration=="retraction") retraction(model,config,params,request.at("parameters"),resources);
+        else if(calibration=="pressure_advance_pattern") pressure_advance(model,config,params,request.at("parameters"));
         else if(calibration=="max_volumetric_speed") volumetric(model,config,params,request.at("parameters"),resources);
         else throw std::runtime_error("Native adapter route is not implemented for this calibration");
         const auto area=config.option<ConfigOptionPoints>("printable_area")->values;
         const double height=config.opt_float("printable_height");
-        model.center_instances_around_point(get_extents(area).center());
+        if(calibration!="pressure_advance_pattern") model.center_instances_around_point(get_extents(area).center());
         BuildVolume bed(area,height,{area},{height});
         if(model.update_print_volume_state(bed)!=model.objects.size())
             throw std::runtime_error("Native model exceeds build volume");

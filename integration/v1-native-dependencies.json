@@ -134,6 +134,12 @@
       "url": "https://ftp.gnu.org/gnu/libtool/libtool-2.4.7.tar.xz",
       "sha256": "4f7f217f057ce655ff22559ad221a0fd8ef84ad1fc5fcb6990cecc333aa1635d",
       "provenance": "https://lists.gnu.org/archive/html/info-gnu/2022-03/msg00006.html"
+    },
+    {
+      "target": "dep_texinfo",
+      "url": "https://ftp.gnu.org/gnu/texinfo/texinfo-7.1.1.tar.xz",
+      "sha256": "31ae37e46283529432b61bee1ce01ed0090d599e606fc6a29dca1f77c76a6c82",
+      "provenance": "https://deb.debian.org/debian/pool/main/t/texinfo/texinfo_7.1.1-1.dsc (unmodified upstream orig.tar.xz SHA-256)"
     }
   ]
 }

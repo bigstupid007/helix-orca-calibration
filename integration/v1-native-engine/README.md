@@ -8,10 +8,12 @@ and an incremental adapter build are attempted.
 
 The intended CLI reads an immutable V1 request and complete effective context,
 explicit pinned native resources and an existing empty output directory. It
-contains Temperature standard tower, Retraction and Max Volumetric Speed setup
+contains Temperature standard tower, Retraction, Max Volumetric Speed and PA Pattern setup
 for one non-belt nozzle. It rejects unavailable effective values, unsupported
 external processing, out-of-volume geometry and overwritten artifacts. PA
-Pattern remains an explicit missing route, and stock Flow YOLO preparation is
+Pattern uses the actual native pattern generator and per-plate custom G-code;
+it currently requires Klipper because the context has no native vendor object.
+Stock Flow YOLO preparation is
 owned by the stock generation module. All artifacts remain unqualified until
 mandatory independent native-UI parity; this file grants no physical action.
 
