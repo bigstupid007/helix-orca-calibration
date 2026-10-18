@@ -227,3 +227,13 @@ retained context lacks the native vendor object needed to prove Bambu writer
 selection for other firmware. The one pattern is arranged before generation;
 its anchor must not subsequently be recentered independently of custom paths.
 This remains uncompiled source until the native target build passes.
+
+The retained complete Windows R4 context was inventoried against all active
+`FullPrintConfig` class declarations and literal native definitions. The only
+missing current full-config keys are the deliberately redacted
+`bed_custom_model` and `bed_custom_texture` (PrintConfig.cpp 1037/1043). These
+are display asset paths; the adapter excludes them explicitly and reports
+the exclusion. All executable slicing values remain mandatory. Obsolete static
+class members have no active definition and do not become required values.
+Native `plugins`, `post_process` and `slicing_pipeline_plugin` must all be empty.
+No preset source file is read to fill a missing effective value.

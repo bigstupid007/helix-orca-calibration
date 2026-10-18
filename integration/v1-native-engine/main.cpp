@@ -55,6 +55,9 @@ static DynamicPrintConfig retained_config(const json &snapshot)
     const auto &effective = snapshot.at("effective");
     if (!effective.is_object()) throw std::runtime_error("Effective config unavailable");
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    // GUI-only bed asset paths are deliberately redacted from retained context.
+    // PrintConfig.cpp 1037/1043 define them; no executable slicing consumes them.
+    config.erase("bed_custom_model");config.erase("bed_custom_texture");
     // Defaults establish native types, never replace unavailable effective values.
     for (const auto &key : config.keys()) {
         if (!effective.contains(key) || !effective.at(key).is_string())
@@ -64,7 +67,7 @@ static DynamicPrintConfig retained_config(const json &snapshot)
         if (!it.value().is_string()) throw std::runtime_error("Serialized config required");
         config.set_deserialize_strict(it.key(), it.value().get<std::string>());
     }
-    for (const std::string key : {"plugins", "post_process"}) {
+    for (const std::string key : {"plugins", "post_process", "slicing_pipeline_plugin"}) {
         if (const auto *option = config.option<ConfigOptionStrings>(key))
             for (const auto &value : option->values)
                 if (!value.empty()) throw std::runtime_error("External processing unsupported: " + key);
@@ -352,7 +355,8 @@ int main(int argc,char **argv)
                      {"request_id",request.at("request_id")},{"origin_id",request.at("origin_id")},
                      {"context_sha256",request.at("context_sha256")},
                      {"artifact",gcode.filename().string()},{"size",fs::file_size(gcode)},
-                     {"qualified",false},{"not_applied",true}};
+                     {"qualified",false},{"not_applied",true},
+                     {"excluded_visual_keys",{"bed_custom_model","bed_custom_texture"}}};
         std::ofstream(output/"native-generation.json")<<report.dump(2)<<'\n';
         std::cout<<report.dump()<<'\n';return 0;
     }catch(const std::exception &error){std::cerr<<error.what()<<'\n';return 2;}
