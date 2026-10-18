@@ -109,5 +109,13 @@
       "url": "https://www.python.org/ftp/python/3.12.13/Python-3.12.13.tar.xz",
       "sha256": "c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684"
     }
+  ],
+  "bootstrap_sources": [
+    {
+      "target": "dep_m4",
+      "url": "https://ftp.gnu.org/gnu/m4/m4-1.4.20.tar.xz",
+      "sha256": "e236ea3a1ccf5f6c270b1c4bb60726f371fa49459a8eaaebc90b216b328daf2b",
+      "provenance": "https://lists.gnu.org/archive/html/info-gnu/2025-05/msg00001.html"
+    }
   ]
 }

@@ -41,7 +41,7 @@ def read_lock():
     lock = json.loads(LOCK.read_text())
     if lock['source_commit'] != SOURCE or lock['platform'] != 'Linux x86_64':
         raise ValueError('Dependency baseline/platform mismatch')
-    for item in lock['sources']:
+    for item in lock['sources'] + lock.get('bootstrap_sources', []):
         if not re.fullmatch('dep_[A-Za-z0-9]+', item['target']) or not re.fullmatch('[a-f0-9]{64}', item['sha256']):
             raise ValueError('Malformed locked dependency')
         for url in item['url'].split(';'):
@@ -62,14 +62,14 @@ def download(cache):
     report = {'source_commit': SOURCE, 'source_lock_sha256': sha(LOCK), 'cap_bytes': CAP, 'complete': False, 'archives': records}
     artifact = Path(os.environ['RUN_ARTIFACTS']) / 'dependency-download.json'
     try:
-        for item in lock['sources']:
+        for item in lock['sources'] + lock.get('bootstrap_sources', []):
             urls = item['url'].split(';')
             name = Path(urllib.parse.urlsplit(urls[0]).path).name
             target = cache / (item['sha256'] + '-' + name)
             if target.exists():
                 if target.is_symlink() or sha(target) != item['sha256']:
                     raise ValueError('Existing dependency archive differs: ' + item['target'])
-                records.append(dict(item, path=str(target), size=target.stat().st_size, cached=True))
+                records.append(dict(item, path=str(target), size=target.stat().st_size, cached=True, verified=True))
                 continue
             # Do not silently switch unreviewed mirrors; use upstream's first pinned URL.
             partial = target.with_name(target.name + '.part-' + uuid.uuid4().hex)

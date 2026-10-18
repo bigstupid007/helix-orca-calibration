@@ -178,3 +178,27 @@ counts and gates compiler entry through four shared locks inside the owned
 container build directory. Upstream source remains unchanged. Dependency and
 static-engine compilation wait until native captures and stock slices explicitly
 release their scheduled shared resource slot.
+
+## First native dependency build checkpoint
+
+The first managed compile attempt passed dependency configure and installed
+Boost, Cereal, Qhull, GLFW and TBB. GMP configure then rejected the reused
+builder because it has no `m4`; an additional `file` absence was a warning.
+Run `27997b867ef64a8fbde693de4ead029e` retained the exact failure and all cached
+progress, removed its owned container, and recorded `runtime_clear: true`.
+Peak memory was 1,816,973,312 bytes; peak PID count 23; no OOM occurred. This is
+real native compilation progress, not a built or qualified generator.
+
+The minimal repair is an owned-prefix GNU m4 bootstrap, without host installs
+or a new image. Its source URL and SHA-256 are locked separately from Orca's
+21 native dependencies, using the [GNU release announcement's published checksum](https://lists.gnu.org/archive/html/info-gnu/2025-05/msg00001.html).
+All dependency archive headers total 1,527,267,848 expanded bytes (1.422 GiB),
+providing a measured source-expansion component of the 16 GiB peak bound.
+
+Separate experimental C++ adapter sources now live in
+`integration/v1-native-engine/`. They reproduce three native tower setup
+paths using actual `Model`/`Cut`/`Flow`/`Print` interfaces and an app-owned
+CMake target injection. They remain explicitly uncompiled/unqualified; PA
+Pattern is still an unimplemented route. The next managed build attempts that
+actual executable only after the dependency/static-engine gates pass. It must
+not be advertised to the product before native parity and integration.

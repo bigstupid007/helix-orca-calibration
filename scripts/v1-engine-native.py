@@ -32,14 +32,14 @@ def load(name, path):
     return module
 
 
-def bounded_command(command, evidence, label):
+def bounded_command(command, evidence, label, cwd=None):
     """Keep capped first output and diagnostic tail independently of log volume."""
     print(json.dumps({'stage':label,'state':'started'}),flush=True)
     start = time.monotonic()
     tail, kept, total = b'', 0, 0
     with (evidence / (label + '.log')).open('wb') as log:
-        child = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        while chunk := child.stdout.read(65536):
+        child = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=cwd)
+        while chunk := child.stdout.read1(65536):
             total += len(chunk)
             if kept < 1024**2:
                 block = chunk[:1024**2-kept]
@@ -72,6 +72,18 @@ def compile_offline():
     os.environ['CC'] = str(tools/'cc')
     os.environ['CXX'] = str(tools/'c++')
     os.environ['CMAKE_BUILD_PARALLEL_LEVEL'] = '4'
+    m4 = Path('/build/bootstrap-prefix/bin/m4')
+    if not m4.exists():
+        work = Path('/build/bootstrap')
+        work.mkdir(mode=0o700,exist_ok=True)
+        archive = Path('/downloads/m4/m4-1.4.20.tar.xz')
+        source = work/'m4-1.4.20'
+        if not source.exists():
+            bounded_command(['cmake','-E','tar','xf',str(archive)],evidence,'bootstrap-m4-extract',cwd=work)
+        bounded_command([str(source/'configure'),'--prefix=/build/bootstrap-prefix','--disable-nls'],evidence,'bootstrap-m4-configure',cwd=source)
+        bounded_command(['/build/tools/make','-j4'],evidence,'bootstrap-m4-build',cwd=source)
+        bounded_command(['/build/tools/make','install','-j1'],evidence,'bootstrap-m4-install',cwd=source)
+    os.environ['PATH'] = '/build/bootstrap-prefix/bin:' + os.environ['PATH']
     bounded_command(['cmake','-S','/source/deps','-B','/build/deps','-DSLIC3R_CAD=OFF',
                      '-DDEP_DOWNLOAD_DIR=/downloads','-DDESTDIR=/build/prefix',
                      '-DCMAKE_C_COMPILER=/build/tools/cc','-DCMAKE_CXX_COMPILER=/build/tools/c++',
@@ -84,21 +96,25 @@ def compile_offline():
                      '-DSLIC3R_CAD=OFF','-DSLIC3R_STATIC=ON','-DSLIC3R_BUILD_TESTS=OFF',
                      '-DORCA_TOOLS=OFF','-DSLIC3R_PCH=OFF',
                      '-DCMAKE_C_COMPILER=/build/tools/cc','-DCMAKE_CXX_COMPILER=/build/tools/c++',
-                     '-DCMAKE_MAKE_PROGRAM=/build/tools/make'], evidence, 'engine-configure')
+                     '-DCMAKE_MAKE_PROGRAM=/build/tools/make',
+                     '-DCMAKE_PROJECT_OrcaSlicer_INCLUDE=/app/integration/v1-native-engine/add-target.cmake'], evidence, 'engine-configure')
     bounded_command(['cmake','--build','/build/engine','--target','libslic3r','-j4'], evidence, 'engine-static')
+    bounded_command(['cmake','--build','/build/engine','--target','helix_orca_native','-j4'],evidence,'native-adapter')
+    executable = Path('/build/engine/helix_orca_native')
+    if not executable.exists(): raise RuntimeError('Native adapter output missing')
     libraries = [{'path':str(p),'size':p.stat().st_size,'sha256':sha(p)}
                  for p in Path('/build/engine').rglob('*libslic3r*.a')]
     if not libraries:
         raise RuntimeError('No native static library after successful build')
     (evidence/'native-build.json').write_text(json.dumps(dict(source_commit=lock['source_commit'],
-        built=True,qualified=False,libraries=libraries),indent=2)+'\n')
+        built=True,qualified=False,libraries=libraries,adapter={'path':str(executable),'size':executable.stat().st_size,'sha256':sha(executable)}),indent=2)+'\n')
 
 
 def stage_download_tree(cache, downloads):
     lock = json.loads(LOCK.read_text())
     tree = cache / 'download-tree'
     tree.mkdir(mode=0o700,parents=True,exist_ok=True)
-    for item in lock['sources']:
+    for item in lock['sources'] + lock.get('bootstrap_sources', []):
         name = item['url'].split(';')[0].rsplit('/',1)[1]
         archive = downloads / (item['sha256']+'-'+name)
         if archive.is_symlink() or sha(archive) != item['sha256']:
