@@ -503,3 +503,48 @@ effective values, invalid step, and changed start/bed/extrusion/coordinate modes
 Actual native references for these routes are still required. Every executable
 difference still blocks `exact-executable-v1`; no geometry, motion, extrusion,
 estimate or calibration-section difference is waived by these adapters.
+
+## Windows-local native reference inspection before generation
+
+`scripts/v1-native-reference.py` registers actual native UI evidence and runs
+the same invariant adapter before any candidate exists. Its CLI accepts only a
+local native G-code path, the unchanged original context, a typed calibration
+ID, optional local parameter JSON, actual distinct PNG screenshot paths and a
+new output directory. There is no candidate option. It calls
+`create_native_reference` and retains `native-reference.json`,
+`native-inspection.json` and a sanitized `summary.json` locally on Windows.
+An invariant failure also retains the native manifest and full local diagnostic
+detail, exposing only a fixed public failure code. Registration always reports
+`qualified: false`; no comparison or physical readiness can be established by
+inspecting one native artifact.
+
+This bounded inspector pins the source/runtime above and canonical original
+context SHA-256
+`3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c`.
+Its known defaults match the independently prepared dialogs: Temperature
+230→190/5°C scaled, YOLO Recommended pass1, PA Pattern 0→0.08/0.005,
+Retraction 0→2/0.1 mm and MVS 5→20/0.5 mm³/s. A local JSON file may specify a
+different bounded parameter set explicitly; nothing is inferred from filenames,
+comments or a programmatic candidate. UI provenance still requires review of
+the retained actual screenshots; file fingerprints alone cannot prove a GUI
+action.
+
+Invoke using an existing Python with `-I -S`; the utility explicitly adds only
+its curated source root for the shared standard-library modules. For example,
+`python.exe -I -S scripts/v1-native-reference.py --calibration retraction
+--native <local-native.gcode> --context <original-context-r5.json>
+--native-evidence <actual-parameters.png> --native-evidence <actual-export.png>
+--output-dir <new-private-report-directory>` (one command). Its ≤64 KiB stdout
+contains only fixed-key hashes, calibration/default parameter numbers, counts,
+bounded measured calibration values and flags. Source fingerprints bind the
+inspector, shared contract and parity implementation. No executable text,
+profile/object names, paths, hooks, full configuration, vertices or raw exception
+messages are returned. Argument errors use a fixed code too.
+
+The transferred package consists only of this utility, the curated contract and
+parity source, an empty package initializer and an exact source-file manifest.
+No model, profile/configuration payload, generation input bundle or G-code is
+included. Earlier R4 transfer archives are preserved unchanged. Tests cover
+local retained provenance, source/context binding, invariant-failure retention,
+unknown-field privacy, screenshot validation, refusal to overwrite reports,
+explicit/default parameter validation and rejection of any candidate argument.
