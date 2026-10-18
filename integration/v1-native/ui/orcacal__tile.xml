@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<component>
+  <view name="orcacal__tile" extends="lv_obj" width="100%" height="100%" clickable="true" scrollable="false" style_pad_all="0">
+    <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__open" />
+    <icon name="orcacal__v1_tile_icon" src="tune" size="xs" variant="primary" align="top_mid" clickable="false" event_bubble="true" />
+    <text_tiny name="orcacal__v1_tile_label" text="Orca&#10;Calibration" align="center" y="1" style_text_align="center" clickable="false" event_bubble="true" />
+    <text_tiny name="orcacal__v1_tile_status" bind_text="orcacal__v1_tile" align="bottom_mid" style_text_align="center" clickable="false" event_bubble="true" />
+  </view>
+</component>
