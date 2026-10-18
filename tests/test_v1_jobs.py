@@ -35,7 +35,7 @@ class PrinterFixture:
         self.config_hash = sha(self.config)
         self.files = {}; self.filename = ''; self.state = 'standby'; self.event = 1
         self.job_id = 'ABC123'; self.start_time = 10; self.history_status = 'in_progress'
-        self.history_override = None; self.queue = []; self.started = False
+        self.history_override = None; self.baseline = []; self.queue = []; self.started = False
         self.posts = []; self.gets = []; self.upload_fields = None
         self.tamper = False; self.start_error = False; self.cancel_error = False; self.auto_queue = False
         fixture = self
@@ -62,7 +62,7 @@ class PrinterFixture:
                     name = p.path.rsplit('/', 1)[1]
                     if name not in fixture.files: return self.response({}, 404)
                     return self.response(b'changed bytes' if fixture.tamper else fixture.files[name], raw=True)
-                if p.path == '/server/history/list': return self.response(dict(jobs=[]))
+                if p.path == '/server/history/list': return self.response(dict(jobs=fixture.baseline))
                 if p.path == '/server/history/job':
                     history = fixture.history_override or dict(job_id=fixture.job_id, filename=fixture.filename, start_time=fixture.start_time, end_time=20 if fixture.history_status != 'in_progress' else None, status=fixture.history_status)
                     return self.response(dict(job=history))
@@ -256,3 +256,14 @@ class OwnedJobsTests(unittest.TestCase):
         self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
         with self.assertRaises(ContractError): from_config({'owned_jobs': deployment}, target, deployment_authorized='true')
         with self.assertRaises(ContractError): from_config({'owned_jobs': dict(deployment, injected_command='no')}, target)
+
+    def test_malformed_baseline_and_corrupt_confirm_fail_before_upload(self):
+        self.confirm()
+        self.fixture.baseline = [dict(job_id='ABCDEF', filename='old.gcode', start_time=True, status='completed')]
+        with self.assertRaises(ContractError): self.start()
+        self.assertEqual(self.fixture.posts, [])
+        self.fixture.baseline = []
+        record = self.record(); record['confirm']['action'] = 'cancel'
+        (self.root/'journal'/('1'*32+'.json')).write_text(json.dumps(record))
+        with self.assertRaises(ContractError): self.start()
+        self.assertEqual(self.fixture.posts, [])

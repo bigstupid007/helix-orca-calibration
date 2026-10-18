@@ -134,21 +134,42 @@ class PinnedMoonraker:
             queue_job_ids=tuple(j["job_id"] for j in queue["queued_jobs"]))
 
     def metadata(self, filename):
-        return self._wire("/server/files/metadata?filename=" + quote(_filename(filename), safe=""), missing=True)
+        value = self._wire("/server/files/metadata?filename=" + quote(_filename(filename), safe=""), missing=True)
+        if value is None:
+            return None
+        if not isinstance(value, dict):
+            raise ContractError("Owned file metadata unavailable")
+        if value.get("job_id") is not None and (not isinstance(value["job_id"], str) or JOB_ID.fullmatch(value["job_id"]) is None):
+            raise ContractError("Malformed metadata job ID")
+        if value.get("print_start_time") is not None:
+            _number(value["print_start_time"], "metadata start time")
+        return value
 
     def file(self, filename, *, missing=False):
         return self._wire("/server/files/gcodes/" + quote(_filename(filename), safe=""), missing=missing, raw=True)
+
+    @staticmethod
+    def _history_record(value):
+        if not isinstance(value, dict) or not isinstance(value.get("job_id"), str) or JOB_ID.fullmatch(value["job_id"]) is None:
+            raise ContractError("History job identity unavailable")
+        text(value.get("filename"), "history filename", 512)
+        _number(value.get("start_time"), "history start time")
+        if value.get("end_time") is not None:
+            _number(value["end_time"], "history end time")
+        if value.get("status") not in ("in_progress", "completed", "cancelled", "error", "interrupted", "klippy_shutdown", "klippy_disconnect"):
+            raise ContractError("History status unavailable")
+        return value
 
     def history(self, job_id=None):
         if job_id is None:
             jobs = self._wire("/server/history/list?limit=1&order=desc")["jobs"]
             if not isinstance(jobs, list) or len(jobs) > 1:
                 raise ContractError("History baseline unavailable")
-            return jobs[0] if jobs else None
+            return self._history_record(jobs[0]) if jobs else None
         if not isinstance(job_id, str) or JOB_ID.fullmatch(job_id) is None:
             raise ContractError("Invalid exact history job ID")
         value = self._wire("/server/history/job?uid=" + quote(job_id, safe=""), missing=True)
-        return value["job"] if value else None
+        return self._history_record(value["job"]) if value else None
 
     def _enabled(self):
         if self.actions is not True:
@@ -287,6 +308,7 @@ class OwnedJobAdapter:
         data = self._candidate(request, prepared, directory)
         with InstanceLock(self.root / "adapter.lock"):
             record = self._read(request["request_id"])
+            self._intent(request, prepared, record["confirm"], "confirm")
             if record["request"] != request or record["prepared"] != prepared or record["phase"] != "confirmed" or intent["intent_id"] == record["confirm"]["intent_id"]:
                 raise ContractError("Start requires distinct retained native Confirm; retry prohibited")
             active_path = self.root / "active.json"
@@ -341,6 +363,8 @@ class OwnedJobAdapter:
     def _owned(self, job):
         exact(job, "job_id file_sha256 request_id origin_id", "owned job handle")
         record = self._read(job["request_id"])
+        self._intent(record["request"], record["prepared"], record["confirm"], "confirm")
+        self._intent(record["request"], record["prepared"], record["start"], "start")
         if not record["job"] or self._public_job(record) != job:
             raise ContractError("Unrelated job handle refused")
         return record
