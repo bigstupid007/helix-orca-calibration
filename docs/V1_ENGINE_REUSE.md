@@ -150,3 +150,31 @@ The audit passed against the locally retained exact October 15 objects. Five
 focused adversarial tests cover substituted/incomplete source, git failures,
 fixed-commit reads, unknown dispatch and forged capability availability. Native
 UI, Windows and print evidence remain absent from this engine investigation.
+
+## Isolated native bootstrap progress
+
+The approved download phase completed under shared managed run
+`4145418419964f7b999f07ac575f0181`: 21 source archives, 497,005,093 bytes, every
+archive matched the exact upstream SHA-256. `integration/v1-native-dependencies.json`
+records the resolved Linux/CMake-3.22 choices; no archive is executed by the
+downloader. Its managed manifest records exit 0, complete lifecycle and cleared
+runtime. The report/log remain in that run's artifacts. Verified archives remain
+in the V1 engine user cache, and may be reused offline.
+
+`scripts/v1-engine-deps.py` enforces HTTPS, a cumulative 2 GiB archive/cache cap,
+checksum verification before atomic promotion, retained failure reports and the
+shared managed writer. Tests reject substituted and oversized archives.
+`scripts/v1-engine-native.py` prepares the separately allocated offline build,
+using an immutable existing builder, read-only source/app/archive mounts, owned
+build/evidence mounts, exact container teardown and capped per-stage first/tail
+logs. CPU, memory, PID, time and disk-headroom bounds are explicit. The native
+static library is not yet built; no available-generator claim follows from a
+successful source download or dependency configure.
+
+Upstream GMP/MPFR invoke unbounded `make -j`, and OpenSSL/Python derive jobs from
+`ProcessorCount`; setting only `CMAKE_BUILD_PARALLEL_LEVEL=4` would misstate the
+resource bound. The app-owned `v1-native-build-tools.py` clamps explicit make job
+counts and gates compiler entry through four shared locks inside the owned
+container build directory. Upstream source remains unchanged. Dependency and
+static-engine compilation wait until native captures and stock slices explicitly
+release their scheduled shared resource slot.
