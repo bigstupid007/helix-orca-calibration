@@ -240,10 +240,11 @@ and completed Temperature milestone document the target macro ABI:
 This is a source/evidence-bound command-comparison policy, not new hardware
 qualification or permission to execute either macro.
 
-For Klipper Temperature, the immutable effective start hook must contain exactly
-one `PRINT_START BED_TEMP=[bed_temperature_initial_layer_single]
-EXTRUDER_TEMP=[nozzle_temperature_initial_layer]` invocation and the end hook
-exactly one `PRINT_END`. The actual G-code must invoke them once, on the correct
+For the accepted-ABI Klipper Temperature variant, the immutable effective start
+hook must contain exactly one
+`PRINT_START BED_TEMP=[bed_temperature_initial_layer_single] EXTRUDER_TEMP=[nozzle_temperature_initial_layer]`
+invocation and the end hook exactly one `PRINT_END`. The separate original-ABI
+variant with mandatory visible waits is specified below. The actual G-code must invoke them once, on the correct
 sides of all model deposition; arguments must equal the original effective
 selected-plate initial bed temperature and requested starting nozzle temperature.
 All plate temperature option names come from native PrintConfig. Subsequent bed
@@ -259,13 +260,13 @@ Reports bind effective start/end hook and declared machine-limit digests and
 record the exact start/end invocations, mode and target values. They explicitly
 state `macro_internals: unobserved` and `physical_readiness: false`. A corrected
 in-memory macro template used by the earlier accepted physical preparation is
-not silently substituted for a different original profile hook. Unsupported
-original ABI, missing effective information, stale inputs or actual native
-mismatch still block. Real printer configuration and accepted behavior remain
+not silently substituted for a different original profile hook. An original ABI outside the two explicitly supported variants, missing
+effective information, stale inputs or actual native mismatch still blocks. Real printer configuration and accepted behavior remain
 unchanged. Independent candidate review must assess this comparison policy.
 
 Synthetic tests verify exact accepted invocations, wrong macro arguments,
-unsupported original ABI, duplicate/misplaced end, wrong extrusion mode, wrong
+unsupported original ABI without matching wait hooks, duplicate/misplaced end,
+wrong extrusion mode, wrong
 bed commands even when both files share them, and M73-only differences. M73
 estimate differences are measured separately and still do not pass the current
 strict executable gate. These tests do not qualify any actual Windows or
@@ -297,3 +298,51 @@ the printer's actual macro accepts those original arguments or authorize a print
 The earlier accepted-ABI variant also retains `hardware_abi_qualified: false`
 for this new candidate: matching a retained signature does not observe execution.
 Unsupported original hooks, missing waits or wrong arguments still block.
+
+## Corrected native lab comparison and Windows input staging
+
+The managed follow-up `06424308883348218503dc12c9bb18bc` preserved all native
+exported options, including the dynamically registered machine-limit axes.
+Its strict real Linux stock slice exited zero with no warnings and produced
+956,379 bytes, SHA-256
+`0bc421d8ec347bd10d3dbbc15852e6d23e9cb1002c93adcf9b95d09224243cf8`.
+Against the unchanged genuine native lab file, complete heater, machine-limit
+and M73 estimate streams now match exactly. Printed XY bounds are identical at
+emitted precision: X102.975–147.024 and Y100.164–109.775 mm. Both independently
+pass all 150 fixed-Z temperature/deposition checks.
+
+The remaining measured motion/extrusion difference matches the lab's retained
+external-cut triangulation finding: native/recipe model extrusion is
+1915.31196/1915.90865 mm, and positive-E model move counts are 19,064/19,151.
+The first differing G1 commands change E0.05034 to E0.05032 and split/order a
+nearby brim contour differently. This is a measured toolpath difference, not
+another machine-limit or thermal mismatch. The lab's separately retained
+mesh/contour analysis bounds the sampled boundary difference at 0.000262 mm
+for this case; it does not prove identical full topology or print quality.
+The strict V1 executable gate remains blocked, and the legacy native run still
+lacks the complete independently captured pre-calibration V1 context. No known
+M73 or triangle difference is silently labeled equal or waived.
+
+Managed geometry run `57fb5247065947549a132a7cc06304f0` prepared the native-derived
+standard 230→190°C / scaled 0.4 mm model for actual October15 Windows comparison.
+The unchanged full decoded native source asset has SHA-256
+`17e387d8e5a19ca06daa574f97c1f981bf634c8d5af5c2349663519e23ea0a39`.
+Cuts at 629.9999 and 540.0001 mm produce a watertight 27,280-face model with
+extents 44.499069 × 10.000015 × 89.9998 mm. The prepared STL is 1,364,084 bytes,
+SHA-256 `d7508da7e33682bee239873d56695363e9217954a860444733f7697137c9dcde`.
+This is geometry provenance only; native triangulation/toolpath parity remains
+mandatory. Both managed runs completed with `runtime_clear: true`, no errors,
+and no lab/reference writes. The engine worker then received the exclusive
+heavy-resource slot.
+
+The lead's separately captured private R4 Windows context retains 775 effective
+keys including explicit empty post-processing. `prepare_inputs` successfully
+staged the default standard tower against that exact October15 context. A
+private ZIP includes original immutable snapshot/request, exact input digest,
+job-local profile/model copies, merged native configuration, structured Windows
+argv and source/runtime/executable/geometry provenance. It instructs the lead
+to use the exact hash-pinned Windows executable and separate V1 datadir/output,
+with explicit bed selection and strict mode. The original native macro hook is
+preserved. Staging is not Windows slicing, native parity or physical readiness;
+the lead owns actual Windows execution and the independent native reference.
+No private snapshot, profile name or operational path is promoted here.
