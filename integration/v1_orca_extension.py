@@ -61,7 +61,10 @@ def v1_capture(host, origin_id):
         result = {}
         for key in getattr(obj, keys)():
             sensitive, _ = _is_sensitive_key(key)
-            if sensitive:
+            # The private V1 preparer must distinguish empty hooks from executable
+            # post-processing. It rejects nonempty scripts rather than executing
+            # them. Public diagnostics retain their existing path redaction.
+            if sensitive and key != "post_process":
                 continue
             raw = getattr(obj, read)(key)
             if not isinstance(raw, str):

@@ -27,7 +27,7 @@ class CompanionTests(unittest.TestCase):
 
     def test_actual_callback_captures_saved_edited_effective_to_host_storage(self):
         plugin, orca = self.load()
-        bundle = test_plugin.FakeBundle(values={"nozzle_diameter":"0.4", "nozzle_temperature":"215", "gcode_flavor":"klipper"}, names=["Original PLA"])
+        bundle = test_plugin.FakeBundle(values={"nozzle_diameter":"0.4", "nozzle_temperature":"215", "gcode_flavor":"klipper", "post_process":""}, names=["Original PLA"])
         bundle.filaments = test_plugin.FakeCollection(
             test_plugin.FakePreset("Original PLA", values={"nozzle_temperature":"220"}),
             test_plugin.FakePreset("Original PLA", dirty=True, values={"nozzle_temperature":"217"}))
@@ -45,6 +45,7 @@ class CompanionTests(unittest.TestCase):
             self.assertEqual(panel.context["filament"]["saved"]["config"]["nozzle_temperature"], "220")
             self.assertEqual(panel.context["filament"]["edited"]["config"]["nozzle_temperature"], "217")
             self.assertEqual(panel.context["effective"]["nozzle_temperature"], "215")
+            self.assertEqual(panel.context["effective"]["post_process"], "")
             first = panel.context["origin_id"]
             panel.on_message({"command":"refresh"})
             self.assertEqual(panel.context["origin_id"], first)
