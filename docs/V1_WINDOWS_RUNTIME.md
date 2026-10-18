@@ -49,8 +49,8 @@ Start is idempotent while the recorded instance remains live. A second launcher
 for the same plugin storage cannot launch another Python coordinator: its
 supervisor must hold the exclusive `.v1-windows-launcher.lock` file in that exact
 v1 storage for the entire instance. The coordinator additionally owns its native
-runtime lock. The CLI's storage-scoped lock should also be retained to prevent a
-separate direct CLI invocation using a different journal directory.
+runtime lock. The CLI additionally holds storage-scoped `coordinator.lock`, preventing a
+separate direct invocation using a different journal directory.
 
 The default transport remains offline. `-MoonrakerEvents` is a separate explicit
 opt-in passed to the reviewed coordinator; it still requires the existing
@@ -79,7 +79,10 @@ proposed argument/path/hash but still creates no registration or approval.
 The coordinator independently validates the exact local record schema
 `helix-orca-v1-local-deployment/v1`, `approved: true`, `native_start_only: true`,
 a nonempty approval reference, the canonical private-configuration digest and
-exact coordinator-source digest. Merely supplying a path is insufficient. The
+runtime closure fingerprint. That fingerprint binds the CLI, all
+`integration/v1_*.py` modules and the existing WebSocket framing source
+`scripts/helix-display-request.py`; it is not merely the thin CLI entry's file
+hash. Merely supplying a path is insufficient. The
 separate private owned-job configuration and deliberate native Confirm/Start
 remain required. When an authorization path is supplied, wrapper Status reports
 its presence and leaves `actions_enabled` unknown (`null`); only the coordinator's
@@ -127,50 +130,78 @@ or rollback; no automatic uninstall/cleanup is provided.
 
 ## Validation status and limits
 
-Actual Windows execution on October 18, 2026 passed in a fresh isolated
-LocalApplicationData qualification directory using existing **PowerShell 5.1**
-and **Python 3.13.9**. The installed Orca GUI process remained unchanged. Synthetic
-storage had no context or calibration request; the coordinator used its default
-offline channel with physical actions disabled.
+Actual Windows execution on October 18, 2026 passed in fresh isolated
+LocalApplicationData qualification directories using existing **PowerShell 5.1**
+and **Python 3.13.9**. The installed Orca GUI process retained its exact PID/start
+time/executable/command line. Synthetic storage contained no calibration context
+or request. Every invocation used the default offline channel, supplied no
+deployment authorization, and reported physical actions disabled.
 
-| Check | Observed result |
+Two source-bound stages separate component behavior from the final routed entry:
+
+| Stage | Actual Windows checks |
 | --- | --- |
-| PowerShell AST parse | No errors |
-| Detached Start | Running, health OK, matching run ID/Python PID; launch worker returned normally |
-| Second Start | Same run ID, Python PID and supervisor PID; no second coordinator |
-| Graceful Stop | Owned stop file; coordinator health `stopped: true` |
-| Restart | New run ID/PIDs; health OK; old stop file did not stop the new instance |
-| Final Stop and audit | Exit 0; no stage-owned Python/supervisor processes; no error logs |
-| Existing Orca session | Exact PID/start time/executable/command line unchanged |
+| Current wrapper component (`qualification-7b4427c20ec6`) | AST; review-only plan with no registration; detached Start/healthy; duplicate Start same run/PIDs; graceful Stop; new-nonce restart/healthy; graceful Stop; private-file ctypes acceptance and shared-file refusal; exact cleanup |
+| Final unified-router runtime (`qualification-d8a9f56c3d38`) | AST; detached Start/healthy with matching run ID/PID; graceful Stop; exit 0; no stage-owned Python/supervisor processes; no error logs; every staged source hash unchanged; runtime closure fingerprint checked |
 
-The qualified launcher SHA-256 is
-`fa335f3f6c5a0dc6b56c765b4991bca0af8a884fbb65df74df4afc7cd5963cd7`.
-Its exact coordinator entry SHA-256 is
-`d97156ef5dc8383fa07e16fc9aff292e4734cb23c3c55c3f49271131eebf698f`.
-The curated source ZIP SHA-256 is
-`0d32ec7401766f6990922c727a7c8ad59d3328905275c1b19035740e0487e3fe`.
-Full manifests, lifecycle records and Windows responses remain private in XDG
-state under `v1/windows-runtime/qualification-f529b0529305-*`; they retain exact
-process identity without publishing user paths or SIDs. The qualification used
-the existing testing bridge only to launch and inspect this proof. Ordinary
-operation of the reviewed package calls the wrapper directly and has no testing
-worker dependency.
+The actual Windows private-file check read an existing owner-private synthetic
+wrapper record and an existing shared synthetic generator configuration. The
+first passed and the second was refused. It created no deployment grant and
+changed no ACL. The tested validator source is identical in both stages.
+
+The qualified wrapper SHA-256 is
+`271f34ab005856368507061580f5a7192e1fa600cbdf332d1f79ebb63c5babee`.
+The final routed CLI SHA-256 is
+`72be0f52730699b79f07996d94cda759a02c977f388f63285421378b1e617c54`.
+The verified final runtime closure fingerprint is
+`fa31bf21a2186eadf5906013cbe28ef4782cc083bee1bca2e54d2efc01a1b3d0`.
+The final curated source ZIP SHA-256 is
+`08cfa5be91297dcbd0975958631874464afa108f04d334d4b729e0eb6d69c88c`;
+the component-stage ZIP SHA-256 is
+`3f6984f28141acae7753fc8c95d9db32e47647daebfc4c88ddc35ea7f50fa772`.
+
+Exact final staged source inventory (all entries were rehashed on Windows after
+shutdown and matched the retained ZIP manifest):
+
+| Relative source | SHA-256 |
+| --- | --- |
+| `integration/v1-native-build-tools.py` | `7ebee9eb02c35879de35171f6c556641d1858deef13f50fb1ebf2dc82ef5304d` |
+| `integration/v1_contract.py` | `27fab88b4b501777fc4a8a8282802538f986584582ec86acecabab8e7034d75d` |
+| `integration/v1_deployment.py` | `c4d1e9134404f3c02d9d55a96f62e63302c4b8a40279ad6db96fcfce7013c1aa` |
+| `integration/v1_engine.py` | `0831c50f7c1d5d97f8d1aecd87ae744b4568b157c5292dad400efc531840b482` |
+| `integration/v1_generation.py` | `de4e8021038cd48997ac25785896c62817476858eaa6db1bdccf4495c61bb657` |
+| `integration/v1_jobs.py` | `18dede8d87f7c8e63dcdc68104371049ecf0ce1b549248ec71d082816e8103eb` |
+| `integration/v1_orca_extension.py` | `599da475ecb1bdc197c98b33792df29a384f9ee55cb2dc377bac7b07b5c78dec` |
+| `integration/v1_parity.py` | `e8709c26687c318fe9455c472b96b5ec078d524f4723ff08d67b9160958213d0` |
+| `integration/v1_private_file.py` | `c16f2eb6af4b18d3bb400cb3e2b074e4bb7a5b94dd85ed43a20943cfa94a6308` |
+| `integration/v1_routing.py` | `636c2ffe1450e7afdca37e5779984582eeae86ad9e38b8fe47806e2b25955a7a` |
+| `integration/v1_runtime.py` | `0b982a99e719c186d07c0a27f0692788bfbbc67775802d59d1b162b232001b70` |
+| `integration/v1_transport.py` | `85ecf76101eb87cc185da6148643ac803f54b754e86005ea4b104fcd04104600` |
+| `scripts/helix-display-request.py` | `82bc033cd9d54404a54b816385b729bfb84f9db316613090bbdf1ad0412157fd` |
+| `scripts/v1-runtime-windows.ps1` | `271f34ab005856368507061580f5a7192e1fa600cbdf332d1f79ebb63c5babee` |
+| `scripts/v1-runtime.py` | `72be0f52730699b79f07996d94cda759a02c977f388f63285421378b1e617c54` |
+
+Full source manifests, lifecycle records and Windows responses remain private in
+XDG state under `v1/windows-runtime/qualification-7b4427c20ec6-*` and
+`v1/windows-runtime/qualification-d8a9f56c3d38-*`. These preserve exact process
+identity without publishing user paths or SIDs. The existing testing bridge was
+used only to launch and inspect qualification. Ordinary runtime operation calls
+the reviewed wrapper directly and has no testing-worker dependency.
 
 Earlier isolated trials exposed a Windows PowerShell 5.1 `File.Replace` null
 backup-path incompatibility, inherited output-pipe handles, and a process-exit
 race during CIM owner inspection. They were corrected using a unique owned
 backup path, explicit STARTUPINFOEX handle allowlisting, and an absence/reused-PID
 check that still rejects unavailable identity for a live unchanged process.
-Their failed stages and shutdown audits were preserved privately.
+Failed stages and shutdown audits were preserved privately.
 
-The dependency-free checks cover lifecycle entry points, stop protocol,
-exact-process ownership, fixed entry-point arguments, private state, detached
-handle allowlisting, and absence of force-kill/system-registration operations.
-The authoring suite passed 256 tests, with the Linux-host Windows AST test skipped;
-the separate actual Windows parse above passed. This execution proof does not
-qualify paths containing spaces, hostile ACL/stale-PID injection, high-volume log
-rotation, interruption during blocked generation, physical transport security,
-or physical printer execution. These remain explicit validation limits. No
-startup registration, install, physical test, profile/configuration mutation or
-printer connection occurred. Original settings, Temperature evidence and
-rollback material remain preserved.
+The worker authoring suite passed **279 tests**, with two Windows-specific checks
+skipped on Linux; the separate actual Windows parse and private/shared ACL checks
+above passed. This proof covers the exact inventory above. Later engine-source
+changes or built binaries were not exercised by it. No calibration generation,
+G-code dispatch, engine execution, physical transport security, hostile ACL or
+stale-PID injection, high-volume log rotation, interruption during generation,
+or paths-with-spaces launcher cycle was qualified. These remain explicit
+validation limits. No startup registration, install, physical test,
+profile/configuration mutation or printer connection occurred. Original
+settings, Temperature evidence and rollback material remain preserved.
