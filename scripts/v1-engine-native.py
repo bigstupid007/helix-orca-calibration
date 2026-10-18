@@ -60,6 +60,19 @@ def bounded_command(command, evidence, label, cwd=None):
 def compile_offline():
     evidence = Path('/evidence')
     lock = json.loads(LOCK.read_text())
+    owned_inputs = ('integration/v1-native-dependencies.json',
+                    'integration/v1-native-engine/main.cpp',
+                    'integration/v1-native-engine/add-target.cmake',
+                    'integration/v1-native-build-tools.py',
+                    'scripts/v1-engine-native.py')
+    audit = load('native_source_provenance', ROOT/'integration/v1_engine.py')
+    source_report = audit.verify_source_bytes({name:(Path('/source')/name).read_bytes()
+                                               for name in audit.SOURCE_HASHES})
+    (evidence/'native-inputs.json').write_text(json.dumps(dict(
+        source=source_report, builder_image=IMAGE, lifecycle_helper_sha256=HELPER_HASH,
+        owned_inputs={name:sha(ROOT/name) for name in owned_inputs},
+        network='none', memory_bytes=12*1024**3, cpus=6, compiler_slots=4,
+        dependency_top_level_jobs=1, qualified=False),indent=2)+'\n')
     tools = Path('/build/tools')
     tools.mkdir(mode=0o700,exist_ok=True)
     for tool in ('make','cc','c++'):

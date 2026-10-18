@@ -119,8 +119,8 @@ Read-only metadata inspected on October 18, 2026:
   measured cold-dependency or thin-adapter build estimate. Local host snapshot:
   16 CPUs, 22 GiB RAM (~19 GiB available), 352 GiB free disk. A bounded future
   build should isolate/cache dependencies, limit concurrent compilers and memory,
-  retain timings/peak memory, and stop at its explicit watchdog. No cold build
-  has been started under an invented resource estimate. The lead subsequently
+  retain timings/peak memory, and stop at its explicit watchdog. The cold build
+  was allocated only after this source-size/resource audit. The lead subsequently
   allocated a capped 2-GiB exact URL/SHA download phase and, after the native
   matrix/stock slices release the heavy slot, a network-none dependency build
   with 6 CPUs/12 GiB RAM, ≤4 compilers per dependency, serial top-level
@@ -237,3 +237,12 @@ the exclusion. All executable slicing values remain mandatory. Obsolete static
 class members have no active definition and do not become required values.
 Native `plugins`, `post_process` and `slicing_pipeline_plugin` must all be empty.
 No preset source file is read to fill a missing effective value.
+
+The exact root CMake configuration also requires bundled CPython 3.12.13 and
+OpenGL/GLFW even with `SLIC3R_GUI=OFF`; the stock dependency list therefore
+retains those upstream targets rather than inventing unsupported bypasses.
+The source-pinned optional uv download may report unavailable inside the
+network-none container; no substitute executable is supplied. Each build now
+retains `native-inputs.json` with the eleven-file source audit, exact owned
+adapter/build-wrapper/lock hashes, immutable builder identity and execution
+bounds before any compile stage runs.
