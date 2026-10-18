@@ -5,5 +5,8 @@ if(NOT TARGET helix_orca_native)
     target_compile_features(helix_orca_native PRIVATE cxx_std_17)
     target_include_directories(helix_orca_native PRIVATE
         "${PROJECT_SOURCE_DIR}/src" "${PROJECT_SOURCE_DIR}/deps_src")
-    target_link_libraries(helix_orca_native PRIVATE libslic3r boost_libs)
+    # Native public headers use these even though upstream libslic3r links them
+    # privately; propagate their verified include/link interfaces explicitly.
+    target_link_libraries(helix_orca_native PRIVATE libslic3r boost_libs
+        cereal::cereal TBB::tbb OpenSSL::Crypto)
 endif()
