@@ -35,6 +35,19 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
         self.assertIn("$Name+'.1.log'",text)
         self.assertIn('review_only=$true; registered=$false',text)
         self.assertIn("'--moonraker-events'",text)
+    def test_optional_deployment_file_is_local_private_pinned_and_fixed_argument(self):
+        text=SOURCE.read_text()
+        for required in ('[string]$DeploymentAuthorization', 'function Get-PrivateAuthorization',
+                         '$path=Get-ExistingPath $Value $false', 'Assert-PrivateFile $path',
+                         '$size -lt 1 -or $size -gt 65536',
+                         "@('--deployment-authorization',$authorization)",
+                         "@('-DeploymentAuthorization',$authorizationPath)",
+                         'deployment_authorization_sha256=$authorizationHash',
+                         '$record.deployment_authorization_sha256 -cne (Get-FileHash',
+                         'deployment_authorization_supplied='):
+            self.assertIn(required,text)
+        self.assertNotIn("approved=$true",text)
+        self.assertNotIn("'--deployment-authorized'",text)
     def test_detached_supervisor_has_explicit_handle_allowlist(self):
         text=SOURCE.read_text()
         self.assertIn('Start-DetachedSupervisor $hostExe $start.Arguments $repo',text)

@@ -59,6 +59,33 @@ inbound listener and never supplies or creates credentials. It does not turn
 existing trusted-LAN proof into production security qualification. It never
 enables a physical action adapter.
 
+## Optional future local deployment authorization
+
+The wrapper accepts optional `-DeploymentAuthorization <exact-existing-path>`.
+The current review invocation omits it and keeps physical actions disabled. The
+wrapper never authors an approval record or treats a native event/configuration
+flag as authorization. A future owner-made record requires separate explicit
+deployment approval before use.
+
+The supplied path must be an existing ordinary local file, with no reparse
+points, owned only by the current user and granting no other principal access.
+Its size must be 1..65536 bytes. The wrapper retains the exact normalized path
+and SHA-256 in its private lifecycle record and rechecks ownership, path and hash
+before child launch. It passes only the fixed typed CLI argument
+`--deployment-authorization <path>`. A changed/missing/shared file blocks launch;
+it is neither repaired nor rewritten. The review-only startup plan retains the
+proposed argument/path/hash but still creates no registration or approval.
+
+The coordinator independently validates the exact local record schema
+`helix-orca-v1-local-deployment/v1`, `approved: true`, `native_start_only: true`,
+a nonempty approval reference, the canonical private-configuration digest and
+exact coordinator-source digest. Merely supplying a path is insufficient. The
+separate private owned-job configuration and deliberate native Confirm/Start
+remain required. When an authorization path is supplied, wrapper Status reports
+its presence and leaves `actions_enabled` unknown (`null`); only the coordinator's
+validated health can establish action state. No authorization file was created
+or supplied during the current offline Windows qualification.
+
 ## Ownership, stop and retained state
 
 The private `current.json` record binds a random run ID, the current user SID,

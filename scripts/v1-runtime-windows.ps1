@@ -11,6 +11,7 @@ param(
     [string]$RepoRoot,
     [string]$Storage,
     [string]$Config,
+    [string]$DeploymentAuthorization,
     [switch]$MoonrakerEvents,
     [ValidateRange(1,30)][int]$WaitSeconds=10,
     [ValidatePattern('^[a-f0-9]{32}$')][string]$RunId
@@ -78,6 +79,17 @@ function Assert-PrivateFile([string]$Path) {
             if ($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Value -ne $script:Sid.Value) { throw 'Lifecycle file is not private.' }
         }
     }
+}
+function Get-PrivateAuthorization([string]$Value) {
+    $path=Get-ExistingPath $Value $false
+    Assert-PrivateFile $path
+    $size=(Get-Item -LiteralPath $path).Length
+    if ($size -lt 1 -or $size -gt 65536) { throw 'Existing owner-private deployment authorization must be 1..65536 bytes.' }
+    return $path
+}
+function Get-AuthorizationPath($Record) {
+    if ($Record.PSObject.Properties.Name -contains 'deployment_authorization') { return $Record.deployment_authorization }
+    return $null
 }
 function Read-Control([string]$Path) {
     Assert-PrivateFile $Path
@@ -240,7 +252,7 @@ function Get-Status {
     $pythonAlive=Test-Identity $record.python
     $supervisorAlive=Test-Identity $record.supervisor
     $state=if ($pythonAlive) { if (Test-StopRequest $record) { 'stopping' } else { 'running' } } elseif ($supervisorAlive) { if (Test-StopRequest $record) { 'stopping' } elseif ($null -ne $record.python) { 'finishing' } else { 'starting' } } elseif ($record.state -eq 'attention-required') { 'attention-required' } else { 'stopped' }
-    return [ordered]@{ state=$state; run_id=$record.run_id; python_pid=if ($pythonAlive) { $record.python.pid } else { $null }; supervisor_pid=if ($supervisorAlive) { $record.supervisor.pid } else { $null }; last_recorded_state=$record.state; exit_code=$record.exit_code; actions_enabled=$false; test_worker_required=$false; logs=Join-Path $script:Root 'stdout.log' }
+    return [ordered]@{ state=$state; run_id=$record.run_id; python_pid=if ($pythonAlive) { $record.python.pid } else { $null }; supervisor_pid=if ($supervisorAlive) { $record.supervisor.pid } else { $null }; last_recorded_state=$record.state; exit_code=$record.exit_code; actions_enabled=if ($null -eq (Get-AuthorizationPath $record)) { $false } else { $null }; deployment_authorization_supplied=($null -ne (Get-AuthorizationPath $record)); test_worker_required=$false; logs=Join-Path $script:Root 'stdout.log' }
 }
 function Write-BoundedLog([string]$Name,[string]$Text) {
     if ($Name -notin @('stdout','stderr','supervisor')) { throw 'Unknown owned log.' }
@@ -261,6 +273,8 @@ function Write-BoundedLog([string]$Name,[string]$Text) {
 function Get-PythonArguments($Record) {
     $arguments=@('-u',$Record.entry,'--storage',$Record.storage,'--config',$Record.config,'--state',$Record.coordinator_state,'--run-id',$Record.run_id,'--stop-file',$Record.stop_file)
     if ($Record.moonraker_events) { $arguments+='--moonraker-events' }
+    $authorization=Get-AuthorizationPath $Record
+    if ($null -ne $authorization) { $arguments+=@('--deployment-authorization',$authorization) }
     return (Join-Arguments $arguments)
 }
 function Set-FinalState([string]$Id,[string]$State,$ExitCode,[string]$Message) {
@@ -284,6 +298,11 @@ function Invoke-Supervisor {
             if ($record.entry -cne $fixedEntry -or $record.coordinator_state -cne (Join-Path $script:Root 'coordinator')) { throw 'Only the fixed repository coordinator and owned journal path may run.' }
             [void](Get-ExistingPath $record.python_exe $false); [void](Get-ExistingPath $record.storage $true); [void](Get-ExistingPath $record.config $false)
             if ($record.entry_sha256 -cne (Get-FileHash -LiteralPath $record.entry -Algorithm SHA256).Hash.ToLowerInvariant() -or $record.config_sha256 -cne (Get-FileHash -LiteralPath $record.config -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Reviewed launch inputs changed before start.' }
+            $authorization=Get-AuthorizationPath $record
+            if ($null -ne $authorization) {
+                $checked=Get-PrivateAuthorization $authorization
+                if ($checked -cne $authorization -or $record.deployment_authorization_sha256 -cne (Get-FileHash -LiteralPath $checked -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Exact local deployment authorization changed before start.' }
+            }
             $storageLockPath=Join-Path $record.storage '.v1-windows-launcher.lock'; Assert-NoReparse $storageLockPath
             $storageLock=[IO.File]::Open($storageLockPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
             if (Test-StopRequest $record) { $record.state='stopped'; $record.exit_code=0; Write-Control (Get-RecordPath) $record; return }
@@ -360,13 +379,19 @@ $repo=Get-ExistingPath $RepoRoot $true
 $storagePath=Get-ExistingPath $Storage $true
 $configPath=Get-ExistingPath $Config $false
 $entry=Get-ExistingPath (Join-Path $repo 'scripts\v1-runtime.py') $false
+$authorizationPath=$null; $authorizationHash=$null
+if ($PSBoundParameters.ContainsKey('DeploymentAuthorization')) {
+    $authorizationPath=Get-PrivateAuthorization $DeploymentAuthorization
+    $authorizationHash=(Get-FileHash -LiteralPath $authorizationPath -Algorithm SHA256).Hash.ToLowerInvariant()
+}
 if ([IO.Path]::GetFileName($python) -notin @('python.exe','python3.exe')) { throw 'An explicit installed Python executable is required.' }
 $hostExe=Get-ExistingPath (Join-Path $PSHOME ([IO.Path]::GetFileName([Diagnostics.Process]::GetCurrentProcess().MainModule.FileName))) $false
 if ([IO.Path]::GetFileName($hostExe) -notin @('powershell.exe','pwsh.exe')) { throw 'Use the normal PowerShell console host.' }
 $publicArgs=@('-NoProfile','-NonInteractive','-File',$PSCommandPath,'-Action','start','-RuntimeRoot',$script:Root,'-PythonExe',$python,'-RepoRoot',$repo,'-Storage',$storagePath,'-Config',$configPath)
 if ($MoonrakerEvents) { $publicArgs+='-MoonrakerEvents' }
+if ($null -ne $authorizationPath) { $publicArgs+=@('-DeploymentAuthorization',$authorizationPath) }
 if ($Action -eq 'plan') {
-    $plan=[ordered]@{ schema='helix-orca-v1-windows-startup-plan/v1'; review_only=$true; registered=$false; target=$hostExe; arguments=(Join-Arguments $publicArgs); suggested_shortcut=(Join-Path ([Environment]::GetFolderPath('Startup')) 'Helix Orca V1.lnk'); actions_enabled=$false; instructions='Review these exact paths and arguments. No shortcut/startup entry was created. Manual registration requires separate explicit owner action.' }
+    $plan=[ordered]@{ schema='helix-orca-v1-windows-startup-plan/v1'; review_only=$true; registered=$false; deployment_authorization=$authorizationPath; deployment_authorization_sha256=$authorizationHash; target=$hostExe; arguments=(Join-Arguments $publicArgs); suggested_shortcut=(Join-Path ([Environment]::GetFolderPath('Startup')) 'Helix Orca V1.lnk'); actions_enabled=$false; instructions='Review these exact paths and arguments. No shortcut/startup entry was created. Manual registration requires separate explicit owner action.' }
     Write-Control (Join-Path $script:Root 'startup-plan.json') $plan
     $plan | ConvertTo-Json -Depth 8; exit 0
 }
@@ -381,7 +406,7 @@ try {
         if (Test-StopRequest $previous) { [IO.File]::Delete($previous.stop_file) }
     }
     $id=[Guid]::NewGuid().ToString('N')
-    $record=[ordered]@{ schema='helix-orca-v1-windows-runtime/v1'; run_id=$id; owner_sid=$script:Sid.Value; state='starting'; exit_code=$null; message='Starting fixed local coordinator'; python=$null; supervisor=$null; python_exe=$python; repo=$repo; entry=$entry; storage=$storagePath; config=$configPath; coordinator_state=(Join-Path $script:Root 'coordinator'); stop_file=(Join-Path $script:Root ('stop.'+$id+'.json')); moonraker_events=[bool]$MoonrakerEvents; launcher_sha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant(); entry_sha256=(Get-FileHash -LiteralPath $entry -Algorithm SHA256).Hash.ToLowerInvariant(); config_sha256=(Get-FileHash -LiteralPath $configPath -Algorithm SHA256).Hash.ToLowerInvariant() }
+    $record=[ordered]@{ schema='helix-orca-v1-windows-runtime/v1'; run_id=$id; owner_sid=$script:Sid.Value; state='starting'; exit_code=$null; message='Starting fixed local coordinator'; python=$null; supervisor=$null; python_exe=$python; repo=$repo; entry=$entry; storage=$storagePath; config=$configPath; deployment_authorization=$authorizationPath; deployment_authorization_sha256=$authorizationHash; coordinator_state=(Join-Path $script:Root 'coordinator'); stop_file=(Join-Path $script:Root ('stop.'+$id+'.json')); moonraker_events=[bool]$MoonrakerEvents; launcher_sha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant(); entry_sha256=(Get-FileHash -LiteralPath $entry -Algorithm SHA256).Hash.ToLowerInvariant(); config_sha256=(Get-FileHash -LiteralPath $configPath -Algorithm SHA256).Hash.ToLowerInvariant() }
     Write-Control (Get-RecordPath) $record
     $start=New-Object Diagnostics.ProcessStartInfo
     $start.FileName=$hostExe; $start.Arguments=Join-Arguments @('-NoProfile','-NonInteractive','-File',$PSCommandPath,'-Action','supervise','-RuntimeRoot',$script:Root,'-RunId',$id)
