@@ -304,6 +304,30 @@ class NativeCalibrationSchedules(unittest.TestCase):
             with self.subTest(forgery=forgery[-20:]), self.assertRaises(ValueError):
                 parity.invariants(forgery, inputs)
 
+    def test_retraction_transition_topup_uses_measured_nominal_layer_not_old_or_hopped_z(self):
+        text, inputs = self.retraction()
+        transition = ('G1 E-0.40000\n;LAYER_CHANGE\nG1 Z2.8\n'
+                      'G1 E-0.20000\nG1 Z2.4\nG1 E0.60000')
+        text = text.replace(';LAYER_CHANGE\nG1 Z2.4', transition)
+        data = parity.analyze(text)
+        crossing = [episode for episode in data['retract_episodes']
+                    if episode['layer'] != episode['last_negative_layer']]
+        self.assertEqual(len(crossing), 1)
+        self.assertAlmostEqual(crossing[0]['z'], 2.2)
+        self.assertEqual(crossing[0]['layer'], 10)
+        self.assertEqual(crossing[0]['last_negative_layer'], 11)
+        self.assertAlmostEqual(crossing[0]['length'], .6)
+        result = parity.invariants(text, inputs)
+        self.assertEqual(result['calibration_semantics']['episode_layer_policy'],
+                         'last-negative-command-measured-nominal-layer-v1')
+        # Both an incomplete and excessive top-up remain invalid; a forged
+        # native-looking comment cannot confer the requested executable value.
+        for wrong in ('0.10000', '0.30000'):
+            forged = transition.replace('G1 E-0.20000',
+                                         '; Calib_Retraction_tower: Z_HEIGHT: 2.4, length:0.6\nG1 E-' + wrong)
+            with self.assertRaisesRegex(ValueError, 'actual software retraction length'):
+                parity.invariants(text.replace(transition, forged), inputs)
+
     def test_native_mvs_uses_layer_top_not_each_spiral_segment(self):
         text, inputs = self.mvs()
         result = parity.invariants(text, inputs)

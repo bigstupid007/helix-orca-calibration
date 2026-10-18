@@ -129,6 +129,8 @@ def analyze(text):
                 episode = {'line': line, 'z': old['Z'], 'length': 0.0, 'layer': layer}
                 episodes.append(episode)
             episode['length'] -= delta
+            episode['last_negative_line'] = line
+            episode['last_negative_layer'] = layer
         elif delta > 0:
             episode = None
         if delta > 0 and distance > 0 and layer >= 0 and (object_name or pattern is not None):
@@ -207,7 +209,16 @@ def _retraction_invariants(text, inputs, data):
     for episode in data['retract_episodes']:
         if not data['moves'][0]['line'] < episode['line'] < data['moves'][-1]['line']:
             continue
-        z = episode['z'] - offset
+        # change_layer retracts before the new calibration override, then lazy
+        # Z/travel may top up the same outstanding retract at the new target.
+        # Extruder::retract only adds max(0, target - already_retracted). Use
+        # the last negative command's nominal layer, independently measured
+        # from real fixed-schedule deposition, rather than the first command's
+        # old/lifted physical Z. Calibration comments are not the value oracle.
+        layer = episode['last_negative_layer']
+        if layer not in layer_z:
+            raise ValueError('software retraction episode has no measured nominal deposition layer')
+        z = layer_z[layer]
         # Native uses double print_z; serialized Z has 3 decimals. A boundary
         # within that quantization may belong to either neighbouring section.
         bands = {math.floor(max(0.0, z - .4 + delta)) for delta in (-.0002, .0002)}
@@ -223,7 +234,8 @@ def _retraction_invariants(text, inputs, data):
         raise ValueError('no actual software retraction episodes')
     return {'policy': 'oct15-native-retraction-v1', 'layer_height_mm': height,
             'measured_retraction_lengths_mm': sorted(set(round(value, 5) for value in measured)),
-            'retraction_episode_count': len(measured), 'boundary_z_tolerance_mm': .0002}
+            'retraction_episode_count': len(measured), 'boundary_z_tolerance_mm': .0002,
+            'episode_layer_policy': 'last-negative-command-measured-nominal-layer-v1'}
 
 
 def _mvs_invariants(text, inputs, data):

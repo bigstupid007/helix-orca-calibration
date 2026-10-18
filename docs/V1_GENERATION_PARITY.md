@@ -467,7 +467,7 @@ shared validator before calibration math. Missing effective inputs are errors.
 
 | Calibration | Source-verified behavior measured by the adapter | Explicit bounds |
 | --- | --- | --- |
-| Retraction | Native `start + floor(max(0, print_z − 0.4)) * step`; actual negative-E episodes are summed across wipe/retract splits and compared with the per-height length. Real deposited Z follows native 0.05/0.1/0.2 mm layers for nozzle ≤0.1/≤0.2/>0.2 mm. Required positive-length sections and cut-height coverage must be present. | Declared `z_offset` is removed from emitted coordinates. A ±0.0002 mm boundary ambiguity accounts for serialized Z versus native float/double thresholds; retraction sum tolerance is 0.00003 mm. Native height cutting/layer quantization may reach a section above `end`; there is no invented end clamp. |
+| Retraction | Native `start + floor(max(0, print_z − 0.4)) * step`; actual negative-E episodes are summed across wipe/retract splits and compared with the final negative command's nominal layer target. That layer's Z is measured from real deposited fixed-schedule moves; an episode's old or lifted starting Z is not the calibration Z. Real deposited Z follows native 0.05/0.1/0.2 mm layers for nozzle ≤0.1/≤0.2/>0.2 mm. Required positive-length sections and cut-height coverage must be present. | Declared `z_offset` is removed from deposited coordinates. A ±0.0002 mm boundary ambiguity accounts for serialized Z versus native float/double thresholds; retraction sum tolerance is 0.00003 mm. Native height cutting/layer quantization may reach a section above `end`; there is no invented end clamp. |
 | Max Volumetric Speed | Native width is nozzle×1.75, height nozzle×0.8; `Flow` receives float32 values and returns float32 rounded-rectangle area, multiplied by immutable filament flow ratio. Native per-layer wall speed is `round((start + max(0, print_z) * step) / flow)`. Actual mature outer-wall maximum feed must attain that speed, with no move above it; at least three distinct speeds and native cut-height coverage are required. | First/slowdown layers follow native first-layer rules and are excluded from ramp assertions. Spiral-vase segments use their layer's measured top Z rather than each segment's interpolated Z. Serialized-Z ambiguity is ±0.0006 mm; feed tolerance is 0.02 mm/s. An additional speed cap causes a specific failure requiring investigation; it is not silently accepted. |
 | Pressure Advance Pattern | Exactly four native custom sections, sample count `ceil((end−start)/step + 1)`, four-significant-digit Klipper PA commands, native per-section prefix/final resets, actual fixed-Z deposition, and three alternating 90° chevron walls per commanded sample. Mature side lengths are 30 mm. | Retained single-case Klipper route only. First-layer frame/tab/glyphs are separated from the six measured chevron sides by executable PA command boundaries. The first layer shrinks natively; mature side/coordinate tolerance is 0.003 mm. Non-divisible ranges can legitimately emit a last sample above `end`. |
 
@@ -548,3 +548,37 @@ included. Earlier R4 transfer archives are preserved unchanged. Tests cover
 local retained provenance, source/context binding, invariant-failure retention,
 unknown-field privacy, screenshot validation, refusal to overwrite reports,
 explicit/default parameter validation and rejection of any candidate argument.
+
+Actual Windows PA Pattern reference inspection passed the native invariants at
+the documented defaults: four layers, seventeen values from 0 to 0.08, three
+walls per sample, 789 measured model moves and 2,904 executable commands. The
+92,568-byte native G-code SHA-256 is
+`53fcd2d926eac9dbe9979450a4b0d4ba30ed9025c2f9bcc3eead155b7300eab5`.
+This native-reference-only observation still has `qualified: false`, unobserved
+macro internals and no physical readiness; no programmatic PA candidate is
+qualified by it.
+
+The first actual Windows Retraction inspection retained a checker failure:
+204 episodes over 107 layers with seven transition-only mismatches for the
+0→2/0.1 mm tower. Native G-code SHA-256 is
+`0f5dec36bf301cf94c2c9824d940d725083ae5b8b873435a493887533a2de678`;
+the historical failed report SHA-256 is
+`f689d94e8bfb760843fbcf483de7cbc426373d745ab71d21de2191a759c8f142`.
+Bounded Windows-local scalar diagnostics showed, for example, an aggregate
+0.2 mm retract beginning at physical Z2.2 before deposition at nominal Z2.4.
+Its previous native state tag was still 0.1 mm at nominal Z2.2. The seven
+examples show transition top-ups; they do not show wrong native lengths.
+
+The source explains the ordering: `GCode::change_layer` 8257–8289 may retract
+before the calibration override at 6633; lazy Z travel and later wiping/retract
+can extend the same outstanding episode after the override. `Extruder::retract`
+76–101 adds only `max(0, target − already_retracted)`; `GCode::retract`
+10418–10437 finishes any remaining amount after wipe. The checker now tracks
+the last negative-E command's layer and validates the aggregate against that
+layer's independently measured deposition Z. Native length comments are not
+an oracle. Length/Z tolerances and exact executable equality are unchanged.
+Synthetic cross-layer/lifted-Z tests verify both incomplete and excessive
+top-ups still fail even with forged native-looking comments. The historical
+failed inspection and source archive remain unchanged; a corrected Windows
+inspection must produce a separately fingerprinted report before claiming the
+actual native invariant passes.
