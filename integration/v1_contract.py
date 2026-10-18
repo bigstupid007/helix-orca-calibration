@@ -72,7 +72,7 @@ def validate_parameters(calibration, value):
             raise ContractError("Temperature bands must be integers")
         number(value["start"], 160, 500)
         number(value["end"], 155, 495)
-        if value["step"] != 5 or value["start"] < value["end"] + 5 or (value["start"] - value["end"]) % 5:
+        if value["step"] != 5 or value["start"] < value["end"] + 5 or value["start"] % 5 or value["end"] % 5:
             raise ContractError("Native Temperature uses descending 5 degree bands")
         if type(value["scale"]) is not bool:
             raise ContractError("Temperature scale must be boolean")
