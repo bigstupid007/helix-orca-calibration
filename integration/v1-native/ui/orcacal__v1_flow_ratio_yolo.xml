@@ -8,11 +8,9 @@
         <text_small width="100%" bind_text="orcacal__v1_profiles" long_mode="wrap" />
         <text_xs width="100%" bind_text="orcacal__v1_context_note" long_mode="wrap" />
       </ui_card>
-      <text_heading width="100%" text="YOLO" long_mode="wrap" />
-      <text_small width="100%" text="Prepare the native YOLO flow test. Evaluate the smoothest surface after successful completion." long_mode="wrap" />
+      <text_heading width="100%" text="YOLO (recommended)" long_mode="wrap" />
+      <text_small width="100%" text="Uses Orca's Archimedean Chords surface pattern. Compare the printed patches and choose the smoothest surface after successful completion." long_mode="wrap" />
       <text_small width="100%" bind_text="orcacal__v1_availability_flow_ratio_yolo" long_mode="wrap" />
-      <text_small width="100%" text="YOLO pass" long_mode="wrap" />
-      <lv_dropdown name="orcacal__v1_flow_ratio_yolo_pass" width="100%" options="1" bind_value="orcacal__v1_flow_ratio_yolo_pass_idx" />
       <text_small width="100%" text="Preparation does not start a print. Review the prepared job before confirming." long_mode="wrap" />
       <lv_button name="orcacal__v1_generate_flow_ratio_yolo" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_generate:flow_ratio_yolo" />

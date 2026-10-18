@@ -1,5 +1,6 @@
 """Dependency-free V1 derivative ownership and shared contract checks."""
 import importlib.util
+import copy
 import json
 from pathlib import Path
 import tempfile
@@ -10,6 +11,7 @@ def load(name,path):
     spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 builder=load('v1_native_builder_test',ROOT/'scripts/v1-native-plugin.py')
 contract=load('v1_native_contract_test',ROOT/'integration/v1_contract.py')
+qualifier=load('v1_native_source_checks',ROOT/'scripts/v1-native-qualify.py')
 class V1NativeTests(unittest.TestCase):
     def test_shared_defaults_are_available_without_silent_substitution(self):
         self.assertEqual(set(builder.CATALOG),set(contract.CALIBRATIONS))
@@ -50,3 +52,44 @@ class V1NativeTests(unittest.TestCase):
             for node in doc.iter():
                 if node.tag=='event_cb':self.assertEqual(node.attrib['callback'],'plugin_event')
                 self.assertNotIn('on_header_back_clicked',node.attrib.values())
+
+    def test_tile_exactly_preserves_accepted_compact_style_and_status_binding(self):
+        expected=builder.ACCEPTED_TILE.read_text().replace('orcacal__tp_tile_status','orcacal__v1_tile')
+        self.assertEqual((ROOT/'integration/v1-native/ui/orcacal__tile.xml').read_text(),expected)
+        with tempfile.TemporaryDirectory() as name:
+            output=Path(name)/'plugin';builder.generate(output)
+            self.assertEqual((output/'ui/orcacal__tile.xml').read_text(),expected)
+            config=Path(name)/'config';qualifier.settings(config)
+            widgets=json.loads((config/'settings-test.json').read_text())['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']
+            tile=next(w for w in widgets if w['id']=='orcacal__tile')
+            self.assertNotIn('colspan',tile);self.assertNotIn('rowspan',tile)
+    def test_compact_geometry_rejects_clipping_and_overlap(self):
+        geometry={'widgets':[
+            dict(name='orcacal__tile',x=0,y=0,w=100,h=100),
+            dict(name='orcacal__tile_icon',x=40,y=0,w=20,h=20),
+            dict(name='orcacal__tile_identity',x=10,y=30,w=80,h=40),
+            dict(name='orcacal__tile_status',x=20,y=80,w=60,h=20)]}
+        qualifier.assert_compact_bounds(geometry,120,120)
+        for index,key,value in ((1,'x',90),(2,'y',10),(3,'y',65)):
+            invalid=copy.deepcopy(geometry);invalid['widgets'][index][key]=value
+            with self.assertRaises(ValueError):qualifier.assert_compact_bounds(invalid,120,120)
+    def test_yolo_explains_native_method_without_fixed_implementation_control(self):
+        doc=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_flow_ratio_yolo.xml')
+        self.assertEqual(doc.findall('.//lv_dropdown'),[])
+        labels=' '.join(node.attrib.get('text','') for node in doc.iter())
+        self.assertIn('YOLO (recommended)',labels);self.assertIn('Archimedean Chords',labels)
+        self.assertEqual(builder.CATALOG['flow_ratio_yolo']['parameters'],{'pass':[1]})
+    def test_automatic_view_preserves_original_bindings_and_return_callbacks(self):
+        with tempfile.TemporaryDirectory() as name:
+            output=Path(name)/'plugin';builder.generate(output)
+            manual=ET.parse(output/'ui/orcacal__v1_job.xml').getroot()
+            automatic=ET.parse(output/'ui/orcacal__v1_auto_result.xml').getroot()
+            self.assertNotEqual(manual.find('view').attrib['name'],automatic.find('view').attrib['name'])
+            for left,right in zip(manual.iter(),automatic.iter()):
+                self.assertEqual(left.tag,right.tag)
+                self.assertEqual({k:v for k,v in left.attrib.items() if k!='name'},
+                                 {k:v for k,v in right.attrib.items() if k!='name'})
+            self.assertEqual(len(list(manual.iter())),len(list(automatic.iter())))
+            auto_names={n.attrib['name'] for n in automatic.iter() if 'name' in n.attrib}
+            self.assertIn('orcacal__v1_auto_evaluation',auto_names)
+            self.assertIn('orcacal__v1_auto_return',auto_names)

@@ -11,7 +11,7 @@ local function int_subject(name,value)
     v1_subjects[name]=s; return s
 end
 for _,name in ipairs({'printer','profiles','context_note','message','calibration','phase','parameters','artifact','qualification','evaluation_note','returned'}) do string_subject(name) end
-string_subject('tile','V1')
+string_subject('tile','Ready')
 for _,name in ipairs({'resume_on','confirm_on','start_on','cancel_on','evaluate_on','evaluation_idx'}) do int_subject(name) end
 local v1_indices={}
 for id,entry in pairs(V1_CATALOG) do
@@ -23,6 +23,10 @@ local v1_settings={temperature='nozzle_temperature',flow_ratio_yolo='filament_fl
 local v1_offer=nil
 local v1_session=nil
 local v1_job_handle=nil
+local v1_wizard_handle=nil
+local v1_detail_handle=nil
+local v1_cancel_handle=nil
+local v1_cancel_request=nil
 local function v1_set(name,value) v1_subjects[name]:set(value) end
 local function v1_text(s,limit) return type(s)=='string' and #s>0 and #s<=(limit or 256) and utf8.len(s)~=nil and not s:find('%c') end
 local function v1_hex(s,n) return type(s)=='string' and #s==n and s:match('^[0-9a-f]+$')~=nil end
@@ -54,6 +58,7 @@ end
 local function v1_persist()
     local ok=pcall(helix.storage.set,'v1_session',v1_session)
     if not ok then
+        v1_completion_presentation.disarm()
         if v1_session then v1_session.phase='uncertain' end
         v1_set('message','Local storage unavailable · actions locked')
         for _,key in ipairs({'confirm_on','start_on','cancel_on','evaluate_on'}) do v1_set(key,0) end
@@ -80,6 +85,23 @@ v1_open_job=function()
     end})
     v1_job_handle=h
 end
+local function v1_retire_preparation_views()
+    local job,wizard,detail,cancel=v1_job_handle,v1_wizard_handle,v1_detail_handle,v1_cancel_handle
+    v1_job_handle=nil;v1_wizard_handle=nil;v1_detail_handle=nil
+    v1_cancel_handle=nil;v1_cancel_request=nil;v1_refresh_job=false
+    -- Queue after the automatic push; preserve native Print Status/other dialogs.
+    if cancel then pcall(cancel.close) end
+    if job then pcall(job.close) end
+    if detail then pcall(detail.close) end
+    if wizard then pcall(wizard.close) end
+end
+local function v1_open_wizard()
+    local handle
+    handle=helix.ui.overlay('orcacal__wizard',{on_close=function()
+        if v1_wizard_handle==handle then v1_wizard_handle=nil end
+    end})
+    v1_wizard_handle=handle
+end
 local function v1_context(o)
     v1_set('printer',o and (o.printer..' · '..tostring(o.nozzle_mm)..' mm') or 'No Orca context')
     v1_set('profiles',o and (o.filament..' · '..o.process) or 'Open the V1 companion in Orca')
@@ -94,7 +116,7 @@ local function v1_render()
     v1_context(s.offer)
     v1_set('resume_on',1);v1_set('calibration',V1_CATALOG[s.request.calibration].name)
     local labels={requested='Preparation requested',preparing='Preparing print',blocked='Preparation unavailable',review='Review your print',confirmed='Ready to start',starting='Starting print',printing='Printing',verifying='Checking completion',complete='Ready to evaluate',cancelled='Print cancelled',failed='Print did not complete',uncertain='Check printer connection',returning='Returning your result',delivered='Result returned'}
-    v1_set('phase',labels[s.phase] or 'Status unavailable');v1_set('tile',s.result and (s.receipt and 'Done' or 'Send') or 'Active')
+    v1_set('phase',labels[s.phase] or 'Status unavailable');v1_set('tile',s.result and (s.receipt and 'Done' or 'Send') or (s.phase=='complete' and 'Pick' or s.phase=='printing' and 'Print' or s.phase=='blocked' and 'Check' or 'Active'))
     v1_set('message',s.message or '')
     local p=s.request.parameters
     local kind=s.request.calibration
@@ -146,7 +168,7 @@ local function v1_receive_offer(_,o)
     end
     if not v1_session then v1_render() end
 end
-helix.ui.on('open',function() helix.ui.overlay('orcacal__wizard') end)
+helix.ui.on('open',v1_open_wizard)
 helix.ui.on('v1_resume',v1_open_job)
 helix.ui.on('v1_choose',function(id)
     if not V1_CATALOG[id] then return end
@@ -158,7 +180,11 @@ helix.ui.on('v1_choose',function(id)
         local values=V1_CATALOG[id].parameters[key]
         for i,v in ipairs(values) do if defaults and defaults[key]==v then subject:set(i-1) end end
     end
-    helix.ui.overlay('orcacal__v1_'..id)
+    local handle
+    handle=helix.ui.overlay('orcacal__v1_'..id,{on_close=function()
+        if v1_detail_handle==handle then v1_detail_handle=nil end
+    end})
+    v1_detail_handle=handle
 end)
 helix.ui.on('v1_generate',function(id)
     local c=v1_capability(v1_offer,id)
@@ -175,6 +201,7 @@ helix.ui.on('v1_generate',function(id)
     local request={schema='helix-orca-v1-request/v1',request_id=v1_offer.request_id,origin_id=v1_offer.origin_id,
         context_sha256=v1_offer.context_sha256,calibration=id,parameters=parameters,
         created_at=v1_offer.created_at,expires_at=v1_offer.expires_at,not_applied=true}
+    v1_completion_presentation.disarm()
     v1_session={request=request,offer=v1_offer,phase='requested',sequence=0,message='Generation requested · nothing started'}
     if v1_persist() then v1_render();v1_open_job() end
 end)
@@ -225,10 +252,17 @@ local function v1_receive_status(_,d)
         for _,v in ipairs(e.options) do if not v1_number(v) then return end end
         s.completion_sha256=d.completion_sha256;s.evaluation=e
     end
+    if d.phase=='failed' or d.phase=='cancelled' or d.phase=='uncertain' or d.phase=='blocked' then
+        v1_completion_presentation.disarm()
+    elseif d.phase=='printing' then v1_completion_presentation.arm(s) end
     s.sequence=d.sequence;s.phase=d.phase;s.message=d.message
     if d.prepared then s.prepared=d.prepared;s.prepared_sha256=d.prepared_sha256 end
     if d.job_id then s.job_id=d.job_id end
-    if v1_persist() then v1_render();if d.phase=='complete' and v1_job_handle then v1_open_job() end end
+    local present=d.phase=='complete' and v1_completion_presentation.claim(s)
+    if not v1_persist() then return end
+    v1_render()
+    if present and v1_completion_presentation.open(v1_options()) then v1_retire_preparation_views()
+    elseif d.phase=='complete' and v1_job_handle then v1_open_job() end
 end
 local function v1_intent(action)
     local s=v1_session
@@ -242,11 +276,12 @@ local function v1_intent(action)
     if action=='start' then s.phase='starting';s.message='Start requested · physical action adapter disabled in this candidate'
     elseif action=='cancel' then s.message='Cancellation requested · waiting for verified status'
     else s.message='Confirmation sent · waiting for coordinator' end
-    if v1_persist() then v1_render() end
+    if v1_persist() then
+        if action=='start' then v1_completion_presentation.arm(s) end
+        v1_render()
+    end
 end
 for _,action in ipairs({'confirm','start'}) do helix.ui.on('v1_'..action,function() v1_intent(action) end) end
-local v1_cancel_handle=nil
-local v1_cancel_request=nil
 helix.ui.on('v1_cancel',function()
     if not v1_session or v1_session.phase~='printing' or v1_cancel_handle then return end
     v1_cancel_request=v1_session.request.request_id
@@ -297,6 +332,7 @@ local function v1_restore(s)
         or s.intent.schema~='helix-orca-v1-intent/v1' or not v1_identity(s.intent)
         or s.intent.prepared_sha256~=s.prepared_sha256 or not v1_hex(s.intent.intent_id,32)
         or (s.intent.action~='confirm' and s.intent.action~='start' and s.intent.action~='cancel')) then v1_session=nil;return false end
+    v1_completion_presentation.recover(s)
     if s.result then
         local r=s.result
         if not v1_exact(r,'schema request_id origin_id context_sha256 prepared_sha256 job_id completion_sha256 setting value not_applied')
@@ -315,5 +351,5 @@ local function v1_restore(s)
     end
     return true
 end
-if v1_ok then v1_restore(v1_saved) end
+if v1_ok and v1_restore(v1_saved) then v1_persist() end
 v1_render()
