@@ -17,7 +17,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $Zip=[IO.Compression.ZipFile]::OpenRead($Bundle)
 try{
  foreach($Entry in $Zip.Entries){
-  if($Entry.FullName-notmatch '^[a-z-]+\.(json|stl)$'-or$Entry.Length-gt20000000){throw 'Unexpected bundle entry'}
+  if($Entry.FullName-notmatch '^[a-z-]+\.(json|stl|3mf)$'-or$Entry.Length-gt20000000){throw 'Unexpected bundle entry'}
  }
  if($Zip.Entries.Count-gt20){throw 'Too many bundle entries'}
 }finally{$Zip.Dispose()}
@@ -27,11 +27,15 @@ $Manifest=Get-Content -Raw -LiteralPath (Join-Path $Root 'generation-bundle.json
 if($Manifest.source_commit-ne'6a7763f08d1a175a464a00ce13f0b5a815662fc4'-or$Manifest.executable_sha256-ne$ExpectedExe){throw 'Generation source/runtime differs'}
 $Snapshot=Get-Content -Raw -LiteralPath (Join-Path $Root 'snapshot.json')|ConvertFrom-Json
 if($Snapshot.effective.curr_bed_type-ne'High Temp Plate'){throw 'This bounded Windows case requires explicit matching High Temp Plate'}
+$Models=@('model.stl','model.3mf')|Where-Object {Test-Path -LiteralPath (Join-Path $Root $_) -PathType Leaf}
+if(@($Models).Count-ne1){throw 'Exactly one preserved STL or per-object 3MF model is required'}
+$ModelName=@($Models)[0]
+$Model=Join-Path $Root $ModelName
 foreach($Name in @('orca-data','slice-output','webview2')){New-Item -ItemType Directory -Path (Join-Path $Root $Name)|Out-Null}
 $Arguments=@('--datadir',(Join-Path $Root 'orca-data'),'--load-settings',((Join-Path $Root 'machine.json')+';'+(Join-Path $Root 'process.json')),
  '--load-filaments',(Join-Path $Root 'filament.json'),'--curr-bed-type','High Temp Plate','--arrange','1','--orient','0','--strict',
  '--outputdir',(Join-Path $Root 'slice-output'),'--export-settings',(Join-Path $Root 'slice-output\effective.json'),
- '--export-3mf','prepared.3mf','--slice','0',(Join-Path $Root 'model.stl'))
+ '--export-3mf','prepared.3mf','--slice','0',$Model)
 foreach($Argument in $Arguments){if($Argument.Contains('"')-or$Argument.EndsWith('\')){throw 'Unsupported argument quoting'}}
 $CommandLine=($Arguments|ForEach-Object {'"'+$_+'"'})-join' '
 # This command runs inside an ephemeral qualification worker process; no user or

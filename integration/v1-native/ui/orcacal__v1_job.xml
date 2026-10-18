@@ -6,7 +6,7 @@
   <view name="orcacal__v1_job" extends="overlay_panel" title="Calibration job" bg_color="#screen_bg">
     <lv_obj name="orcacal__v1_v1_job_content" width="100%" flex_grow="1" flex_flow="column" scrollable="true" style_pad_all="#space_md" style_pad_gap="#space_sm" style_bg_opa="0" style_border_width="0">
       <ui_card width="100%" height="content" flex_flow="column" scrollable="false" style_pad_all="#space_sm" style_pad_gap="#space_xs">
-        <text_small width="100%" text="CURRENT CONTEXT" long_mode="wrap" />
+        <text_small width="100%" text="ORIGINAL PROFILES" long_mode="wrap" />
         <text_body width="100%" bind_text="orcacal__v1_printer" long_mode="wrap" />
         <text_small width="100%" bind_text="orcacal__v1_profiles" long_mode="wrap" />
         <text_xs width="100%" bind_text="orcacal__v1_context_note" long_mode="wrap" />
@@ -30,11 +30,11 @@
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_start" />
         <lv_label width="100%" text="Start" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
       </lv_button>
-      <text_small width="100%" text="Physical Start is disabled in this V1 review candidate. A later explicit Start tap is required by the production contract." long_mode="wrap" />
+      <text_small width="100%" text="Printing is unavailable in this review candidate." long_mode="wrap" />
       <lv_button name="orcacal__v1_cancel" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
         <bind_flag_if_eq subject="orcacal__v1_cancel_on" flag="hidden" ref_value="0" />
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_cancel" />
-        <lv_label width="100%" text="Request cancellation" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+        <lv_label width="100%" text="Cancel print…" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
       </lv_button>
       <text_small width="100%" text="EVALUATION" long_mode="wrap" />
       <text_small width="100%" bind_text="orcacal__v1_evaluation_note" long_mode="wrap" />

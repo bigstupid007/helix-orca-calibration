@@ -53,6 +53,15 @@ assets and optional independent native reference as documented in
 files. Generated job directories, logs, inputs, output bytes and reports are
 retained below the runtime's owned state tree.
 
+Both runtime and offline generation CLI use `integration.v1_routing`: stock CLI
+for Temperature/YOLO by default, receipt-guarded native engine for PA Pattern,
+Retraction and MVS. The private `routes` map can explicitly select `stock-cli` or
+`native-engine` per known calibration; unknown values fail and no fallback occurs.
+Native configuration is isolated under `native_engine` and must bind actual build
+receipt, inputs, executable and resources. Source presence never makes a route
+available. Native build qualification and exact native-UI parity remain separate
+gates. A caller cannot select a route through its request payload.
+
 Optional `--moonraker-events` uses only existing exact trusted-LAN HTTP origin,
 version pin, V1 event namespace and approved single-file native storage bridge.
 The config's `moonraker` object requires `origin`, `expected_host`,
@@ -74,14 +83,22 @@ is blocked and never silently rerun. Qualification reopens actual output and
 native evidence; a bare true flag cannot enable review. Confirm and Start are
 separate immutable native intents. Every intent is consumed durably once.
 
-**The shipped launcher supplies no physical action adapter.** Start cannot
-upload, queue, heat, move or print. A trusted in-process normalized adapter
-interface exists for isolated tests, with durable dispatch intent, no replay
-on uncertain recovery, exact same-job status plus independent completed history,
-healthy-job monitoring beyond the Start deadline, and result locking for failed,
-cancelled, disconnected or unrelated jobs. This is synthetic behavior proof,
-not an implemented or qualified production physical adapter. Production activation
-also needs the accepted owned-job/cancellation/configuration safeguards.
+**The default review launcher supplies no physical action adapter.** Start cannot
+upload, queue, heat, move or print in this review. The integrated
+[owned-job adapter](V1_OWNED_JOBS.md) implements bounded staging/readback,
+separate Confirm/Start, durable one-shot dispatch, exact-job status plus independent
+history, owned cancellation and conservative recovery. Its real HTTP fixture
+proof is synthetic; no new physical qualification or activation is claimed.
+
+The optional `--deployment-authorization` path is a separate local gate, never a
+native event, profile field or incoming request. This program creates no approval
+record. A future owner-private record must reference a separate explicit approval,
+bind the exact private configuration and complete V1 Python runtime fingerprint,
+and require native-Start-only operation. Direct CLI use independently validates
+file ownership/privacy and every path ancestor. Both this gate and the explicit
+owned-job configuration must agree before construction; active jobs also require
+the exact same native-event printer origin/version. The [deployment boundary](V1_DEPLOYMENT.md)
+records the remaining acceptance and physical activation requirements.
 
 A returned result binds original context, prepared bytes, exact job and completion
 proof. Orca retains each immutable originating snapshot under `origins/`; only a
@@ -92,7 +109,9 @@ poll to refresh saved/edited/effective context; unavailable selection disables
 new preparation without replacing an active job’s original context. Native delivery cannot be claimed before the
 originating receipt. The coordinator retains the session until native readback
 confirms ACK persistence, so event loss cannot discard the receipt. Results are
-**NOT APPLIED**. No preset setter or profile writeback exists.
+**NOT APPLIED**. No preset setter or profile writeback exists. The companion names the calibration,
+parameter range and result setting in ordinary terms and marks edited selections
+without substituting saved values for edited or effective values.
 
 ## Current proof and limitations
 

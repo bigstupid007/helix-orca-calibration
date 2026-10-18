@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from integration.v1_generation import generate, GenerationBlocked
+from integration.v1_generation import GenerationBlocked
+from integration.v1_routing import generate
 
 
 def native_reference():

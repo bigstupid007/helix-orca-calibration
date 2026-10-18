@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """V1 local coordinator: direct events/local artifacts, no Codex test worker.
 
-No action-enabled printer transport exists in this review candidate. Default
+The default review invocation has no action-enabled printer transport. Default
 transport is offline. --moonraker-events requires explicit existing LAN consent.
 """
 import argparse
@@ -22,7 +22,10 @@ from integration.v1_transport import DirectoryEvents, MoonrakerEvents
 
 def tick(coordinator, storage, transport):
     availability = storage / "context-status.json"
-    if availability.exists() and read_json(availability).get("available") is not True and coordinator.state["request"] is None:
+    unavailable = availability.exists() and read_json(availability).get("available") is not True
+    if unavailable and (coordinator.state["request"] is None or coordinator.state["phase"] in ("blocked", "failed", "cancelled")):
+        if coordinator.state["request"] is not None:
+            coordinator.offer(coordinator.state["context"])
         if coordinator.state["offer"]:
             offer = dict(coordinator.state["offer"])
             offer["capabilities"] = [dict(id=c["id"], available=False, reason="Current Orca profile context is unavailable.") for c in coordinator.capabilities]
@@ -70,12 +73,13 @@ def main():
     parser.add_argument("--config", type=Path, required=True, help="Private explicit generator configuration")
     parser.add_argument("--state", type=Path, help="Dedicated runtime journal; defaults below plugin v1 storage")
     parser.add_argument("--once", action="store_true")
+    parser.add_argument("--deployment-authorization", type=Path, help="Separately approved owner-private exact deployment record; absent in review")
     parser.add_argument("--run-id", default=None, help="Owned launcher identity, lowercase 32-hex")
     parser.add_argument("--stop-file", type=Path, help="Exact owned JSON stop request path")
     parser.add_argument("--offline-channel", type=Path)
     parser.add_argument("--moonraker-events", action="store_true", help="No physical deployment or Start; V1 events only")
     args = parser.parse_args()
-    from integration.v1_generation import generate, capabilities
+    from integration.v1_routing import generate, capabilities
     config = read_json(args.config)
     root = args.state or args.storage / "runtime"
     run_id = hex_value(args.run_id or secrets.token_hex(16), 32)
@@ -94,7 +98,14 @@ def main():
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
     with InstanceLock(args.storage / "coordinator.lock"), InstanceLock(root / "runtime.lock"):
-        coordinator = Coordinator(root, generate, config, capabilities(config))
+        from integration.v1_deployment import authorized, require_native_channel
+        from integration.v1_jobs import from_config
+        deployment = authorized(args.deployment_authorization, config, Path(__file__))
+        if deployment and config.get("owned_jobs", {}).get("actions_enabled") is True:
+            require_native_channel(config, args.moonraker_events)
+        jobs = from_config(config, root / "owned-jobs", deployment_authorized=deployment,
+            api_key=os.environ.get(config.get("moonraker", {}).get("api_key_env", "HELIX_ORCA_MOONRAKER_API_KEY")))
+        coordinator = Coordinator(root, generate, config, capabilities(config), job_adapter=jobs)
         while not stopped:
             if stop_file.exists():
                 stop_request = read_json(stop_file)
@@ -103,11 +114,11 @@ def main():
             try:
                 tick(coordinator, args.storage, transport)
                 atomic_json(root / "health.json", dict(schema="helix-orca-v1-health/v1", ok=True,
-                    checked_at=int(time.time()), actions_enabled=False, test_worker_required=False, run_id=run_id, pid=os.getpid()))
+                    checked_at=int(time.time()), actions_enabled=jobs is not None, test_worker_required=False, run_id=run_id, pid=os.getpid()))
             except Exception as exc:
                 # Keep original jobs/journal; retry transport without changing request identity.
                 atomic_json(root / "health.json", dict(schema="helix-orca-v1-health/v1", ok=False,
-                    checked_at=int(time.time()), message=type(exc).__name__ + ": " + str(exc)[:800], actions_enabled=False, run_id=run_id, pid=os.getpid()))
+                    checked_at=int(time.time()), message=type(exc).__name__ + ": " + str(exc)[:800], actions_enabled=jobs is not None, run_id=run_id, pid=os.getpid()))
                 if args.once:
                     raise
             if args.once:
@@ -117,7 +128,7 @@ def main():
                     break
                 time.sleep(0.1)
         atomic_json(root / "health.json", dict(schema="helix-orca-v1-health/v1", ok=True, stopped=True,
-            checked_at=int(time.time()), actions_enabled=False, test_worker_required=False, run_id=run_id, pid=os.getpid()))
+            checked_at=int(time.time()), actions_enabled=jobs is not None, test_worker_required=False, run_id=run_id, pid=os.getpid()))
 
 
 if __name__ == "__main__":

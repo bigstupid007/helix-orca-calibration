@@ -1,11 +1,15 @@
 # Issue #14 V1 candidate evidence
 
 `native/` is the complete, source-bound beta.9 native UI matrix: all eleven
-pinned targets, all five calibration workflows, 308 frames. Every context,
+pinned targets, all five calibration workflows, 341 frames. Every context,
 capability, prepared artifact, parity flag, printer status, completion proof and
 receipt in this capture is **synthetic test input**. It proves real native UI
 behavior and interaction, not generator parity, Windows operation or printing.
-No physical actions occurred.
+No physical actions occurred. The revised matrix also verifies a separate
+request-bound Cancel confirmation: opening the dialog sends no cancel intent,
+Keep printing preserves the job, and only the second confirmation persists Cancel.
+Human-readable parameter/status copy and the original-context review are included.
+The earlier complete 308-frame capture remains retained in private state and Git history.
 
 Verify the portable source/runtime/geometry/frame/lifecycle summary bindings:
 

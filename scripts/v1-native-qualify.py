@@ -19,7 +19,7 @@ q=load('v1_native_q',ROOT/'scripts/temperature-communication-qualify.py')
 a=q.accepted
 builder=load('v1_native_builder',ROOT/'scripts/v1-native-plugin.py')
 contract=load('v1_native_contract',ROOT/'integration/v1_contract.py')
-ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block']
+ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block','native-two-step-owned-job-cancellation']
 def hashes():
     paths=[ROOT/'scripts/v1-native-plugin.py',ROOT/'scripts/v1-native-qualify.py',ROOT/'integration/v1_contract.py',ROOT/'scripts/temperature-communication-plugin.py',ROOT/'scripts/temperature-communication-qualify.py',ROOT/'scripts/helix-beta9-qualify.py',ROOT/'scripts/helix_dev.py']+list((ROOT/'integration/v1-native').rglob('*'))
     return {str(p.relative_to(ROOT)):q.sha256(p) for p in sorted(paths) if p.is_file()}
@@ -82,6 +82,7 @@ fixture_signal:observe(function(value)
   local before=v1_session.sequence
   local d=fixture_status('preparing');d.sequence=0;v1_receive_status('fixture',d)
   if v1_session.sequence~=before then error('Stale status changed sequence') end
+ elseif code==11 then v1_receive_status('fixture',fixture_status('cancelled'))
  elseif code==10 then
   local d=fixture_status('blocked');d.prepared.parity.qualified=false;d.prepared.artifact=nil;d.message='Synthetic blocked generator: native parity unavailable';v1_receive_status('fixture',d)
  end
@@ -175,6 +176,24 @@ def drive(entry,name,work):
         require(saved['result']['value']==saved['evaluation']['options'][1],'Wrong native selection returned')
         require(saved['result']['context_sha256']=='b'*64,'Original context changed')
     q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
+    tap(name,'orcacal__v1_choose_temperature',w,h,work);tap(name,'orcacal__v1_generate_temperature',w,h,work)
+    signal(name,2);signal(name,3);tap(name,'orcacal__v1_confirm',w,h,work);signal(name,4)
+    tap(name,'orcacal__v1_start',w,h,work);signal(name,5)
+    tap(name,'orcacal__v1_cancel',w,h,work)
+    require(storage(work)['intent']['action']=='start','Opening cancellation dispatched an intent')
+    a._assert_horizontal_fit(ctl(name,'geom','orcacal__v1_cancel_content','8'),w)
+    a._screenshot(name,work,'cancel-confirm.png')
+    tap(name,'orcacal__v1_cancel_keep',w,h,work)
+    require(storage(work)['intent']['action']=='start','Keep printing dispatched cancellation')
+    a._screenshot(name,work,'cancel-kept.png')
+    tap(name,'orcacal__v1_cancel',w,h,work);tap(name,'orcacal__v1_cancel_yes',w,h,work)
+    deadline=time.monotonic()+5
+    while storage(work)['intent']['action']!='cancel':
+        if time.monotonic()>deadline:raise ValueError('Confirmed cancellation was not durable')
+        time.sleep(.05)
+    signal(name,11);require(value(name,'evaluate_on')==0,'Cancelled print unlocked evaluation')
+    a._screenshot(name,work,'cancelled.png')
+    q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
     tap(name,'orcacal__v1_choose_temperature',w,h,work);tap(name,'orcacal__v1_generate_temperature',w,h,work);signal(name,10)
     require(value(name,'confirm_on')==0 and value(name,'start_on')==0,'Blocked generation unlocked execution')
     a._screenshot(name,work,'blocked.png')
@@ -182,7 +201,7 @@ def drive(entry,name,work):
     q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
     tap(name,'orcacal__v1_choose_flow_ratio_yolo',w,h,work);tap(name,'orcacal__v1_generate_flow_ratio_yolo',w,h,work)
     signal(name,2)
-    require(value(name,'phase')=='preparing','Fresh nonce did not retire blocked work')
+    require(value(name,'phase')=='Preparing print','Fresh nonce did not retire blocked work')
     deadline=time.monotonic()+5
     while True:
         next_request=storage(work)['request']
@@ -238,7 +257,7 @@ def verify(output):
     require(r['synthetic_only'] and r['physical_actions']==0 and r['container_network']=='none','Isolation differs')
     require([v['label'] for v in r['results']]==[v[0] for v in a.VIEWPORTS],'All eleven viewports required')
     for row in r['results']:require(row['assertions']==ASSERTIONS and row['calibrations']==list(contract.CALIBRATIONS) and row['result']=='PASS','Incomplete workflow proof')
-    require(len(r['screenshots'])==11*28,'Incomplete screenshots')
+    require(len(r['screenshots'])==11*31,'Incomplete screenshots')
     for name,digest in r['screenshots'].items():require(q.sha256(output/name)==digest,'Screenshot differs')
     for item in r['managed_runs']:
         manifest=json.loads(Path(item['manifest']).read_text());require(manifest['state']=='complete' and manifest['verification']['runtime_clear'],'Managed run incomplete')

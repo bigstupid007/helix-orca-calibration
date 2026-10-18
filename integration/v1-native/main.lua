@@ -93,21 +93,26 @@ local function v1_render()
     local s=v1_session
     v1_context(s.offer)
     v1_set('resume_on',1);v1_set('calibration',V1_CATALOG[s.request.calibration].name)
-    v1_set('phase',s.phase);v1_set('tile',s.result and (s.receipt and 'Done' or 'Send') or 'Active')
+    local labels={requested='Preparation requested',preparing='Preparing print',blocked='Preparation unavailable',review='Review your print',confirmed='Ready to start',starting='Starting print',printing='Printing',verifying='Checking completion',complete='Ready to evaluate',cancelled='Print cancelled',failed='Print did not complete',uncertain='Check printer connection',returning='Returning your result',delivered='Result returned'}
+    v1_set('phase',labels[s.phase] or 'Status unavailable');v1_set('tile',s.result and (s.receipt and 'Done' or 'Send') or 'Active')
     v1_set('message',s.message or '')
-    local p={}
-    for _,k in ipairs({'start','end','step','pass','scale'}) do if s.request.parameters[k]~=nil then p[#p+1]=k..': '..tostring(s.request.parameters[k]) end end
-    v1_set('parameters',table.concat(p,' · '))
+    local p=s.request.parameters
+    local kind=s.request.calibration
+    local unit=kind=='temperature' and '°C' or kind=='retraction' and 'mm' or kind=='max_volumetric_speed' and 'mm³/s' or 's'
+    local summary=kind=='flow_ratio_yolo' and 'YOLO recommended · Archimedean surface' or
+        (tostring(p.start)..' → '..tostring(p['end'])..' '..unit..' · '..tostring(p.step)..' '..unit..' increments')
+    if kind=='temperature' then summary=summary..(p.scale and ' · Scaled for nozzle' or ' · Original tower size') end
+    v1_set('parameters',summary)
     local prepared=s.prepared
     local artifact=prepared and prepared.artifact
-    v1_set('artifact',artifact and (artifact.name..' · '..artifact.size..' bytes') or 'No prepared file')
-    v1_set('qualification',prepared and prepared.parity.reason or 'Awaiting generation and independent native parity')
+    v1_set('artifact',artifact and ('Print file ready · '..string.format('%.1f',artifact.size/1000000)..' MB') or 'No prepared file')
+    v1_set('qualification',prepared and prepared.parity.reason or 'Waiting for preparation and comparison with Orca')
     local qualified=prepared and prepared.parity.qualified==true and artifact~=nil
     v1_set('confirm_on',s.phase=='review' and qualified and not s.intent and 1 or 0)
     v1_set('start_on',s.phase=='confirmed' and qualified and s.intent and s.intent.action=='confirm' and 1 or 0)
     v1_set('cancel_on',(s.phase=='printing' and s.intent and s.intent.action=='start') and 1 or 0)
     v1_set('evaluate_on',s.phase=='complete' and s.evaluation and not s.result and 1 or 0)
-    v1_set('evaluation_note',s.phase=='complete' and 'Choose the best result from the completed calibration.' or 'Evaluation unlocks only after independently verified exact-job completion.')
+    v1_set('evaluation_note',s.phase=='complete' and 'Choose the best result from the completed calibration.' or 'Evaluate after this print completes successfully.')
     v1_set('returned',s.result and (tostring(s.result.value)..' · '..(s.receipt and 'Returned to original Orca · NOT APPLIED' or 'Returning · waiting for original Orca receipt · NOT APPLIED')) or '')
 end
 local function v1_capability(offer,id)
@@ -239,7 +244,22 @@ local function v1_intent(action)
     else s.message='Confirmation sent · waiting for coordinator' end
     if v1_persist() then v1_render() end
 end
-for _,action in ipairs({'confirm','start','cancel'}) do helix.ui.on('v1_'..action,function() v1_intent(action) end) end
+for _,action in ipairs({'confirm','start'}) do helix.ui.on('v1_'..action,function() v1_intent(action) end) end
+local v1_cancel_handle=nil
+local v1_cancel_request=nil
+helix.ui.on('v1_cancel',function()
+    if not v1_session or v1_session.phase~='printing' or v1_cancel_handle then return end
+    v1_cancel_request=v1_session.request.request_id
+    v1_cancel_handle=helix.ui.overlay('orcacal__v1_cancel_confirm',{on_close=function() v1_cancel_handle=nil;v1_cancel_request=nil end})
+end)
+helix.ui.on('v1_cancel_keep',function()
+    if v1_cancel_handle then local h=v1_cancel_handle;v1_cancel_handle=nil;v1_cancel_request=nil;pcall(h.close) end
+end)
+helix.ui.on('v1_cancel_confirm',function()
+    local request=v1_cancel_request
+    if v1_cancel_handle then local h=v1_cancel_handle;v1_cancel_handle=nil;v1_cancel_request=nil;pcall(h.close) end
+    if v1_session and v1_session.request.request_id==request then v1_intent('cancel') end
+end)
 helix.ui.on('v1_return',function()
     local s=v1_session
     if not s or s.phase~='complete' or s.result or not s.evaluation then return end

@@ -12,10 +12,12 @@ The accepted physical Temperature installation and evidence below remain intact.
 V1 is **in development, not qualified or Founder-ready**. Stock Temperature and
 Flow YOLO recipes have produced offline slices; no V1 generator is qualified yet.
 PA Pattern, Retraction and Max Volumetric Speed need the grouped native-engine
-route. Native UI matrix and isolated October 15 Windows evidence are being
-collected. The direct local coordinator ships with physical actions disabled;
-its normalized job/completion/result path is currently proven with synthetic
-adapters, not new hardware tests. No physical deployment or merge is authorized.
+route. The revised native UI matrix passes all eleven targets, all five workflows
+and 341 frames, including separate cancellation confirmation. Isolated October
+15 Windows Temperature parity remains blocked on measured differences. The direct local coordinator ships with physical actions disabled;
+its owned-job/completion/result path is currently proven with bounded local HTTP
+fixtures, not new hardware tests. Actual Windows process lifecycle tests pass;
+no deployment approval record or physical activation has been created. No physical deployment or merge is authorized.
 
 Start with [program scope](docs/BUILD_PROGRAM_V1.md), [shared contracts](docs/V1_CONTRACT.md),
 [generation/parity](docs/V1_GENERATION_PARITY.md), [grouped engine reuse](docs/V1_ENGINE_REUSE.md),

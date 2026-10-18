@@ -11,9 +11,9 @@
       <text_heading width="100%" text="Standard tower" long_mode="wrap" />
       <text_small width="100%" text="Choose a temperature range. Evaluate the cleanest band after successful completion." long_mode="wrap" />
       <text_small width="100%" bind_text="orcacal__v1_availability_temperature" long_mode="wrap" />
-      <text_small width="100%" text="Top temperature (°C)" long_mode="wrap" />
+      <text_small width="100%" text="Starting temperature (°C)" long_mode="wrap" />
       <lv_dropdown name="orcacal__v1_temperature_start" width="100%" options="230&#10;240&#10;250&#10;260&#10;270&#10;280&#10;220&#10;210&#10;200" bind_value="orcacal__v1_temperature_start_idx" />
-      <text_small width="100%" text="Bottom temperature (°C)" long_mode="wrap" />
+      <text_small width="100%" text="Ending temperature (°C)" long_mode="wrap" />
       <lv_dropdown name="orcacal__v1_temperature_end" width="100%" options="190&#10;200&#10;210&#10;220&#10;230&#10;240&#10;250" bind_value="orcacal__v1_temperature_end_idx" />
       <text_small width="100%" text="Temperature step (°C)" long_mode="wrap" />
       <lv_dropdown name="orcacal__v1_temperature_step" width="100%" options="5" bind_value="orcacal__v1_temperature_step_idx" />

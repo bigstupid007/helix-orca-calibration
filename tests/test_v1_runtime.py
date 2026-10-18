@@ -131,6 +131,10 @@ class RuntimeTests(unittest.TestCase):
             disabled=read_json(channel.directory/"context.json")
             self.assertTrue(all(not item["available"] for item in disabled["capabilities"]))
             self.assertEqual(runtime.state["offer"],fresh)
+            runtime.request(request(fresh))
+            cli.tick(runtime,storage,channel)
+            self.assertIsNone(runtime.state["request"])
+            self.assertTrue(all(not item["available"] for item in read_json(channel.directory/"context.json")["capabilities"]))
 
     def test_available_is_not_qualification_and_unavailable_never_runs(self):
         with tempfile.TemporaryDirectory() as root:
@@ -181,7 +185,12 @@ class RuntimeTests(unittest.TestCase):
             class Adapter:
                 starts = 0
                 proof = None
+                confirms = []
+                def confirm(self, req, prepared, directory, intent):
+                    self.confirms.append(copy.deepcopy(intent))
                 def start(self, req, prepared, directory, intent):
+                    if not self.confirms or self.confirms[-1]["prepared_sha256"] != intent["prepared_sha256"] or self.confirms[-1]["intent_id"] == intent["intent_id"]:
+                        raise ContractError("Separate bound confirmation required")
                     self.starts += 1
                     self.job = dict(job_id="owned-job", file_sha256=prepared["artifact"]["sha256"], request_id=req["request_id"], origin_id=req["origin_id"])
                     return self.job
@@ -205,6 +214,7 @@ class RuntimeTests(unittest.TestCase):
                 confirm = dict(base,action="confirm",intent_id="3"*32)
                 runtime.intent(confirm)
                 runtime.intent(confirm)
+                self.assertEqual(adapter.confirms,[confirm])
                 start = dict(base,action="start",intent_id="4"*32)
                 runtime.intent(start)
                 runtime.intent(start)
@@ -240,6 +250,23 @@ class RuntimeTests(unittest.TestCase):
                 self.assertEqual(recovered.state["result"],result)
                 self.assertEqual(recovered.state["receipt"],receipt)
                 self.assertEqual(adapter.starts,1)
+
+    def test_confirm_failure_is_a_visible_terminal_blocker(self):
+        with tempfile.TemporaryDirectory() as root:
+            runtime=self.make(root)
+            req=request(runtime.offer(context()))
+            runtime.state.update(request=req,prepared=prepared(req),phase="review")
+            class Incompatible:
+                def confirm(self,*_): raise ContractError("Prepared macro signature is unavailable for this target")
+            runtime.job_adapter=Incompatible()
+            intent=dict(schema="helix-orca-v1-intent/v1",request_id=req["request_id"],origin_id=req["origin_id"],
+                prepared_sha256=digest(runtime.state["prepared"]),action="confirm",intent_id="3"*32)
+            with patch.object(Coordinator,"verify_artifact"),patch.object(Coordinator,"verify_parity"):
+                status=runtime.intent(intent)
+            self.assertEqual(status["phase"],"blocked")
+            self.assertIn("macro signature",status["message"])
+            self.assertEqual(runtime.intent(intent),status)
+            self.assertIsNone(runtime.state["job"])
 
     def test_json_duplicate_symlink_and_competing_instance_refuse(self):
         with tempfile.TemporaryDirectory() as root:

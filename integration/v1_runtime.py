@@ -1,7 +1,8 @@
 """Durable local coordinator. Product runtime never uses the Spare test worker.
 
-This candidate deliberately has no action-enabled printer adapter. All generated
-files remain local; Start is rejected, including for parity-qualified files.
+The default review invocation has no action-enabled printer adapter. A separate
+local deployment record and configuration are required before an owned adapter
+can be supplied; this build program creates neither approval nor activation.
 """
 import copy
 from decimal import Decimal
@@ -101,7 +102,7 @@ class Coordinator:
         self.capabilities = copy.deepcopy(capabilities)
         self.now = now
         # Trusted in-process factory only. Never construct from a native request.
-        # The shipped launcher intentionally supplies none: no physical test grant.
+        # The review launcher supplies none without a separate exact local deployment gate.
         self.job_adapter = job_adapter
         self.path = self.root / "coordinator.json"
         if self.path.exists():
@@ -239,8 +240,15 @@ class Coordinator:
             if self.state["phase"] != "review":
                 raise ContractError("Confirmation requires a verified prepared job")
             directory = self.root / "jobs" / req["request_id"]
-            self.verify_artifact(prepared, directory)
-            self.verify_parity(prepared, directory)
+            try:
+                self.verify_artifact(prepared, directory)
+                self.verify_parity(prepared, directory)
+                confirm = getattr(self.job_adapter, "confirm", None)
+                if confirm is not None:
+                    confirm(copy.deepcopy(req), copy.deepcopy(prepared), directory, copy.deepcopy(value))
+            except Exception as exc:
+                self._status("blocked", "Prepared job cannot start: " + str(exc))
+                return self.status()
             self._status("confirmed", "Confirmed. Start remains a separate deliberate action.")
         elif value["action"] == "start":
             if self.state["phase"] != "confirmed":

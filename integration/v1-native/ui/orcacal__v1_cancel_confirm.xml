@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component>
+  <view name="orcacal__v1_cancel_confirm" extends="overlay_panel" title="Cancel this print?" bg_color="#screen_bg">
+    <lv_obj name="orcacal__v1_cancel_content" width="100%" flex_grow="1" flex_flow="column" scrollable="true" style_pad_all="#space_md" style_pad_gap="#space_md" style_bg_opa="0" style_border_width="0">
+      <text_heading width="100%" text="Cancel this calibration print?" long_mode="wrap" />
+      <text_body width="100%" text="The current print will stop. You will need a new calibration print before returning a result." long_mode="wrap" />
+      <lv_button name="orcacal__v1_cancel_keep" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_cancel_keep" />
+        <lv_label width="100%" text="Keep printing" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+      </lv_button>
+      <lv_button name="orcacal__v1_cancel_yes" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_cancel_confirm" />
+        <lv_label width="100%" text="Cancel this print" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+      </lv_button>
+    </lv_obj>
+  </view>
+</component>
