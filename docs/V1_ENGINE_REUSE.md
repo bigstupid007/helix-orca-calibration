@@ -202,3 +202,11 @@ CMake target injection. They remain explicitly uncompiled/unqualified; PA
 Pattern is still an unimplemented route. The next managed build attempts that
 actual executable only after the dependency/static-engine gates pass. It must
 not be advertised to the product before native parity and integration.
+
+GMP subsequently built successfully. The next MPFR step invokes
+`autoreconf -f -i` in the unchanged upstream dependency recipe; that tool was
+also absent from the reused builder. Run `283d6acab97c430b9717e8eab14cf76c`
+retained this exact environment gate and cleared its runtime. The owned-prefix
+bootstrap now also locks Autoconf, Automake and Libtool to checksums published
+in their GNU release announcements. This is standard build tooling inside the
+owned cache; there is no host installation, new image or upstream source edit.

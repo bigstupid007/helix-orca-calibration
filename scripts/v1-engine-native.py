@@ -72,18 +72,22 @@ def compile_offline():
     os.environ['CC'] = str(tools/'cc')
     os.environ['CXX'] = str(tools/'c++')
     os.environ['CMAKE_BUILD_PARALLEL_LEVEL'] = '4'
-    m4 = Path('/build/bootstrap-prefix/bin/m4')
-    if not m4.exists():
+    os.environ['PATH'] = '/build/bootstrap-prefix/bin:' + os.environ['PATH']
+    for item in lock.get('bootstrap_sources', []):
+        name = item['target'].removeprefix('dep_')
+        binary = {'m4':'m4','autoconf':'autoreconf','automake':'automake','libtool':'libtoolize'}[name]
+        installed = Path('/build/bootstrap-prefix/bin')/binary
+        if installed.exists(): continue
         work = Path('/build/bootstrap')
         work.mkdir(mode=0o700,exist_ok=True)
-        archive = Path('/downloads/m4/m4-1.4.20.tar.xz')
-        source = work/'m4-1.4.20'
+        filename = item['url'].rsplit('/',1)[1]
+        archive = Path('/downloads')/name/filename
+        source = work/filename.removesuffix('.tar.xz')
         if not source.exists():
-            bounded_command(['cmake','-E','tar','xf',str(archive)],evidence,'bootstrap-m4-extract',cwd=work)
-        bounded_command([str(source/'configure'),'--prefix=/build/bootstrap-prefix','--disable-nls'],evidence,'bootstrap-m4-configure',cwd=source)
-        bounded_command(['/build/tools/make','-j4'],evidence,'bootstrap-m4-build',cwd=source)
-        bounded_command(['/build/tools/make','install','-j1'],evidence,'bootstrap-m4-install',cwd=source)
-    os.environ['PATH'] = '/build/bootstrap-prefix/bin:' + os.environ['PATH']
+            bounded_command(['cmake','-E','tar','xf',str(archive)],evidence,'bootstrap-'+name+'-extract',cwd=work)
+        bounded_command([str(source/'configure'),'--prefix=/build/bootstrap-prefix','--disable-nls'],evidence,'bootstrap-'+name+'-configure',cwd=source)
+        bounded_command(['/build/tools/make','-j4'],evidence,'bootstrap-'+name+'-build',cwd=source)
+        bounded_command(['/build/tools/make','install','-j1'],evidence,'bootstrap-'+name+'-install',cwd=source)
     bounded_command(['cmake','-S','/source/deps','-B','/build/deps','-DSLIC3R_CAD=OFF',
                      '-DDEP_DOWNLOAD_DIR=/downloads','-DDESTDIR=/build/prefix',
                      '-DCMAKE_C_COMPILER=/build/tools/cc','-DCMAKE_CXX_COMPILER=/build/tools/c++',

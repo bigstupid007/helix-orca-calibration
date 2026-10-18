@@ -1,3 +1,6 @@
+// Calibration setup derived from OrcaSlicer Plater.cpp at the pinned commit.
+// OrcaSlicer source license: GNU Affero General Public License, version 3.
+// https://github.com/OrcaSlicer/OrcaSlicer/blob/6a7763f08d1a175a464a00ce13f0b5a815662fc4/LICENSE.txt
 // Separate, source-pinned adapter. No Orca application source is modified.
 // Experimental until compiled and independently compared with native UI output.
 #include "libslic3r/BuildVolume.hpp"
@@ -67,6 +70,10 @@ static DynamicPrintConfig retained_config(const json &snapshot)
     const auto *nozzles = config.option<ConfigOptionFloats>("nozzle_diameter");
     if (!nozzles || nozzles->values.size() != 1 || nozzles->get_at(0) <= 0)
         throw std::runtime_error("V1 native adapter requires one known nozzle");
+    const auto *filaments = config.option<ConfigOptionFloats>("filament_diameter");
+    const auto *ratios = config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
+    if (!filaments || filaments->values.size()!=1 || !ratios || ratios->values.size()!=1)
+        throw std::runtime_error("V1 native adapter requires one retained filament");
     if (config.has("belt_printer") && config.opt_bool("belt_printer"))
         throw std::runtime_error("Belt calibration is outside this adapter qualification");
     return config;
@@ -226,13 +233,17 @@ int main(int argc,char **argv)
         if(request.at("schema")!="helix-orca-v1-request/v1" || request.at("not_applied")!=true ||
            request.at("origin_id")!=snapshot.at("origin_id"))
             throw std::runtime_error("Correlated V1 request required");
-        auto config=retained_config(snapshot);
         const std::string calibration=request.at("calibration").get<std::string>();
         const fs::path resources=fs::canonical(argv[3]),output=fs::canonical(argv[4]);
         const auto gcode=output/"native-calibration.gcode";
         if(fs::exists(gcode)) throw std::runtime_error("Refusing to overwrite native artifact");
+        const auto data=output/"native-data";
+        if(fs::exists(data)) throw std::runtime_error("Refusing to reuse native runtime data");
+        fs::create_directory(data);
         set_resources_dir(resources.string());
+        set_data_dir(data.string());
         set_temporary_dir(output.string());
+        auto config=retained_config(snapshot);
         Model model;Calib_Params params;
         if(calibration=="temperature") temperature(model,config,params,request.at("parameters"),resources);
         else if(calibration=="retraction") retraction(model,config,params,request.at("parameters"),resources);
@@ -261,6 +272,7 @@ int main(int argc,char **argv)
         print.export_gcode(gcode.string(),nullptr,nullptr);
         json report={{"source_commit",source_commit},{"calibration",calibration},{"parameters",request.at("parameters")},
                      {"request_id",request.at("request_id")},{"origin_id",request.at("origin_id")},
+                     {"context_sha256",request.at("context_sha256")},
                      {"artifact",gcode.filename().string()},{"size",fs::file_size(gcode)},
                      {"qualified",false},{"not_applied",true}};
         std::ofstream(output/"native-generation.json")<<report.dump(2)<<'\n';
