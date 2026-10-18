@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 from types import MappingProxyType
@@ -43,27 +44,200 @@ _ROUTES = MappingProxyType({
 
 
 class NativeEngineBlocked(RuntimeError):
-    """No built/qualified native executable exists for the requested operation."""
+    """Native source/build/input/parity requirements are not satisfied."""
+    def __init__(self, reason, code="native_engine"):
+        self.code, self.reason = code, reason
+        super().__init__(reason)
 
 
 class NativeSourceError(ValueError):
     """Immutable native source could not be bound to the approved baseline."""
 
 
-def capabilities():
+def capabilities(config=None):
     """Return fresh capability data, never a source-derived permission to execute."""
-    return [dict(id=name, available=False, source_commit=ORCA_SOURCE,
-                 route="native-engine", family=route[1], native_mode=route[0],
-                 source=route[2], reason="Native adapter is not built or qualified. " + route[3])
+    backend, failure = None, "Native adapter is not built or qualified. "
+    if config:
+        try:
+            backend = _backend(config)
+        except (NativeEngineBlocked, OSError, ValueError, KeyError, TypeError) as exc:
+            failure = "Native build unavailable: " + str(exc) + ". "
+    return [dict(id=name, available=bool(backend and name in backend["receipt"]["capabilities"]["routes"]),
+                 source_commit=ORCA_SOURCE, route="native-engine", family=route[1], native_mode=route[0],
+                 source=route[2], reason=("Built native route; independent parity is mandatory before Ready. "
+                    if backend and name in backend["receipt"]["capabilities"]["routes"] else failure) + route[3])
             for name, route in _ROUTES.items()]
 
 
-def require_native_generation(calibration):
+def require_native_generation(calibration, config=None):
     """Fail closed until a real native backend is integrated through qualification."""
     if type(calibration) is not str or calibration not in _ROUTES:
         raise NativeEngineBlocked("Unsupported calibration")
+    if config:
+        try:
+            backend = _backend(config)
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            raise NativeEngineBlocked("Complete native build configuration required: " + str(exc), "native_receipt") from exc
+        if calibration in backend["receipt"]["capabilities"]["routes"]:
+            return backend
     capability = next(item for item in capabilities() if item["id"] == calibration)
     raise NativeEngineBlocked(capability["reason"])
+
+
+_OWNED_INPUTS = ("integration/v1-native-dependencies.json", "integration/v1-native-engine/main.cpp",
+                 "integration/v1-native-engine/add-target.cmake", "integration/v1-native-build-tools.py",
+                 "scripts/v1-engine-native.py")
+_NATIVE_ROUTES = {"temperature", "pressure_advance_pattern", "retraction", "max_volumetric_speed"}
+_NATIVE_ASSETS = {"calib/temperature_tower/temperature_tower.drc", "calib/retraction/retraction_tower.drc",
+                  "calib/volumetric_speed/SpeedTestStructure.drc"}
+_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _sha_file(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _checked(record, maximum):
+    if not isinstance(record, dict) or set(record) != {"path", "sha256"}:
+        raise NativeEngineBlocked("Exact path/SHA-256 record required", "native_pin")
+    path = Path(record["path"])
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > maximum:
+        raise NativeEngineBlocked("Native input is missing, linked or oversized", "native_file")
+    if _sha_file(path) != record["sha256"]:
+        raise NativeEngineBlocked("Native pinned file digest differs", "native_digest")
+    return path.resolve()
+
+
+def _backend(config):
+    """Trusted process configuration, never fields accepted from a UI request."""
+    receipt_path = _checked(config["build_receipt"], 1048576)
+    inputs_path = _checked(config["build_inputs"], 1048576)
+    receipt = json.loads(receipt_path.read_text())
+    inputs = json.loads(inputs_path.read_text())
+    if (receipt.get("schema") != "helix-orca-v1-native-build/v1" or receipt.get("built") is not True
+            or receipt.get("qualified") is not False or receipt.get("source_commit") != ORCA_SOURCE
+            or receipt.get("native_inputs_sha256") != _sha_file(inputs_path)):
+        raise NativeEngineBlocked("Exact successful native build receipt required", "native_receipt")
+    source = inputs["source"]
+    if (source.get("source_commit") != ORCA_SOURCE or source.get("source_verified") is not True
+            or set(source.get("files", {})) != set(SOURCE_HASHES)
+            or any(source["files"][name].get("sha256") != sha for name, sha in SOURCE_HASHES.items())
+            or inputs.get("builder_image") != "sha256:f67960f55aa1b7cfa8af41bd89943b13730b791ce55e1925bc575d5eef89f6d9"):
+        raise NativeEngineBlocked("Native source/build provenance differs", "native_source")
+    if set(inputs.get("owned_inputs", {})) != set(_OWNED_INPUTS) or any(
+            inputs["owned_inputs"][name] != _sha_file(_ROOT / name) for name in _OWNED_INPUTS):
+        raise NativeEngineBlocked("Native adapter source differs from its build", "native_adapter_source")
+    executable = _checked(config["native_executable"], 2 * 1024**3)
+    if (receipt["adapter"]["sha256"] != _sha_file(executable)
+            or receipt["adapter"]["size"] != executable.stat().st_size or not os.access(executable, os.X_OK)):
+        raise NativeEngineBlocked("Actual built executable differs", "native_executable")
+    caps = receipt["capabilities"]
+    required = caps.get("required_effective_keys")
+    if (caps.get("schema") != "helix-orca-v1-native-capabilities/v1" or caps.get("source_commit") != ORCA_SOURCE
+            or set(caps.get("routes", [])) != _NATIVE_ROUTES or not isinstance(required, list)
+            or len(required) < 100 or len(required) > 5000 or len(set(required)) != len(required)
+            or any(not isinstance(key, str) or not key or len(key) > 128 for key in required)
+            or not {"plugins", "post_process", "slicing_pipeline_plugin", "curr_bed_type", "nozzle_diameter"}.issubset(required)):
+        raise NativeEngineBlocked("Actual native capability inventory is unavailable", "native_capabilities")
+    resources = Path(config["native_resources"]).resolve()
+    if set(receipt.get("resources", {})) != _NATIVE_ASSETS:
+        raise NativeEngineBlocked("Native resource inventory differs", "native_resources")
+    for name, sha in receipt["resources"].items():
+        _checked({"path": str(resources / name), "sha256": sha}, 32 * 1024**2)
+    return {"receipt": receipt, "executable": executable, "resources": resources,
+            "receipt_sha256": _sha_file(receipt_path), "inputs_sha256": _sha_file(inputs_path)}
+
+
+def generate(request, snapshot, output_dir, config):
+    """Invoke our built C++ CLI and shared parity gate; never an Orca Python API."""
+    from integration import v1_contract as contract
+    from integration import v1_parity as parity
+    request = contract.validate_request(request, now=config.get("now"))
+    snapshot = contract.validate_context(snapshot)
+    if request["context_sha256"] != contract.digest(snapshot) or request["origin_id"] != snapshot["origin_id"]:
+        raise NativeEngineBlocked("Native request differs from immutable context", "context_mismatch")
+    backend = require_native_generation(request["calibration"], config)
+    if snapshot["runtime"] != {"version": "2.5.0-dev", "build": "6a7763f0"}:
+        raise NativeEngineBlocked("Exact October 15 runtime context required", "runtime_pin")
+    effective = snapshot["effective"]
+    missing = set(backend["receipt"]["capabilities"]["required_effective_keys"]) - set(effective)
+    if missing:
+        raise NativeEngineBlocked("Effective native values unavailable: " + ", ".join(sorted(missing)[:10]), "effective_unavailable")
+    for key in ("plugins", "post_process", "slicing_pipeline_plugin"):
+        if effective[key] not in ("", '""'):
+            raise NativeEngineBlocked("Native external processing unsupported: " + key, "external_processing")
+    if effective.get("belt_printer") not in ("0", "false") or not effective.get("curr_bed_type"):
+        raise NativeEngineBlocked("Explicit non-belt configuration and bed type required", "native_envelope")
+    try:
+        nozzle = float(effective["nozzle_diameter"])
+    except (KeyError, ValueError, TypeError) as exc:
+        raise NativeEngineBlocked("Effective single nozzle unavailable", "native_envelope") from exc
+    if nozzle != snapshot["nozzle_mm"]:
+        raise NativeEngineBlocked("Effective nozzle differs from context", "native_envelope")
+    if request["calibration"] == "pressure_advance_pattern" and effective.get("gcode_flavor") != "klipper":
+        raise NativeEngineBlocked("Native PA requires retained Klipper flavor", "native_vendor_unavailable")
+    destination = Path(output_dir)
+    if destination.is_symlink() or (destination.exists() and any(destination.iterdir())):
+        raise NativeEngineBlocked("Native generation requires a new empty job directory", "output_exists")
+    destination.mkdir(mode=0o700, parents=True, exist_ok=True)
+    destination = destination.resolve()
+    (destination / "request.json").write_bytes(contract.canonical(request))
+    (destination / "context.json").write_bytes(contract.canonical(snapshot))
+    inputs = parity.generation_inputs(request, snapshot, ORCA_SOURCE)
+    (destination / "inputs.json").write_bytes(contract.canonical(inputs))
+    argv = [str(backend["executable"]), str(destination / "request.json"),
+            str(destination / "context.json"), str(backend["resources"]), str(destination)]
+    (destination / "invocation.json").write_bytes(contract.canonical({"argv": argv,
+        "source_commit": ORCA_SOURCE, "executable_sha256": backend["receipt"]["adapter"]["sha256"],
+        "build_receipt_sha256": backend["receipt_sha256"], "build_inputs_sha256": backend["inputs_sha256"]}))
+    runner = config.get("runner")
+    if runner:
+        code = runner(argv, destination)
+    else:
+        environment = os.environ.copy()
+        environment.update({key: str(destination / key.lower()) for key in
+                            ("XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME")})
+        environment.update(OMP_NUM_THREADS="2", TBB_NUM_THREADS="2")
+        with (destination / "native.log").open("wb") as log:
+            try:
+                result = subprocess.run(argv, cwd=destination, stdin=subprocess.DEVNULL,
+                    stdout=log, stderr=subprocess.STDOUT, timeout=min(config.get("timeout_seconds", 180), 300),
+                    env=environment, check=False)
+            except subprocess.TimeoutExpired as exc:
+                raise NativeEngineBlocked("Native generation exceeded its deadline", "native_timeout") from exc
+        code = result.returncode
+    if code != 0:
+        raise NativeEngineBlocked("Native generation failed; retained native.log has diagnostics", "native_failed")
+    artifact = destination / "native-calibration.gcode"
+    if artifact.is_symlink() or list(destination.glob("*.gcode")) != [artifact]:
+        raise NativeEngineBlocked("Expected exactly one native artifact", "native_artifact")
+    record = parity.file_record(artifact)
+    native = json.loads((destination / "native-generation.json").read_text())
+    if (native.get("source_commit") != ORCA_SOURCE or native.get("calibration") != request["calibration"]
+            or native.get("parameters") != request["parameters"] or native.get("request_id") != request["request_id"]
+            or native.get("origin_id") != request["origin_id"] or native.get("context_sha256") != request["context_sha256"]
+            or native.get("artifact") != artifact.name or native.get("size") != record["size"]
+            or native.get("qualified") is not False or native.get("not_applied") is not True):
+        raise NativeEngineBlocked("Native result does not bind exact request and artifact", "native_result")
+    reference = config.get("native_reference")
+    if reference:
+        manifest = json.loads(_checked(reference["manifest"], 1048576).read_text())
+        report = parity.evaluate(artifact, _checked(reference["gcode"], parity.MAX_GCODE_BYTES), manifest, inputs)
+    else:
+        report = parity.unqualified(artifact, inputs, "No independent native UI reference with matching exact inputs has been retained.")
+    (destination / "parity.json").write_bytes(contract.canonical(report))
+    prepared = {key: request[key] for key in ("request_id", "origin_id", "context_sha256", "calibration", "parameters")}
+    prepared.update(schema="helix-orca-v1-prepared/v1", request_sha256=contract.digest(request),
+        artifact=record, generator={"build": ORCA_SOURCE, "route": "native-engine-v1"},
+        parity={"qualified": report["qualified"], "report_sha256": contract.digest(report), "reason": report["reason"]},
+        not_applied=True)
+    prepared = contract.validate_prepared(prepared, request)
+    (destination / "prepared.json").write_bytes(contract.canonical(prepared))
+    return prepared
 
 
 def verify_source_bytes(sources):

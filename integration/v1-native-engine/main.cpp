@@ -15,6 +15,7 @@
 #include "libslic3r/calib.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include <nlohmann/json.hpp>
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -308,6 +309,18 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
 int main(int argc,char **argv)
 {
     try {
+        if(argc==2 && std::string(argv[1])=="--capabilities") {
+            auto defaults=DynamicPrintConfig::full_print_config();
+            defaults.erase("bed_custom_model");defaults.erase("bed_custom_texture");
+            auto keys=defaults.keys();
+            for(const std::string key:{"plugins","post_process","slicing_pipeline_plugin"})
+                if(std::find(keys.begin(),keys.end(),key)==keys.end()) keys.push_back(key);
+            std::sort(keys.begin(),keys.end());
+            std::cout<<json{{"schema","helix-orca-v1-native-capabilities/v1"},
+                {"source_commit",source_commit},{"required_effective_keys",keys},
+                {"routes",{"temperature","pressure_advance_pattern","retraction","max_volumetric_speed"}}}.dump()<<'\n';
+            return 0;
+        }
         if(argc!=5) throw std::runtime_error("Usage: native REQUEST_JSON CONTEXT_JSON RESOURCES OUTPUT_DIRECTORY");
         const auto request=read_json(argv[1]),snapshot=read_json(argv[2]);
         if(request.at("schema")!="helix-orca-v1-request/v1" || request.at("not_applied")!=true ||

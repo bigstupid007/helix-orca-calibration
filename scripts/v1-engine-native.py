@@ -123,8 +123,16 @@ def compile_offline():
                  for p in Path('/build/engine').rglob('*libslic3r*.a')]
     if not libraries:
         raise RuntimeError('No native static library after successful build')
-    (evidence/'native-build.json').write_text(json.dumps(dict(source_commit=lock['source_commit'],
-        built=True,qualified=False,libraries=libraries,adapter={'path':str(executable),'size':executable.stat().st_size,'sha256':sha(executable)}),indent=2)+'\n')
+    bounded_command([str(executable),'--capabilities'],evidence,'native-capabilities')
+    capabilities=json.loads((evidence/'native-capabilities.log').read_text())
+    assets=('calib/temperature_tower/temperature_tower.drc',
+            'calib/retraction/retraction_tower.drc','calib/volumetric_speed/SpeedTestStructure.drc')
+    (evidence/'native-build.json').write_text(json.dumps(dict(
+        schema='helix-orca-v1-native-build/v1',source_commit=lock['source_commit'],
+        built=True,qualified=False,libraries=libraries,capabilities=capabilities,
+        native_inputs_sha256=sha(evidence/'native-inputs.json'),
+        resources={name:sha(Path('/source/resources')/name) for name in assets},
+        adapter={'path':str(executable),'size':executable.stat().st_size,'sha256':sha(executable)}),indent=2)+'\n')
 
 
 def stage_download_tree(cache, downloads):

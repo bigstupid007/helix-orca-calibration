@@ -246,3 +246,50 @@ network-none container; no substitute executable is supplied. Each build now
 retains `native-inputs.json` with the eleven-file source audit, exact owned
 adapter/build-wrapper/lock hashes, immutable builder identity and execution
 bounds before any compile stage runs.
+
+## Guarded product adapter interface
+
+`integration.v1_engine.generate(request, snapshot, output_dir, config)` now uses
+the same prepared-job contract and mandatory `v1_parity` evaluator as the stock
+route. The lead may dispatch `pressure_advance_pattern`, `retraction` and
+`max_volumetric_speed` here, and optionally native Temperature. Flow YOLO remains
+the stock route. No native generator is presently built; default capabilities
+remain unavailable. Successful process exit alone never makes a job Ready.
+
+Trusted runtime configuration supplies:
+
+```python
+{
+  "build_receipt": {"path": ".../native-build.json", "sha256": "..."},
+  "build_inputs": {"path": ".../native-inputs.json", "sha256": "..."},
+  "native_executable": {"path": ".../helix_orca_native", "sha256": "..."},
+  "native_resources": ".../exact-source/resources",
+  "native_reference": {
+    "manifest": {"path": ".../native-reference.json", "sha256": "..."},
+    "gcode": {"path": ".../independent-native.gcode", "sha256": "..."}
+  }
+}
+```
+
+These fields never come from request/context JSON. Optional `runner(argv,
+output_directory)` is an in-process trusted runtime adapter; otherwise the
+configured executable runs directly with a bounded deadline and job-local XDG
+directories. `timeout_seconds` is capped at 300; `now` is only a deterministic
+clock injection. No Codex-operated worker is necessary for ordinary dispatch.
+
+The build must actually compile the adapter, execute its `--capabilities`
+command, and retain the native required effective-key inventory in its receipt.
+The Python adapter validates source/build receipt and executable hashes, current
+owned C++/CMake/build-wrapper hashes, immutable builder identity, native resource
+hashes and every required effective key before execution. It preserves the
+original complete snapshot without saved/edited fallback or stock temperature
+hook insertion. It rejects active slicing plugins/post-processing and stale
+result identities. Every actual artifact gets a shared parity report: absent
+native reference stays unqualified; a retained independent native reference is
+evaluated for exact inputs, executable commands and calibration invariants.
+
+Seven adversarial transport tests use conspicuously synthetic build receipts,
+resources, executable runners and UI evidence to test the checker only. They
+prove substituted executable/source/assets, incomplete context, active hooks
+and forged result qualification cannot bypass the gate. Their synthetic
+checker success is not a native build, native UI capture or V1 qualification.
