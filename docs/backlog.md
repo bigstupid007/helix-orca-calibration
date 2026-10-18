@@ -241,15 +241,17 @@ application, broader hardware operation or security/access expansion is included
 - Picker/profile-browser expansion beyond the bounded Issue #4 flow.
 
 
-## Issue #12 — first controlled physical Temperature readiness
+## Issue #12 — historical pre-physical readiness checkpoint
 
-Approved under [the single governing Build Program](BUILD_PROGRAM_TEMPERATURE_PRINT.md):
+The `c1eee43` pre-physical checkpoint was approved under
+[the governing Build Program](BUILD_PROGRAM_TEMPERATURE_PRINT.md):
 exactly three miniature native bands, 225/220/215°C bottom to top, confirmed
 filament with normal nozzle 220°C, native-screen Start only, real-state and same-job success
 proof, cancellation/failure safeguards and original-profile NOT APPLIED return.
-Implementation and isolated qualification are authorized; all hardware actions,
-physical installation, profile writeback, Alpha adoption and merge remain
-excluded. [The readiness report](TEMPERATURE_PRINT_READINESS.md) records proof
+At that checkpoint, implementation and isolated qualification were authorized;
+hardware execution still required separate Founder authorization. That later
+authorization and successful first print are recorded below. Profile writeback,
+Alpha adoption and merge remain excluded. [The readiness report](TEMPERATURE_PRINT_READINESS.md) records proof
 and the separate physical-execution boundary. The Founder correction removes
 the earlier AI-generated 20-minute/combined-estimate gates and spool-label
 checkpoint. Earlier accepted proofs and deferred UX remain
@@ -262,5 +264,18 @@ pass. Corrected actual Windows export, exact-file offline qualification and
 and saved profiles and prior communication artifacts are preserved. Final
 review/Product Preflight are recorded in the readiness documents; PR #13 tracks
 exact-head CI. The unmerged candidate is ready for Founder Review and the first
-separately authorized controlled physical calibration. No physical execution
-has occurred or is authorized here.
+separately authorized controlled physical calibration. That checkpoint claimed no physical execution. The later actual success is
+preserved separately below.
+
+
+### Issue #12 current continuation: physical milestone complete, UX API gate
+
+The actual `c1eee43` three-band print and 220°C NOT APPLIED return succeeded.
+Preserve its real evidence and physical product; no repeat print or deployment
+is authorized. Complete the supported 1×1 generated-widget correction and
+pending-result preservation validation in PR #13. Automatic completion chooser
+presentation remains blocked by exact beta.9's missing modal-aware host API;
+see `docs/ISSUE_12_COMPLETION_UX_API_GATE.md`. A separate host-support decision
+is required before implementing that part. Do not treat the compact candidate
+or synthetic capture as completion of both UX corrections. Existing deferred
+visual polish and unrelated dashboard work remain outside scope.

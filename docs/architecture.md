@@ -284,7 +284,7 @@ changes no runtime gate or architecture. Alpha physical integration and
 production adoption remain unauthorized. See [acceptance](ISSUE_10_ACCEPTANCE.md).
 
 
-## Issue #12 readiness extension
+## Issue #12 pre-physical readiness architecture — historical c1eee43
 
 The new `integration/temperature-print/` path and `temperature-print-*`
 generators are separate from accepted Issue #8 source. The Orca derivative
@@ -334,3 +334,24 @@ completion. Offline suitability resolves exported commands and unchanged macro
 sources from GET-only target data; it issues no live grant. Accepted Windows
 state is restored after qualification. See the readiness report for exact file
 identity and preservation; no physical deployment is implied.
+
+
+## Issue #12 successful physical baseline and bounded UX follow-up
+
+The actual Founder-initiated `c1eee43` print completed with independent same-job
+history and returned 220°C NOT APPLIED; it is preserved separately from synthetic
+UI capture. The compact generated derivative requests a fresh 1×1 home widget,
+uses a small native tune icon, full identity and short lifecycle status, and
+keeps existing chooser/detail navigation. It does not mutate saved home layout.
+Committed waiting/returned results ignore later statuses and liveness changes;
+at the native UI boundary, an already-emitted exact acknowledgement confirms
+that immutable selection independently of a later printer job. The unchanged
+coordinator/relay still enforce their live correlation checks before emitting
+an ACK; this does not claim new end-to-end delivery after job replacement.
+Before selection, all completion/job/context guards remain.
+
+Automatic presentation over arbitrary pages is blocked by beta.9's missing
+modal-aware presentation contract. Plugin overlays can cover native modal
+backdrops; the documented API cannot observe or defer safely around them.
+No unsupported navigation, blind delay, upstream patch or physical deployment
+is introduced. See `docs/ISSUE_12_COMPLETION_UX_API_GATE.md`.

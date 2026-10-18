@@ -1,46 +1,68 @@
-# Issue #12 corrected-candidate evidence
+# Issue #12 — actual physical milestone and synthetic compact-widget evidence
 
-The controlling correction is exactly **225/220/215°C bottom to top**, normal
-nozzle **220°C**, confirmed filament, and no hard duration/combined-estimate gate
-or additional spool-label checkpoint.
+The controlling calibration remains exactly **225/220/215°C bottom to top**,
+normal original nozzle **220°C**, no hard duration/combined-estimate gate and
+no additional spool-label verification.
 
-`read-only-suitability.json` is the sanitized current GET-only refresh. It
-confirms the unchanged reviewed machine/configuration/version and idle queue;
-raw identities, configuration and endpoints remain private.
+## Actual first physical success
 
-`native/` is the renewed complete passing, source-bound beta.9 eleven-target
-matrix: **88 frames and eleven storage snapshots**. It verifies effective-220
-context gating, no receipt-triggered Start, guarded one-shot intent, restart,
-independent-success selection, post-request-expiry monitoring/result/ACK, refusal
-to replace an expired active session and fresh post-expiry cancellation.
-All authorization/job/status/clock/completion inputs are synthetic; the
-1501-second estimate is a fixture, not the actual G-code estimate. Native
-clock jumps beyond request expiry are simulated, not elapsed hardware proof.
-The reused dependency image, candidate hashes and all matrix inputs are in the
-report; the run used network-none/read-only isolation and zero physical actions.
+[`physical-first/`](physical-first/README.md) records the successful Founder-started
+real print at baseline `c1eee4374fb0286e1a3973d8e29107bfc64ee99f`, independently
+completed same-job history, selected 220°C, exact originating Orca receipt and
+NOT APPLIED return. Actual elapsed time was 999 seconds (16m39s). Raw operational
+proof and generated/rollback components remain hash-preserved privately. This
+milestone is separate from all synthetic proof below and authorizes no rerun.
+
+## Current supported compact-widget capture
+
+`native/` is the complete passing source-bound beta.9 eleven-target capture:
+**99 frames, eleven tile geometry records and eleven storage snapshots**.
+The manifest requests 1×1 cells; the native saved test placement is 2×2 internal
+tracks. Geometry proves icon/full identity/status containment without overlap,
+and actual native taps prove tile → chooser → Temperature navigation at all sizes.
+Lifecycle status, result locking, restart, guarded cancellation, exact context,
+late-status/disconnected pending-result preservation, wrong/duplicate receipts
+and exact already-emitted ACK acceptance after later printer state are checked.
+Coordinator/relay live checks are unchanged; broader replacement-job delivery is
+not claimed. The new capture does not install or migrate a physical home entry.
+
+All authorization/job/status/clock/completion inputs are **synthetic**, under
+Docker network-none/read-only runtime/plugin isolation, with zero physical
+actions. The 1501-second fixture estimate is not the actual G-code estimate;
+simulated clock jumps are not elapsed hardware proof. Only report-bound frames,
+geometry and native storage are promoted, without private runtime logs/settings.
+
+**Automatic chooser remains BLOCKED and unimplemented.** No automatic cross-page
+opening, modal arbitration or dismissal-suppression proof is claimed. See the
+[pinned API gate and separate host proposal](../../ISSUE_12_COMPLETION_UX_API_GATE.md).
 
 ```sh
 python3 scripts/temperature-print-qualify.py verify docs/evidence/issue-12/native
 ```
 
-The superseded `ac84114` native bytes are preserved under
-[history](history/candidate-ac84114/README.md); earlier 210/205/200°C proof remains
-separate history. No partial capture was promoted.
+Prior c1eee43 native bytes are preserved under
+[history](history/candidate-c1eee43/README.md). The ac84114 and earlier
+210/205/200°C captures remain separate superseded history. Failed, partial and
+source-changed exploratory captures are not promoted.
 
-`native-gcode-inspection.json` records the actual corrected native Windows export:
-484,552 bytes, three bands, 75 layers and a 720-second informational estimate.
-Its standalone `physical_ready: false` is not a failed offline suitability gate:
-`native-file-safety-review.json` and `read-only-suitability.json` resolve registered
-commands, unchanged macro dependencies and geometric bounds without authorization.
+## Preserved pre-physical qualification
 
-`windows-native-roundtrip.json` binds the real originating Windows outbox,
-reviewed installed 0.6.1 source, exact native persisted 220°C result and committed
-receipt before ACK. Job/history/authorization/completion inputs are synthetic;
-zero hardware completion or physical action is claimed. The accepted 0.5.0
-companion is restored, all five communication artifacts, 12 user profile JSONs
-and 1,429 normal files are unchanged. Raw G-code, Windows frames, target data and
-payloads remain private. Earlier evidence stays superseded history.
+`native-gcode-inspection.json` records the actual corrected native Windows
+export: 484,552 bytes, three bands, 75 layers and 720-second informational
+estimate. `native-file-safety-review.json` and `read-only-suitability.json`
+resolve registered commands, unchanged macro dependencies and geometric bounds.
+The suitability refresh is historical GET-only pre-execution evidence, not a
+claim that the printer was just rechecked or that another print is authorized.
 
-See the [readiness report](../../TEMPERATURE_PRINT_READINESS.md),
-[engineering review](../../ISSUE_12_ENGINEERING_REVIEW.md) and
+`windows-native-roundtrip.json` is the earlier actual Windows companion/native
+integration with **synthetic** job/history/completion inputs. It binds the exact
+original outbox, native 220°C result and committed originating receipt before
+ACK. Its accepted 0.5.0 restoration and profile-preservation observations predate
+the later separately authorized physical staging. The new UX build changes no
+Windows component and performs no physical installation or rollback. Do not
+mislabel that original synthetic proof as the later actual physical success.
+Raw G-code, Windows frames, target data and payloads remain private.
+
+[Readiness](../../TEMPERATURE_PRINT_READINESS.md) ·
+[Engineering review](../../ISSUE_12_ENGINEERING_REVIEW.md) ·
 [Product Preflight](../../ISSUE_12_PRODUCT_PREFLIGHT.md).

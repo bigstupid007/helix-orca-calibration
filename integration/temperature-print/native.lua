@@ -22,6 +22,7 @@ local file = helix.subject.string("tc_file", "")
 local hash = helix.subject.string("tc_hash", "")
 local status = helix.subject.string("tc_status", "")
 local selected = helix.subject.string("tc_returned_value", "")
+local tile_status = helix.subject.string("tp_tile_status", "Ready")
 local session = nil
 local detail_handle = nil
 local wizard_handle = nil
@@ -70,6 +71,10 @@ local messages = {
     returned="Returned to the original Orca profile · NOT APPLIED",
 }
 local function render()
+    local tile_messages={received="Sent",ready="Ready",starting="Start",printing="Print",
+        confirming="Check",recovering="Wait",cancelling="Stop",complete="Pick",
+        failed="Error",cancelled="Ended",uncertain="Check",waiting="Send",returned="Done"}
+    tile_status:set(session and (tile_messages[session.state] or "Check") or "Ready")
     start_on:set(session and session.state=="ready" and not session.start_intent and 1 or 0)
     cancel_on:set(session and session.state=="printing" and not session.cancel_intent and 1 or 0)
     choice:set(session and session.state=="complete" and session.proof and 1 or 0)
@@ -161,6 +166,9 @@ local function update(_,data)
     if not session or type(data)~="table" or data.schema~="helix-orca-temperature-print-status/v1"
         or not same(session.request,data) or not finite(data.sequence) or data.sequence%1~=0
         or data.sequence<=(session.status_sequence or 0) or not messages[data.state] then return end
+    -- Once a selection is committed, status delivery cannot replace that
+    -- immutable result while its originating receipt is pending or delivered.
+    if session.state=="waiting" or session.state=="returned" then return end
     if data.state=="failed" or data.state=="cancelled" or data.state=="uncertain" then
         session.status_sequence=data.sequence; session.state=data.state
         session.recovery_required=false; session.proof=nil; persist(); render(); return
@@ -256,9 +264,8 @@ local function acknowledgement(_,data)
     for k,v in pairs(session.result) do
         if k~="schema" and data[k]~=v then return end
     end
-    if query_busy then return end
-    local t,state,name=clock()
-    if not live(t) or state~="complete" or name~=session.request.file then return end
+    -- This acknowledges the exact already-committed selection, not a new
+    -- completion. A later printer state/job cannot invalidate Orca's receipt.
     session.state="returned"; persist(); render()
 end
 helix.moonraker.on_agent_event(ACK_EVENT,acknowledgement)
@@ -289,7 +296,7 @@ if ok and type(stored)=="table" and valid(stored.request) and type(stored.lease)
 end
 -- Missing/disconnected data locks actions; expiry retires only unstarted requests.
 helix.timer.every(1000,function()
-    if not session or session.state=="uncertain" or session.state=="returned" then return end
+    if not session or session.state=="uncertain" or session.state=="waiting" or session.state=="returned" then return end
     if query_busy then return end
     local t,state,name=clock()
     local unexpected = (session.state=="ready" or session.state=="received")

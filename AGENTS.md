@@ -358,3 +358,34 @@ claims require the full pinned beta.9 eleven-size matrix with labeled synthetic
 job/authorization/clock inputs. Do not relabel fixture success as physical proof.
 See `docs/BUILD_PROGRAM_TEMPERATURE_PRINT.md` and
 `docs/TEMPERATURE_PRINT_READINESS.md` for the candidate state and remaining gates.
+
+
+## Issue #12 physical success and subsequent UX correction
+
+Founder separately authorized one controlled physical test of exact PR #13
+candidate `c1eee4374fb0286e1a3973d8e29107bfc64ee99f`, initiated only by the
+physical HelixScreen Start. It completed with real independent same-job proof,
+then returned the chosen 220°C to the original Orca context as NOT APPLIED.
+Preserve that baseline, generated product/rollback files and private operational
+evidence; the sanitized outcome is `docs/evidence/issue-12/physical-first/`.
+This success does not authorize another physical test.
+
+The subsequent Founder build instruction approves only two UX corrections in
+Issue #12 / PR #13: automatic native Temperature result presentation after
+verified owned success, respecting built-in modals/dismiss/reopen/recovery, and
+a compact 1×1 native home widget retaining icon, readable identity/status and
+tap-to-open. Verify exact documented beta.9 support first; no upstream patch or
+unsupported navigation API is authorized. The independently verified modal-API
+blocker is recorded in `docs/ISSUE_12_COMPLETION_UX_API_GATE.md`; do not substitute
+a blind-delay popup. Complete and validate the independent supported widget
+change without claiming the blocked automatic presentation is implemented.
+
+Keep accepted baseline plugin sources and deployed physical components unchanged;
+implement the compact widget only in the separate generated temperature-print
+derivative. Synthetic native capture remains network-none/read-only and must
+cover all eleven targets. Preserve committed result/receipt identity across
+late statuses, duplicate delivery, disconnection and recovery. Return remains
+NOT APPLIED. No new print, heat, motion, printer configuration, profile writeback,
+physical deployment, upstream change, merge or release is authorized. Reconcile
+documentation, the existing Issue/PR, independent review, Product Preflight and
+exact-head CI, with physical evidence separated from synthetic UX proof.

@@ -1,44 +1,56 @@
-# Issue #12 corrected candidate — affected-surface Product Preflight
+# Issue #12 — compact widget Product Preflight and automatic-chooser gate
 
-**Native and actual Windows affected surface: PASS.**
-The renewed source-bound eleven-target capture passes. The lead inspected
-current micro, micro-portrait, 800×480, phone, ultrawide and tall frames for
-Ready, printing, cancellation, success and returned states. No material
-affected-surface native UX defect was found. Prior 210/205/200°C and Windows 0.6.0/205°C captures are historical.
+**Automatic completion chooser: BLOCKED by beta.9 API support.**
+**Compact widget: PASS — complete native matrix and independent visual review.**
+AI Product Preflight is not Founder Review or permission to deploy/print.
 
-The existing Home → chooser → Temperature flow and original-context card remain
-intact. Receipt never starts printing; results stay locked. Ready shows exactly
-225/220/215°C in bottom-to-top order, exact-file identity, authorization, estimate
-and explicit Start across 800×480, micro/portrait, phone, tall and ultrawide.
-Printing directs the person to normal Helix Print monitoring and retains Cancel.
+The requested automatic chooser cannot safely defer around the built-in
+completion dialog through the documented beta.9 API. No unsupported or fixed-delay
+popup is shipped. The existing manual tile → chooser → Temperature path remains.
+The [API gate](ISSUE_12_COMPLETION_UX_API_GATE.md) states the actual limitation;
+no cross-page automatic opening or dismissal/recovery suppression is claimed.
 
-Native cancellation names the exact file, explains that results will be
-unavailable, and offers Back as the safe escape. Cancelled says “result
-unavailable.” Independently confirmed success unlocks exactly three choices;
-the reviewed fixture selects 220°C. Returning waits for Orca acknowledgement;
-Returned displays 220°C and **NOT APPLIED**. No extra label checkpoint or
-combined-duration decision appears.
+The generated plugin declares a fresh 1×1-cell footprint (2×2 internal tracks),
+with tune icon, full **Orca Calibration** identity and short lifecycle status.
+The complete source-bound capture passes **all eleven supported targets**,
+including actual-target dimensions 800×480, micro/portrait, phone, tall and
+ultrawide: **99 frames, eleven geometry records and eleven storage snapshots**.
+Each tile contains its icon/full identity/status without overlap or clipping,
+and native taps reach the unchanged chooser and Temperature detail. Independent
+visual review confirms readable identity/status and native appearance. Synthetic
+qualification controls are not evaluated as product UI. Existing physical saved
+placement is not migrated or resized by this build.
 
-The renewed pinned beta.9 report verifies **11/11 targets, 88 PNGs and eleven
-storage snapshots**, with network disabled and zero physical actions. The
-previous corrected capture is preserved as superseded history. The driver also
-proves result/ACK and guarded cancellation beyond synthetic request expiry,
-without weakening pre-Start freshness or allowing active-session replacement. Job,
-authorization, clock and completion inputs are synthetic. The visible
-1501-second/26-minute Ready fixture proves acceptance above the removed ceiling;
-it is not the actual file estimate. Actual Windows native export and the reviewed
-0.6.1 Keep original → file picker → Send → synthetic 220°C result → NOT APPLIED
-flow pass on the preferred nightly. The exact 484,552-byte export, real Windows
-outbox, native result and committed originating receipt are bound in the current
-proof. Visible saved/edited/effective values stay 220°C. The native estimate is
-12m00s, with no extra duration or label decision. The accepted companion and
-artifacts are restored; temporary preparation settings were discarded.
+Result states stay locked before independently verified success. Ready, printing,
+cancel confirmation, cancellation, success picker, waiting and returned surfaces
+retain their native shell. A committed selected result survives late terminal
+status and a disconnected timer; native acceptance of its exact already-emitted
+ACK is independent of the printer's later state. Coordinator/relay correlation
+checks remain unchanged. Returned instructions remain **NOT APPLIED**.
 
-The inherited compact 26 px control token remains a physical touch-validation
-risk at 480×272. Screenshots do not establish keyboard/focus behavior,
-screen-reader output, physical touch accuracy, real heating/printing or printer
-wall time. These limits introduce no new approval checkpoint. This AI check
-is not Founder Review or physical-execution authorization.
+The real first 225/220/215°C calibration and 220°C NOT APPLIED return belong to
+`c1eee43` and remain separately preserved. The new tile/receipt checks use only
+synthetic inputs in the pinned native runtime. No modified plugin is installed
+on the physical screen. Pixel-fit proof does not establish physical touch
+accuracy; inherited small-control touch limits remain for later authorized
+hardware review. No chooser redesign or unrelated dashboard work is included.
 
-[Verified native report](evidence/issue-12/native/report.json) ·
-[Readiness report](TEMPERATURE_PRINT_READINESS.md)
+[Readiness](TEMPERATURE_PRINT_READINESS.md) ·
+[Physical milestone](evidence/issue-12/physical-first/README.md) ·
+[API gate](ISSUE_12_COMPLETION_UX_API_GATE.md).
+
+## Acceptance ledger and review boundary
+
+| Founder correction | Exact acceptance proof | Disposition |
+| --- | --- | --- |
+| Automatic completion chooser | Cross-page verified completion, native modal priority, dismiss/reopen and durable suppression | **OPEN / BLOCKED** at documented beta.9 API gate; no implementation or closure claimed |
+| Compact 1×1 widget | Fresh manifest cell/tracks, contained icon/full identity/status, native tile → chooser → Temperature taps at every supported viewport | **PASS in isolated pinned native runtime**; physical installation unchanged |
+
+The supported visual review starts at native **Home → Orca Calibration →
+Temperature**; that exact tap path is exercised by the isolated capture. The
+[800×480 Home frame](evidence/issue-12/native/medium_800x480/home-1x1.png) shows
+the changed product tile at the upper left. Other labeled home controls are
+synthetic qualification inputs and are not product UI. Judge the tile's identity,
+readability, density and native appearance. This record gives no instruction to
+operate the physical screen or to install the candidate. The automatic chooser
+needs a scope decision before its requested working-product review can occur.

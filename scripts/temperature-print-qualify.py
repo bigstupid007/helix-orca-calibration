@@ -23,13 +23,14 @@ REQUEST.update(schema='helix-orca-temperature-print-session/v1',physical_calibra
                choices=[225,220,215],file='miniature-temperature-225-215.gcode',ttl_seconds=3600,
                file_bytes=200000,file_sha256='a'*64,context_sha256='b'*64)
 LEASE={'issued_eventtime':1000.0,'expires_eventtime':4600.0}
-ASSERTIONS=['effective-220-context-required','post-start-expiry-does-not-end-owned-job','post-expiry-active-session-cannot-be-replaced','post-expiry-cancel-and-result-remain-guarded','accepted-shell-loads','receive-never-starts','picker-locked-before-success',
+ASSERTIONS=['compact-native-home-tile-fits-and-opens','committed-result-survives-late-status-and-restart','exact-receipt-after-printer-state-change-acknowledges-once','effective-220-context-required','post-start-expiry-does-not-end-owned-job','post-expiry-active-session-cannot-be-replaced','post-expiry-cancel-and-result-remain-guarded','accepted-shell-loads','receive-never-starts','picker-locked-before-success',
     'authorized-ready-needs-native-start','native-start-persists-once','rpc-ack-does-not-unlock',
     'matching-printing-keeps-picker-locked','restart-never-redispatches-and-recovers-verified-state','history-lag-stays-nonterminal','independent-success-enables-three-choices',
     'native-220-result-has-completion-proof','original-context-preserved','native-back-and-horizontal-fit','terminal-session-retires-with-replay-tombstone','waiting-result-survives-restart-and-exact-ack','cancel-confirmation-and-late-cancel-remain-guarded','cancelled-restart-allows-fresh-request-without-cleanup']
 SOURCES=['scripts/temperature-print-plugin.py','scripts/temperature-print-qualify.py',
 'integration/temperature-print/native.lua','integration/temperature-print/ui/orcacal__temperature.xml',
-'integration/temperature-print/ui/orcacal__wizard.xml','integration/temperature-print/ui/orcacal__cancel_confirmation.xml','scripts/temperature-print-companion.py',
+'integration/temperature-print/ui/orcacal__wizard.xml','integration/temperature-print/ui/orcacal__cancel_confirmation.xml',
+'integration/temperature-print/ui/orcacal__tile.xml','scripts/temperature-print-companion.py',
 'scripts/temperature-communication-qualify.py','scripts/temperature-communication-plugin.py','scripts/helix-beta9-qualify.py','scripts/helix_dev.py']
 def hashes():return {s:hashlib.sha256((ROOT/s).read_bytes()).hexdigest() for s in SOURCES}
 
@@ -38,6 +39,7 @@ def fixture(directory):
     request=json.dumps(REQUEST,separators=(',',':'));lease=json.dumps(LEASE,separators=(',',':'))
     hook='''
 -- TEST-ONLY inputs below; absent from generated product. No hardware route exists.
+local fixture_query_unavailable=false
 local fixture_state="standby"
 local fixture_filename=""
 local fixture_eventtime=1000.25
@@ -47,6 +49,7 @@ end
 local original_call=helix.moonraker.call
 helix.moonraker.call=function(method,params)
     if method=="printer.objects.query" then
+        if fixture_query_unavailable then return nil end
         return {result={eventtime=fixture_eventtime,status={print_stats={state=fixture_state,filename=fixture_filename}}}}
     end
     return original_call(method,params)
@@ -86,13 +89,35 @@ end)
 helix.ui.on("qualify_ack",function()
     local result=session.result
     if not result then return end
+    fixture_query_unavailable=true
+    helix.timer.after(1400,function()
+    if session.state~="waiting" then error("Disconnected timer replaced a pending result") end
+    local committed=helix.json.encode(result)
+    for _,phase in ipairs({"failed","cancelled","uncertain"}) do
+        fixture_status(phase,50)
+        if session.state~="waiting" or helix.json.encode(session.result)~=committed then
+            error("Late status replaced a committed pending result")
+        end
+    end
     local ack={}
     for k,v in pairs(result) do ack[k]=v end
     ack.schema="helix-orca-temperature-print-ack/v1"
-    fixture_state="complete"; fixture_filename=session.request.file
+    fixture_state="standby"; fixture_filename="another-job.gcode"
+    local wrong={}
+    for k,v in pairs(ack) do wrong[k]=v end
+    wrong.value=215
+    acknowledgement("fixture",wrong)
+    if session.state~="waiting" then error("Wrong receipt acknowledged a result") end
     acknowledgement("fixture",ack)
+    acknowledgement("fixture",ack)
+    fixture_status("failed",60)
+    if session.state~="returned" or helix.json.encode(session.result)~=committed then
+        error("Duplicate receipt or late status replaced a returned result")
+    end
+    end)
 end)
 helix.ui.on("qualify_fresh",function()
+    fixture_query_unavailable=false
     local fresh=helix.json.decode([==[REQUEST]==])
     local newer=session and session.state=="cancelled"
     fresh.request_id=string.rep(newer and "5" or "3",32); fresh.origin_id=string.rep(newer and "6" or "4",32)
@@ -111,9 +136,11 @@ end)
 def settings(path):
     q.seed_settings(path)
     s=json.loads((path/'settings-test.json').read_text())
-    s['plugins']['enabled']['orcacal']['version']='0.4.1-issue12-corrected'
+    s['plugins']['enabled']['orcacal']['version']='0.4.2-issue12-compact'
     widgets=s['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']
     keep=[w for w in widgets if w['id']=='orcacal__tile' or not w['enabled']]
+    for widget in keep:
+        if widget['id']=='orcacal__tile':widget.update(colspan=2,rowspan=2)  # beta.9 stores two tracks per cell
     for i,action in enumerate(('request','ready','printing','confirming','complete','ack','fresh')):
         keep.append({'col':(i%3)*4,'row':2+(i//3)*2,'colspan':4,'rowspan':2,'enabled':True,'id':'orcacal__qualify-'+action})
     s['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']=keep
@@ -179,6 +206,26 @@ def stable_storage(work,predicate,message,*,duration=5):
         if time.monotonic()>=deadline:return stored
         time.sleep(.1)
 
+def tile_proof(name,work,w,h):
+    a._wait_visible_landing(name,w,h)
+    geometry=a.ctl(name,'geom','orcacal__tile','8')
+    root=a._visible_widget_geometry(geometry,'orcacal__tile',w,h)
+    for child in ('orcacal__tile_icon','orcacal__tile_identity','orcacal__tile_status'):
+        item=a._visible_widget_geometry(geometry,child,w,h)
+        require(root['x']<=item['x'] and root['y']<=item['y']
+            and item['x']+item['w']<=root['x']+root['w']
+            and item['y']+item['h']<=root['y']+root['h'],'Compact tile clips '+child)
+    items={item['name']:item for item in a._widgets(geometry)}
+    icon=items['orcacal__tile_icon'];identity=items['orcacal__tile_identity'];status=items['orcacal__tile_status']
+    require(icon['y']+icon['h']<=identity['y'] and identity['y']+identity['h']<=status['y'],
+        'Compact tile identity, icon and status overlap')
+    require(value(name,'tp_tile_status')=='Ready','Initial tile status unavailable')
+    a.json_write(work/'tile-geometry.json',geometry)
+    a._screenshot(name,work,'home-1x1.png')
+    open_detail(name,w,h)
+    a._assert_overlay(a.ctl(name,'current'),['orcacal__wizard','orcacal__temperature'])
+    q.back_to_home(name)
+
 def viewport(entry,output,plugins):
     label,w,h,layout,dpi=entry;work=output/label;work.mkdir();(work/'home').mkdir();settings(work/'config')
     name='temperature-print-'+str(os.getpid())+'-'+label.replace('_','-')
@@ -186,6 +233,7 @@ def viewport(entry,output,plugins):
     a.run(a._container_args(name,work,w,h,layout,dpi),capture=True)
     try:
         q.wait_ready(name)
+        tile_proof(name,work,w,h)
         trigger(name,'request',w,h)
         require(value(name,'tp_start_on')==0 and value(name,'tc_choice_on')==0,'Receipt unlocked an action')
         read_storage(work,state='received')
@@ -216,6 +264,7 @@ def viewport(entry,output,plugins):
         require(value(name,'tc_choice_on')==0 and read_storage(work,state='confirming')['state']=='confirming','History lag became terminal or unlocked result')
         trigger(name,'complete',w,h);open_detail(name,w,h)
         require(value(name,'tc_choice_on')==1 and value(name,'tp_cancel_on')==0,'Confirmed success did not unlock result')
+        require(value(name,'tp_tile_status')=='Pick','Pending result tile status unavailable')
         a._assert_horizontal_fit(a.ctl(name,'geom','orcacal__temperature_content','8'),w)
         a.ctl(name,'scroll','orcacal__temperature_selector');a.ctl(name,'set_value','orcacal__temperature_selector','1')
         a._screenshot(name,work,'completed.png')
@@ -233,6 +282,7 @@ def viewport(entry,output,plugins):
         require(value(name,'tc_choice_on')==0 and read_storage(work)['result']==s['result'],'Waiting restart changed the result')
         trigger(name,'ack',w,h)
         require(read_storage(work,state='returned')['state']=='returned','Exact Orca acknowledgement not retained')
+        require(value(name,'tp_tile_status')=='Done','Returned tile status unavailable')
         open_detail(name,w,h);a.ctl(name,'scroll','orcacal__returned_area');a._screenshot(name,work,'returned.png')
         trigger(name,'fresh',w,h)
         fresh=read_storage(work,request_id='3'*32)
@@ -283,9 +333,11 @@ def capture(output,only=None):
         report={'schema':'helix-orca-temperature-print-native-evidence/v1','sources':before,'runtime':runtime,
           'container_network':'none','dependency_image_id':a.image_metadata()['id'],'fixture_files':fixture_hashes,
           'synthetic_inputs':['request','authorization','Moonraker clock and state','job identity','independent completion proof'],
-          'physical_actions':0,'request':REQUEST,'lease':LEASE,'results':rows,
+          'physical_actions':0,'tile_footprint':{'manifest_cells':[1,1],'saved_tracks':[2,2],'tracks_per_cell':2},
+          'request':REQUEST,'lease':LEASE,'results':rows,
           'screenshots':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.rglob('*.png'))},
-          'storage':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.glob('*/config/plugin-data/orcacal.json'))}}
+          'storage':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.glob('*/config/plugin-data/orcacal.json'))},
+          'tile_geometry':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.glob('*/tile-geometry.json'))}}
         a.json_write(output/'report.json',report)
 
 def verify(root):
@@ -296,13 +348,14 @@ def verify(root):
         require(report['fixture_files']==expected,'Generated native fixture differs')
     require(report['container_network']=='none' and report['physical_actions']==0,'Isolation evidence differs')
     require(report['request']==REQUEST and report['lease']==LEASE,'Fixture identities differ')
+    require(report['tile_footprint']=={'manifest_cells':[1,1],'saved_tracks':[2,2],'tracks_per_cell':2},'Compact footprint units differ')
     require(report['runtime']['binary_sha256']==q.beta9.ARTIFACT_BINARY_SHA256,'Runtime differs')
     require([r['label'] for r in report['results']]==[r[0] for r in a.VIEWPORTS],'Complete eleven-target capture required')
     for row,entry in zip(report['results'],a.VIEWPORTS):
         label,w,h,layout,dpi=entry
         require(row=={'label':label,'viewport':f'{w}x{h}','dpi':dpi,'layout':layout,'result':'PASS','assertions':ASSERTIONS},'Matrix assertions differ')
-    require(len(report['screenshots'])==88 and len(report['storage'])==11,'Incomplete frame/storage set')
-    for group in ('screenshots','storage'):
+    require(len(report['screenshots'])==99 and len(report['storage'])==11 and len(report['tile_geometry'])==11,'Incomplete frame/storage/geometry set')
+    for group in ('screenshots','storage','tile_geometry'):
         for path,digest in report[group].items():
             require((root/path).resolve().is_relative_to(root.resolve()) and q.sha256(root/path)==digest,'Evidence hash mismatch')
     print('PASS: source-bound complete beta.9 print readiness matrix')

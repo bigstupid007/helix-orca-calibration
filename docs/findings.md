@@ -379,7 +379,7 @@ merge, main verification and Issue #10 closure. Alpha physical integration and
 production adoption remain unauthorized; see [acceptance](ISSUE_10_ACCEPTANCE.md).
 
 
-## Issue #12 corrected native investigation
+## Issue #12 pre-physical readiness investigation — historical c1eee43
 
 The direct Founder correction of 2026-10-17 controls exactly three bands:
 225/220/215°C bottom to top, with confirmed filament and normal nozzle 220°C.
@@ -414,3 +414,20 @@ late results still require that exact retained request and owned completion
 proof. Deterministic rejected Start and ambiguous dispatch have distinct
 terminal/uncertain recovery. The 54 focused safety tests pass independent review.
 No native-mock observation is hardware proof.
+
+
+## Issue #12 actual success and completion-UX capability gate
+
+The Founder reports the first physical three-band print completed and returned
+220°C NOT APPLIED. Read-only retained journal/history/native/companion proof
+correlates the actual successful job and delivery. The baseline is `c1eee43`;
+`docs/evidence/issue-12/physical-first/` separates it from synthetic UX evidence.
+
+Independent pinned beta.9 review found no modal visibility/close/idle API.
+Plugin overlays and native completion-modal backdrops share the active screen;
+opening the plugin overlay later can cover the modal. The requested safe
+automatic chooser therefore needs host support outside the approved no-upstream
+scope. No timer workaround is valid. The supported 1×1 widget can be built in
+the generated derivative; retained physical saved placement is not migrated.
+A pending selected result must remain immutable during disconnect/late status
+and exact receipt recovery; current follow-up exercises those adjacent cases.

@@ -6,7 +6,10 @@ enabled physical adapter. `transport.py` provides the separate bounded HTTP
 adapter with actions disabled by default. The one-request
 `scripts/temperature-print-relay.py` runner defaults to offline preflight;
 execution requires a separate exact private Founder grant and native intent.
-Physical wiring remains unactivated; tests use only an injected fake adapter.
+The first separately authorized physical run at `c1eee43` succeeded and returned
+220°C NOT APPLIED; [its actual evidence](../../docs/evidence/issue-12/physical-first/README.md)
+is preserved separately. The current UX build activates no physical adapter;
+repository tests use injected fake adapters and native UX capture is synthetic.
 
 The caller constructs `TemperaturePrintLifecycle(journal_path, adapter)`, then
 uses this sequence:
@@ -90,7 +93,10 @@ of an already-dispatched job after expiry. Any new start still requires a live
 grant, original Start window and native intent; recovery never retries dispatch.
 A canonical grant digest is durably bound before offer and cannot be replaced.
 An awaiting request requires that same live grant; expiry retires it. A native
-tap must follow the authorized offer. The runner creates no grant. No execution command was invoked in Issue #12.
+tap must follow the authorized offer. The runner creates no grant. No execution command was invoked during the
+original software-readiness qualification. The later explicit Founder grant
+authorized one physical Start at `c1eee43`; that completed run is historical
+proof and never reusable execution authority.
 
 `gcode.py` reads normal native exports only. It verifies three ordered explicit
 and extruding bands, geometry, native time and exact bytes; unresolved command
@@ -98,7 +104,7 @@ behavior and machine/material suitability remain reviewed technical evidence.
 The material is already Founder-confirmed. No combined-time allowance or
 print-duration threshold is required. A healthy matching job may exceed its
 native estimate; request expiry guards pre-Start dispatch, while active
-monitoring retains connection, identity and job checks. Physical execution remains separately authorized.
+monitoring retains connection, identity and job checks. Any additional physical execution requires separate authorization.
 See `docs/TEMPERATURE_PRINT_READINESS.md`.
 
 The request lifetime applies before Start. It is not an active-print or result
@@ -122,3 +128,26 @@ immutable payload structurally at creation, with mandatory exact request/origin/
 context/file/bytes/setting/value/job/proof. The controller must independently
 reconfirm success before any inbox write; an expired request still cannot be
 resent or newly dispatched, and an old result cannot bind a newer request.
+
+
+## Compact UX follow-up and API gate
+
+The generated `0.4.2-issue12-compact` derivative requests one logical home cell
+in each direction. Beta.9 manifest values are cells; its saved layout uses two
+tracks per cell, so isolated 1×1 placement is stored as 2×2 tracks. Existing
+physical saved placement is not migrated. The tile retains its icon, full
+identity, short lifecycle status and native chooser/detail navigation.
+
+Native `waiting`/`returned` state is immutable after selection commits. Late
+status and timer liveness cannot replace it; only the exact already-committed
+result acknowledgement moves waiting to returned. That native boundary does
+not change coordinator/relay live checks before ACK emission, and does not
+claim new end-to-end delivery after a replacement job. Wrong/duplicate receipts
+and late failure/cancel/uncertain events are covered in isolated native tests.
+
+The requested automatic completion chooser remains blocked under the current
+no-upstream-change constraint: documented beta.9 APIs offer no modal-aware
+presentation queue or modal lifetime signal, and a plugin overlay can cover the
+built-in completion dialog. No blind-delay or unsupported navigation workaround
+is included. See [the API gate](../../docs/ISSUE_12_COMPLETION_UX_API_GATE.md).
+The current build performs no new physical action, deployment or writeback.

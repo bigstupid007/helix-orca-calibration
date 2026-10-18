@@ -1,149 +1,84 @@
-# Issue #12 Build Program: miniature Temperature calibration readiness
+# Issue #12 Build Program — physical milestone and bounded UX follow-up
 
-Governing item: [Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12).
-Continue the same [PR #13](https://github.com/bigstupid007/helix-orca-calibration/pull/13),
-reviewed and unmerged. No new work item or launch is required.
+Continue [Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12)
+and [PR #13](https://github.com/bigstupid007/helix-orca-calibration/pull/13),
+open and unmerged. Current shared Development System main is
+`4a42a944b344427c8f925241191595eb57c6949c`, verified against GitHub;
+application main remains `89165d15993ccfcd065b299e1980bb19749fdcaf`.
+Direct Founder instructions and application AGENTS.md govern this continuation.
 
-## Controlling Founder correction — 2026-10-17, America/Chicago
+## Completed physical milestone
 
-The direct Founder correction supersedes contradictory earlier AI-generated
-constraints, test expectations and readiness claims:
+The corrected readiness baseline is exactly
+`c1eee4374fb0286e1a3973d8e29107bfc64ee99f`. It uses the qualified native October 15
+Orca export with **225/220/215°C bottom to top**, normal nozzle **220°C**,
+confirmed filament, no hard duration/combined-estimate gate and no additional
+spool-label checkpoint. Its 484,552 bytes, 75 layers, 12m00s informational estimate
+and `PRINT_START BED_TEMP=60 EXTRUDER_TEMP=225` are preserved.
 
-- Exactly THREE bands: **225°C, 220°C, 215°C**, bottom to top.
-- Normal filament nozzle temperature is **220°C**. The filament is confirmed.
-- **No hard 20-minute ceiling and no combined-estimate qualification gate.**
-- **No additional spool-label approval checkpoint.**
-- Revise through native Orca Temperature calibration and normal preparation;
-  validate actual G-code, transitions, start-macro arguments, bytes/hash,
-  geometry and updated native print-time estimate.
-- Retain explicit physical Start, real same-job monitoring, cancellation,
-  failure recovery and success-only selection; preserve original context and
-  return NOT APPLIED instructions.
-- Complete affected validation, independent review and reconciliation in this
-  same workstream. Return one updated candidate ready for Founder Review.
-- No physical printing, heating, motion, firmware change or profile writeback.
-  Physical execution remains separately authorized.
+The Founder separately authorized exactly one physical test, initiated only by
+his deliberate physical HelixScreen Start. It succeeded. Read-only follow-up
+matches the retained completed journal and owned job to independently completed
+printer history, the native returned **220°C** result, the exact originating
+Orca receipt and delivered status. The Founder also confirms the actual chooser
+unlocked and Orca displayed **NOT APPLIED**. No settings were written back.
+[Actual physical evidence](evidence/issue-12/physical-first/README.md) remains
+separate from all synthetic validation. Private operational files and rollback
+product trees are retained with a hash manifest; `c1eee43` remains recoverable.
 
-Earlier 210/205/200°C artifacts and AI-created timing/label requirements are
-superseded history, not current product authority. Their raw evidence remains
-preserved and is never relabeled as the corrected calibration.
+## Founder-approved subsequent workflow
 
-## Approved workflow playback
+The Founder requests two UX changes. After the existing independent same-job
+completion checks succeed, the native Temperature result chooser should open
+over Print Status, Home or another native page, respect built-in modal priority,
+allow dismissal without losing the result, offer easy reopening and avoid
+repeated presentation for the same dismissed completion, including recovery.
+Unrelated, failed, cancelled, uncertain or unverified jobs must not activate it.
+Result selection/delivery and original Orca context remain immutable.
 
-Here is what the Founder actually does under the corrected workflow: prepare
-the miniature three-band 225/220/215°C calibration through normal native Orca
-preparation, retain the original 220°C filament context and associate its exact
-export. Sending presents the request on native Helix without starting anything.
-The estimate is information for review; the person does not qualify a combined
-estimate against a ceiling or reconfirm the already-confirmed filament. After
-separate physical-test authorization, the person at HelixScreen presses Start.
-The system verifies the real job, monitors it and supports guarded cancellation.
-Only independently confirmed success enables the three-band result picker.
-Returning a selection identifies the original Orca profile/setting and remains
-NOT APPLIED. Failed, cancelled or uncertain jobs cannot produce a result.
+The Orca Calibration home widget should request **1×1** instead of 3×2, retain
+its icon, readable identity/status and tap-to-open behavior, and fit the native
+800×480 target plus the supported matrix. The chooser/dashboard are otherwise
+unchanged. Exact documented beta.9 API support must be verified before building.
+No upstream patch or unsupported navigation API is authorized.
 
-This playback incorporates the direct correction; it adds no human task,
-approval checkpoint or workflow object. Founder Review is personal judgment of
-the mature candidate and is separate from AI validation and physical execution.
+## Technical disposition
 
-## Technical interpretation and validation
+The independent API review proves a hard blocker for automatic presentation.
+Beta.9 offers plugin overlays but no native-modal visibility/close signal or
+modal-aware deferred-presentation contract. A plugin overlay can cover a
+built-in completion dialog. Fixed delays cannot satisfy that requirement.
+[The API gate](ISSUE_12_COMPLETION_UX_API_GATE.md) records pinned primary source
+and a concrete host-support proposal; no automatic-popup workaround is shipped.
+This part remains BLOCKED under the current no-upstream-change constraint.
 
-The lead owns strict request/file/configuration/machine/version binding,
-durable one-shot dispatch, no request-triggered action, native intent, real
-status/history correlation, cancellation confirmation and recovery without
-redispatch. Existing freshness/expiry and command-confirmation safeguards remain;
-a native print-time estimate is finite, positive and reported, without a print
-length threshold or required startup/end allowance. Elapsed estimate alone must
-not turn a healthy correlated job into a failed print.
+Complete the independent supported compact-widget candidate in the generated
+`temperature-print` derivative only. Preserve the accepted beta.4/Issue #8
+sources and the physical installation. The fresh native test layout requests
+1×1; it does not migrate a retained physical saved placement. Mirror short
+lifecycle status and retain the existing tile → chooser → Temperature navigation.
+Protect an already committed waiting/returned result from late statuses and
+clock/disconnect changes; native acceptance of an already-emitted exact ACK acknowledges the committed
+result rather than the printer's later live job. Coordinator/relay live checks
+remain unchanged; broader replacement-job delivery is not claimed. Idempotent artifact retries are still allowed;
+no second selection or dispatch is introduced.
 
-Use the preferred October 15 nightly
-`6a7763f08d1a175a464a00ce13f0b5a815662fc4` and pinned Helix beta.9. Native Windows
-proof must cover actual preparation/export and the current companion result.
-Native UI changes require the existing isolated eleven-target matrix with
-clearly synthetic job/status/authorization inputs. Complete focused safety and
-policy regressions, required full checks at the candidate boundary, independent
-review, affected-surface Product Preflight and documentation reconciliation.
-Never relabel mock success as hardware proof.
+Run repository checks, the full pinned native matrix, fresh independent review,
+affected-surface Product Preflight and exact-head CI. Preserve earlier evidence
+before promoting a complete passing capture. Do not describe a partial candidate
+as implementing both UX corrections or ask the Founder to accept unsupported
+modal behavior.
 
-Current published shared Development System main is
-`4a42a944b344427c8f925241191595eb57c6949c` (verified against GitHub on resume);
-application main is `89165d15993ccfcd065b299e1980bb19749fdcaf`. Preserve accepted Issue #8
-communication, Issue #10 baseline policy, normal profiles, private evidence,
-existing native shell and beta.4 harness. Alpha remains secondary only.
+## Consequence and preservation boundary
 
-## Consequence boundary
+This follow-up authorizes **no new print, heating, motion, printer configuration,
+profile writeback, upstream change, physical deployment, merge or release**.
+The one-shot physical grant/journal is historical proof, never reusable authority.
+The candidate native plugin remains storage-only and the companion local-I/O
+only. Existing guards, original profiles, private payloads, accepted evidence,
+canonical dirty work and successful physical baseline remain preserved.
 
-Work stays in the isolated devbox candidate worktree. Keep the dirty canonical
-checkout unchanged; use it for verified `gh-oss` control-plane mutations.
-The Orca derivative stays single-file/local-I/O only; native Helix remains
-storage-only. No live permit, physical derivative install, upload/queue/start,
-macro execution, firmware/configuration/security change, new exposure,
-upstream modification, Alpha physical adoption, merge, release or deployment.
-Read-only existing-target evidence may support safety review without operating
-hardware. Private operational data stays private. Ordinary repairs continue
-under this same correction; only a genuinely changed consequence needs a new
-Founder decision.
-
-## Resumed validation — 2026-10-17
-
-The resolved devbox storage incident is closed for this program. Resume checks
-found 358.6 GiB user-available on the output filesystem, 20% byte usage and
-29.7 million available inodes. Preserve the existing runtime/cache/evidence;
-no cleanup or storage investigation is required. Recheck available bytes and
-inodes before native export/capture and after transfer; avoid concurrent
-disk-intensive work, bound each export/capture, and stop if the planned output
-no longer fits with reaction headroom. The shared managed-run helper is not
-a substitute for the existing isolated Helix harness or Windows access guards.
-
-At the superseded initial resume checkpoint `ac84114`, all 231 dependency-free
-repository tests, the
-accepted beta.4 evidence, Issue #8 native evidence, corrected eleven-target
-Issue #12 evidence and whitespace validation pass. A private resume baseline
-records all sixteen pre-existing canonical file hashes and canonical HEAD.
-This initial source/evidence checkpoint is superseded by the reviewed repairs
-below; it is not evidence for the repaired runtime. At that checkpoint Spare
-access was disconnected; the documented owner-side unelevated launch was needed. Export and companion proof were then incomplete.
-No physical authorization, action or installation is implied by this checkpoint.
-
-The resumed independent source review subsequently identified and corrected
-post-dispatch TTL/runner cutoffs, initial metadata/history lag handling,
-effective-220 binding and directly implicated slot/rejected-Start recovery.
-Final source re-review passes 54 affected tests; the complete repository suite
-passes 243 tests. These repairs preserve pre-Start expiry and one-shot safety
-while keeping an already owned job observable without a duration ceiling.
-The renewed native capture is recorded in the existing readiness/evidence
-reports. Exact-head CI is a separate GitHub gate owned by PR #13 current checks;
-it is not implied by local validation. The subsequent actual Windows
-qualification is recorded below.
-
-The renewed complete beta.9 matrix now passes and verifies all eleven targets,
-88 frames and eleven storage snapshots, including synthetic post-expiry
-monitoring, result/ACK and cancellation. Earlier corrected native bytes were
-preserved byte-for-byte as history before promotion. Owned capture containers
-were removed normally; output headroom remained about 359 GiB. This capture
-proves the native software surface; hardware execution remains unauthorized. No disk cleanup or historical storage investigation was reopened.
-
-## Completed Windows qualification — 2026-10-17
-
-The existing worker reconnected after the owner launch. Native Orca Scale,
-Slice Plate and Export produced the corrected 484,552-byte three-band file,
-75 layers and a 12m00s estimate. Exact-byte offline qualification against current
-GET-only identity/configuration, registered commands and unchanged macro
-safeguards passes. No custom generator or exported-file edit was used.
-
-The reviewed 0.6.1 companion retained original 220°C context, selected that file,
-and sent the actual Windows outbox into the isolated native UI. The exact
-persisted synthetic 220°C result reached the original companion; its committed
-receipt preceded native ACK. Windows showed NOT APPLIED. Accepted 0.5.0 is
-restored with the test process closed. Five accepted communication files,
-12 saved profile JSONs, 1,429 normal files and canonical dirty work are preserved.
-See [qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md) and
-[current evidence](evidence/issue-12/README.md). Private raw evidence remains in
-XDG state. Headroom remained about 358 GiB; no storage investigation was reopened.
-
-This is one software-qualified unmerged candidate for Founder Review and the
-first separately authorized controlled physical calibration. No physical
-adapter activation, live grant, upload, queue, print, heat, motion, macro,
-firmware change, automatic writeback, merge or deployment occurred. A future
-physical test requires fresh binding through the existing safeguards; the
-consumed mock request and synthetic completion are never reused as hardware proof.
+The storage incident remains resolved. Check available bytes/inodes around native
+capture and promotion, serialize disk-intensive work through the existing shared
+lock, reuse the verified runtime/image, and retain owned output in XDG state.
+Do not reopen the completed storage investigation or perform broad cleanup.

@@ -1,6 +1,15 @@
 # Issue #12 Windows native miniature qualification
 
 Status: **PASS — corrected native export and actual Windows companion round trip.**
+
+This is the preserved pre-physical readiness qualification. The subsequent
+Founder-initiated physical calibration also succeeded and returned actual
+220°C NOT APPLIED; [its separate evidence](evidence/issue-12/physical-first/README.md)
+is not synthetic Windows/mock proof. The later compact-widget build changes no
+Windows companion, normal profiles or physical installation. Restoration facts
+below describe the earlier readiness session, before separately authorized
+physical staging of the reviewed baseline.
+
 Preferred October 15 nightly `6a7763f08d1a175a464a00ce13f0b5a815662fc4`
 ran on Spare through its existing unelevated worker, with the marked isolated
 datadir. No normal Orca environment or physical printer was used for execution.
