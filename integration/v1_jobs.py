@@ -253,6 +253,10 @@ class OwnedJobAdapter:
             raise ContractError("Exact request-owned artifact directory required")
         Coordinator.verify_artifact(prepared, directory)
         Coordinator.verify_parity(prepared, directory)
+        report = read_json(directory / "parity.json")
+        semantics = report.get("candidate_invariants", {}).get("macro_semantics")
+        if digest(report) != prepared["parity"]["report_sha256"] or not isinstance(semantics, dict) or semantics.get("accepted_abi_signature") is not True:
+            raise ContractError("Accepted physical target macro signature is not verified; native command parity alone cannot authorize upload")
         data = (directory / prepared["artifact"]["name"]).read_bytes()
         if not 0 < len(data) <= MAX_BYTES:
             raise ContractError("Owned upload supports at most 20 MB")
@@ -406,7 +410,7 @@ class OwnedJobAdapter:
                 raise ContractError("Owned cancellation is one-shot and requires separate native intent")
             for _ in range(2):
                 sample = self.transport.snapshot(); self._fresh(sample, record)
-                if sample["state"] != "printing" or not self._matching(sample, record) or not self._history_matches(self.transport.history(job["job_id"]), record, "in_progress"):
+                if sample["state"] != "printing" or sample["queue_job_ids"] or not self._matching(sample, record) or not self._history_matches(self.transport.history(job["job_id"]), record, "in_progress"):
                     raise ContractError("Cancellation target is not the same independently owned running job")
             record.update(phase="cancel-intent", cancel=copy.deepcopy(intent)); self._save(record)
             try:

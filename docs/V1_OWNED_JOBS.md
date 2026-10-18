@@ -28,7 +28,15 @@ adapter.cancel(job, native_cancel_intent)
 ```
 
 Confirm verifies the current request, exact artifact and independent parity
-report, then retains the full request/prepared objects and native Confirm ID.
+report, then requires its digest-bound
+`candidate_invariants.macro_semantics.accepted_abi_signature` to be exactly
+`true` before retaining the request/prepared objects and native Confirm ID.
+Native-only `PRINT_START EXTRUDER/BED` parity cannot pass this gate for the
+accepted target's `EXTRUDER_TEMP/BED_TEMP` signature. Missing/null semantics also
+blocks upload (including a Flow report that has not implemented this invariant).
+The report's `hardware_abi_qualified` and `physical_readiness` remain false:
+recognizing the accepted command signature under pinned configuration is not a
+new physical qualification.
 Start requires a different native ID bound to the same prepared SHA-256. It
 re-verifies the artifact/parity and original expiry before any upload and again
 checks expiry before Start dispatch. Cancellation remains available after the
@@ -101,7 +109,7 @@ current owned-file readback must still match the prepared hash. The normalized
 `history_file_sha256` therefore means correlated history plus verified owned-file
 readback; Moonraker does not supply an independently signed history G-code hash.
 Replacement jobs, stale metadata, missing history or changed files keep
-evaluation locked. Cancellation requires two fresh snapshots and matching
+evaluation locked. Cancellation requires two fresh snapshots, an empty queue, and matching
 running history immediately before dispatch. A Cancel acknowledgment is not
 completion: matching cancelled history must prove cancellation. An ambiguous
 Cancel is never retried, and racing completion never silently reverses the

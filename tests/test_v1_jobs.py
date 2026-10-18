@@ -114,6 +114,10 @@ class OwnedJobsTests(unittest.TestCase):
         self.prepared = {k: self.request[k] for k in ('request_id', 'origin_id', 'context_sha256', 'calibration', 'parameters')}
         self.prepared.update(schema='helix-orca-v1-prepared/v1', request_sha256=digest(self.request), artifact=dict(name='fixture.gcode', size=len(data), sha256=hashlib.sha256(data).hexdigest()),
             generator=dict(build='fixture', route='fixture'), parity=dict(qualified=True, report_sha256='4'*64, reason='Synthetic verifier injection only'), not_applied=True)
+        self.report = dict(synthetic_http_fixture_only=True, candidate_invariants=dict(
+            macro_semantics=dict(accepted_abi_signature=True, hardware_abi_qualified=False, physical_readiness=False), physical_readiness=False))
+        (self.directory/'parity.json').write_text(json.dumps(self.report))
+        self.prepared['parity']['report_sha256'] = digest(self.report)
         self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', actions=True, now=lambda: 100)
     def tearDown(self):
         self.verifier.stop(); self.fixture.close(); self.temp.cleanup()
@@ -188,7 +192,10 @@ class OwnedJobsTests(unittest.TestCase):
         self.fixture.job_id = 'ABCDEF'
         with self.assertRaises(ContractError): self.adapter.cancel(job, self.intent('cancel', '7'))
         self.assertEqual(len(self.fixture.posts), 2)
-        self.fixture.job_id = 'ABC123'
+        self.fixture.job_id = 'ABC123'; self.fixture.queue = [dict(job_id='foreign')]
+        with self.assertRaises(ContractError): self.adapter.cancel(job, self.intent('cancel', '7'))
+        self.assertEqual(len(self.fixture.posts), 2)
+        self.fixture.queue = []
         self.adapter.cancel(job, self.intent('cancel', '7'))
         with self.assertRaises(ContractError): self.adapter.cancel(job, self.intent('cancel', '8'))
         proof = self.adapter.observe(job)
@@ -217,6 +224,7 @@ class OwnedJobsTests(unittest.TestCase):
         self.request = dict(self.request, request_id='9'*32)
         self.directory = self.root/self.request['request_id']; self.directory.mkdir()
         (self.directory/'fixture.gcode').write_bytes((original_directory/'fixture.gcode').read_bytes())
+        (self.directory/'parity.json').write_bytes((original_directory/'parity.json').read_bytes())
         self.prepared = copy.deepcopy(self.prepared)
         self.prepared['request_id'] = self.request['request_id']; self.prepared['request_sha256'] = digest(self.request)
         self.confirm()
@@ -267,3 +275,18 @@ class OwnedJobsTests(unittest.TestCase):
         (self.root/'journal'/('1'*32+'.json')).write_text(json.dumps(record))
         with self.assertRaises(ContractError): self.start()
         self.assertEqual(self.fixture.posts, [])
+
+    def test_native_only_or_missing_macro_abi_never_reaches_upload(self):
+        for signature in (False, None, 1):
+            report = copy.deepcopy(self.report)
+            report['candidate_invariants']['macro_semantics']['accepted_abi_signature'] = signature
+            self.prepared['parity']['report_sha256'] = digest(report)
+            (self.directory/'parity.json').write_text(json.dumps(report))
+            with self.assertRaisesRegex(ContractError, 'macro signature'): self.confirm()
+        report = dict(self.report, candidate_invariants=dict(macro_semantics=None))
+        self.prepared['parity']['report_sha256'] = digest(report)
+        (self.directory/'parity.json').write_text(json.dumps(report))
+        with self.assertRaisesRegex(ContractError, 'macro signature'): self.confirm()
+        self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
+        self.assertFalse(self.report['candidate_invariants']['macro_semantics']['hardware_abi_qualified'])
+        self.assertFalse(self.report['candidate_invariants']['physical_readiness'])
