@@ -209,9 +209,10 @@ class OwnedJobAdapter:
     local action gates, and notify confirm before calling start. Shipped CLI does
     not instantiate this class. No wire field may enable actions.
     """
-    def __init__(self, transport, root, *, actions=False, now=time.time, monotonic=time.monotonic, sleep=time.sleep):
+    def __init__(self, transport, root, *, orca_machine_sha256, actions=False, now=time.time, monotonic=time.monotonic, sleep=time.sleep):
         if type(actions) is not bool:
             raise ContractError("Actions must be a separate local boolean")
+        self.machine = hex_value(orca_machine_sha256)
         self.transport, self.root, self.actions = transport, Path(root), actions
         self.now, self.monotonic, self.sleep = now, monotonic, sleep
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -257,6 +258,13 @@ class OwnedJobAdapter:
         semantics = report.get("candidate_invariants", {}).get("macro_semantics")
         if digest(report) != prepared["parity"]["report_sha256"] or not isinstance(semantics, dict) or semantics.get("accepted_abi_signature") is not True:
             raise ContractError("Accepted physical target macro signature is not verified; native command parity alone cannot authorize upload")
+        inputs = report.get("inputs", {})
+        printer = inputs.get("profiles", {}).get("printer")
+        nozzle = inputs.get("nozzle_mm")
+        if not isinstance(printer, dict) or not printer or type(nozzle) not in (int, float) or not math.isfinite(nozzle) or not 0.05 <= nozzle <= 2:
+            raise ContractError("Immutable Orca machine/nozzle identity is unavailable")
+        if digest(dict(printer=printer, nozzle_mm=nozzle)) != self.machine:
+            raise ContractError("Orca machine/nozzle differs from the reviewed physical target; upload blocked")
         data = (directory / prepared["artifact"]["name"]).read_bytes()
         if not 0 < len(data) <= MAX_BYTES:
             raise ContractError("Owned upload supports at most 20 MB")
@@ -434,9 +442,10 @@ def from_config(config: dict, root: Path, *, deployment_authorized: bool = False
     value = config.get("owned_jobs")
     if value is None:
         return None
-    exact(value, "schema origin expected_host expected_version physical_identity configuration_sha256 existing_trusted_lan_ack actions_enabled", "private owned-job deployment")
+    exact(value, "schema origin expected_host expected_version physical_identity configuration_sha256 orca_machine_sha256 existing_trusted_lan_ack actions_enabled", "private owned-job deployment")
     if value["schema"] != "helix-orca-v1-job-deployment/v1" or type(value["existing_trusted_lan_ack"]) is not bool or type(value["actions_enabled"]) is not bool:
         raise ContractError("Malformed owned-job deployment safety flags")
+    machine = hex_value(value["orca_machine_sha256"])
     # Construction validates pins/origin but makes no request or filesystem write.
     transport = PinnedMoonraker(value["origin"], value["expected_host"], value["expected_version"],
         value["physical_identity"], value["configuration_sha256"], trusted_lan=value["existing_trusted_lan_ack"],
@@ -444,4 +453,4 @@ def from_config(config: dict, root: Path, *, deployment_authorized: bool = False
     if not deployment_authorized or not value["actions_enabled"]:
         return None
     transport.actions = True
-    return OwnedJobAdapter(transport, root, actions=True)
+    return OwnedJobAdapter(transport, root, orca_machine_sha256=machine, actions=True)

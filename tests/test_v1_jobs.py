@@ -114,11 +114,13 @@ class OwnedJobsTests(unittest.TestCase):
         self.prepared = {k: self.request[k] for k in ('request_id', 'origin_id', 'context_sha256', 'calibration', 'parameters')}
         self.prepared.update(schema='helix-orca-v1-prepared/v1', request_sha256=digest(self.request), artifact=dict(name='fixture.gcode', size=len(data), sha256=hashlib.sha256(data).hexdigest()),
             generator=dict(build='fixture', route='fixture'), parity=dict(qualified=True, report_sha256='4'*64, reason='Synthetic verifier injection only'), not_applied=True)
-        self.report = dict(synthetic_http_fixture_only=True, candidate_invariants=dict(
+        self.machine_inputs = dict(printer=dict(saved=dict(name='Synthetic printer', config={'machine': 'fixture'}), edited=dict(name='Synthetic printer', config={'machine': 'fixture'})), nozzle_mm=0.4)
+        self.machine = digest(self.machine_inputs)
+        self.report = dict(synthetic_http_fixture_only=True, inputs=dict(profiles=dict(printer=self.machine_inputs['printer']), nozzle_mm=0.4), candidate_invariants=dict(
             macro_semantics=dict(accepted_abi_signature=True, hardware_abi_qualified=False, physical_readiness=False), physical_readiness=False))
         (self.directory/'parity.json').write_text(json.dumps(self.report))
         self.prepared['parity']['report_sha256'] = digest(self.report)
-        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', actions=True, now=lambda: 100)
+        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine, actions=True, now=lambda: 100)
     def tearDown(self):
         self.verifier.stop(); self.fixture.close(); self.temp.cleanup()
     def intent(self, action, token):
@@ -130,7 +132,7 @@ class OwnedJobsTests(unittest.TestCase):
     def record(self):
         return read_json(self.root/'journal'/('1'*32+'.json'))
     def test_disabled_default_and_missing_confirmation_do_not_contact_http(self):
-        default_adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'disabled', now=lambda: 100)
+        default_adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'disabled', orca_machine_sha256=self.machine, now=lambda: 100)
         default_adapter.confirm(self.request, self.prepared, self.directory, self.intent('confirm', '5'))
         with self.assertRaises(ContractError): default_adapter.start(self.request, self.prepared, self.directory, self.intent('start', '6'))
         self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
@@ -169,7 +171,7 @@ class OwnedJobsTests(unittest.TestCase):
         self.confirm(); self.fixture.tamper = True
         with self.assertRaises(ContractError): self.start()
         self.assertEqual(self.fixture.posts, ['/server/files/upload']); self.assertEqual(self.record()['phase'], 'uncertain')
-        recovered = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', actions=True, now=lambda: 100)
+        recovered = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine, actions=True, now=lambda: 100)
         with self.assertRaises(ContractError): recovered.start(self.request, self.prepared, self.directory, self.intent('start', '7'))
         self.assertEqual(self.fixture.posts, ['/server/files/upload'])
     def test_ambiguous_start_is_durable_and_never_retried(self):
@@ -252,7 +254,7 @@ class OwnedJobsTests(unittest.TestCase):
         self.assertEqual(len(self.fixture.posts), 2)
     def test_factory_is_default_off_and_requires_separate_typed_local_gate(self):
         deployment = dict(schema='helix-orca-v1-job-deployment/v1', origin='http://192.168.1.2', expected_host='192.168.1.2',
-            expected_version='fixture-version', physical_identity=self.fixture.identity, configuration_sha256=self.fixture.config_hash,
+            expected_version='fixture-version', physical_identity=self.fixture.identity, configuration_sha256=self.fixture.config_hash, orca_machine_sha256=self.machine,
             existing_trusted_lan_ack=True, actions_enabled=True)
         target = self.root/'factory'
         self.assertIsNone(from_config({}, target))
@@ -290,3 +292,14 @@ class OwnedJobsTests(unittest.TestCase):
         self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
         self.assertFalse(self.report['candidate_invariants']['macro_semantics']['hardware_abi_qualified'])
         self.assertFalse(self.report['candidate_invariants']['physical_readiness'])
+
+    def test_changed_machine_configuration_or_nozzle_blocks_before_http(self):
+        for alteration in ('nozzle', 'printer_config', 'printer_missing'):
+            report = copy.deepcopy(self.report)
+            if alteration == 'nozzle': report['inputs']['nozzle_mm'] = 0.6
+            elif alteration == 'printer_config': report['inputs']['profiles']['printer']['edited']['config']['machine'] = 'different'
+            else: del report['inputs']['profiles']['printer']
+            self.prepared['parity']['report_sha256'] = digest(report)
+            (self.directory/'parity.json').write_text(json.dumps(report))
+            with self.assertRaisesRegex(ContractError, 'machine/nozzle'): self.confirm()
+        self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])

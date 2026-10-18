@@ -3,7 +3,8 @@
 `integration/v1_jobs.py` supplies a bounded owned-job adapter for the integrated
 coordinator. It supports every calibration through the same prepared-artifact
 contract. It neither generates G-code nor makes an unqualified generator work.
-Both its transport and adapter default to `actions=False`. The ordinary review
+The adapter requires an explicit reviewed `orca_machine_sha256` in addition to
+the transport's physical/configuration pins. Both action switches default to `actions=False`. The ordinary review
 launcher has no enabled physical action adapter. No physical deployment or print
 is claimed by this source implementation or its loopback HTTP fixtures.
 
@@ -63,6 +64,7 @@ not a deployable configuration):
     "expected_version": "<reviewed installed Moonraker version>",
     "physical_identity": "<reviewed lowercase 64-hex digest>",
     "configuration_sha256": "<reviewed lowercase 64-hex digest>",
+    "orca_machine_sha256": "<reviewed full Orca printer-profile and nozzle digest>",
     "existing_trusted_lan_ack": true,
     "actions_enabled": false
   }
@@ -73,12 +75,31 @@ Missing configuration or either disabled gate returns `None`, creates no
 adapter journal and makes no network/process request. An enabled configuration
 alone cannot authorize deployment. `deployment_authorized=True` must come from a
 separate explicitly approved local deployment gate in the launcher, never native
-storage/events or Orca data. Only both gates permit construction of the active
+storage/events or Orca data. The integrated coordinator's optional
+`--deployment-authorization` requires a separately approved, existing
+owner-private ordinary local file. It validates every ancestor against
+links/reparse points and independently inspects POSIX owner/mode or Windows
+current-token SID and file DACL without a subprocess. The exact local schema
+`helix-orca-v1-local-deployment/v1` requires `approved: true`,
+`native_start_only: true`, a nonempty approval reference, the canonical private
+configuration digest, and a runtime closure fingerprint covering the CLI,
+`integration/v1_*.py` and `scripts/helix-display-request.py`. The review creates no
+such approval record. An enabled target also requires `--moonraker-events` and
+identical pinned native-event/job origins, hosts and versions. Only both gates permit construction of the active
 adapter. Existing credentials may be supplied separately by the local caller;
 this module neither creates/discovers credentials nor changes access policy.
 The private journal root must remain beneath the launcher's owner-private
 runtime directory. One coordinator/adapter root and its kernel instance lock
 must govern the printer; independent uncoordinated installations are unsupported.
+
+The machine digest is exactly
+`digest({'printer': report['inputs']['profiles']['printer'], 'nozzle_mm': report['inputs']['nozzle_mm']})`
+from the independently verified report. It pins the complete saved/edited Orca
+machine profile object and numeric nozzle, not a display name. A missing or
+mismatched machine/nozzle blocks before HTTP. Ordinary process and filament
+selection remain request scope and are not pinned by this field. Any machine-pin
+change changes the private configuration digest and requires a new separately
+approved deployment record.
 
 ## Ownership and failure behavior
 
