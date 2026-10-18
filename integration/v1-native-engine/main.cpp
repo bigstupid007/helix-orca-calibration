@@ -192,7 +192,8 @@ static void retraction(Model &model,DynamicPrintConfig &config,Calib_Params &par
     params.mode=CalibMode::Calib_Retraction_tower;
     model_asset(model,resources,"calib/retraction/retraction_tower.drc");
     const double nozzle=config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
-    const double height=nozzle<=0.1?0.05:(nozzle<=0.2?0.1:0.2);
+    const float native_nozzle=float(nozzle);
+    const double height=native_nozzle<=0.1f?0.05f:(native_nozzle<=0.2f?0.1f:0.2f);
     for(auto &value:config.option<ConfigOptionFloats>("max_layer_height")->values)
         value=std::max(value,height);
     config.set_key_value("enable_wrapping_detection",new ConfigOptionBool(false));
@@ -311,12 +312,16 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
     const double speed=CalibPressureAdvance::find_optimal_PA_speed(config,
         config.get_abs_value("line_width",nozzle),config.get_abs_value("layer_height"),0,0);
     config.set_key_value("outer_wall_speed",new ConfigOptionFloatsNullable(1,speed));
-    // GUI primitive side length is bed-relative; subsequent native bbox scaling
-    // cancels its magnitude. Preserve its centered, axis-aligned cube topology.
+    // GUI_ObjectList create_mesh + GLCanvas3D.cpp 6118: axis-aligned primitive
+    // side is 10% of the maximum bed dimension, then centered on the plate.
+    const auto bed_bounds=get_extents(config.option<ConfigOptionPoints>("printable_area")->values);
+    const double side=0.1*std::max(bed_bounds.size().x(),bed_bounds.size().y());
     auto *cube=model.add_object();cube->add_instance();
-    const TriangleMesh mesh(its_make_cube(20,20,20));
+    const TriangleMesh mesh(its_make_cube(side,side,side));
     cube->add_volume(mesh);cube->translate(-mesh.bounding_box().center());
-    cube->config.set_key_value("extruder",new ConfigOptionInt(1));cube->ensure_on_bed();
+    cube->config.set_key_value("extruder",new ConfigOptionInt(1));
+    cube->instances[0]->set_offset(Vec3d(bed_bounds.center().x(),bed_bounds.center().y(),0));
+    cube->ensure_on_bed();
     CalibPressureAdvancePattern pattern(params,config,is_bbl_machine,*cube,Vec3d::Zero());
     auto bounds=cube->raw_bounding_box();
     cube->scale((pattern.print_size_x()+4)/bounds.size().x(),
