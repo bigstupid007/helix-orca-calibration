@@ -230,12 +230,69 @@ application, broader hardware operation or security/access expansion is included
 ## Deferred — requires new approval
 
 - Moonraker coordination/networking beyond the accepted Issue #6 display
-  route and Issue #8 storage-only, correlated non-printing return with its
-  exact owner-approved file bridge and trusted-LAN boundary.
-- G-code generation, modification, or execution, and upload beyond the
-  accepted normal Orca Upload-only display request.
+  route, Issue #8 correlated return and the bounded Issue #12 physical
+  Temperature proof, preserving the exact owner-approved bridge and trusted LAN.
+- Custom G-code generation/modification or execution/upload beyond accepted
+  native Orca Temperature preparation and separately authorized exact-file tests.
 - Real print start/monitoring, measured calibration results or scoring beyond
-  the accepted simulated, NOT APPLIED Temperature-selection return.
+  the accepted bounded physical Temperature milestone in Issue #12; any new
+  physical run or broader scoring still needs new approval.
 - Orca preset mutation or writeback.
 - Additional calibration modules beyond a separately approved increment.
 - Picker/profile-browser expansion beyond the bounded Issue #4 flow.
+
+
+## Issue #12 — historical pre-physical readiness checkpoint
+
+The `c1eee43` pre-physical checkpoint was approved under
+[the governing Build Program](BUILD_PROGRAM_TEMPERATURE_PRINT.md):
+exactly three miniature native bands, 225/220/215°C bottom to top, confirmed
+filament with normal nozzle 220°C, native-screen Start only, real-state and same-job success
+proof, cancellation/failure safeguards and original-profile NOT APPLIED return.
+At that checkpoint, implementation and isolated qualification were authorized;
+hardware execution still required separate Founder authorization. That later
+authorization and successful first print are recorded below. Profile writeback,
+Alpha adoption and merge remain excluded. [The readiness report](TEMPERATURE_PRINT_READINESS.md) records proof
+and the separate physical-execution boundary. The Founder correction removes
+the earlier AI-generated 20-minute/combined-estimate gates and spool-label
+checkpoint. Earlier accepted proofs and deferred UX remain
+preserved; this increment does not authorize a UX redesign.
+
+Issue #12 resumed software checkpoint: 243 repository tests, independent source
+review (54 affected tests) and renewed source-bound native eleven-target proof
+pass. Corrected actual Windows export, exact-file offline qualification and
+0.6.1 originating-companion return now pass. Accepted Windows companion, normal
+and saved profiles and prior communication artifacts are preserved. Final
+review/Product Preflight are recorded in the readiness documents; PR #13 tracks
+exact-head CI. The unmerged candidate is ready for Founder Review and the first
+separately authorized controlled physical calibration. That checkpoint claimed no physical execution. The later actual success is
+preserved separately below.
+
+
+## Historical 7cc0b4d checkpoint — Issue #12 current continuation: physical milestone complete, UX API gate
+
+The actual `c1eee43` three-band print and 220°C NOT APPLIED return succeeded.
+Preserve its real evidence and physical product; no repeat print or deployment
+is authorized. Complete the supported 1×1 generated-widget correction and
+pending-result preservation validation in PR #13. Automatic completion chooser
+presentation remains blocked by exact beta.9's missing modal-aware host API;
+see `docs/ISSUE_12_COMPLETION_UX_API_GATE.md`. A separate host-support decision
+is required before implementing that part. Do not treat the compact candidate
+or synthetic capture as completion of both UX corrections. Existing deferred
+visual polish and unrelated dashboard work remain outside scope.
+
+## Issue #12 — accepted physical milestone; implementation stopped
+
+Founder accepted the final real print, automatic Temperature chooser and
+original-Orca 220°C / NOT APPLIED return on 2026-10-18. Installed f7562bf and the
+working physical 1×1 widget remain preserved. [Acceptance](ISSUE_12_ACCEPTANCE.md)
+owns documentation/evidence closeout, guarded merge/main verification and Issue
+closure. Earlier unmerged/readiness stages above are historical.
+
+**The next activity is a fresh Founder-led review of the overall Helix–Orca
+product goal, not another build.** Queued-overlay migration, deferred UX,
+additional modules, scoring, broader automation and profile writeback remain
+unapproved topics. Do not create or launch implementation work automatically.
+Further print, deployment or firmware/configuration/security changes require
+separate authority. The accepted temporary modal-overlap and crash/manual
+recovery limitations remain in the [API record](ISSUE_12_COMPLETION_UX_API_GATE.md).

@@ -377,3 +377,95 @@ Preflight passed; exact-head CI is recorded on PR #11. Founder accepted the
 qualification on 2026-10-16 with that baseline policy and authorized PR #11
 merge, main verification and Issue #10 closure. Alpha physical integration and
 production adoption remain unauthorized; see [acceptance](ISSUE_10_ACCEPTANCE.md).
+
+
+## Issue #12 pre-physical readiness investigation — historical c1eee43
+
+The direct Founder correction of 2026-10-17 controls exactly three bands:
+225/220/215°C bottom to top, with confirmed filament and normal nozzle 220°C.
+Earlier 210/205/200°C exports and the AI-generated timing/label constraints are
+superseded; historical evidence remains under `docs/evidence/issue-12/history/`.
+The corrected actual native export passes: 484,552 bytes, 75 layers, three
+225/220/215°C bands and a 12m00s informational estimate. Offline macro ABI,
+geometry, registered commands and unchanged read-only target binding pass.
+Actual originating Windows 0.6.1 return displays 220°C NOT APPLIED; completion
+is synthetic. Accepted Windows companion and profile/artifact hashes are
+preserved. See [Windows qualification](ISSUE_12_WINDOWS_NATIVE_QUALIFICATION.md)
+and [readiness](TEMPERATURE_PRINT_READINESS.md).
+
+Native preparation uses the existing Temperature tool and normal slicing/export;
+no custom generator or exported-file edit is used. The physical macro expects
+`PRINT_START BED_TEMP=60 EXTRUDER_TEMP=225`. Existing QGL, saved 60°C mesh and
+exclude-object support were reviewed read-only. Native time excludes opaque
+printer-macro activity, which is an estimate limitation rather than a combined
+qualification gate. No print-length threshold is imposed.
+
+Read-only refresh confirms unchanged reviewed machine/configuration and accepted
+Moonraker version, idle state and empty queue. Successful history uses
+`completed`; print_stats uses `complete`; start RPC success proves neither.
+No physical action occurred. Original profile identity remains distinct from
+physical-machine binding, and returned instructions remain NOT APPLIED.
+
+Resumed independent review corrected a latent one-hour active-job cutoff and
+initial metadata/history lag handling. The effective-220 context is now enforced
+without collapsing saved and edited values. Durable local lifecycle status
+prevents request expiry from discarding a started/uncertain original target;
+late results still require that exact retained request and owned completion
+proof. Deterministic rejected Start and ambiguous dispatch have distinct
+terminal/uncertain recovery. The 54 focused safety tests pass independent review.
+No native-mock observation is hardware proof.
+
+
+## Historical 7cc0b4d checkpoint — Issue #12 actual success and completion-UX capability gate
+
+The Founder reports the first physical three-band print completed and returned
+220°C NOT APPLIED. Read-only retained journal/history/native/companion proof
+correlates the actual successful job and delivery. The baseline is `c1eee43`;
+`docs/evidence/issue-12/physical-first/` separates it from synthetic UX evidence.
+
+Independent pinned beta.9 review found no modal visibility/close/idle API.
+Plugin overlays and native completion-modal backdrops share the active screen;
+opening the plugin overlay later can cover the modal. The requested safe
+automatic chooser therefore needs host support outside the approved no-upstream
+scope. No timer workaround is valid. The supported 1×1 widget can be built in
+the generated derivative; retained physical saved placement is not migrated.
+A pending selected result must remain immutable during disconnect/late status
+and exact receipt recovery; current follow-up exercises those adjacent cases.
+
+## Issue #12 current immediate-overlay authority
+
+The later direct Founder instruction explicitly accepts temporary overlap with
+an existing native dialog for this controlled personal-printer test. The earlier
+beta.9 modal-lifecycle findings remain true but no longer block immediate
+`helix.ui.overlay()` use. An isolated presentation adapter now claims one attempt
+only after accepted exact-job success. Runtime arming plus a persisted claim
+suppresses duplicates/restart, including conservative manual recovery when a
+crash may have lost a deferred claim write. Dismissal retains selection and the
+normal tile → Temperature reopening path. Original live return/recovery gates,
+1×1 tile, context/NOT APPLIED and physical baseline remain unchanged. Renewed
+native synthetic proof is separate from real hardware success. Queued-overlay
+migration remains future work. Later separately authorized deployment and
+physical execution succeeded; no further deployment or physical action is
+authorized by closeout. Current semantics: `ISSUE_12_COMPLETION_UX_API_GATE.md`.
+
+The automatic component shares the exact Temperature layout/bindings/actions
+with distinct owned widget names. After its successful push, only tracked plugin
+preparation views retire; native pages/dialogs remain, and backing out cannot
+resurface an old manual chooser. The source-bound test includes buried manual
+Temperature under Print Status at every size and manual Temperature on top at
+800×480. No new navigation API or notification setting is used.
+
+## Issue #12 accepted physical outcome and stop boundary
+
+Founder accepted the actual final print, automatic native Temperature chooser
+and original-context 220°C / NOT APPLIED return on 2026-10-18. Independent job
+history, bound native result and original receipt/delivery agree. Installed
+f7562bf / 0.4.3-issue12-auto, owner-saved 1×1 tile and rollback material remain
+preserved. Closeout is documentation/evidence only; it does not change product
+or printer settings. Normal native thermal/spool/start-history accounting is
+retained. Hardware observations remain separate from synthetic coverage.
+See [acceptance](ISSUE_12_ACCEPTANCE.md) for exact scope and proof limits.
+
+After merge/main verification and Issue closure, stop implementation. A fresh
+Founder-led review of the overall product goal comes next; no successor build
+or further physical action is implied.

@@ -1,0 +1,22 @@
+{
+  "schema": "helix-orca-first-physical-success/v1",
+  "baseline_commit": "c1eee4374fb0286e1a3973d8e29107bfc64ee99f",
+  "actual_hardware": true,
+  "founder_reported_success": true,
+  "bands_c": [
+    225,
+    220,
+    215
+  ],
+  "selected_c": 220,
+  "status": "NOT APPLIED",
+  "same_job_independent_history_completed": true,
+  "native_returned": true,
+  "originating_receipt_exact": true,
+  "delivery_delivered": true,
+  "file_sha256": "83fd38e22aca7237c1b8c9fa8a8971657f72b47d344a06f42120c78d05503074",
+  "file_bytes": 484552,
+  "evidence_scope": "Actual Founder-initiated first physical print at c1eee43; separate from synthetic UX validation.",
+  "raw_evidence": "private XDG state; exact journal, native storage, history, originating artifacts and preservation manifest",
+  "actual_history_elapsed_s": 999.0
+}

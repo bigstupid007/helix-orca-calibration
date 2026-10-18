@@ -1,5 +1,33 @@
 # Helix-Orca Calibration
 
+## Issue #12 — accepted physical Temperature calibration
+
+Founder accepted [Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12)
+/ [PR #13](https://github.com/bigstupid007/helix-orca-calibration/pull/13) on
+2026-10-18. The installed **0.4.3-issue12-auto** at reviewed `f7562bf` completed
+the final Founder-started **225/220/215°C** print, presented Temperature
+automatically on the actual HelixScreen, and returned **220°C / NOT APPLIED**
+to the original Orca context. Independent completed-job history, exact native
+result/receipt and delivered status agree; original profiles remain unchanged.
+The physical **1×1** icon/identity/status tile and native navigation are verified.
+
+[Founder acceptance and closeout](docs/ISSUE_12_ACCEPTANCE.md) records the real
+outcome, deployment/rollback preservation and governed merge boundary.
+[Final physical evidence](docs/evidence/issue-12/physical-final/README.md) is separate
+from the unchanged [first-print baseline](docs/evidence/issue-12/physical-first/README.md)
+and synthetic eleven-size native capture. Dismiss/reopen/restart/duplicate and
+rejection coverage remains accurately scoped to its source of proof.
+
+The temporary native-dialog overlap limitation is accepted for this personal
+printer. Conservative crash recovery may suppress an unseen popup and retain
+manual recovery after fresh verification. No queued API, delay workaround,
+notification change, upstream patch or profile writeback is introduced.
+October 15 nightly remains preferred; Alpha has no physical adoption.
+
+**Implementation stops after closeout.** The next activity is a fresh
+Founder-led review of the overall Helix–Orca goal. No further print, firmware/
+printer configuration change, profile writeback or new build is authorized.
+
 ## Issue #1 — native Helix calibration foundation
 
 `helix-plugin/orcacal/` is the accepted product baseline. Version `0.2.0`

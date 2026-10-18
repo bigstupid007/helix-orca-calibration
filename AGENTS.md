@@ -315,3 +315,120 @@ The physical relay, printer configuration, security/access boundaries and
 profile data must remain unchanged. No print, queue, heat, motion, homing,
 macros, profile writeback, deployment, release, Alpha physical testing or
 additional UX work is authorized. See `docs/ISSUE_10_ACCEPTANCE.md`.
+
+
+## Issue #12 miniature physical Temperature readiness
+
+The Founder instruction on 2026-10-16 (America/Chicago) and Issue #12 authorize
+an isolated first-physical-test readiness candidate, one independently reviewed
+unmerged PR, and a truthful readiness report. They authorize **no real print,
+heating, motion, homing, macro execution or other consequential printer action**.
+Separate explicit Founder review and physical-test authorization remain required.
+No merge, deployment or production enablement is authorized.
+
+The direct Founder correction on 2026-10-17 supersedes earlier AI constraints:
+exactly THREE native Orca Temperature bands **225/220/215°C bottom to top**;
+confirmed filament, normal nozzle **220°C**. Remove the hard 20-minute ceiling,
+combined-time qualification requirement and spool-label approval checkpoint.
+Print-time estimates are reported information, not duration gates. Preserve
+request freshness, job monitoring, cancellation and failure recovery; do not fail
+a healthy job merely because it exceeds the native estimate. Native Orca
+preparation/slicing/export in the isolated October 15 nightly remains allowed;
+no custom generator or hand-edited print G-code. Update the same Issue #12 /
+PR #13 and return it reviewed, unmerged, ready for Founder Review. Physical
+execution remains separately authorized. Alpha has no physical adoption.
+
+Preserve all accepted sources/evidence, original profile context, normal Orca,
+private payloads and the existing mock harness. New `temperature-print`
+derivatives may extend the accepted native shell and local original-context
+companion. The native plugin remains storage-only: explicit screen Start/cancel
+writes a correlated intent; request receipt never dispatches a print. The
+coordinator requires separate local authorization, exact reviewed configuration
+and physical identity, byte-verified qualified output, a durable one-shot
+intent and independent same-job status/history proof. Result selection remains
+locked for failed, cancelled, disconnected, stale or uncertain jobs. Return
+instructions remain NOT APPLIED; there is no profile writeback.
+
+All implemented transports default to actions disabled. This program must not
+activate the physical adapter, issue a live permit, upload/queue/start a file,
+install the derivative on the printer, invoke a macro, or change access/config.
+Read-only existing-target identity/status/config/history inspections are allowed
+for offline suitability evidence; retain raw target data privately. Native UI
+claims require the full pinned beta.9 eleven-size matrix with labeled synthetic
+job/authorization/clock inputs. Do not relabel fixture success as physical proof.
+See `docs/BUILD_PROGRAM_TEMPERATURE_PRINT.md` and
+`docs/TEMPERATURE_PRINT_READINESS.md` for the candidate state and remaining gates.
+
+
+## Issue #12 physical success and subsequent UX correction
+
+Founder separately authorized one controlled physical test of exact PR #13
+candidate `c1eee4374fb0286e1a3973d8e29107bfc64ee99f`, initiated only by the
+physical HelixScreen Start. It completed with real independent same-job proof,
+then returned the chosen 220°C to the original Orca context as NOT APPLIED.
+Preserve that baseline, generated product/rollback files and private operational
+evidence; the sanitized outcome is `docs/evidence/issue-12/physical-first/`.
+This success does not authorize another physical test.
+
+The subsequent Founder build instruction approves only two UX corrections in
+Issue #12 / PR #13: automatic native Temperature result presentation after
+verified owned success, respecting built-in modals/dismiss/reopen/recovery, and
+a compact 1×1 native home widget retaining icon, readable identity/status and
+tap-to-open. Verify exact documented beta.9 support first; no upstream patch or
+unsupported navigation API is authorized. The independently verified modal-API
+blocker is recorded in `docs/ISSUE_12_COMPLETION_UX_API_GATE.md`; do not substitute
+a blind-delay popup. Complete and validate the independent supported widget
+change without claiming the blocked automatic presentation is implemented.
+
+Keep accepted baseline plugin sources and deployed physical components unchanged;
+implement the compact widget only in the separate generated temperature-print
+derivative. Synthetic native capture remains network-none/read-only and must
+cover all eleven targets. Preserve committed result/receipt identity across
+late statuses, duplicate delivery, disconnection and recovery. Return remains
+NOT APPLIED. No new print, heat, motion, printer configuration, profile writeback,
+physical deployment, upstream change, merge or release is authorized. Reconcile
+documentation, the existing Issue/PR, independent review, Product Preflight and
+exact-head CI, with physical evidence separated from synthetic UX proof.
+
+## Issue #12 Founder-authorized immediate overlay test
+
+The later direct Founder instruction supersedes the previous modal-coordination
+blocker for this controlled personal-printer test. Implement automatic native
+Temperature presentation through documented beta.9 `helix.ui.overlay()` after
+existing independent exact-job success checks. Founder explicitly accepts the
+temporary risk of appearing over an existing native dialog. Do not use a fixed
+delay, change notification preferences or patch upstream. Keep the adapter
+isolated for Preston's forthcoming queued-overlay API. Preserve dismiss/manual
+reopen, at-most-once automatic attempts across duplicate events and recovery,
+original context/NOT APPLIED, result/print safeguards and validated 1×1 tile.
+
+The host defers storage writes; recover conservatively rather than resurrecting
+a potentially presented completion. Pending results remain manually reachable
+after fresh independent re-verification. Validate actual native presentation,
+page independence, duplicates, dismissal/restart, lifecycle locks and all eleven
+viewports; obtain fresh independent review, Product Preflight and exact-head CI.
+Preserve physical baseline/evidence and prior captures. No new physical print,
+deployment, firmware/configuration change, profile writeback or merge is approved.
+
+## Issue #12 Founder acceptance and closeout
+
+Founder accepted Issue #12 / PR #13 on 2026-10-18 as the completed physical
+Temperature calibration milestone at tested `f7562bf2bd1f747f9fbc966425dec33e196e22c7`.
+Founder confirms the final physical print, automatic chooser and successful
+original-Orca NOT APPLIED return. Readback verifies selected 220°C and the exact
+originating receipt/delivered status. The current instruction authorizes only
+documentation/evidence reconciliation, required exact-head validation, governed
+merge commit, clean detached main verification and Issue closure. It supersedes
+the earlier keep-unmerged gate for PR #13 only; preserve branch references.
+
+Preserve the installed 0.4.3-issue12-auto, working 1×1 saved widget, printer
+configuration, original profiles/context, all accepted communication artifacts,
+physical/synthetic evidence, rollback material and dirty canonical work. No
+new print, upload, heat, motion, state reset, firmware/configuration/security
+change, profile writeback, deployment or unrelated development is authorized.
+Record normal native print accounting truthfully; never restore settings just
+to make a pre-print snapshot identical. See `docs/ISSUE_12_ACCEPTANCE.md`.
+
+After governed closeout, **stop implementation**. The next activity is a fresh
+Founder-led review of the overall Helix–Orca product goal, not another build.
+Deferred work remains unapproved; do not launch a new feature or calibration.

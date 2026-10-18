@@ -1,0 +1,64 @@
+{
+  "schema": "helix-orca-temperature-gcode-inspection/v1",
+  "file": "temperature-miniature-210-200-step5-xy70-native-abi-12m00s.gcode",
+  "file_bytes": 482357,
+  "file_sha256": "b576aa0aeb2236927899d60ed5bcb3d126a4cc6ed90ce8920bf6ac2c9054b0d8",
+  "choices": [
+    210,
+    205,
+    200
+  ],
+  "estimated_duration_s": 720.0,
+  "within_first_test_limit": true,
+  "target_10_to_20_minutes": true,
+  "bands": [
+    {
+      "temperature_c": 210,
+      "min_z": 0.2,
+      "max_z": 6.92
+    },
+    {
+      "temperature_c": 205,
+      "min_z": 7.2,
+      "max_z": 13.92
+    },
+    {
+      "temperature_c": 200,
+      "min_z": 14.2,
+      "max_z": 20.92
+    }
+  ],
+  "motion_bounds": {
+    "X": [
+      131.866,
+      172.149
+    ],
+    "Y": [
+      137.432,
+      162.558
+    ],
+    "Z": [
+      0.2,
+      21.32
+    ]
+  },
+  "unresolved_commands": [
+    "EXCLUDE_OBJECT_DEFINE",
+    "EXCLUDE_OBJECT_END",
+    "EXCLUDE_OBJECT_START",
+    "PRINT_END",
+    "PRINT_START",
+    "SET_PRESSURE_ADVANCE",
+    "SET_VELOCITY_LIMIT"
+  ],
+  "start_arguments": [
+    {
+      "BED_TEMP": 60.0,
+      "EXTRUDER_TEMP": 210.0
+    }
+  ],
+  "bed_targets_c": [
+    60.0
+  ],
+  "physical_ready": false
+}

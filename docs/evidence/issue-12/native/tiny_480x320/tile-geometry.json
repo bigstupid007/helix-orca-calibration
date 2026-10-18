@@ -1,0 +1,88 @@
+{
+  "widgets": [
+    {
+      "content_h": 76,
+      "content_w": 82,
+      "flex_grow": 0,
+      "h": 76,
+      "hidden": false,
+      "name": "orcacal__tile",
+      "path": "orcacal__tile",
+      "req_h": "100%",
+      "req_w": "100%",
+      "scroll": {
+        "bottom": 0,
+        "left": 0,
+        "right": -17,
+        "top": 0
+      },
+      "scrollable": false,
+      "w": 82,
+      "x": 58,
+      "y": 4
+    },
+    {
+      "content_h": 18,
+      "content_w": 16,
+      "flex_grow": 0,
+      "h": 18,
+      "hidden": false,
+      "name": "orcacal__tile_icon",
+      "path": "orcacal__tile/0",
+      "req_h": "content",
+      "req_w": "content",
+      "scroll": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "scrollable": true,
+      "w": 16,
+      "x": 91,
+      "y": 4
+    },
+    {
+      "content_h": 30,
+      "content_w": 47,
+      "flex_grow": 0,
+      "h": 30,
+      "hidden": false,
+      "name": "orcacal__tile_identity",
+      "path": "orcacal__tile/1",
+      "req_h": "content",
+      "req_w": "content",
+      "scroll": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "scrollable": true,
+      "w": 47,
+      "x": 76,
+      "y": 28
+    },
+    {
+      "content_h": 15,
+      "content_w": 28,
+      "flex_grow": 0,
+      "h": 15,
+      "hidden": false,
+      "name": "orcacal__tile_status",
+      "path": "orcacal__tile/2",
+      "req_h": "content",
+      "req_w": "content",
+      "scroll": {
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "top": 0
+      },
+      "scrollable": true,
+      "w": 28,
+      "x": 85,
+      "y": 65
+    }
+  ]
+}

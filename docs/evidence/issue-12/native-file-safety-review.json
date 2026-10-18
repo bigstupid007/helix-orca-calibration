@@ -1,0 +1,36 @@
+{
+  "schema": "helix-orca-issue12-file-safety-review/v1",
+  "all_exported_commands_registered": true,
+  "object_definition_precedes_start": true,
+  "object_definition_line": 350,
+  "start_line": 353,
+  "layer_count": 75,
+  "purge_side": "front",
+  "purge_move_bounds": {
+    "X": [
+      120.0,
+      190.0
+    ],
+    "Y": [
+      126.5,
+      126.5
+    ],
+    "Z": [
+      0.8,
+      5.0
+    ]
+  },
+  "park_xy": [
+    150.0,
+    280.0
+  ],
+  "park_max_z": 71.32,
+  "max_exported_accel": 8000.0,
+  "printer_max_accel": 8000.0,
+  "requested_filament_range_basis": "Founder-confirmed filament and expressly approved 225/220/215 C test bands; not a new spool-label check",
+  "macro_dependencies_bound_to_unchanged_configuration": true,
+  "builtin_reference_commit": "ce7002bedf37e938bb483572949f3703ac6476cb",
+  "qualification_sha256": "4443a2a5feb421f93213e8764056b2cdf9d22f9d68cc8025f29328548999be7f",
+  "qualification_use": "Current Windows/mock proof only. No grant/permit. Any later physical test requires a fresh original request and separately authorized binding; never reuse synthetic completion.",
+  "physical_actions": 0
+}

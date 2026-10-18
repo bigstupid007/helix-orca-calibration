@@ -1,0 +1,63 @@
+{
+  "schema": "helix-orca-temperature-gcode-inspection/v1",
+  "file": "temperature-miniature-225-215-step5-uniform70-oct15.gcode",
+  "file_bytes": 484552,
+  "file_sha256": "83fd38e22aca7237c1b8c9fa8a8971657f72b47d344a06f42120c78d05503074",
+  "choices": [
+    225,
+    220,
+    215
+  ],
+  "estimated_duration_s": 720.0,
+  "estimate_basis": "native Orca normal-mode estimate; macro overhead not included",
+  "bands": [
+    {
+      "temperature_c": 225,
+      "min_z": 0.2,
+      "max_z": 6.92
+    },
+    {
+      "temperature_c": 220,
+      "min_z": 7.2,
+      "max_z": 13.92
+    },
+    {
+      "temperature_c": 215,
+      "min_z": 14.2,
+      "max_z": 20.92
+    }
+  ],
+  "motion_bounds": {
+    "X": [
+      131.866,
+      172.149
+    ],
+    "Y": [
+      137.432,
+      162.558
+    ],
+    "Z": [
+      0.2,
+      21.32
+    ]
+  },
+  "unresolved_commands": [
+    "EXCLUDE_OBJECT_DEFINE",
+    "EXCLUDE_OBJECT_END",
+    "EXCLUDE_OBJECT_START",
+    "PRINT_END",
+    "PRINT_START",
+    "SET_PRESSURE_ADVANCE",
+    "SET_VELOCITY_LIMIT"
+  ],
+  "start_arguments": [
+    {
+      "BED_TEMP": 60.0,
+      "EXTRUDER_TEMP": 225.0
+    }
+  ],
+  "bed_targets_c": [
+    60.0
+  ],
+  "physical_ready": false
+}

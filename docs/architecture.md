@@ -282,3 +282,114 @@ the preferred development and physical-integration baseline; Alpha with
 companion 0.5.1 is a qualified secondary target. PR #11 merge/closeout authority
 changes no runtime gate or architecture. Alpha physical integration and
 production adoption remain unauthorized. See [acceptance](ISSUE_10_ACCEPTANCE.md).
+
+
+## Issue #12 pre-physical readiness architecture — historical c1eee43
+
+The new `integration/temperature-print/` path and `temperature-print-*`
+generators are separate from accepted Issue #8 source. The Orca derivative
+uses local `print-readiness` artifacts, a separate wire namespace and exactly
+three choices. Its original saved/edited/effective target remains immutable;
+results carry the independently confirmed job/proof identity and return NOT
+APPLIED instructions. The native derivative reuses the accepted chooser/detail
+shell and storage permission, writing one-shot Start/cancel intents only from
+native UI callbacks. It never invokes a print RPC.
+
+The transport-independent coordinator journals before any dispatch, never
+retries an ambiguous start/cancel, and corroborates same-job print_stats with
+Moonraker history. Physical identity is a local MCU/host binding, distinct from
+the Orca saved-preset label. The future adapter pins both that identity and the
+reviewed configuration and defaults to actions disabled. No live orchestration,
+permit issuance, hardware activation or physical derivative installation occurs
+in this build. [Readiness authority](BUILD_PROGRAM_TEMPERATURE_PRINT.md) controls
+this increment; [the report](TEMPERATURE_PRINT_READINESS.md) owns current validation.
+The 2026-10-17 correction fixes choices to 225/220/215°C and treats the native
+estimate as information, with no print-length ceiling or combined-time input.
+The filament is confirmed at normal 220°C; no new label checkpoint exists.
+Request/command freshness limits remain independent of the estimate. A healthy
+correlated job is not failed merely for exceeding its native time estimate.
+
+Post-Start monitoring has no request-TTL or runner-duration cutoff. The 900-second
+Start window and original request/grant expiry still prohibit late dispatch;
+fresh machine/configuration/status and exact owned-job history govern an active
+job, including recovery, cancellation, completion and result return. A durable
+request-scoped `delivery.json` lifecycle marker is written before dispatch, so
+the originating companion cannot abandon a started or uncertain session merely
+because its original TTL elapsed. Only an expired unstarted or terminal slot
+may retire. Post-expiry results still require the retained exact identity and
+independently confirmed job/proof; they cannot retarget a newer request.
+
+Initial print_stats may precede metadata/history. Missing or previous metadata
+and an explicit 404 remain pending inside the original 30-second confirmation
+deadline, without ownership, cancellation, selection or redispatch. Contradictory
+proof, unexpected jobs, transport failures and deadline expiry remain locked.
+Deterministic preflight/authorization rejection consumes the tap and publishes
+failure; an ambiguous command publishes uncertainty. The readiness protocol and
+coordinator require original effective nozzle 220°C while preserving saved and
+edited values independently. Accepted communication source is unchanged.
+
+Current readiness proof binds the actual native Windows export to its original
+220°C context and uses real companion receipts with isolated synthetic native
+completion. Offline suitability resolves exported commands and unchanged macro
+sources from GET-only target data; it issues no live grant. Accepted Windows
+state is restored after qualification. See the readiness report for exact file
+identity and preservation; no physical deployment is implied.
+
+
+## Historical 7cc0b4d checkpoint — Issue #12 successful physical baseline and bounded UX follow-up
+
+The actual Founder-initiated `c1eee43` print completed with independent same-job
+history and returned 220°C NOT APPLIED; it is preserved separately from synthetic
+UI capture. The compact generated derivative requests a fresh 1×1 home widget,
+uses a small native tune icon, full identity and short lifecycle status, and
+keeps existing chooser/detail navigation. It does not mutate saved home layout.
+Committed waiting/returned results ignore later statuses and liveness changes;
+at the native UI boundary, an already-emitted exact acknowledgement confirms
+that immutable selection independently of a later printer job. The unchanged
+coordinator/relay still enforce their live correlation checks before emitting
+an ACK; this does not claim new end-to-end delivery after job replacement.
+Before selection, all completion/job/context guards remain.
+
+Automatic presentation over arbitrary pages is blocked by beta.9's missing
+modal-aware presentation contract. Plugin overlays can cover native modal
+backdrops; the documented API cannot observe or defer safely around them.
+No unsupported navigation, blind delay, upstream patch or physical deployment
+is introduced. See `docs/ISSUE_12_COMPLETION_UX_API_GATE.md`.
+
+## Issue #12 current immediate-overlay authority
+
+The later direct Founder instruction explicitly accepts temporary overlap with
+an existing native dialog for this controlled personal-printer test. The earlier
+beta.9 modal-lifecycle findings remain true but no longer block immediate
+`helix.ui.overlay()` use. An isolated presentation adapter now claims one attempt
+only after accepted exact-job success. Runtime arming plus a persisted claim
+suppresses duplicates/restart, including conservative manual recovery when a
+crash may have lost a deferred claim write. Dismissal retains selection and the
+normal tile → Temperature reopening path. Original live return/recovery gates,
+1×1 tile, context/NOT APPLIED and physical baseline remain unchanged. Renewed
+native synthetic proof is separate from real hardware success. Queued-overlay
+migration remains future work. Later separately authorized deployment and
+physical execution succeeded; no further deployment or physical action is
+authorized by closeout. Current semantics: `ISSUE_12_COMPLETION_UX_API_GATE.md`.
+
+The automatic component shares the exact Temperature layout/bindings/actions
+with distinct owned widget names. After its successful push, only tracked plugin
+preparation views retire; native pages/dialogs remain, and backing out cannot
+resurface an old manual chooser. The source-bound test includes buried manual
+Temperature under Print Status at every size and manual Temperature on top at
+800×480. No new navigation API or notification setting is used.
+
+## Issue #12 accepted physical outcome and stop boundary
+
+Founder accepted the actual final print, automatic native Temperature chooser
+and original-context 220°C / NOT APPLIED return on 2026-10-18. Independent job
+history, bound native result and original receipt/delivery agree. Installed
+f7562bf / 0.4.3-issue12-auto, owner-saved 1×1 tile and rollback material remain
+preserved. Closeout is documentation/evidence only; it does not change product
+or printer settings. Normal native thermal/spool/start-history accounting is
+retained. Hardware observations remain separate from synthetic coverage.
+See [acceptance](ISSUE_12_ACCEPTANCE.md) for exact scope and proof limits.
+
+After merge/main verification and Issue closure, stop implementation. A fresh
+Founder-led review of the overall product goal comes next; no successor build
+or further physical action is implied.
