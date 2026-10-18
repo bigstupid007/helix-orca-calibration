@@ -469,3 +469,19 @@ See [acceptance](ISSUE_12_ACCEPTANCE.md) for exact scope and proof limits.
 After merge/main verification and Issue closure, stop implementation. A fresh
 Founder-led review of the overall product goal comes next; no successor build
 or further physical action is implied.
+
+
+## V1 grouped findings (2026-10-18)
+
+Exact October 15 source verifies no stock CLI calibration selector or supported
+Python Calib_Params generator API. Temperature and Flow YOLO can be attempted
+through prepared stock inputs; native PA paths, Retraction writer state and MVS
+internal speed state require grouped engine reuse. Effective dynamic machine
+limits must not be dropped by a regex inventory: registration occurs in loops.
+`PresetBundle.full_config()` includes project bed type through full_fff_config;
+`full_config_keys/full_config_value` preserve its serialized enum and distinguish
+merged values from saved or edited profiles. Beta.9 Lua lacks wallclock/hash
+APIs, so the coordinator supplies timestamps/nonces and digest tokens.
+Source constraints, actual offline slices and unresolved qualification remain
+separate in [generation/parity](V1_GENERATION_PARITY.md) and
+[engine reuse](V1_ENGINE_REUSE.md).

@@ -393,3 +393,26 @@ See [acceptance](ISSUE_12_ACCEPTANCE.md) for exact scope and proof limits.
 After merge/main verification and Issue closure, stop implementation. A fresh
 Founder-led review of the overall product goal comes next; no successor build
 or further physical action is implied.
+
+
+## Issue #14 V1 candidate architecture
+
+The approved V1 redesign is an isolated derivative of the accepted native shell
+and self-contained October 15 Orca plugin. Native UI persists only correlated
+requests/intents/results; Orca captures saved/edited/effective snapshots through
+verified host APIs and performs bounded local artifact I/O. Neither plugin runs
+processes, slices, networks or writes profiles. The external local coordinator
+owns durable jobs, explicit generator configuration, stock subprocess execution,
+parity re-verification and original-context result/receipt correlation. It does
+not depend on the Spare testing worker. The current launcher has no physical
+action adapter; direct events/storage transport is candidate code, not a
+production deployment/security qualification.
+
+Stock CLI recipes and grouped native engine reuse are separate generator
+adapters, not separate product shells. Every generated job requires independent
+native-UI reference provenance and matching build/profile/parameter evidence.
+Slice success is not qualification. See [contracts](V1_CONTRACT.md),
+[runtime](V1_RUNTIME.md), [parity](V1_GENERATION_PARITY.md) and
+[native engine](V1_ENGINE_REUSE.md). Earlier accepted implementations/evidence
+remain historical baseline; this candidate changes none of their installed
+physical behavior or consumed physical authorizations.

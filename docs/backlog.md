@@ -1,5 +1,18 @@
 # Backlog
 
+## Active approved: Issue #14 integrated V1
+
+Founder launch on 2026-10-18 approves Temperature standard tower, Flow Ratio YOLO,
+Pressure Advance Pattern, Retraction tower and Max Volumetric Speed tower; both
+UX redesigns; verified preparation/slicing; mandatory independent native parity;
+and a product coordinator independent of agent test workers. This is one
+integrated program with bounded parallel writers and one combined review.
+[Program authority](BUILD_PROGRAM_V1.md) and [contracts](V1_CONTRACT.md) govern
+implementation. Unavailable/unqualified generators remain blocked.
+No new physical test, automatic Start/writeback, firmware/configuration change,
+public exposure, physical deployment or merge is approved. Prior physical and
+synthetic Temperature evidence, profiles and rollback remain preserved.
+
 ## Accepted: Issue #10 — official OrcaSlicer 2.5.0 Alpha qualification
 
 - [x] Verify isolated OSS identity, accepted Issue #8 / PR #9 baseline and no overlapping active work.

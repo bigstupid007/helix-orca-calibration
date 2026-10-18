@@ -1,5 +1,27 @@
 # Helix-Orca Calibration
 
+## Active: integrated V1 Build Program #14
+
+The Founder launched [V1 Build Program #14](https://github.com/bigstupid007/helix-orca-calibration/issues/14)
+on 2026-10-18. It approves five calibrations, a Helix-first workflow, supporting
+Orca companion, programmatic preparation, mandatory independent native-UI
+G-code parity and a coordinator without Codex test-worker dependencies.
+This supersedes the earlier stop-after-Temperature instruction for this program.
+The accepted physical Temperature installation and evidence below remain intact.
+
+V1 is **in development, not qualified or Founder-ready**. Stock Temperature and
+Flow YOLO recipes have produced offline slices; no V1 generator is qualified yet.
+PA Pattern, Retraction and Max Volumetric Speed need the grouped native-engine
+route. Native UI matrix and isolated October 15 Windows evidence are being
+collected. The direct local coordinator ships with physical actions disabled;
+its normalized job/completion/result path is currently proven with synthetic
+adapters, not new hardware tests. No physical deployment or merge is authorized.
+
+Start with [program scope](docs/BUILD_PROGRAM_V1.md), [shared contracts](docs/V1_CONTRACT.md),
+[generation/parity](docs/V1_GENERATION_PARITY.md), [grouped engine reuse](docs/V1_ENGINE_REUSE.md),
+and [V1 runtime operations](docs/V1_RUNTIME.md). One integrated PR will retain
+exact native/Windows/parity/review evidence and remaining blockers.
+
 ## Issue #12 — accepted physical Temperature calibration
 
 Founder accepted [Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12)
