@@ -1,0 +1,82 @@
+{
+  "contexts": [
+    {
+      "before": {
+        "overlays": [],
+        "panel": "home"
+      },
+      "page": "home",
+      "presented": {
+        "overlays": [
+          "orcacal__auto_temperature"
+        ],
+        "panel": "home"
+      }
+    },
+    {
+      "before": {
+        "overlays": [
+          "orcacal__wizard",
+          "orcacal__temperature",
+          "print_status_panel"
+        ],
+        "panel": "home"
+      },
+      "dismissed": {
+        "overlays": [
+          "print_status_panel"
+        ],
+        "panel": "home"
+      },
+      "page": "print-status",
+      "presented": {
+        "overlays": [
+          "print_status_panel",
+          "orcacal__auto_temperature"
+        ],
+        "panel": "home"
+      }
+    },
+    {
+      "before": {
+        "overlays": [],
+        "panel": "controls"
+      },
+      "dismissed": {
+        "overlays": [],
+        "panel": "controls"
+      },
+      "page": "controls",
+      "presented": {
+        "overlays": [
+          "orcacal__auto_temperature"
+        ],
+        "panel": "controls"
+      }
+    },
+    {
+      "before": {
+        "overlays": [
+          "orcacal__wizard",
+          "orcacal__temperature"
+        ],
+        "panel": "home"
+      },
+      "dismissed": {
+        "overlays": [],
+        "panel": "home"
+      },
+      "page": "manual",
+      "presented": {
+        "overlays": [
+          "orcacal__auto_temperature"
+        ],
+        "panel": "home"
+      }
+    }
+  ],
+  "dismiss_restart_manual_reopen": true,
+  "returned_restart_suppressed": true,
+  "simulated_lost_deferred_write_suppressed": true,
+  "terminal_and_unrelated_suppression": true
+}

@@ -416,7 +416,7 @@ terminal/uncertain recovery. The 54 focused safety tests pass independent review
 No native-mock observation is hardware proof.
 
 
-## Issue #12 actual success and completion-UX capability gate
+## Historical 7cc0b4d checkpoint — Issue #12 actual success and completion-UX capability gate
 
 The Founder reports the first physical three-band print completed and returned
 220°C NOT APPLIED. Read-only retained journal/history/native/companion proof
@@ -431,3 +431,25 @@ scope. No timer workaround is valid. The supported 1×1 widget can be built in
 the generated derivative; retained physical saved placement is not migrated.
 A pending selected result must remain immutable during disconnect/late status
 and exact receipt recovery; current follow-up exercises those adjacent cases.
+
+## Issue #12 current immediate-overlay authority
+
+The later direct Founder instruction explicitly accepts temporary overlap with
+an existing native dialog for this controlled personal-printer test. The earlier
+beta.9 modal-lifecycle findings remain true but no longer block immediate
+`helix.ui.overlay()` use. An isolated presentation adapter now claims one attempt
+only after accepted exact-job success. Runtime arming plus a persisted claim
+suppresses duplicates/restart, including conservative manual recovery when a
+crash may have lost a deferred claim write. Dismissal retains selection and the
+normal tile → Temperature reopening path. Original live return/recovery gates,
+1×1 tile, context/NOT APPLIED and physical baseline remain unchanged. Renewed
+native synthetic proof is separate from real hardware success. Queued-overlay
+migration remains future work; no upstream patch, deployment or physical action
+is authorized. Current semantics: `ISSUE_12_COMPLETION_UX_API_GATE.md`.
+
+The automatic component shares the exact Temperature layout/bindings/actions
+with distinct owned widget names. After its successful push, only tracked plugin
+preparation views retire; native pages/dialogs remain, and backing out cannot
+resurface an old manual chooser. The source-bound test includes buried manual
+Temperature under Print Status at every size and manual Temperature on top at
+800×480. No new navigation API or notification setting is used.

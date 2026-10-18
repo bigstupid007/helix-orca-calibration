@@ -26,6 +26,40 @@ local tile_status = helix.subject.string("tp_tile_status", "Ready")
 local session = nil
 local detail_handle = nil
 local wizard_handle = nil
+local cancel_handle = nil
+local function open_wizard()
+    local handle
+    handle=helix.ui.overlay("orcacal__wizard",{on_close=function()
+        if wizard_handle==handle then wizard_handle=nil end
+    end})
+    wizard_handle=handle
+end
+local function open_manual_temperature()
+    local handle
+    handle=helix.ui.overlay("orcacal__temperature",{on_close=function()
+        if detail_handle==handle then detail_handle=nil end
+    end})
+    detail_handle=handle
+end
+-- Override only this generated derivative's baseline open/select handlers.
+-- Always ask the host to open: it owns no-op and mid-close handle semantics.
+helix.ui.on("open",open_wizard)
+helix.ui.on("select",function(id)
+    local calibration=CALIBRATIONS[id]
+    if calibration then
+        if calibration.component=="orcacal__temperature" then open_manual_temperature()
+        else helix.ui.overlay(calibration.component) end
+    end
+end)
+local function retire_preparation_views()
+    local old_detail,old_wizard,old_cancel=detail_handle,wizard_handle,cancel_handle
+    detail_handle=nil;wizard_handle=nil;cancel_handle=nil
+    -- Queue after the automatic view's push. Only owned preparation overlays
+    -- retire; native Print Status and unrelated native dialogs are preserved.
+    if old_cancel then pcall(old_cancel.close) end
+    if old_detail then pcall(old_detail.close) end
+    if old_wizard then pcall(old_wizard.close) end
+end
 local choices = {225,220,215}
 local identity_keys = {"request_id","origin_id","context_sha256","file_sha256","file","file_bytes","printer"}
 local function finite(n) return type(n)=="number" and n==n and n>-math.huge and n<math.huge end
@@ -89,7 +123,7 @@ end
 local function persist()
     local ok = pcall(helix.storage.set,"print_session",session)
     if not ok then
-        session.state="uncertain"; render(); return false
+        completion_presentation.disarm(); session.state="uncertain"; render(); return false
     end
     return true
 end
@@ -100,7 +134,7 @@ local function clock()
     local timed_out=false
     local timeout=helix.timer.after(1000,function()
         timed_out=true
-        if session then session.state="uncertain"; session.recovery_required=true; persist(); render() end
+        if session then completion_presentation.disarm(); session.state="uncertain"; session.recovery_required=true; persist(); render() end
     end)
     local ok,response = pcall(helix.moonraker.call,"printer.objects.query",{objects={print_stats={"state","filename"}}})
     timeout:cancel(); query_busy=false
@@ -158,9 +192,9 @@ local function receive(_,data)
     for _,id in ipairs(tombstones) do if id==tombstone_id(r) then return end end
     session={request=r,lease=l,state="received",status_sequence=0,tombstones=tombstones}
     if not persist() then return end
+    completion_presentation.arm(session)
     show(r)
-    wizard_handle=helix.ui.overlay("orcacal__wizard",{on_close=function() wizard_handle=nil end})
-    detail_handle=helix.ui.overlay("orcacal__temperature",{on_close=function() detail_handle=nil end})
+    open_wizard();open_manual_temperature()
 end
 local function update(_,data)
     if not session or type(data)~="table" or data.schema~="helix-orca-temperature-print-status/v1"
@@ -170,13 +204,14 @@ local function update(_,data)
     -- immutable result while its originating receipt is pending or delivered.
     if session.state=="waiting" or session.state=="returned" then return end
     if data.state=="failed" or data.state=="cancelled" or data.state=="uncertain" then
+        completion_presentation.disarm()
         session.status_sequence=data.sequence; session.state=data.state
         session.recovery_required=false; session.proof=nil; persist(); render(); return
     end
     if query_busy then return end
     local t,state,name=clock()
     if not live(t) or not finite(data.eventtime) or data.eventtime>t or t-data.eventtime>5 then
-        session.state="uncertain"; persist(); render(); return
+        completion_presentation.disarm(); session.state="uncertain"; persist(); render(); return
     end
     if session.state=="failed" or session.state=="cancelled"
         or (session.state=="uncertain" and not session.recovery_required)
@@ -190,6 +225,7 @@ local function update(_,data)
         if not session.start_intent or state~="printing" or name~=session.request.file
             or not text(data.job_id,64) or (session.owned_job_id and session.owned_job_id~=data.job_id) then return end
         session.observed_running=true; session.owned_job_id=data.job_id
+        completion_presentation.arm(session)
     elseif data.state=="confirming" then
         if not session.start_intent or state~="complete" or name~=session.request.file then return end
     elseif data.state=="complete" then
@@ -206,7 +242,10 @@ local function update(_,data)
     elseif data.state=="received" or data.state=="returned" or data.state=="waiting" then return end
     if data.state=="ready" then session.estimated_duration_s=data.estimated_duration_s end
     session.status_sequence=data.sequence; session.state=data.state; session.recovery_required=false
-    persist(); render()
+    local present = data.state=="complete" and completion_presentation.claim(session)
+    if not persist() then return end
+    render()
+    if present and completion_presentation.open() then retire_preparation_views() end
 end
 local function intent(schema,t)
     local out={schema=schema,nonce=session.request.request_id..":"..string.format("%.0f",math.floor(t*1000000)),eventtime=t,
@@ -221,26 +260,30 @@ helix.ui.on("print_start",function()
     local t,state=clock()
     if not live(t) or t>=session.lease.issued_eventtime+900
         or (state~="standby" and state~="complete" and state~="cancelled") then
-        session.state="uncertain"; persist(); render(); return
+        completion_presentation.disarm(); session.state="uncertain"; persist(); render(); return
     end
     session.start_intent=intent("helix-orca-temperature-start/v1",t)
     session.state="starting"; persist(); render()
 end)
-local cancel_handle=nil
 local function commit_cancel()
     if not session or session.state~="printing" or session.cancel_intent then return end
     if query_busy then return end
     local t,state,name=clock()
     if not live(t) or state~="printing" or name~=session.request.file then
-        session.state="uncertain"; persist(); render(); return
+        completion_presentation.disarm(); session.state="uncertain"; persist(); render(); return
     end
+    completion_presentation.disarm()
     session.cancel_intent=intent("helix-orca-temperature-cancel/v1",t)
     session.state="cancelling"; persist(); render()
     if cancel_handle then cancel_handle.close(); cancel_handle=nil end
 end
 helix.ui.on("print_cancel",function()
     if not session or session.state~="printing" or session.cancel_intent or cancel_handle then return end
-    cancel_handle=helix.ui.overlay("orcacal__cancel_confirmation",{on_close=function() cancel_handle=nil end})
+    local handle
+    handle=helix.ui.overlay("orcacal__cancel_confirmation",{on_close=function()
+        if cancel_handle==handle then cancel_handle=nil end
+    end})
+    cancel_handle=handle
 end)
 helix.ui.on("confirm_cancel",commit_cancel)
 helix.ui.on("return_selection",function()
@@ -284,6 +327,7 @@ local ok,stored=pcall(helix.storage.get,"print_session")
 if ok and type(stored)=="table" and valid(stored.request) and type(stored.lease)=="table"
     and finite(stored.lease.issued_eventtime) and finite(stored.lease.expires_eventtime) then
     session=stored
+    local recovered_presentation=completion_presentation.recover(session)
     if stored.state=="failed" or stored.state=="cancelled" then
         session.proof=nil; session.recovery_required=false
     elseif (stored.state=="returned" or stored.state=="waiting") and valid_stored_result(stored.result,stored.request) then
@@ -292,6 +336,7 @@ if ok and type(stored)=="table" and valid(stored.request) and type(stored.lease)
     else
         session.state="recovering"; session.proof=nil; session.recovery_required=true
     end
+    if recovered_presentation then persist() end
     show(session.request)
 end
 -- Missing/disconnected data locks actions; expiry retires only unstarted requests.
@@ -304,5 +349,5 @@ helix.timer.every(1000,function()
     unexpected = unexpected or (session.state=="printing" and (name~=session.request.file
         or (state~="printing" and state~="complete")))
     unexpected = unexpected or ((session.state=="received" or session.state=="ready") and finite(t) and t>=session.lease.issued_eventtime+900)
-    if not live(t) or unexpected then session.state="uncertain"; session.recovery_required=true; persist(); render() end
+    if not live(t) or unexpected then completion_presentation.disarm(); session.state="uncertain"; session.recovery_required=true; persist(); render() end
 end)

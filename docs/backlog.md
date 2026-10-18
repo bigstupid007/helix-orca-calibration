@@ -268,7 +268,7 @@ separately authorized controlled physical calibration. That checkpoint claimed n
 preserved separately below.
 
 
-### Issue #12 current continuation: physical milestone complete, UX API gate
+## Historical 7cc0b4d checkpoint — Issue #12 current continuation: physical milestone complete, UX API gate
 
 The actual `c1eee43` three-band print and 220°C NOT APPLIED return succeeded.
 Preserve its real evidence and physical product; no repeat print or deployment
@@ -279,3 +279,18 @@ see `docs/ISSUE_12_COMPLETION_UX_API_GATE.md`. A separate host-support decision
 is required before implementing that part. Do not treat the compact candidate
 or synthetic capture as completion of both UX corrections. Existing deferred
 visual polish and unrelated dashboard work remain outside scope.
+
+## Issue #12 current completion UX candidate
+
+The Founder explicitly supersedes the prior modal blocker for this personal
+printer test, accepting temporary native-dialog overlap. The automatic chooser
+and retained 1×1 widget are implemented in the same unmerged PR #13; final proof
+and review status are recorded in [readiness](TEMPERATURE_PRINT_READINESS.md).
+The prior historical checkpoint above is superseded for this test only.
+
+Future work is migration of the isolated presentation adapter to Preston's
+queued-overlay API when available, with renewed qualification. Existing
+unrelated dashboard/chooser polish remains deferred. No deployment or another
+physical print is authorized. Precise current lifecycle/recovery limits belong
+in [the API record](ISSUE_12_COMPLETION_UX_API_GATE.md), and real physical success
+remains separately preserved.

@@ -1,4 +1,4 @@
-# Issue #12 — compact candidate engineering review and completion API gate
+# Issue #12 — automatic chooser and compact widget engineering review
 
 Authority is the current direct Founder instruction, application AGENTS.md and
 shared Development System main `4a42a944b344427c8f925241191595eb57c6949c`,
@@ -18,21 +18,40 @@ sanitized under `docs/evidence/issue-12/physical-first/`. No new physical action
 or deployment is part of this follow-up. The successful generated product and
 accepted rollback copies remain recoverable and untouched.
 
-## Independent API preflight: automatic chooser BLOCKED
+## Immediate-overlay authority and source preflight
 
-A fresh-context GPT-5.6 Sol / High reviewer independently checked pinned beta.9
-documentation and implementation. The public UI API has no modal lifetime/idle
-signal or modal-aware presentation queue. Native plugin overlays and modal
-backdrops share the active screen; a later overlay can cover the built-in
-completion dialog. A fixed delay cannot prove dismissal. The
-[API gate](ISSUE_12_COMPLETION_UX_API_GATE.md) contains primary-source evidence
-and a concrete proposed host contract, explicitly not an implemented API.
+The Founder explicitly supersedes the prior modal blocker for this personal test,
+accepting temporary overlap with an existing native dialog. The documented
+beta.9 overlay API supports immediate owned Temperature presentation over any
+page. No modal arbitration, timed workaround, preference change or upstream patch
+is introduced. The source findings still apply; their consequence is now an
+accepted test limitation. See the [API record](ISSUE_12_COMPLETION_UX_API_GATE.md).
 
-The user excludes upstream patches and unsupported navigation. Automatic
-presentation is therefore not implemented or claimed, including cross-page
-presentation, dismissal suppression or safe modal arbitration. That part needs
-a changed scope decision. This supported compact candidate does not complete
-both requested UX corrections.
+`presentation.lua` separates arming/claiming/opening from the unchanged exact-job
+completion gate. Fresh accepted receipt or same-job live printing arms; accepted
+complete clears the latch, binds request/origin/job/digest, and accepts storage
+before the immediate overlay call. Dismissal changes no session state. Any claim
+suppresses duplicate/new-digest attempts for the same session. Failed/cancelled/
+uncertain states disarm. The automatic view has a separate owned component identity generated from the
+same Temperature XML, renaming only owned widget names. This avoids beta.9's
+no-op for a manual Temperature view buried beneath Print Status; layout, subjects
+and event callbacks are unchanged.
+No failure automatically retries presentation. The derivative's manual open/select
+handlers are wrapped through supported `ui.on` replacement to retain owned
+handles. A successful unique automatic push precedes closes of only the tracked
+wizard/manual detail/cancel confirmation, so no stale chooser resurfaces later.
+Native pages/dialogs remain. Nil-first retirement and guarded close callbacks
+preserve handle safety across no-op/mid-close opens; open failure leaves the
+manual views intact. Independent semantic comparison finds only owned widget
+names changed in the automatic XML; all layout/subject/action/text semantics match.
+
+Every load is disarmed. Stored completion gains a recovery-suppressed claim and
+its normal unverified recovery snapshot is persisted together. Fresh exact live
+printing may rearm only an unclaimed recovered running session. A recovered
+already-complete job stays manual after fresh independent verification; this
+also handles loss of the host's deferred claim write. Since no synchronous flush
+exists, a crash can lose an unseen popup; at-most-once attempting is the honest
+contract. Existing live return/recovery gates and result/receipt behavior remain.
 
 ## Supported implementation and safety
 
@@ -64,19 +83,26 @@ create another selection, print dispatch or profile change.
 
 ## Candidate validation
 
-The full repository suite passes **243 tests**; the fresh independent reviewer
-reran all **54 affected tests**, passing without changing repository artifacts.
-Static harness, whitespace, accepted beta.4 and accepted Issue #8 evidence pass.
-The promoted final source-bound native capture passes all eleven targets with
-**99 frames, eleven geometry records and eleven storage snapshots**. Geometry
-proves containment/non-overlap, native taps prove normal navigation, and the
-lifecycle/receipt fixture invariants pass. The c1eee43 capture remains separately
-preserved byte-for-byte. Final exact-head CI belongs to PR #13.
+A fresh-context GPT-5.6 Sol / High independent reviewer found no material
+engineering finding and reran all **54 affected tests**, passing. The lead's
+full repository suite passes **243 tests**; static, whitespace and retained
+beta.4/Issue #8 evidence checks pass. The final source-bound native capture
+passes all eleven targets with **133 frames, eleven geometry records, eleven
+presentation records and eleven storage snapshots**. All report-bound files
+verify; no partial/failed trial is promoted.
 
-Independent supported-source review finds no remaining material code or scope
-finding. API review remains BLOCKED for automatic presentation; a green compact
-candidate does not satisfy that open Founder acceptance item. Final public
-artifact/visual/document review is recorded in Product Preflight.
+Every viewport proves actual native Home/Print Status/Controls automatic overlays,
+dismissal/restored native page, manual pending reopen, duplicate/restart/lost-write
+suppression, terminal/unrelated/unverified rejection and bound NOT APPLIED return.
+The 1×1 tile remains contained/readable and responds to native taps. The lost-write
+case restores a prior persisted synthetic pre-completion snapshot, re-verifies
+complete after restart, suppresses another popup and retains manual reachability.
+The preserved earlier 122-file 7cc0b4d and 100-file c1eee43 native captures are
+byte-identical to their committed originals. Actual physical proof is untouched.
+Final independent promoted-artifact/privacy/visual/document review and affected
+Product Preflight PASS with no material findings. The exact 167-file inventory,
+PNG dimensions/metadata and public privacy checks pass. PR #13 owns exact-head
+CI. No AI gate is Founder acceptance.
 
 The final native capture uses the pinned beta.9 binary, reused dependency image,
 Docker network-none isolation, read-only runtime/plugin mounts and private

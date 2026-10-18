@@ -389,3 +389,23 @@ NOT APPLIED. No new print, heat, motion, printer configuration, profile writebac
 physical deployment, upstream change, merge or release is authorized. Reconcile
 documentation, the existing Issue/PR, independent review, Product Preflight and
 exact-head CI, with physical evidence separated from synthetic UX proof.
+
+## Issue #12 Founder-authorized immediate overlay test
+
+The later direct Founder instruction supersedes the previous modal-coordination
+blocker for this controlled personal-printer test. Implement automatic native
+Temperature presentation through documented beta.9 `helix.ui.overlay()` after
+existing independent exact-job success checks. Founder explicitly accepts the
+temporary risk of appearing over an existing native dialog. Do not use a fixed
+delay, change notification preferences or patch upstream. Keep the adapter
+isolated for Preston's forthcoming queued-overlay API. Preserve dismiss/manual
+reopen, at-most-once automatic attempts across duplicate events and recovery,
+original context/NOT APPLIED, result/print safeguards and validated 1×1 tile.
+
+The host defers storage writes; recover conservatively rather than resurrecting
+a potentially presented completion. Pending results remain manually reachable
+after fresh independent re-verification. Validate actual native presentation,
+page independence, duplicates, dismissal/restart, lifecycle locks and all eleven
+viewports; obtain fresh independent review, Product Preflight and exact-head CI.
+Preserve physical baseline/evidence and prior captures. No new physical print,
+deployment, firmware/configuration change, profile writeback or merge is approved.

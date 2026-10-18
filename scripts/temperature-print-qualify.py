@@ -23,15 +23,18 @@ REQUEST.update(schema='helix-orca-temperature-print-session/v1',physical_calibra
                choices=[225,220,215],file='miniature-temperature-225-215.gcode',ttl_seconds=3600,
                file_bytes=200000,file_sha256='a'*64,context_sha256='b'*64)
 LEASE={'issued_eventtime':1000.0,'expires_eventtime':4600.0}
-ASSERTIONS=['compact-native-home-tile-fits-and-opens','committed-result-survives-late-status-and-restart','exact-receipt-after-printer-state-change-acknowledges-once','effective-220-context-required','post-start-expiry-does-not-end-owned-job','post-expiry-active-session-cannot-be-replaced','post-expiry-cancel-and-result-remain-guarded','accepted-shell-loads','receive-never-starts','picker-locked-before-success',
+ASSERTIONS=['buried-manual-temperature-cannot-hide-auto-overlay','automatic-return-uses-original-context-handler','automatic-overlay-home-print-status-controls','dismiss-and-duplicate-never-repeat','pending-manual-reopen-and-restart-suppression','returned-restart-never-presents','unrelated-unverified-failed-cancelled-uncertain-no-popup','compact-native-home-tile-fits-and-opens','committed-result-survives-late-status-and-restart','exact-receipt-after-printer-state-change-acknowledges-once','effective-220-context-required','post-start-expiry-does-not-end-owned-job','post-expiry-active-session-cannot-be-replaced','post-expiry-cancel-and-result-remain-guarded','accepted-shell-loads','receive-never-starts','picker-locked-before-success',
     'authorized-ready-needs-native-start','native-start-persists-once','rpc-ack-does-not-unlock',
     'matching-printing-keeps-picker-locked','restart-never-redispatches-and-recovers-verified-state','history-lag-stays-nonterminal','independent-success-enables-three-choices',
     'native-220-result-has-completion-proof','original-context-preserved','native-back-and-horizontal-fit','terminal-session-retires-with-replay-tombstone','waiting-result-survives-restart-and-exact-ack','cancel-confirmation-and-late-cancel-remain-guarded','cancelled-restart-allows-fresh-request-without-cleanup']
 SOURCES=['scripts/temperature-print-plugin.py','scripts/temperature-print-qualify.py',
-'integration/temperature-print/native.lua','integration/temperature-print/ui/orcacal__temperature.xml',
+'integration/temperature-print/native.lua','integration/temperature-print/presentation.lua','integration/temperature-print/ui/orcacal__temperature.xml',
 'integration/temperature-print/ui/orcacal__wizard.xml','integration/temperature-print/ui/orcacal__cancel_confirmation.xml',
 'integration/temperature-print/ui/orcacal__tile.xml','scripts/temperature-print-companion.py',
 'scripts/temperature-communication-qualify.py','scripts/temperature-communication-plugin.py','scripts/helix-beta9-qualify.py','scripts/helix_dev.py']
+def viewport_assertions(label):
+    return ASSERTIONS+(['manual-top-completion-retires-preparation-views'] if label=='medium_800x480' else [])
+
 def hashes():return {s:hashlib.sha256((ROOT/s).read_bytes()).hexdigest() for s in SOURCES}
 
 def fixture(directory):
@@ -73,18 +76,48 @@ local function fixture_status(state,n)
         authorized=true,estimated_duration_s=1501,job_id="000001",completion_sha256=string.rep("c",64)}
     for _,k in ipairs(identity_keys) do d[k]=session.request[k] end
     update("fixture",d)
+    return d
 end
 helix.ui.on("qualify_ready",function() fixture_status("ready",1) end)
 helix.ui.on("qualify_printing",function()
-    if session.request.request_id==string.rep("3",32) then fixture_eventtime=9000.25 else fixture_eventtime=5000.25 end
+    fixture_eventtime=math.max(fixture_eventtime,session.lease.expires_eventtime+400.25)
     fixture_state="printing"; fixture_filename=session.request.file; fixture_status("printing",2)
 end)
 helix.ui.on("qualify_confirming",function()
     fixture_state="complete"; fixture_status("confirming",3)
 end)
-helix.ui.on("qualify_complete",function()
+local function fixture_complete()
+    fixture_filename=session.request.file
     if session.cancel_intent then fixture_state="cancelled"; fixture_status("cancelled",9)
     else fixture_state="complete"; fixture_status("complete",4) end
+end
+helix.ui.on("qualify_complete",fixture_complete)
+local signal=helix.subject.int("qualify_signal",0)
+signal:observe(function()
+    local code=signal:get()%10
+    if code==1 then fixture_complete()
+    elseif code==2 then
+        local original_state,original_name=fixture_state,fixture_filename
+        fixture_state="complete";fixture_filename=session.request.file
+        local d={schema="helix-orca-temperature-print-status/v1",state="complete",
+            sequence=(session.status_sequence or 0)+1,eventtime=fixture_eventtime,job_id="000001"}
+        for _,k in ipairs(identity_keys) do d[k]=session.request[k] end
+        update("fixture",d) -- no independent completion proof
+        d.completion_sha256=string.rep("c",64);d.request_id=string.rep("f",32)
+        update("fixture",d) -- unrelated request
+        d.request_id=session.request.request_id;d.job_id="unrelated-job"
+        update("fixture",d) -- unrelated job
+        d.job_id="000001";fixture_filename="unrelated-file.gcode"
+        update("fixture",d) -- actual filename does not match
+        fixture_state,fixture_filename=original_state,original_name
+        if session.auto_presentation_claim or choice:get()~=0 then error("Unverified/unrelated completion presented") end
+    elseif code==3 then
+        fixture_state="complete";fixture_filename=session.request.file
+        local d=fixture_status("complete",100)
+        update("fixture",d);update("fixture",d)
+    elseif code==4 then fixture_state="error";fixture_status("failed",200)
+    elseif code==5 then fixture_status("uncertain",300)
+    end
 end)
 helix.ui.on("qualify_ack",function()
     local result=session.result
@@ -119,8 +152,8 @@ end)
 helix.ui.on("qualify_fresh",function()
     fixture_query_unavailable=false
     local fresh=helix.json.decode([==[REQUEST]==])
-    local newer=session and session.state=="cancelled"
-    fresh.request_id=string.rep(newer and "5" or "3",32); fresh.origin_id=string.rep(newer and "6" or "4",32)
+    local n=session.request.request_id==fixture_request.request_id and 3 or tonumber(session.request.request_id:sub(1,1),16)+2
+    fresh.request_id=string.rep(string.format("%x",n),32); fresh.origin_id=string.rep(string.format("%x",n+1),32)
     receive("fixture",{session=fresh,lease={issued_eventtime=fixture_eventtime,expires_eventtime=fixture_eventtime+3600}})
 end)
 '''.replace('REQUEST',request).replace('LEASE',lease)
@@ -136,7 +169,7 @@ end)
 def settings(path):
     q.seed_settings(path)
     s=json.loads((path/'settings-test.json').read_text())
-    s['plugins']['enabled']['orcacal']['version']='0.4.2-issue12-compact'
+    s['plugins']['enabled']['orcacal']['version']='0.4.3-issue12-auto'
     widgets=s['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']
     keep=[w for w in widgets if w['id']=='orcacal__tile' or not w['enabled']]
     for widget in keep:
@@ -147,6 +180,10 @@ def settings(path):
     a.json_write(path/'settings-test.json',s)
 
 def value(name,subject):return a.ctl(name,'get','orcacal__'+subject).get('value')
+def navigation(name):
+    state=a.ctl(name,'current')
+    return {key:state[key] for key in ('panel','overlays')}
+
 def require(ok,message):
     if not ok:raise ValueError(message)
 CONTROL_PATHS={}
@@ -174,15 +211,20 @@ def tap(name,widget,w,h):
 def trigger(name,action,w,h):
     q.back_to_home(name);tap(name,'orcacal__qualify-'+action,w,h);a.ctl(name,'wait_idle')
 def open_detail(name,w,h):
-    if not a.ctl(name,'current').get('overlays'):
+    if not navigation(name).get('overlays'):
         for widget,expected in [('orcacal__tile',['orcacal__wizard']),('orcacal__temperature_choice',['orcacal__wizard','orcacal__temperature'])]:
             tap(name,widget,w,h)
             deadline=time.monotonic()+2
             while time.monotonic()<deadline:
                 a.ctl(name,'wait_idle')
-                if a.ctl(name,'current').get('overlays')==expected:break
+                if navigation(name).get('overlays')==expected:break
                 time.sleep(.05)
             else:raise ValueError('Native input did not reach expected overlay')
+def signal(name,code):
+    previous=value(name,'qualify_signal')
+    a.ctl(name,'set','orcacal__qualify_signal',str((previous//10+1)*10+code))
+    a.ctl(name,'wait_idle')
+
 def read_storage(work, *, key=None, state=None, request_id=None):
     # Pinned beta.9 defers storage writes by 500 ms. Observe the actual file;
     # host scheduling/fsync may take longer. This never retries a native action.
@@ -223,7 +265,7 @@ def tile_proof(name,work,w,h):
     a.json_write(work/'tile-geometry.json',geometry)
     a._screenshot(name,work,'home-1x1.png')
     open_detail(name,w,h)
-    a._assert_overlay(a.ctl(name,'current'),['orcacal__wizard','orcacal__temperature'])
+    a._assert_overlay(navigation(name),['orcacal__wizard','orcacal__temperature'])
     q.back_to_home(name)
 
 def viewport(entry,output,plugins):
@@ -257,12 +299,37 @@ def viewport(entry,output,plugins):
         require(value(name,'tp_start_on')==0 and value(name,'tc_choice_on')==0,'Restart restored an unverified action')
         trigger(name,'printing',w,h);open_detail(name,w,h)
         require(value(name,'tp_cancel_on')==1 and read_storage(work)['start_intent']==intent,'Verified recovery lost cancellation or changed Start')
+        read_storage(work,state='printing')
+        crash_snapshot=(work/'config/plugin-data/orcacal.json').read_bytes()
         trigger(name,'confirming',w,h);open_detail(name,w,h)
         trigger(name,'fresh',w,h)
         stable_storage(work,lambda s:s['request']['request_id']==REQUEST['request_id'],'Expired active session was replaced')
         open_detail(name,w,h)
         require(value(name,'tc_choice_on')==0 and read_storage(work,state='confirming')['state']=='confirming','History lag became terminal or unlocked result')
-        trigger(name,'complete',w,h);open_detail(name,w,h)
+        q.back_to_home(name)
+        evidence={'contexts':[]}
+        before=navigation(name)
+        signal(name,2)
+        require(navigation(name)==before,'Invalid completion changed navigation')
+        signal(name,1)
+        a._assert_overlay(navigation(name),['orcacal__auto_temperature'])
+        claimed=read_storage(work,state='complete')['auto_presentation_claim']
+        require(claimed['reason']=='automatic-attempt' and claimed['job_id']=='000001'
+            and claimed['completion_sha256']=='c'*64,'Automatic claim lost completion binding')
+        evidence['contexts'].append({'page':'home','before':before,'presented':navigation(name)})
+        a._screenshot(name,work,'automatic-home.png')
+        a.ctl(name,'go_back');a.ctl(name,'wait_idle')
+        a._assert_overlay(navigation(name),[])
+        signal(name,3)
+        a._assert_overlay(navigation(name),[])
+        require(read_storage(work)['auto_presentation_claim']==claimed,'Duplicate changed presentation claim')
+        a._remove_container(name)
+        a.run(a._container_args(name,work,w,h,layout,dpi),capture=True);q.wait_ready(name)
+        a._assert_overlay(navigation(name),[])
+        signal(name,1)
+        a._assert_overlay(navigation(name),[])
+        open_detail(name,w,h)
+        evidence['dismiss_restart_manual_reopen']=True
         require(value(name,'tc_choice_on')==1 and value(name,'tp_cancel_on')==0,'Confirmed success did not unlock result')
         require(value(name,'tp_tile_status')=='Pick','Pending result tile status unavailable')
         a._assert_horizontal_fit(a.ctl(name,'geom','orcacal__temperature_content','8'),w)
@@ -275,7 +342,7 @@ def viewport(entry,output,plugins):
         a.json_write(work/'selection.json',s['result'])
         a._screenshot(name,work,'returning.png')
         a.ctl(name,'go_back');a.ctl(name,'wait_idle')
-        a._assert_overlay(a.ctl(name,'current'),['orcacal__wizard'])
+        a._assert_overlay(navigation(name),['orcacal__wizard'])
         a._assert_horizontal_fit(a.ctl(name,'geom','orcacal__chooser_content','8'),w)
         a._remove_container(name)
         a.run(a._container_args(name,work,w,h,layout,dpi),capture=True);q.wait_ready(name);open_detail(name,w,h)
@@ -293,7 +360,7 @@ def viewport(entry,output,plugins):
         trigger(name,'ready',w,h);open_detail(name,w,h);tap(name,'orcacal__print_start',w,h)
         trigger(name,'printing',w,h);open_detail(name,w,h);tap(name,'orcacal__print_cancel',w,h)
         a.ctl(name,'wait_idle')
-        a._assert_overlay(a.ctl(name,'current'),['orcacal__wizard','orcacal__temperature','orcacal__cancel_confirmation'])
+        a._assert_overlay(navigation(name),['orcacal__wizard','orcacal__temperature','orcacal__cancel_confirmation'])
         read_storage(work,state='printing')
         stable_storage(work,lambda s:'cancel_intent' not in s and s.get('state')=='printing','Opening confirmation cancelled the job')
         a.ctl(name,'scroll','orcacal__confirm_cancel');a._screenshot(name,work,'cancel-confirmation.png')
@@ -311,7 +378,76 @@ def viewport(entry,output,plugins):
         a.run(a._container_args(name,work,w,h,layout,dpi),capture=True);q.wait_ready(name)
         trigger(name,'fresh',w,h)
         require(read_storage(work,request_id='5'*32)['request']['request_id']=='5'*32,'Cancelled restart required manual cleanup')
-        return {'label':label,'viewport':f'{w}x{h}','dpi':dpi,'layout':layout,'result':'PASS','assertions':ASSERTIONS}
+        for page in ('print-status','controls')+(('manual',) if label=='medium_800x480' else ()):
+            trigger(name,'ready',w,h);open_detail(name,w,h);tap(name,'orcacal__print_start',w,h)
+            trigger(name,'printing',w,h)
+            if page=='print-status':
+                open_detail(name,w,h)
+                a._assert_overlay(navigation(name),['orcacal__wizard','orcacal__temperature'])
+                a.ctl(name,'demo','print-status')
+            elif page=='manual':open_detail(name,w,h)
+            else:
+                q.back_to_home(name);a.ctl(name,'navigate',page)
+            a.ctl(name,'wait_idle');before=navigation(name)
+            if page=='print-status':require(any('print_status' in str(x) for x in before.get('overlays',[])),'Actual Print Status not open')
+            elif page=='controls':require('controls' in str(before),'Actual Controls not open')
+            else:a._assert_overlay(before,['orcacal__wizard','orcacal__temperature'])
+            signal(name,2);require(navigation(name)==before,'Invalid completion changed native page')
+            signal(name,1)
+            after=navigation(name)
+            native_stack=[x for x in before.get('overlays',[]) if x not in ('orcacal__wizard','orcacal__temperature','orcacal__cancel_confirmation')]
+            require(after.get('overlays')==native_stack+['orcacal__auto_temperature'],'Automatic chooser missing or stale preparation view retained')
+            read_storage(work,state='complete')
+            a.ctl(name,'scroll','orcacal__auto_temperature_selector');a._screenshot(name,work,'automatic-'+page+'.png')
+            evidence['contexts'].append({'page':page,'before':before,'presented':after})
+            if page=='controls':
+                a.ctl(name,'set_value','orcacal__auto_temperature_selector','1')
+                tap(name,'orcacal__auto_return_selection',w,h)
+                require(read_storage(work,state='waiting')['result']['value']==220,'Automatic overlay return lost selection')
+            dismissed={'panel':before['panel'],'overlays':native_stack}
+            a.ctl(name,'go_back');a.ctl(name,'wait_idle');require(navigation(name)==dismissed,'Dismiss did not restore native page without stale preparation views')
+            evidence['contexts'][-1]['dismissed']=dismissed
+            signal(name,3);require(navigation(name)==dismissed,'Duplicate re-presented dismissed chooser')
+            q.back_to_home(name);a.ctl(name,'navigate','home')
+            a._assert_overlay(navigation(name),[])
+            open_detail(name,w,h)
+            if page!='controls':
+                a.ctl(name,'set_value','orcacal__temperature_selector','1');tap(name,'orcacal__return_selection',w,h)
+            selected_result=read_storage(work,state='waiting')['result']
+            require(selected_result['value']==220,'Manual pending selection changed')
+            trigger(name,'ack',w,h);read_storage(work,state='returned')
+            a._remove_container(name)
+            a.run(a._container_args(name,work,w,h,layout,dpi),capture=True);q.wait_ready(name)
+            a._assert_overlay(navigation(name),[]);signal(name,3)
+            a._assert_overlay(navigation(name),[])
+            require(read_storage(work)['result']==selected_result,'Returned restart changed result')
+            trigger(name,'fresh',w,h)
+        # Rejected terminal states never auto-present, even with a later completion.
+        for phase,code in (('failed',4),('uncertain',5)):
+            trigger(name,'ready',w,h);open_detail(name,w,h);tap(name,'orcacal__print_start',w,h)
+            trigger(name,'printing',w,h);q.back_to_home(name)
+            signal(name,code);read_storage(work,state=phase);signal(name,1)
+            a._assert_overlay(navigation(name),[])
+            terminal=read_storage(work,state=phase)
+            require('result' not in terminal and 'auto_presentation_claim' not in terminal,'Terminal print presented a result')
+            if phase=='failed':trigger(name,'fresh',w,h)
+        # Synthetic crash window: restore the last real persisted printing bytes,
+        # representing loss of the host's deferred completion/claim write.
+        a._remove_container(name)
+        (work/'config/plugin-data/orcacal.json').write_bytes(crash_snapshot)
+        a.run(a._container_args(name,work,w,h,layout,dpi),capture=True);q.wait_ready(name)
+        a._assert_overlay(navigation(name),[])
+        signal(name,1)
+        a._assert_overlay(navigation(name),[])
+        suppressed=read_storage(work,state='complete')
+        require(suppressed['auto_presentation_claim']['reason']=='recovery-suppressed','Lost claim was re-presented after restart')
+        open_detail(name,w,h)
+        require(value(name,'tc_choice_on')==1,'Crash recovery lost independently reverified manual picker')
+        evidence['simulated_lost_deferred_write_suppressed']=True
+        evidence['returned_restart_suppressed']=True
+        evidence['terminal_and_unrelated_suppression']=True
+        a.json_write(work/'presentation.json',evidence)
+        return {'label':label,'viewport':f'{w}x{h}','dpi':dpi,'layout':layout,'result':'PASS','assertions':viewport_assertions(label)}
     finally:
         logs=a.run(['docker','logs',name],capture=True,check=False)
         (work/'runtime.log').write_text(logs.stdout+logs.stderr)
@@ -337,7 +473,8 @@ def capture(output,only=None):
           'request':REQUEST,'lease':LEASE,'results':rows,
           'screenshots':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.rglob('*.png'))},
           'storage':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.glob('*/config/plugin-data/orcacal.json'))},
-          'tile_geometry':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.glob('*/tile-geometry.json'))}}
+          'tile_geometry':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.glob('*/tile-geometry.json'))},
+          'presentation':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.glob('*/presentation.json'))}}
         a.json_write(output/'report.json',report)
 
 def verify(root):
@@ -353,9 +490,9 @@ def verify(root):
     require([r['label'] for r in report['results']]==[r[0] for r in a.VIEWPORTS],'Complete eleven-target capture required')
     for row,entry in zip(report['results'],a.VIEWPORTS):
         label,w,h,layout,dpi=entry
-        require(row=={'label':label,'viewport':f'{w}x{h}','dpi':dpi,'layout':layout,'result':'PASS','assertions':ASSERTIONS},'Matrix assertions differ')
-    require(len(report['screenshots'])==99 and len(report['storage'])==11 and len(report['tile_geometry'])==11,'Incomplete frame/storage/geometry set')
-    for group in ('screenshots','storage','tile_geometry'):
+        require(row=={'label':label,'viewport':f'{w}x{h}','dpi':dpi,'layout':layout,'result':'PASS','assertions':viewport_assertions(label)},'Matrix assertions differ')
+    require(len(report['screenshots'])==133 and len(report['storage'])==11 and len(report['tile_geometry'])==11 and len(report['presentation'])==11,'Incomplete frame/storage/geometry set')
+    for group in ('screenshots','storage','tile_geometry','presentation'):
         for path,digest in report[group].items():
             require((root/path).resolve().is_relative_to(root.resolve()) and q.sha256(root/path)==digest,'Evidence hash mismatch')
     print('PASS: source-bound complete beta.9 print readiness matrix')

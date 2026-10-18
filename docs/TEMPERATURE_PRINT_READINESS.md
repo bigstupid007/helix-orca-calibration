@@ -13,14 +13,16 @@ originating receipt evidence verifies that milestone; see
 [the actual physical record](evidence/issue-12/physical-first/README.md).
 The tested physical product and its rollback files remain recoverable.
 
-The subsequent UX build has two distinct dispositions. The supported generated
-home widget requests **1×1**, with full identity, icon, live status and the same
-native tap-to-open navigation. **Automatic completion presentation remains
-BLOCKED**: exact beta.9 exposes no safe modal-aware presentation API. A fixed-delay
-popup could cover the built-in completion dialog and does not satisfy the
-Founder instruction. [Pinned API findings and the host-support proposal](ISSUE_12_COMPLETION_UX_API_GATE.md)
-record the required scope decision. No unsupported API or upstream patch is used.
-This is not a claim that both requested corrections are complete.
+The subsequent Founder instruction authorizes **automatic native Temperature
+presentation** using the existing beta.9 overlay API, explicitly accepting
+temporary overlap with a native dialog for this personal-printer test. The earlier
+modal blocker is superseded by that risk decision, not by a host API change.
+The new isolated adapter opens immediately only after the unchanged independent
+exact-job completion checks. Dismiss/manual reopen, duplicate/restart suppression
+and the retained **1×1** home tile pass renewed source-bound qualification.
+[API semantics and accepted limitation](ISSUE_12_COMPLETION_UX_API_GATE.md) include
+the conservative crash-recovery/manual fallback. No delay, notification preference
+change or upstream patch is used. No candidate is deployed to the printer.
 
 ## Preserved physical baseline and qualified file
 
@@ -72,16 +74,28 @@ retries, not repeated selections or profile writes.
 
 ## Validation and limits
 
-The complete source-bound synthetic beta.9 capture passes at all eleven targets:
-99 frames, eleven geometry records and eleven storage snapshots. Every tile
-contains its icon, full identity and status without clipping/overlap, and native
-taps reach the chooser and Temperature detail. Restart, locked/complete/cancelled
-states and pending-result disconnect/late-status/exact-receipt cases pass.
-The full repository suite passes 243 tests; a fresh independent reviewer reran
-all 54 affected tests and reviewed the supported code, screenshots and documents.
-Accepted beta.4/Issue #8 evidence, static harness and whitespace checks pass.
-PR #13 owns the final exact-head CI status. These supported-change checks do not
-close the automatic-chooser acceptance item.
+The full repository suite passes **243 tests**; the fresh independent reviewer
+reran all **54 affected tests**, passing. Static/whitespace and accepted beta.4/
+Issue #8 evidence checks pass. The promoted complete source-bound beta.9 matrix
+passes **all eleven supported viewports** with **133 frames, eleven geometry
+records, eleven presentation records and eleven storage snapshots**. Every size
+proves actual overlays from Home/native Print Status/Controls, dismissal and
+underlying-page restoration, native manual reopening, duplicate/restart/lost-write
+suppression, terminal/unrelated/unverified rejection and exact result/receipt.
+The retained 1×1 tile fits without clipping/overlap and native taps still work.
+
+Independent engineering and final promoted-artifact/privacy/visual/document
+Product Preflight review PASS with no material findings. PR #13 owns exact-head
+CI. Prior 7cc0b4d (122 files) and c1eee43 (100 files) native captures
+remain byte-preserved and separate from actual physical proof.
+
+The actual popup is attempted at most once per session completion. A request/job/
+proof claim and runtime latch prevent dismissal/duplicate/restart repetition.
+Beta.9 disk writes are deferred; a crash can conservatively suppress a popup
+before it was seen. A recovered already-complete job stays manual after fresh
+independent verification. Existing disconnection, filename and live return gates
+remain unchanged. No exactly-once visual delivery across process crashes or
+modal arbitration is claimed. Result handling remains exactly-once, NOT APPLIED.
 
 All native authorization/job/clock/completion inputs in the new UI validation
 are synthetic, with Docker network disabled and runtime/plugin mounts read-only.

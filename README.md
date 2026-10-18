@@ -1,6 +1,6 @@
 # Helix-Orca Calibration
 
-## Issue #12 — physical success and compact home widget
+## Issue #12 — physical success, automatic chooser and compact widget
 
 [Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12) /
 [PR #13](https://github.com/bigstupid007/helix-orca-calibration/pull/13) remain
@@ -17,12 +17,18 @@ results remain immutable across late status events, disconnection and exact
 receipt recovery. Accepted plugins, normal profiles and the successfully tested
 physical baseline are preserved; the UX candidate is not deployed.
 
-**Automatic completion presentation is blocked** by beta.9's documented API:
-a plugin cannot observe native modal lifetime or defer its overlay safely behind
-a built-in completion dialog. No blind-delay or unsupported navigation workaround
-is included. [The API gate and concrete host-support proposal](docs/ISSUE_12_COMPLETION_UX_API_GATE.md)
-record what requires a changed scope decision. The compact widget is validated
-separately; it does not constitute completion of both requested UX corrections.
+The Founder now explicitly authorizes immediate automatic Temperature presentation
+through beta.9 `helix.ui.overlay()`, accepting temporary overlap with an existing
+native dialog for this personal-printer test. The chooser opens only after the
+existing independent exact-job checks pass. Dismissal preserves the pending
+selection; Home → Orca Calibration → Temperature manually reopens it. A runtime
+latch and completion-bound claim suppress repeat automatic attempts, including
+restart. Ambiguous recovery stays manual until fresh completion verification;
+existing live return/recovery safeguards remain unchanged. No timer workaround,
+notification preference change or upstream patch is used. The small isolated
+[presentation adapter and API record](docs/ISSUE_12_COMPLETION_UX_API_GATE.md)
+allow future migration to Preston's queued-overlay API. Final renewed native
+capture/review is recorded in the readiness report.
 
 [Current candidate and validation](docs/TEMPERATURE_PRINT_READINESS.md) separates
 actual physical evidence from synthetic native UX proof. No new print, heating,

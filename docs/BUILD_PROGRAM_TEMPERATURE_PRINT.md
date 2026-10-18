@@ -30,7 +30,7 @@ product trees are retained with a hash manifest; `c1eee43` remains recoverable.
 
 The Founder requests two UX changes. After the existing independent same-job
 completion checks succeed, the native Temperature result chooser should open
-over Print Status, Home or another native page, respect built-in modal priority,
+over Print Status, Home or another native page,
 allow dismissal without losing the result, offer easy reopening and avoid
 repeated presentation for the same dismissed completion, including recovery.
 Unrelated, failed, cancelled, uncertain or unverified jobs must not activate it.
@@ -44,30 +44,41 @@ No upstream patch or unsupported navigation API is authorized.
 
 ## Technical disposition
 
-The independent API review proves a hard blocker for automatic presentation.
-Beta.9 offers plugin overlays but no native-modal visibility/close signal or
-modal-aware deferred-presentation contract. A plugin overlay can cover a
-built-in completion dialog. Fixed delays cannot satisfy that requirement.
-[The API gate](ISSUE_12_COMPLETION_UX_API_GATE.md) records pinned primary source
-and a concrete host-support proposal; no automatic-popup workaround is shipped.
-This part remains BLOCKED under the current no-upstream-change constraint.
+The earlier modal-coordination blocker was correct under the prior constraint.
+The subsequent direct Founder instruction **supersedes it for this controlled
+personal-printer test**: use documented beta.9 `helix.ui.overlay()` immediately
+and accept temporary overlap with an existing native dialog. No fixed-delay
+workaround, notification preference change or upstream patch is authorized.
+[The API/presentation record](ISSUE_12_COMPLETION_UX_API_GATE.md) retains the source
+findings and exact accepted limitation. Future queued-overlay support remains
+an adapter replacement, not an invented API in this implementation.
 
-Complete the independent supported compact-widget candidate in the generated
-`temperature-print` derivative only. Preserve the accepted beta.4/Issue #8
-sources and the physical installation. The fresh native test layout requests
-1×1; it does not migrate a retained physical saved placement. Mirror short
-lifecycle status and retain the existing tile → chooser → Temperature navigation.
-Protect an already committed waiting/returned result from late statuses and
-clock/disconnect changes; native acceptance of an already-emitted exact ACK acknowledges the committed
-result rather than the printer's later live job. Coordinator/relay live checks
-remain unchanged; broader replacement-job delivery is not claimed. Idempotent artifact retries are still allowed;
-no second selection or dispatch is introduced.
+Keep presentation separate from exact completion verification. An accepted fresh
+same-job lifecycle arms one automatic attempt. Validated completion records its
+request/job/proof claim before storage acceptance and opens Temperature directly
+above the current native page. Closing only dismisses the view. Duplicate events,
+manual reopening, waiting/returned state and restart never authorize another
+attempt. The normal Home → tile → Temperature path retains the pending selection.
+Beta.9 defers disk writes; conservative boot disarming prevents duplicate
+presentation if the last claim write was lost. A restarted session can rearm only
+after fresh matching live printing; a completion recovered without that edge
+stays manual after fresh verification. This is at-most-once automatic attempting,
+not a promise that a crash cannot lose an unseen popup. Result handling remains
+exactly-once and NOT APPLIED, with all existing live/recovery checks unchanged.
 
-Run repository checks, the full pinned native matrix, fresh independent review,
-affected-surface Product Preflight and exact-head CI. Preserve earlier evidence
-before promoting a complete passing capture. Do not describe a partial candidate
-as implementing both UX corrections or ask the Founder to accept unsupported
-modal behavior.
+Retain the validated generated 1×1 widget, accepted beta.4/Issue #8 sources and
+physical c1eee43 installation. No saved home placement is migrated. Preserve
+committed waiting/returned result immutability and exact originating receipt.
+The coordinator, relay and companion remain unchanged; no broader replacement-job
+delivery is claimed. Idempotent artifact retries cannot create a second selection
+or dispatch.
+
+Validate actual automatic overlays from Home, native Print Status and Controls;
+dismiss/reopen, restart/lost deferred writes, duplicates, failed/cancelled/uncertain
+and unrelated/unverified completion, result return and all eleven viewports.
+Run relevant repository checks, fresh independent review, affected-surface Product
+Preflight and exact-head CI. Archive prior capture bytes before complete passing
+promotion. Preserve real physical success separately from all synthetic proof.
 
 ## Consequence and preservation boundary
 

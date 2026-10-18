@@ -145,9 +145,29 @@ not change coordinator/relay live checks before ACK emission, and does not
 claim new end-to-end delivery after a replacement job. Wrong/duplicate receipts
 and late failure/cancel/uncertain events are covered in isolated native tests.
 
-The requested automatic completion chooser remains blocked under the current
-no-upstream-change constraint: documented beta.9 APIs offer no modal-aware
-presentation queue or modal lifetime signal, and a plugin overlay can cover the
-built-in completion dialog. No blind-delay or unsupported navigation workaround
-is included. See [the API gate](../../docs/ISSUE_12_COMPLETION_UX_API_GATE.md).
-The current build performs no new physical action, deployment or writeback.
+The subsequent Founder instruction authorizes immediate automatic Temperature
+presentation through beta.9 `helix.ui.overlay()`, accepting temporary native-dialog
+overlap for this test. `presentation.lua` isolates the API adapter, runtime arming
+and request/job/proof claim. Only accepted independent exact-job success can
+attempt presentation. Dismissal leaves pending selection; native Home → tile →
+Temperature reopens it. Duplicate events and restart cannot repeat an automatic
+attempt. The host defers writes, so boot recovery conservatively suppresses an
+ambiguous unseen popup rather than risk repetition. A fresh live printing edge
+can rearm a recovered unclaimed running session. Existing completion, live return
+and fail-closed recovery checks remain unchanged; no broader later-job return is
+claimed. See `docs/ISSUE_12_COMPLETION_UX_API_GATE.md` for exact semantics and the
+accepted modal risk. No delay, preference change, upstream patch, deployment or
+physical action is included.
+
+The automatic view uses a distinct owned component generated from the same
+Temperature XML with only widget names renamed. This prevents beta.9's
+duplicate-component no-op from hiding completion behind a buried manual
+Temperature view. No visual layout, subject binding or callback is changed.
+The native test deliberately keeps manual Temperature beneath Print Status
+and proves the automatic result appears above it; direct auto-view Return
+selection is tested through the original handler as well.
+
+After the automatic push, only tracked plugin preparation overlays retire.
+Native pages and unrelated dialogs remain, so dismissal cannot expose a stale
+manual chooser underneath Print Status. Manual reopening uses the same accepted
+navigation and never clears the completion claim.
