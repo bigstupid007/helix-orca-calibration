@@ -212,10 +212,9 @@ Parity reports now explicitly measure complete heater streams, machine-limit
 streams, M73 estimate streams, motion/extrusion streams, actual model extrusion,
 printed XY bounds and model-move counts separately. These observations explain
 which differences remain. They never waive any executable difference. Native
-Klipper profiles whose inherited PRINT_START/PRINT_END macros hide heater waits
-or shutdown currently fail the visible-wait/shutdown invariants until those exact
-macro semantics are independently qualified; preserving the inherited macro
-text does not prove its executed behavior.
+The reviewed Klipper variant compares the exact accepted macro ABI below;
+macro internals remain explicitly unobserved. An unsupported macro ABI still
+blocks, and identical invocation text does not prove physical macro execution.
 
 Effective-only/project options absent from all three preset-local key maps are
 also explicitly carried in the job's machine DynamicPrintConfig. The stock CLI
@@ -229,3 +228,45 @@ the supported capture route. Exact October 15 source
 `PresetBundle::full_config` dispatches `full_fff_config` at line 5489; that
 function explicitly applies `project_config`, including `curr_bed_type`.
 No app-settings fallback or guessed bed default is required or permitted.
+
+
+## Bounded Klipper Temperature invocation semantics
+
+The lead explicitly approved an engineering refinement of the initial visible
+M109/shutdown rule. Exact October 15 `GCodeWriter::set_temperature` emits M104 S
+for both Klipper and Marlin. The retained accepted Issue12 Windows qualification
+and completed Temperature milestone document the target macro ABI:
+`PRINT_START BED_TEMP=… EXTRUDER_TEMP=…`, then `PRINT_END` after deposition.
+This is a source/evidence-bound command-comparison policy, not new hardware
+qualification or permission to execute either macro.
+
+For Klipper Temperature, the immutable effective start hook must contain exactly
+one `PRINT_START BED_TEMP=[bed_temperature_initial_layer_single]
+EXTRUDER_TEMP=[nozzle_temperature_initial_layer]` invocation and the end hook
+exactly one `PRINT_END`. The actual G-code must invoke them once, on the correct
+sides of all model deposition; arguments must equal the original effective
+selected-plate initial bed temperature and requested starting nozzle temperature.
+All plate temperature option names come from native PrintConfig. Subsequent bed
+commands must match the original normal/initial plate values. The explicit
+coordinate and extrusion modes must match immutable effective inputs. Every
+per-layer nozzle command and actual deposition temperature must match its
+calibration section; a later corrected command cannot excuse an intervening
+wrong target. The complete executable stream, including every start/end command,
+macro argument, limit and mode command, still has to match the independently
+prepared native reference exactly.
+
+Reports bind effective start/end hook and declared machine-limit digests and
+record the exact start/end invocations, mode and target values. They explicitly
+state `macro_internals: unobserved` and `physical_readiness: false`. A corrected
+in-memory macro template used by the earlier accepted physical preparation is
+not silently substituted for a different original profile hook. Unsupported
+original ABI, missing effective information, stale inputs or actual native
+mismatch still block. Real printer configuration and accepted behavior remain
+unchanged. Independent candidate review must assess this comparison policy.
+
+Synthetic tests verify exact accepted invocations, wrong macro arguments,
+unsupported original ABI, duplicate/misplaced end, wrong extrusion mode, wrong
+bed commands even when both files share them, and M73-only differences. M73
+estimate differences are measured separately and still do not pass the current
+strict executable gate. These tests do not qualify any actual Windows or
+physical macro execution.

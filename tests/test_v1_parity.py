@@ -89,6 +89,63 @@ class NativeParity(unittest.TestCase):
         self.candidate.write_text(self.candidate.read_text().replace('M104 S0', 'SAVE_CONFIG'))
         self.assertFalse(self.evaluate()['qualified'])
 
+    def klipper_pair(self):
+        self.inputs['effective'] = {'gcode_flavor': 'klipper', 'use_relative_e_distances': '1',
+                                   'machine_start_gcode': 'PRINT_START BED_TEMP=[bed_temperature_initial_layer_single] EXTRUDER_TEMP=[nozzle_temperature_initial_layer]',
+                                   'machine_end_gcode': 'PRINT_END', 'curr_bed_type': 'High Temp Plate',
+                                   'hot_plate_temp_initial_layer': '60', 'hot_plate_temp': '60',
+                                   'printable_area': '0x0,300x0,300x300,0x300', 'printable_height': '290'}
+        text = temperature_gcode().replace('M190 S60\n', '').replace('M109 S230\n', 'PRINT_START BED_TEMP=60 EXTRUDER_TEMP=230\n')
+        text = text.replace('M104 S0\nM140 S0\n', 'PRINT_END\n')
+        self.candidate.write_text(text)
+        self.native.write_text(text)
+        self.manifest.update(inputs_sha256=parity.digest(self.inputs), artifact=parity.file_record(self.native))
+
+    def test_exact_accepted_klipper_macro_invocations_compare_without_physical_claim(self):
+        self.klipper_pair()
+        report = self.evaluate()
+        self.assertTrue(report['qualified'], report['reason'])
+        semantics = report['candidate_invariants']['macro_semantics']
+        self.assertFalse(semantics['physical_readiness'])
+        self.assertIn('unobserved', semantics['macro_internals'])
+        self.assertEqual(semantics['start'], 'PRINT_START BED_TEMP=60 EXTRUDER_TEMP=230')
+
+    def test_changed_klipper_macro_arguments_or_effective_abi_block(self):
+        self.klipper_pair()
+        self.candidate.write_text(self.candidate.read_text().replace('EXTRUDER_TEMP=230', 'EXTRUDER_TEMP=235'))
+        self.assertFalse(self.evaluate()['qualified'])
+        self.klipper_pair()
+        self.inputs['effective']['machine_start_gcode'] = 'PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]'
+        self.manifest['inputs_sha256'] = parity.digest(self.inputs)
+        self.assertIn('accepted macro ABI', self.evaluate()['reason'])
+
+    def test_same_bad_bed_command_in_both_klipper_files_still_blocks_invariant(self):
+        self.klipper_pair()
+        for path in (self.candidate, self.native):
+            path.write_text(path.read_text().replace('M104 S225', 'M140 S35\nM104 S225', 1))
+        self.manifest['artifact'] = parity.file_record(self.native)
+        self.assertIn('plate temperatures', self.evaluate()['reason'])
+
+    def test_misplaced_end_or_wrong_extrusion_mode_blocks_klipper(self):
+        self.klipper_pair()
+        for path in (self.candidate, self.native):
+            path.write_text('PRINT_END\n' + path.read_text().replace('PRINT_END\n', ''))
+        self.manifest['artifact'] = parity.file_record(self.native)
+        self.assertFalse(self.evaluate()['qualified'])
+        self.klipper_pair()
+        self.inputs['effective']['use_relative_e_distances'] = '0'
+        self.manifest['inputs_sha256'] = parity.digest(self.inputs)
+        self.assertIn('mode', self.evaluate()['reason'])
+
+    def test_m73_difference_is_measured_but_still_not_waived(self):
+        self.candidate.write_text('M73 P0 R36\n' + self.candidate.read_text())
+        self.native.write_text('M73 P0 R37\n' + self.native.read_text())
+        self.manifest['artifact'] = parity.file_record(self.native)
+        report = self.evaluate()
+        self.assertFalse(report['qualified'])
+        self.assertFalse(report['observations']['progress_estimates_equal'])
+        self.assertTrue(report['observations']['motion_extrusion_equal'])
+
     def test_native_manifest_requires_independent_full_native_context(self):
         context = {'schema': 'helix-orca-v1-context/v1', 'origin_id': '1' * 32,
                    'runtime': self.inputs['runtime'], 'nozzle_mm': .4,

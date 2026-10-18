@@ -114,6 +114,88 @@ def _f32(value):
     return struct.unpack('f', struct.pack('f', value))[0]
 
 
+_BED_FIELDS = {'Cool Plate': 'cool_plate_temp', 'Engineering Plate': 'eng_plate_temp',
+               'High Temp Plate': 'hot_plate_temp', 'Textured PEI Plate': 'textured_plate_temp',
+               'Textured Cool Plate': 'textured_cool_plate_temp', 'Supertack Plate': 'supertack_plate_temp'}
+
+
+def _native_unescape(value):
+    """Native ConfigOptionString uses only backslash, quote, CR and LF escapes."""
+    if not isinstance(value, str):
+        raise ValueError('immutable effective hook is unavailable')
+    escaped = {'\\': '\\', '"': '"', 'r': '\r', 'n': '\n'}
+    def unescape(match):
+        if match[1] not in escaped:
+            raise ValueError('unsupported native hook escape')
+        return escaped[match[1]]
+    return re.sub(r'\\(.)', unescape, value)
+
+
+def _klipper_temperature_semantics(text, inputs, data):
+    """Exact invocation parity does not claim execution of macro internals.
+
+    PRINT_START BED_TEMP/EXTRUDER_TEMP and PRINT_END are the accepted target
+    ABI documented by Issue12. The complete native stream is still compared
+    separately. No arbitrary macro name or invocation is substituted here.
+    """
+    effective = inputs.get('effective', {})
+    start_hook = executable(_native_unescape(effective.get('machine_start_gcode')))
+    end_hook = executable(_native_unescape(effective.get('machine_end_gcode')))
+    start_template = 'PRINT_START BED_TEMP=[bed_temperature_initial_layer_single] EXTRUDER_TEMP=[nozzle_temperature_initial_layer]'
+    if [line for line in start_hook if line.split()[0] == 'PRINT_START'] != [start_template]:
+        raise ValueError('effective PRINT_START hook differs from the retained accepted macro ABI')
+    if [line for line in end_hook if line.split()[0] == 'PRINT_END'] != ['PRINT_END']:
+        raise ValueError('effective PRINT_END hook differs from the retained accepted macro ABI')
+    bed_field = _BED_FIELDS.get(effective.get('curr_bed_type'))
+    if bed_field is None:
+        raise ValueError('effective Klipper bed type is unavailable')
+    try:
+        initial_bed = float(effective[bed_field + '_initial_layer'])
+        normal_bed = float(effective[bed_field])
+    except (KeyError, ValueError, TypeError):
+        raise ValueError('effective single-filament bed temperatures are unavailable')
+    if not all(math.isfinite(v) and 0 < v <= 150 for v in (initial_bed, normal_bed)):
+        raise ValueError('effective bed temperature is outside the bounded macro comparison')
+    commands = [(index, raw.split(';', 1)[0].strip()) for index, raw in enumerate(text.splitlines(), 1)
+                if raw.split(';', 1)[0].strip()]
+    starts = [(line, code) for line, code in commands if code.split()[0] == 'PRINT_START']
+    ends = [(line, code) for line, code in commands if code.split()[0] == 'PRINT_END']
+    if len(starts) != 1 or len(ends) != 1 or starts[0][0] >= data['moves'][0]['line'] or ends[0][0] <= data['moves'][-1]['line']:
+        raise ValueError('PRINT_START/PRINT_END missing, duplicated or misplaced around deposition')
+    arguments = starts[0][1].split()[1:]
+    if len(arguments) != 2 or not all('=' in part for part in arguments):
+        raise ValueError('malformed PRINT_START arguments')
+    values = dict(part.split('=', 1) for part in arguments)
+    try:
+        valid = (set(values) == {'BED_TEMP', 'EXTRUDER_TEMP'}
+                 and float(values['BED_TEMP']) == initial_bed
+                 and float(values['EXTRUDER_TEMP']) == inputs['parameters']['start'])
+    except (ValueError, KeyError):
+        valid = False
+    if not valid or ends[0][1] != 'PRINT_END':
+        raise ValueError('native macro arguments differ from the exact effective calibration targets')
+    prefix = [code.split()[0] for line, code in commands if line < data['moves'][0]['line']]
+    xyz_modes = [op for op in prefix if op in ('G90', 'G91')]
+    e_modes = [op for op in prefix if op in ('M82', 'M83')]
+    relative = effective.get('use_relative_e_distances')
+    if (relative not in ('0', '1') or not xyz_modes or xyz_modes[-1] != 'G90'
+            or not e_modes or e_modes[-1] != ('M83' if relative == '1' else 'M82')):
+        raise ValueError('native coordinate/extrusion mode differs from immutable effective input')
+    for heater in data['heaters']:
+        if heater['target'] and heater['op'] in ('M140', 'M190'):
+            if heater['target'] != (initial_bed if heater['layer'] < 1 else normal_bed):
+                raise ValueError('bed command differs from immutable effective plate temperatures')
+    limits = {key: value for key, value in effective.items()
+              if key.startswith('machine_max_') or key in ('printable_area', 'printable_height', 'printable_volume', 'gcode_flavor')}
+    return {'policy': 'accepted-klipper-macro-invocation-v1', 'start': starts[0][1], 'end': ends[0][1],
+            'initial_bed_c': initial_bed, 'normal_bed_c': normal_bed,
+            'effective_hooks_sha256': digest({'start': effective['machine_start_gcode'], 'end': effective['machine_end_gcode']}),
+            'effective_limits_sha256': digest(limits), 'coordinate_mode': 'absolute',
+            'extrusion_mode': 'relative' if relative == '1' else 'absolute',
+            'macro_internals': 'unobserved; identical native invocations are compared, not expanded or physically executed',
+            'physical_readiness': False}
+
+
 def invariants(text, inputs):
     """Conservative independent checks augment exact native executable parity."""
     d = analyze(text)
@@ -124,6 +206,7 @@ def invariants(text, inputs):
         raise ValueError('persistent or external executable command')
     kind = inputs['calibration']
     p = inputs['parameters']
+    macro_semantics = None
     if kind == 'temperature':
         start, end = p['start'], p['end']
         count = int((start - end) / 5) + 1
@@ -147,10 +230,18 @@ def invariants(text, inputs):
         for h in d['heaters']:
             if h['target'] == 0 and h['line'] <= d['moves'][-1]['line']:
                 raise ValueError('premature heater shutdown')
-        if not any(h['op'] == 'M109' and h['target'] == start and h['line'] < d['moves'][0]['line'] for h in d['heaters']):
-            raise ValueError('missing initial nozzle wait')
-        if not all(any(h['op'] == op and h['target'] == 0 and h['line'] > d['moves'][-1]['line'] for h in d['heaters']) for op in ('M104', 'M140')):
-            raise ValueError('missing final heater shutdown')
+            if h['target'] and h['op'] in ('M104', 'M109') and h['layer'] >= 0 and h['line'] <= d['moves'][-1]['line']:
+                band = min(count - 1, int(_f32(_f32(h['layer'] * count) / _f32(d['layers'] - 1))))
+                target = start if h['layer'] <= 1 else start - 5 * band
+                if h['target'] != target:
+                    raise ValueError('layer heater command differs from the calibration section')
+        if inputs.get('effective', {}).get('gcode_flavor') == 'klipper':
+            macro_semantics = _klipper_temperature_semantics(text, inputs, d)
+        else:
+            if not any(h['op'] == 'M109' and h['target'] == start and h['line'] < d['moves'][0]['line'] for h in d['heaters']):
+                raise ValueError('missing initial nozzle wait')
+            if not all(any(h['op'] == op and h['target'] == 0 and h['line'] > d['moves'][-1]['line'] for h in d['heaters']) for op in ('M104', 'M140')):
+                raise ValueError('missing final heater shutdown')
     elif kind == 'flow_ratio_yolo':
         expected = {'flowrate_0'} | {f'flowrate_{sign}0.0{i}' for sign in ('', 'm') for i in range(1, 6)}
         names = {re.sub(r'\s+id.*$', '', n) for n in d['objects']}
@@ -160,7 +251,8 @@ def invariants(text, inputs):
         raise ValueError('native-engine invariant adapter not yet implemented for ' + kind)
     return {'model_moves': len(d['moves']), 'layers': d['layers'],
             'deposition_temperatures': sorted({m['nozzle'] for m in d['moves'] if m['nozzle'] is not None}),
-            'objects': d['objects'], 'executable_commands': len(executable(text))}
+            'objects': d['objects'], 'executable_commands': len(executable(text)),
+            'macro_semantics': macro_semantics, 'physical_readiness': False}
 
 
 def observations(candidate_text, native_text):
