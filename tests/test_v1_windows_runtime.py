@@ -16,6 +16,8 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
         self.assertIn("'--run-id',$Record.run_id,'--stop-file',$Record.stop_file",text)
         self.assertIn("$Record.stop_file -cne $expected",text)
         self.assertIn("'run_id,schema'",text)
+        self.assertNotIn('[IO.File]::Replace($temporary,$Path,$null)',text)
+        self.assertIn('[IO.File]::Replace($temporary,$Path,$backup)',text)
     def test_lifecycle_privacy_and_process_ownership_are_explicit(self):
         text=SOURCE.read_text()
         for required in ('SetAccessRuleProtection($true,$false)','Assert-PrivateFile','ReparsePoint','FileShare]::None',
@@ -33,6 +35,14 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
         self.assertIn("$Name+'.1.log'",text)
         self.assertIn('review_only=$true; registered=$false',text)
         self.assertIn("'--moonraker-events'",text)
+    def test_detached_supervisor_has_explicit_handle_allowlist(self):
+        text=SOURCE.read_text()
+        self.assertIn('Start-DetachedSupervisor $hostExe $start.Arguments $repo',text)
+        self.assertIn('new IntPtr(0x20002)',text)  # PROC_THREAD_ATTRIBUTE_HANDLE_LIST
+        self.assertIn('Marshal.WriteIntPtr(handles,nul)',text)
+        self.assertIn('0x08080000',text)  # NO_WINDOW | EXTENDED_STARTUPINFO_PRESENT
+        self.assertIn('DeleteProcThreadAttributeList(list)',text)
+        self.assertIn('$again.StartTime.ToUniversalTime().Ticks.ToString() -cne $started',text)
     def test_no_force_termination_listener_or_system_registration(self):
         text=SOURCE.read_text()
         forbidden=r'(?im)^\s*(Stop-Process|Register-ScheduledTask|New-Service|Set-Service|Set-ExecutionPolicy|New-NetFirewallRule|Invoke-Expression|Start-Job)\b'

@@ -85,7 +85,10 @@ exits, trailing output drains for at most five seconds (`finishing`), without
 signaling a descendant process. An ambiguous failed instance remains
 `attention-required` and is never automatically replaced.
 
-A detached per-user supervisor drains stdout/stderr using fixed 4KiB character
+The detached supervisor receives only one explicit inherited NUL handle through
+Windows STARTUPINFOEX handle-list creation. It does not inherit the launching
+terminal or qualification worker output pipes. A detached per-user supervisor
+drains coordinator stdout/stderr using fixed 4KiB character
 buffers, preventing a verbose coordinator from filling an unread pipe. Each
 `stdout`, `stderr` and `supervisor` log has one 1MiB current file plus one 1MiB
 backup: **at most 6MiB of retained wrapper logs** across restarts. Only those exact
@@ -97,17 +100,50 @@ or rollback; no automatic uninstall/cleanup is provided.
 
 ## Validation status and limits
 
-The dependency-free checks cover lifecycle entry points, the bounded stop
-protocol, exact-process identity fields, fixed entry-point arguments, private
-state and absence of force-kill/system-registration operations. An optional
-PowerShell AST parse check runs when an actual Windows PowerShell executable is
-available. This Linux authoring environment has no PowerShell runtime; source
-checks are not Windows execution evidence.
+Actual Windows execution on October 18, 2026 passed in a fresh isolated
+LocalApplicationData qualification directory using existing **PowerShell 5.1**
+and **Python 3.13.9**. The installed Orca GUI process remained unchanged. Synthetic
+storage had no context or calibration request; the coordinator used its default
+offline channel with physical actions disabled.
 
-Before ordinary Windows use, the lead must qualify parsing and an isolated
-non-printing start/status/duplicate-start/stop/restart cycle under the intended
-Windows user, including paths with spaces, stale PID metadata, graceful-stop
-pending behavior, ACL refusal and bounded log rotation. This work does not
-install/run anything on Windows or a printer. Existing installed components,
-normal settings, physical Temperature evidence and rollback material remain
-unchanged.
+| Check | Observed result |
+| --- | --- |
+| PowerShell AST parse | No errors |
+| Detached Start | Running, health OK, matching run ID/Python PID; launch worker returned normally |
+| Second Start | Same run ID, Python PID and supervisor PID; no second coordinator |
+| Graceful Stop | Owned stop file; coordinator health `stopped: true` |
+| Restart | New run ID/PIDs; health OK; old stop file did not stop the new instance |
+| Final Stop and audit | Exit 0; no stage-owned Python/supervisor processes; no error logs |
+| Existing Orca session | Exact PID/start time/executable/command line unchanged |
+
+The qualified launcher SHA-256 is
+`fa335f3f6c5a0dc6b56c765b4991bca0af8a884fbb65df74df4afc7cd5963cd7`.
+Its exact coordinator entry SHA-256 is
+`d97156ef5dc8383fa07e16fc9aff292e4734cb23c3c55c3f49271131eebf698f`.
+The curated source ZIP SHA-256 is
+`0d32ec7401766f6990922c727a7c8ad59d3328905275c1b19035740e0487e3fe`.
+Full manifests, lifecycle records and Windows responses remain private in XDG
+state under `v1/windows-runtime/qualification-f529b0529305-*`; they retain exact
+process identity without publishing user paths or SIDs. The qualification used
+the existing testing bridge only to launch and inspect this proof. Ordinary
+operation of the reviewed package calls the wrapper directly and has no testing
+worker dependency.
+
+Earlier isolated trials exposed a Windows PowerShell 5.1 `File.Replace` null
+backup-path incompatibility, inherited output-pipe handles, and a process-exit
+race during CIM owner inspection. They were corrected using a unique owned
+backup path, explicit STARTUPINFOEX handle allowlisting, and an absence/reused-PID
+check that still rejects unavailable identity for a live unchanged process.
+Their failed stages and shutdown audits were preserved privately.
+
+The dependency-free checks cover lifecycle entry points, stop protocol,
+exact-process ownership, fixed entry-point arguments, private state, detached
+handle allowlisting, and absence of force-kill/system-registration operations.
+The authoring suite passed 256 tests, with the Linux-host Windows AST test skipped;
+the separate actual Windows parse above passed. This execution proof does not
+qualify paths containing spaces, hostile ACL/stale-PID injection, high-volume log
+rotation, interruption during blocked generation, physical transport security,
+or physical printer execution. These remain explicit validation limits. No
+startup registration, install, physical test, profile/configuration mutation or
+printer connection occurred. Original settings, Temperature evidence and
+rollback material remain preserved.

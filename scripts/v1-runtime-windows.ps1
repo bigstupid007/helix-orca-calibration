@@ -89,12 +89,17 @@ function Write-Control([string]$Path,$Value) {
     $bytes=$script:Utf8.GetBytes(($Value | ConvertTo-Json -Depth 12 -Compress))
     if ($bytes.Length -gt 65536) { throw 'Lifecycle record exceeds 64KiB.' }
     $temporary=Join-Path $script:Root ('.write-'+[Guid]::NewGuid().ToString('N'))
+    $backup=Join-Path $script:Root ('.replace-'+[Guid]::NewGuid().ToString('N'))
+    $replaced=$false
     try {
         $stream=[IO.File]::Open($temporary,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
         try { $stream.Write($bytes,0,$bytes.Length); $stream.Flush($true) } finally { $stream.Dispose() }
-        if ([IO.File]::Exists($Path)) { [IO.File]::Replace($temporary,$Path,$null) }
+        if ([IO.File]::Exists($Path)) { [IO.File]::Replace($temporary,$Path,$backup); $replaced=$true }
         else { [IO.File]::Move($temporary,$Path) }
-    } finally { if ([IO.File]::Exists($temporary)) { [IO.File]::Delete($temporary) } }
+    } finally {
+        if ([IO.File]::Exists($temporary)) { [IO.File]::Delete($temporary) }
+        if ($replaced -and [IO.File]::Exists($backup)) { [IO.File]::Delete($backup) }
+    }
 }
 function Open-ControlLock {
     $path=Join-Path $script:Root 'control.lock'
@@ -121,12 +126,89 @@ function Assert-Record($Record) {
 function Get-ProcessIdentity([int]$ProcessId,[string]$ExpectedExe,[string]$ExpectedCommand) {
     $process=Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
     if ($null -eq $process) { return $null }
-    $cim=Get-CimInstance Win32_Process -Filter ('ProcessId = '+$ProcessId) -OperationTimeoutSec 3
-    if ($null -eq $cim -or [string]::IsNullOrEmpty($cim.ExecutablePath) -or [string]::IsNullOrEmpty($cim.CommandLine)) { throw 'Process identity is unavailable; no process will be adopted or terminated.' }
-    $owner=Invoke-CimMethod -InputObject $cim -MethodName GetOwnerSid -OperationTimeoutSec 3
-    if ($owner.ReturnValue -ne 0 -or $owner.Sid -ne $script:Sid.Value) { throw 'Process owner differs; no process will be adopted or terminated.' }
+    try { $started=$process.StartTime.ToUniversalTime().Ticks.ToString() }
+    catch {
+        if ($null -eq (Get-Process -Id $ProcessId -ErrorAction SilentlyContinue)) { return $null }
+        throw
+    }
+    try {
+        $cim=Get-CimInstance Win32_Process -Filter ('ProcessId = '+$ProcessId) -OperationTimeoutSec 3
+        if ($null -eq $cim -or [string]::IsNullOrEmpty($cim.ExecutablePath) -or [string]::IsNullOrEmpty($cim.CommandLine)) { throw 'Process identity is unavailable; no process will be adopted or terminated.' }
+        $owner=Invoke-CimMethod -InputObject $cim -MethodName GetOwnerSid -OperationTimeoutSec 3
+        if ($owner.ReturnValue -ne 0 -or $owner.Sid -ne $script:Sid.Value) { throw 'Process owner differs; no process will be adopted or terminated.' }
+    } catch {
+        # Graceful exit can race either CIM call. Only absence or a replaced PID
+        # resolves that race; unavailable identity for the same process still fails.
+        $again=Get-Process -Id $ProcessId -ErrorAction SilentlyContinue
+        if ($null -eq $again -or $again.StartTime.ToUniversalTime().Ticks.ToString() -cne $started) { return $null }
+        throw
+    }
     if (-not [string]::Equals($cim.ExecutablePath,$ExpectedExe,[StringComparison]::OrdinalIgnoreCase) -or $cim.CommandLine -cne $ExpectedCommand) { return $null }
-    return [ordered]@{ pid=$ProcessId; started_utc_ticks=$process.StartTime.ToUniversalTime().Ticks.ToString(); executable=$cim.ExecutablePath; command_line=$cim.CommandLine; owner_sid=$owner.Sid }
+    return [ordered]@{ pid=$ProcessId; started_utc_ticks=$started; executable=$cim.ExecutablePath; command_line=$cim.CommandLine; owner_sid=$owner.Sid }
+}
+function Start-DetachedSupervisor([string]$Exe,[string]$Arguments,[string]$Directory) {
+    # Explicit handle allowlist: the supervisor inherits NUL only, never the
+    # calling terminal/test worker's output pipes or any unrelated open handle.
+    if (-not ('HelixOrcaV1.NativeLaunch' -as [type])) {
+        Add-Type -TypeDefinition @'
+using System;
+using System.Text;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+namespace HelixOrcaV1 {
+ public static class NativeLaunch {
+  [StructLayout(LayoutKind.Sequential)] struct Security {
+   public int length; public IntPtr descriptor; [MarshalAs(UnmanagedType.Bool)] public bool inherit;
+  }
+  [StructLayout(LayoutKind.Sequential, CharSet=CharSet.Unicode)] struct Startup {
+   public int cb; public string reserved, desktop, title;
+   public int x,y,width,height,countX,countY,fill,flags;
+   public short show, reservedBytes; public IntPtr reservedData, input, output, error;
+  }
+  [StructLayout(LayoutKind.Sequential)] struct Extended { public Startup startup; public IntPtr attributes; }
+  [StructLayout(LayoutKind.Sequential)] struct ProcessInfo { public IntPtr process, thread; public int pid, tid; }
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  static extern IntPtr CreateFileW(string name,uint access,uint share,ref Security security,uint creation,uint flags,IntPtr template);
+  [DllImport("kernel32.dll", SetLastError=true)]
+  static extern bool InitializeProcThreadAttributeList(IntPtr list,int count,int flags,ref IntPtr size);
+  [DllImport("kernel32.dll", SetLastError=true)]
+  static extern bool UpdateProcThreadAttribute(IntPtr list,uint flags,IntPtr attribute,IntPtr value,IntPtr size,IntPtr previous,IntPtr returned);
+  [DllImport("kernel32.dll")] static extern void DeleteProcThreadAttributeList(IntPtr list);
+  [DllImport("kernel32.dll", CharSet=CharSet.Unicode, SetLastError=true)]
+  static extern bool CreateProcessW(string app,StringBuilder command,IntPtr processSecurity,IntPtr threadSecurity,bool inherit,uint flags,IntPtr environment,string directory,ref Extended startup,out ProcessInfo info);
+  [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr handle);
+  static void Check(bool ok) { if(!ok) throw new Win32Exception(Marshal.GetLastWin32Error()); }
+  public static Process Launch(string exe,string command,string directory) {
+   var security=new Security { length=Marshal.SizeOf(typeof(Security)),inherit=true };
+   IntPtr nul=CreateFileW("NUL",0xC0000000,3,ref security,3,0x80,IntPtr.Zero);
+   if(nul==new IntPtr(-1)) throw new Win32Exception(Marshal.GetLastWin32Error());
+   IntPtr list=IntPtr.Zero, handles=IntPtr.Zero; bool initialized=false;
+   var info=new ProcessInfo();
+   try {
+    IntPtr size=IntPtr.Zero;
+    InitializeProcThreadAttributeList(IntPtr.Zero,1,0,ref size);
+    list=Marshal.AllocHGlobal(size); Check(InitializeProcThreadAttributeList(list,1,0,ref size)); initialized=true;
+    handles=Marshal.AllocHGlobal(IntPtr.Size); Marshal.WriteIntPtr(handles,nul);
+    Check(UpdateProcThreadAttribute(list,0,new IntPtr(0x20002),handles,new IntPtr(IntPtr.Size),IntPtr.Zero,IntPtr.Zero));
+    var startup=new Extended(); startup.startup.cb=Marshal.SizeOf(typeof(Extended));
+    startup.startup.flags=0x100; startup.startup.input=nul; startup.startup.output=nul; startup.startup.error=nul; startup.attributes=list;
+    Check(CreateProcessW(exe,new StringBuilder(command),IntPtr.Zero,IntPtr.Zero,true,0x08080000,IntPtr.Zero,directory,ref startup,out info));
+    return Process.GetProcessById(info.pid);
+   } finally {
+    if(info.thread!=IntPtr.Zero) CloseHandle(info.thread);
+    if(info.process!=IntPtr.Zero) CloseHandle(info.process);
+    if(initialized) DeleteProcThreadAttributeList(list);
+    if(list!=IntPtr.Zero) Marshal.FreeHGlobal(list);
+    if(handles!=IntPtr.Zero) Marshal.FreeHGlobal(handles);
+    CloseHandle(nul);
+   }
+  }
+ }
+}
+'@
+    }
+    return [HelixOrcaV1.NativeLaunch]::Launch($Exe,((Quote-Argument $Exe)+' '+$Arguments),$Directory)
 }
 function Get-NewIdentity($Process,[string]$Exe,[string]$Command) {
     $until=[DateTime]::UtcNow.AddSeconds(2)
@@ -304,8 +386,7 @@ try {
     $start=New-Object Diagnostics.ProcessStartInfo
     $start.FileName=$hostExe; $start.Arguments=Join-Arguments @('-NoProfile','-NonInteractive','-File',$PSCommandPath,'-Action','supervise','-RuntimeRoot',$script:Root,'-RunId',$id)
     $start.UseShellExecute=$false; $start.CreateNoWindow=$true; $start.WorkingDirectory=$repo
-    $supervisor=New-Object Diagnostics.Process; $supervisor.StartInfo=$start
-    [void]$supervisor.Start()
+    $supervisor=Start-DetachedSupervisor $hostExe $start.Arguments $repo
     $identity=Get-NewIdentity $supervisor $hostExe ((Quote-Argument $hostExe)+' '+$start.Arguments)
     if ($null -eq $identity) { throw 'Supervisor identity could not be verified; no process was force-terminated.' }
     $record.supervisor=$identity; Write-Control (Get-RecordPath) $record
