@@ -164,7 +164,7 @@ def drive(entry,name,work):
         tap(name,'orcacal__v1_return',w,h,work);require(value(name,'evaluate_on')==0,'Returned result editable')
         signal(name,8);signal(name,7)
         require('Returned to original Orca' in value(name,'returned'),'Exact receipt not shown')
-        a._screenshot(name,work,id+'-returned.png')
+        ctl(name,'scroll','orcacal__v1_returned_status');a._screenshot(name,work,id+'-returned.png')
         deadline=time.monotonic()+5
         while True:
             saved=storage(work)
@@ -180,7 +180,7 @@ def drive(entry,name,work):
     a._screenshot(name,work,'blocked.png')
     logs=a.run(['docker','logs',name],capture=True,check=False)
     (work/'runtime.log').write_text(logs.stdout+logs.stderr)
-    require('[LuaRuntime] error' not in logs.stdout+logs.stderr,'Native runtime error')
+    require('[plugin orcacal]' not in logs.stdout+logs.stderr,'Native runtime error')
     q.back_to_home(name)
     return {'label':label,'viewport':f'{w}x{h}','layout':layout,'dpi':dpi,'result':'PASS','calibrations':list(contract.CALIBRATIONS),'assertions':ASSERTIONS}
 
@@ -213,7 +213,7 @@ def capture(output,only=None):
             require(run.data.get('exit_code')==0,'Native workload failed; inspect '+str(run.directory))
         require(run.data['state']=='complete','Managed native lifecycle incomplete')
         require(hashes()==before,'Candidate sources changed during native capture')
-        shutil.copytree(work,output/label)
+        shutil.copytree(work,output/label,ignore=shutil.ignore_patterns("control.sock"))
         rows.append(json.loads((work/'row.json').read_text()));runs.append({'run_id':run.data['run_id'],'manifest':str(run.directory/'manifest.json'),'containers':list(run.data['containers']),'runtime_clear':run.data['verification']['runtime_clear']})
         print('PASS '+label,flush=True)
     require(q.file_hashes(plugins/'orcacal')==fixture_hashes,'Fixture changed')

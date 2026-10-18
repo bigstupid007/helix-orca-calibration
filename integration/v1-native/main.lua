@@ -19,6 +19,7 @@ for id,entry in pairs(V1_CATALOG) do
     v1_indices[id]={}
     for key,_ in pairs(entry.parameters) do v1_indices[id][key]=int_subject(id..'_'..key..'_idx') end
 end
+local v1_settings={temperature='nozzle_temperature',flow_ratio_yolo='filament_flow_ratio',pressure_advance_pattern='pressure_advance',retraction='filament_retraction_length',max_volumetric_speed='filament_max_volumetric_speed'}
 local v1_offer=nil
 local v1_session=nil
 local v1_job_handle=nil
@@ -125,6 +126,14 @@ local function v1_receive_offer(_,o)
         if type(c)~='table' or not V1_CATALOG[c.id] or seen[c.id] or type(c.available)~='boolean' or not v1_text(c.reason,512) then return end
         seen[c.id]=true
     end
+    for id,entry in pairs(V1_CATALOG) do
+        if type(o.defaults[id])~='table' then return end
+        for key,values in pairs(entry.parameters) do
+            local supported=false
+            for _,value in ipairs(values) do if value==o.defaults[id][key] then supported=true end end
+            if not supported then return end
+        end
+    end
     v1_offer=o
     for id,_ in pairs(V1_CATALOG) do
         local c=v1_capability(o,id)
@@ -206,7 +215,8 @@ local function v1_receive_status(_,d)
     if d.phase=='complete' then
         local e=d.evaluation
         if not v1_hex(d.completion_sha256,64) or type(e)~='table' or not v1_text(e.setting,128)
-            or type(e.options)~='table' or #e.options<1 or #e.options>128 or type(e.unit)~='string' or #e.unit>16 then return end
+            or e.setting~=v1_settings[s.request.calibration]
+            or type(e.options)~='table' or #e.options<1 or #e.options>128 or type(e.unit)~='string' or #e.unit>16 or e.unit:find('%c') or utf8.len(e.unit)==nil then return end
         for _,v in ipairs(e.options) do if not v1_number(v) then return end end
         s.completion_sha256=d.completion_sha256;s.evaluation=e
     end
