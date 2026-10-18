@@ -102,9 +102,11 @@ E values, final wipes, heating or motion. It separately tracks actual positive-E
 model deposition, current heater state, real Z, extrusion mode and native layer
 bands. Temperature invariants reject late/early heating, wrong actual Z, missing
 sections, premature or missing shutdown and missing initial wait. YOLO checks
-all eleven native patch labels and top surfaces. Other calibration invariant
-adapters remain blocked rather than accepting generic valid G-code. Persistent
-or external executable commands reject.
+all eleven native patch labels and top surfaces. Source-backed October 15
+Retraction, MVS and PA Pattern invariant adapters are implemented as detailed
+below; implementing an invariant does not establish generator availability or
+an independently passing native comparison. Persistent or external executable
+commands reject.
 
 Any executable difference blocks qualification under the current conservative
 `exact-executable-v1` policy; the report retains both executable digests and the
@@ -230,7 +232,7 @@ function explicitly applies `project_config`, including `curr_bed_type`.
 No app-settings fallback or guessed bed default is required or permitted.
 
 
-## Bounded Klipper Temperature invocation semantics
+## Bounded Klipper invocation semantics
 
 The lead explicitly approved an engineering refinement of the initial visible
 M109/shutdown rule. Exact October 15 `GCodeWriter::set_temperature` emits M104 S
@@ -240,19 +242,24 @@ and completed Temperature milestone document the target macro ABI:
 This is a source/evidence-bound command-comparison policy, not new hardware
 qualification or permission to execute either macro.
 
-For the accepted-ABI Klipper Temperature variant, the immutable effective start
+For the accepted-ABI Klipper variant, the immutable effective start
 hook must contain exactly one
 `PRINT_START BED_TEMP=[bed_temperature_initial_layer_single] EXTRUDER_TEMP=[nozzle_temperature_initial_layer]`
 invocation and the end hook exactly one `PRINT_END`. The separate original-ABI
 variant with mandatory visible waits is specified below. The actual G-code must invoke them once, on the correct
 sides of all model deposition; arguments must equal the original effective
-selected-plate initial bed temperature and requested starting nozzle temperature.
+selected-plate initial bed temperature and initial nozzle target. Temperature
+uses the requested starting calibration temperature; the other four routes use
+the immutable effective `nozzle_temperature_initial_layer`, without a fallback.
 All plate temperature option names come from native PrintConfig. Subsequent bed
 commands must match the original normal/initial plate values. The explicit
 coordinate and extrusion modes must match immutable effective inputs. Every
 per-layer nozzle command and actual deposition temperature must match its
 calibration section; a later corrected command cannot excuse an intervening
-wrong target. The complete executable stream, including every start/end command,
+wrong target. The other routes check visible nozzle commands against effective
+initial/normal targets; native normal-temperature zero retains the initial
+target. Coordinate/extrusion modes are also checked on every measured deposition
+move, so a later M82 or G91 cannot hide behind a correct prefix. The complete executable stream, including every start/end command,
 macro argument, limit and mode command, still has to match the independently
 prepared native reference exactly.
 
@@ -448,3 +455,51 @@ The runner and two shared modules can be transferred as curated source without
 moving the native G-code or full native project off Windows. Tests verify
 privacy, provenance tampering and changed candidate rejection with explicitly
 synthetic evidence; those tests do not represent a native qualification.
+
+## October 15 native calibration invariant adapters
+
+These adapters inspect executable behavior from the source at immutable commit
+`6a7763f08d1a175a464a00ce13f0b5a815662fc4`. They do not generate G-code, assume
+a Python generator API, or waive the independent native-reference requirement.
+All three require an explicit non-belt context; arcs and firmware retraction
+remain unsupported rather than partially analyzed. Input parameters pass the
+shared validator before calibration math. Missing effective inputs are errors.
+
+| Calibration | Source-verified behavior measured by the adapter | Explicit bounds |
+| --- | --- | --- |
+| Retraction | Native `start + floor(max(0, print_z − 0.4)) * step`; actual negative-E episodes are summed across wipe/retract splits and compared with the per-height length. Real deposited Z follows native 0.05/0.1/0.2 mm layers for nozzle ≤0.1/≤0.2/>0.2 mm. Required positive-length sections and cut-height coverage must be present. | Declared `z_offset` is removed from emitted coordinates. A ±0.0002 mm boundary ambiguity accounts for serialized Z versus native float/double thresholds; retraction sum tolerance is 0.00003 mm. Native height cutting/layer quantization may reach a section above `end`; there is no invented end clamp. |
+| Max Volumetric Speed | Native width is nozzle×1.75, height nozzle×0.8; `Flow` receives float32 values and returns float32 rounded-rectangle area, multiplied by immutable filament flow ratio. Native per-layer wall speed is `round((start + max(0, print_z) * step) / flow)`. Actual mature outer-wall maximum feed must attain that speed, with no move above it; at least three distinct speeds and native cut-height coverage are required. | First/slowdown layers follow native first-layer rules and are excluded from ramp assertions. Spiral-vase segments use their layer's measured top Z rather than each segment's interpolated Z. Serialized-Z ambiguity is ±0.0006 mm; feed tolerance is 0.02 mm/s. An additional speed cap causes a specific failure requiring investigation; it is not silently accepted. |
+| Pressure Advance Pattern | Exactly four native custom sections, sample count `ceil((end−start)/step + 1)`, four-significant-digit Klipper PA commands, native per-section prefix/final resets, actual fixed-Z deposition, and three alternating 90° chevron walls per commanded sample. Mature side lengths are 30 mm. | Retained single-case Klipper route only. First-layer frame/tab/glyphs are separated from the six measured chevron sides by executable PA command boundaries. The first layer shrinks natively; mature side/coordinate tolerance is 0.003 mm. Non-divisible ranges can legitimately emit a last sample above `end`. |
+
+The source anchors are `Plater.cpp` 17604–17745 (MVS/Retraction preparation),
+`GCode.cpp` 6580–6640 (non-belt calibration Z and layer overrides),
+`GCode.cpp` 9250–9338 (first-layer/slowdown and volumetric caps), `Flow.cpp`
+225–232 (`mm3_per_mm`), `calib.hpp` 300–382 (PA configuration, count and four
+layers), `calib.cpp` 644–811 (PA native custom commands and actual chevrons), and
+`GCodeWriter.cpp` 594–612 (Klipper command formatting). Source blob SHA-256s:
+
+| Source | SHA-256 |
+| --- | --- |
+| `src/libslic3r/GCode.cpp` | `4fc8b474911a30cded21cb4ad856f771ceba0c0f1d85b2aab9f93ef568aa37d7` |
+| `src/libslic3r/calib.cpp` | `ac5e19c8d8d5bd27fd13b576f28312ed91d39c0190b6d1f170a21bcea96d3aa4` |
+| `src/libslic3r/calib.hpp` | `3d993e153497669808075bcdc935e1666b18b840510da518fb6371cc7d064fd2` |
+| `src/libslic3r/Flow.cpp` | `0e65189f2f3df44ad115d010dad47f49ebb0e4f01e53d773f7579aa26274daa0` |
+| `src/libslic3r/GCodeWriter.cpp` | `7e74ae503a981bdd57bdad8536bf56f5e4fb20fdb4f1987e74b03e5afe0e1db0` |
+| `src/slic3r/GUI/Plater.cpp` | `8290003e06b12b06a5c239e4d66269dfbc081895c5deb304f3a9b6dbddc8621a` |
+
+All five Klipper invariant results now expose
+`candidate_invariants.macro_semantics.accepted_abi_signature` (and the same field
+for the native result). It is true only for the retained
+`BED_TEMP`/`EXTRUDER_TEMP` signature. The separately approved original
+`EXTRUDER`/`BED` signature with matching visible waits remains false for that
+field. Neither value observes macro internals or certifies hardware readiness;
+`hardware_abi_qualified` and `physical_readiness` stay false. The Windows summary
+exposes only these fixed-key boolean facts, never invocation strings or hooks.
+
+Synthetic tests reject changed PA values, missing sections/reset, malformed
+chevrons/Z, wrong Retraction episode length/Z/firmware commands, flattened MVS
+feeds or missing height, unsupported source/belt context, absent required
+effective values, invalid step, and changed start/bed/extrusion/coordinate modes.
+Actual native references for these routes are still required. Every executable
+difference still blocks `exact-executable-v1`; no geometry, motion, extrusion,
+estimate or calibration-section difference is waived by these adapters.

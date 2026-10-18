@@ -1,6 +1,7 @@
 """Qualification must follow independently prepared retained native bytes."""
 import copy
 import json
+import math
 from pathlib import Path
 import tempfile
 import unittest
@@ -211,6 +212,180 @@ class NativeParity(unittest.TestCase):
                     'context_sha256': self.inputs['context_sha256'], 'generator': {'build': self.inputs['source_commit']},
                     'parity': {'qualified': True, 'report_sha256': parity.digest(report)}}
         self.assertFalse(parity.verify_report(report, prepared))
+
+
+class NativeCalibrationSchedules(unittest.TestCase):
+    """Synthetic executable forgeries exercise checkers, never qualification evidence."""
+    def inputs(self, calibration, parameters):
+        return {'calibration': calibration, 'parameters': parameters, 'nozzle_mm': .4,
+                'source_commit': '6a7763f08d1a175a464a00ce13f0b5a815662fc4',
+                'effective': {'belt_printer': '0', 'z_offset': '0', 'gcode_flavor': 'klipper',
+                              'use_relative_e_distances': '1', 'nozzle_temperature_initial_layer': '220',
+                              'nozzle_temperature': '215', 'hot_plate_temp_initial_layer': '60',
+                              'hot_plate_temp': '60', 'curr_bed_type': 'High Temp Plate',
+                              'filament_flow_ratio': '0.98', 'slow_down_layers': '2',
+                              'initial_layer_print_height': '0.2', 'layer_height': '0.2',
+                              'machine_start_gcode': 'PRINT_START BED_TEMP=[bed_temperature_initial_layer_single] EXTRUDER_TEMP=[nozzle_temperature_initial_layer]',
+                              'machine_end_gcode': 'PRINT_END'}}
+
+    def header(self):
+        return ['G90', 'M83', 'M190 S60', 'M109 S220', 'PRINT_START BED_TEMP=60 EXTRUDER_TEMP=220']
+
+    def retraction(self):
+        inputs = self.inputs('retraction', {'start': .2, 'end': .6, 'step': .2})
+        lines = self.header()
+        for layer in range(17):
+            z = (layer + 1) * .2
+            length = .2 + math.floor(max(0., z - .4 + 1e-8)) * .2
+            lines += [';LAYER_CHANGE', f'G1 Z{z:.1f}', 'M104 S' + ('220' if layer == 0 else '215'),
+                      '; printing object retraction_tower.drc id:0 copy 0',
+                      f'G1 X1 Y1 E1 F1800', f'G1 E{-length/2:.5f}',
+                      f'G1 X1.1 E{-length/2:.5f}', f'G1 E{length:.5f}',
+                      'G1 X2 Y2 E1', '; stop printing object retraction_tower.drc id:0 copy 0']
+        return '\n'.join(lines + ['PRINT_END']), inputs
+
+    def mvs(self):
+        inputs = self.inputs('max_volumetric_speed', {'start': 5., 'end': 8., 'step': 1.})
+        n = inputs['nozzle_mm']
+        width, height = parity._f32(n * 1.75), parity._f32(n * .8)
+        flow = parity._f32(height * (width - height * (1 - math.pi/4))) * .98
+        lines = self.header()
+        for layer in range(12):
+            z = (layer + 1) * .32
+            speed = 30 if layer < 2 else math.floor((5 + z) / flow + .5)
+            lines += [';LAYER_CHANGE', f'G1 Z{z-.3:.3f}', 'M104 S' + ('220' if layer == 0 else '215'),
+                      '; printing object SpeedTestStructure.drc id:0 copy 0', ';TYPE:Outer wall',
+                      f'G1 X1 Y1 Z{z-.15:.3f} E1 F{speed*60}', f'G1 X2 Y2 Z{z:.3f} E1',
+                      '; stop printing object SpeedTestStructure.drc id:0 copy 0']
+        return '\n'.join(lines + ['PRINT_END']), inputs
+
+    def pa_pattern(self):
+        inputs = self.inputs('pressure_advance_pattern', {'start': 0., 'end': .012, 'step': .005})
+        samples = [0., .005, .01, .015]
+        lines = self.header()
+        for layer in range(4):
+            lines += [';LAYER_CHANGE', 'M104 S' + ('220' if layer == 0 else '215'),
+                      '; start pressure advance pattern for layer', f'G1 Z{(layer+1)*.2:.1f}',
+                      ';TYPE:Outer wall']
+            if layer < 2:
+                lines += ['SET_PRESSURE_ADVANCE ADVANCE=0']
+            x = y = 0.
+            for sample in samples:
+                lines += [f'SET_PRESSURE_ADVANCE ADVANCE={sample:.4g}', f'G1 X{x:.6f} Y{y:.6f}']
+                side = 20 if layer == 0 else 30 / math.sqrt(2)
+                for wall in range(3):
+                    x += side
+                    y += side
+                    lines += [f'G1 X{x:.6f} Y{y:.6f} E1 F1800']
+                    x -= side
+                    y += side
+                    lines += [f'G1 X{x:.6f} Y{y:.6f} E1']
+                    y = 0
+                    x += 1
+                    lines += [f'G1 X{x:.6f} Y0']
+            if layer == 3:
+                lines += ['SET_PRESSURE_ADVANCE ADVANCE=0']
+            lines += ['; end pressure advance pattern for layer']
+        return '\n'.join(lines + ['PRINT_END']), inputs
+
+    def test_native_retraction_measures_split_wipe_episodes(self):
+        text, inputs = self.retraction()
+        result = parity.invariants(text, inputs)
+        # Native height cut and layer quantization can reach the next band;
+        # GCode.cpp does not clamp the ramp to the dialog end value.
+        self.assertEqual(result['calibration_semantics']['measured_retraction_lengths_mm'], [.2, .4, .6, .8])
+        self.assertTrue(result['macro_semantics']['accepted_abi_signature'])
+        self.assertFalse(result['macro_semantics']['physical_readiness'])
+
+    def test_retraction_forged_sections_and_firmware_are_rejected(self):
+        text, inputs = self.retraction()
+        for forgery in (text.replace('G1 E-0.20000', 'G1 E-0.21000', 1),
+                        text.replace('G1 Z2.0', 'G1 Z2.1'), text.replace('G1 E-0.10000', 'G10', 1)):
+            with self.subTest(forgery=forgery[-20:]), self.assertRaises(ValueError):
+                parity.invariants(forgery, inputs)
+
+    def test_native_mvs_uses_layer_top_not_each_spiral_segment(self):
+        text, inputs = self.mvs()
+        result = parity.invariants(text, inputs)
+        self.assertEqual(result['calibration_semantics']['checked_layers'], 10)
+        self.assertGreater(len(result['calibration_semantics']['distinct_wall_speeds_mm_s']), 3)
+
+    def test_mvs_forged_flat_ramp_and_missing_height_rejected(self):
+        text, inputs = self.mvs()
+        import re
+        for forgery in (re.sub(r'F\d+', 'F1800', text), text.replace('G1 X2 Y2 Z3.840', 'G1 X2 Y2 Z3.200')):
+            with self.assertRaises(ValueError):
+                parity.invariants(forgery, inputs)
+
+    def test_native_pa_four_layers_ceil_range_and_actual_chevrons(self):
+        text, inputs = self.pa_pattern()
+        result = parity.invariants(text, inputs)
+        self.assertEqual(result['calibration_semantics']['samples_per_layer'], 4)
+        self.assertTrue(result['calibration_semantics']['native_end_can_be_exceeded'])
+        self.assertTrue(result['macro_semantics']['accepted_abi_signature'])
+
+    def test_pa_forged_values_sections_geometry_and_reset_rejected(self):
+        text, inputs = self.pa_pattern()
+        cases = [text.replace('ADVANCE=0.01\n', 'ADVANCE=0.011\n', 1),
+                 text.replace('; start pressure advance pattern for layer\n', '', 1),
+                 text.replace('G1 X20.000000 Y20.000000 E1', 'G1 X21.000000 Y20.000000 E1', 1),
+                 text.replace('G1 Z0.6', 'G1 Z0.7')]
+        # Remove only the final reset; matching comments cannot repair it.
+        index = text.rfind('SET_PRESSURE_ADVANCE ADVANCE=0\n')
+        cases.append(text[:index] + text[index:].replace('SET_PRESSURE_ADVANCE ADVANCE=0\n', '', 1))
+        for forgery in cases:
+            with self.subTest(forgery=forgery[-100:]), self.assertRaises(ValueError):
+                parity.invariants(forgery, inputs)
+
+    def test_all_native_routes_reject_wrong_or_changed_deposition_modes(self):
+        for factory in (self.retraction, self.mvs, self.pa_pattern):
+            text, inputs = factory()
+            for forgery in (text.replace('M83', 'M82', 1), text.replace(';LAYER_CHANGE', ';LAYER_CHANGE\nG91', 2)):
+                with self.subTest(calibration=inputs['calibration']), self.assertRaises(ValueError):
+                    parity.invariants(forgery, inputs)
+
+    def test_generic_macro_uses_effective_nozzle_and_retains_original_abi_boundary(self):
+        text, inputs = self.mvs()
+        self.assertEqual(parity.invariants(text, inputs)['macro_semantics']['initial_nozzle_c'], 220)
+        with self.assertRaisesRegex(ValueError, 'arguments'):
+            parity.invariants(text.replace('EXTRUDER_TEMP=220', 'EXTRUDER_TEMP=5'), inputs)
+        original = 'M190 S[bed_temperature_initial_layer_single]\\nM109 S[nozzle_temperature_initial_layer]\\nPRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]'
+        inputs['effective']['machine_start_gcode'] = original
+        text = text.replace('PRINT_START BED_TEMP=60 EXTRUDER_TEMP=220', 'PRINT_START EXTRUDER=220 BED=60')
+        semantics = parity.invariants(text, inputs)['macro_semantics']
+        self.assertFalse(semantics['accepted_abi_signature'])
+        self.assertFalse(semantics['hardware_abi_qualified'])
+        with self.assertRaisesRegex(ValueError, 'visible waits'):
+            parity.invariants(text.replace('M109 S220\n', ''), inputs)
+
+    def test_yolo_exposes_generic_accepted_macro_semantics(self):
+        inputs = self.inputs('flow_ratio_yolo', {'pass': 1})
+        lines = self.header() + [';LAYER_CHANGE', 'G1 Z0.2', ';TYPE:Top surface']
+        names = ['flowrate_0'] + [f'flowrate_{sign}0.0{i}' for sign in ('', 'm') for i in range(1, 6)]
+        for name in names:
+            lines += [f'; printing object {name} id:0 copy 0', 'G1 X1 Y1 E1 F1800', 'G1 X2 Y2 E1',
+                      f'; stop printing object {name} id:0 copy 0']
+        text = '\n'.join(lines + ['PRINT_END'])
+        result = parity.invariants(text, inputs)
+        self.assertTrue(result['macro_semantics']['accepted_abi_signature'])
+        self.assertEqual(result['macro_semantics']['initial_nozzle_c'], 220)
+        for forgery in (text.replace('M190 S60', 'M190 S35'),
+                        text.replace('EXTRUDER_TEMP=220', 'EXTRUDER_TEMP=230'),
+                        text.replace(';TYPE:Top surface', ';TYPE:Top surface\nM82')):
+            with self.assertRaises(ValueError):
+                parity.invariants(forgery, inputs)
+
+    def test_native_source_belt_and_required_effective_data_are_not_assumed(self):
+        for factory in (self.retraction, self.mvs, self.pa_pattern):
+            text, inputs = factory()
+            for mutate in (lambda i: i.update(source_commit=next(iter(parity.PINS))),
+                           lambda i: i['effective'].pop('belt_printer'),
+                           lambda i: i['effective'].pop('z_offset'),
+                           lambda i: i['parameters'].update(step=0)):
+                altered = copy.deepcopy(inputs)
+                mutate(altered)
+                with self.assertRaises(ValueError):
+                    parity.invariants(text, altered)
 
 
 if __name__ == '__main__':

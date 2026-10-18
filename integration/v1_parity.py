@@ -11,7 +11,7 @@ from pathlib import Path
 import re
 import struct
 
-from integration.v1_contract import canonical, digest
+from integration.v1_contract import canonical, digest, validate_parameters
 
 CALIBRATIONS = ('temperature', 'flow_ratio_yolo', 'pressure_advance_pattern',
                 'retraction', 'max_volumetric_speed')
@@ -53,11 +53,30 @@ def analyze(text):
     feed = None
     layer = -1
     object_name = None
+    role = None
+    pattern = None
+    patterns = []
+    pa = None
+    pa_commands = []
+    episodes = []
+    episode = None
     moves = []
     retracts = []
     heaters = []
     object_names = set()
     for line, raw in enumerate(text.splitlines(), 1):
+        if raw == '; start pressure advance pattern for layer':
+            if pattern is not None:
+                raise ValueError('nested native PA pattern section')
+            pattern = len(patterns)
+            patterns.append({'start_line': line, 'end_line': None})
+        if raw == '; end pressure advance pattern for layer':
+            if pattern is None:
+                raise ValueError('unmatched native PA pattern section')
+            patterns[pattern]['end_line'] = line
+            pattern = None
+        if raw.startswith(';TYPE:'):
+            role = raw[6:].strip()
         if raw == ';LAYER_CHANGE':
             layer += 1
         if raw.startswith('; printing object '):
@@ -68,6 +87,12 @@ def analyze(text):
         if not code:
             continue
         op = code.split()[0]
+        if op == 'SET_PRESSURE_ADVANCE':
+            match = re.fullmatch(r'SET_PRESSURE_ADVANCE ADVANCE=(\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)(?: EXTRUDER=extruder)?', code)
+            if not match or not math.isfinite(float(match[1])):
+                raise ValueError('unrecognized or nonfinite pressure advance command')
+            pa = float(match[1])
+            pa_commands.append({'line': line, 'value': pa, 'pattern': pattern})
         values = {k: float(v) for k, v in re.findall(r'([A-Z])(-?(?:\d+(?:\.\d*)?|\.\d+))', code)}
         if any(not math.isfinite(x) for x in values.values()):
             raise ValueError('nonfinite G-code')
@@ -99,15 +124,27 @@ def analyze(text):
         feed = values.get('F', feed)
         distance = math.hypot(xyz['X'] - old['X'], xyz['Y'] - old['Y'])
         if delta < 0:
-            retracts.append({'z': xyz['Z'], 'length': -delta, 'layer': layer})
-        if delta > 0 and distance > 0 and layer >= 0 and object_name:
-            object_names.add(object_name)
+            retracts.append({'line': line, 'z': xyz['Z'], 'length': -delta, 'layer': layer})
+            if episode is None:
+                episode = {'line': line, 'z': old['Z'], 'length': 0.0, 'layer': layer}
+                episodes.append(episode)
+            episode['length'] -= delta
+        elif delta > 0:
+            episode = None
+        if delta > 0 and distance > 0 and layer >= 0 and (object_name or pattern is not None):
+            name = object_name or 'native-pressure-advance-pattern'
+            object_names.add(name)
             moves.append({'line': line, 'layer': layer, 'z': xyz['Z'],
                           'nozzle': nozzle, 'bed': bed, 'e': delta,
-                          'distance': distance, 'feed': feed, 'object': object_name,
+                          'distance': distance, 'feed': feed, 'object': name,
+                          'role': role, 'pattern': pattern, 'pa': pa,
+                          'absolute_xyz': absolute_xyz, 'relative_e': relative_e,
                           'xy_start': [old['X'], old['Y']], 'xy_end': [xyz['X'], xyz['Y']]})
+    if pattern is not None:
+        raise ValueError('unterminated native PA pattern section')
     return {'moves': moves, 'retracts': retracts, 'heaters': heaters,
-            'objects': sorted(object_names), 'layers': layer + 1}
+            'objects': sorted(object_names), 'layers': layer + 1,
+            'retract_episodes': episodes, 'patterns': patterns, 'pa_commands': pa_commands}
 
 
 def _f32(value):
@@ -131,7 +168,147 @@ def _native_unescape(value):
     return re.sub(r'\\(.)', unescape, value)
 
 
-def _klipper_temperature_semantics(text, inputs, data):
+def _scalar(effective, key, positive=False):
+    """A missing/multi-valued effective setting cannot become a default."""
+    raw = effective.get(key)
+    if not isinstance(raw, str) or re.fullmatch(r'-?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?', raw) is None:
+        raise ValueError('single finite effective ' + key + ' is unavailable')
+    value = float(raw)
+    if not math.isfinite(value) or positive and value <= 0:
+        raise ValueError('invalid effective ' + key)
+    return value
+
+
+def _native_envelope(text, inputs):
+    if inputs.get('source_commit') != '6a7763f08d1a175a464a00ce13f0b5a815662fc4':
+        raise ValueError('native invariant adapter requires the source-verified October 15 build')
+    if inputs.get('effective', {}).get('belt_printer') != '0':
+        raise ValueError('native invariant adapter requires explicit non-belt input')
+    if any(re.match(r'G(?:2|3|10|11)\b', code) for code in executable(text)):
+        raise ValueError('native invariant adapter does not interpret arcs or firmware retraction')
+
+
+def _retraction_invariants(text, inputs, data):
+    _native_envelope(text, inputs)
+    p = inputs['parameters']
+    n = _f32(inputs['nozzle_mm'])
+    height = .05 if n <= _f32(.1) else .1 if n <= _f32(.2) else .2
+    offset = _scalar(inputs['effective'], 'z_offset')
+    top = 1.4 + (p['end'] - p['start']) / p['step']
+    layer_z = {}
+    for move in data['moves']:
+        z = move['z'] - offset
+        if not math.isclose(z, (move['layer'] + 1) * height, abs_tol=.0002):
+            raise ValueError('retraction printed Z differs from native fixed layer schedule')
+        layer_z[move['layer']] = z
+    if not top - 2 * height - .0002 <= max(layer_z.values()) <= top + .0002:
+        raise ValueError('retraction tower does not cover the requested native height')
+    measured = []
+    for episode in data['retract_episodes']:
+        if not data['moves'][0]['line'] < episode['line'] < data['moves'][-1]['line']:
+            continue
+        z = episode['z'] - offset
+        # Native uses double print_z; serialized Z has 3 decimals. A boundary
+        # within that quantization may belong to either neighbouring section.
+        bands = {math.floor(max(0.0, z - .4 + delta)) for delta in (-.0002, .0002)}
+        expected = [p['start'] + band * p['step'] for band in bands]
+        if not any(math.isclose(episode['length'], value, abs_tol=.00003) for value in expected):
+            raise ValueError('actual software retraction length differs from native height ramp')
+        measured.append(episode['length'])
+    expected_sections = {p['start'] + i * p['step'] for i in range(int((p['end'] - p['start']) / p['step']) + 1)}
+    for value in expected_sections:
+        if value > .00003 and not any(math.isclose(value, actual, abs_tol=.00003) for actual in measured):
+            raise ValueError('missing actual retraction calibration section')
+    if not measured:
+        raise ValueError('no actual software retraction episodes')
+    return {'policy': 'oct15-native-retraction-v1', 'layer_height_mm': height,
+            'measured_retraction_lengths_mm': sorted(set(round(value, 5) for value in measured)),
+            'retraction_episode_count': len(measured), 'boundary_z_tolerance_mm': .0002}
+
+
+def _mvs_invariants(text, inputs, data):
+    _native_envelope(text, inputs)
+    p, effective = inputs['parameters'], inputs['effective']
+    n = inputs['nozzle_mm']
+    width, height = _f32(n * 1.75), _f32(n * .8)
+    flow = _f32(height * (width - height * (1.0 - .25 * math.pi))) * _scalar(effective, 'filament_flow_ratio', positive=True)
+    offset = _scalar(effective, 'z_offset')
+    slowdown = _scalar(effective, 'slow_down_layers')
+    if slowdown < 0 or not slowdown.is_integer():
+        raise ValueError('invalid native slowdown layer count')
+    layers = {}
+    for move in data['moves']:
+        if move['role'] == 'Outer wall':
+            layers.setdefault(move['layer'], []).append(move)
+    if not layers or flow <= 0:
+        raise ValueError('missing native MVS outer wall deposition')
+    top = (p['end'] - p['start'] + 1) / p['step']
+    measured_top = max(m['z'] - offset for moves in layers.values() for m in moves)
+    if not top - 2 * height - .0002 <= measured_top <= top + .0002:
+        raise ValueError('MVS tower does not cover the requested native height')
+    measured = []
+    for layer, moves in sorted(layers.items()):
+        if layer < max(1, slowdown):
+            continue  # Native initial speed and slow_down_layers precede ramp.
+        z = max(m['z'] - offset for m in moves)
+        # Spiral-vase Z is interpolated within each layer. Its top is the
+        # native print_z used by the calibration switch, not each segment Z.
+        expected = {math.floor((p['start'] + max(0., z + delta) * p['step']) / flow + .5)
+                    for delta in (-.0006, .0006)}
+        feeds = [m['feed'] / 60 if m['feed'] is not None else -1 for m in moves]
+        if any(speed <= 0 or speed > max(expected) + .02 for speed in feeds) or not any(math.isclose(max(feeds), target, abs_tol=.02) for target in expected):
+            raise ValueError('MVS actual wall feed differs from native rounded volumetric ramp; a cap needs explicit investigation')
+        measured.append(round(max(feeds), 3))
+    if len(set(measured)) < 3:
+        raise ValueError('missing increasing native MVS speed sections')
+    return {'policy': 'oct15-native-mvs-v1', 'flow_mm3_per_mm': flow,
+            'line_width_mm': width, 'layer_height_mm': height,
+            'checked_layers': len(measured), 'distinct_wall_speeds_mm_s': sorted(set(measured)),
+            'initial_and_slowdown_layers_excluded': max(1, int(slowdown)),
+            'serialized_z_tolerance_mm': .0006, 'serialized_feed_tolerance_mm_s': .02}
+
+
+def _pa_pattern_invariants(text, inputs, data):
+    _native_envelope(text, inputs)
+    effective, p = inputs['effective'], inputs['parameters']
+    if effective.get('gcode_flavor') != 'klipper':
+        raise ValueError('PA Pattern invariant currently requires the retained Klipper route')
+    if len(data['patterns']) != 4:
+        raise ValueError('native PA Pattern requires four complete custom layers')
+    count = math.ceil((p['end'] - p['start']) / p['step'] + 1)
+    if not 2 <= count <= 1000:
+        raise ValueError('native PA Pattern sample count is outside the bounded adapter')
+    samples = [float(format(p['start'] + j * p['step'], '.4g')) for j in range(count)]
+    first = _scalar(effective, 'initial_layer_print_height', positive=True)
+    height = _scalar(effective, 'layer_height', positive=True)
+    offset = _scalar(effective, 'z_offset')
+    for layer, section in enumerate(data['patterns']):
+        commands = [item for item in data['pa_commands'] if item['pattern'] == layer]
+        expected = ([samples[0]] if layer < 2 else []) + samples + ([samples[0]] if layer == 3 else [])
+        if [item['value'] for item in commands] != expected:
+            raise ValueError('native PA Pattern section values or final reset differ')
+        moves = [move for move in data['moves'] if move['pattern'] == layer]
+        if not moves or any(not math.isclose(m['z'], first + offset + layer * height, abs_tol=.0002) for m in moves):
+            raise ValueError('PA Pattern actual deposition Z differs from native four-layer schedule')
+        sample_commands = commands[1:] if layer < 2 else commands
+        for j, command in enumerate(sample_commands[:count]):
+            stop = sample_commands[j + 1]['line'] if j + 1 < len(sample_commands) else section['end_line']
+            chevrons = []
+            for m in moves:
+                dx, dy = (m['xy_end'][i] - m['xy_start'][i] for i in range(2))
+                if command['line'] < m['line'] < stop and abs(abs(dx) - abs(dy)) <= .003 and 20 <= m['distance'] <= 30.003:
+                    chevrons.append((dx, dy, m))
+            if len(chevrons) != 6 or any(dy <= 0 or (dx > 0) != (k % 2 == 0) or m['pa'] != samples[j]
+                                          for k, (dx, dy, m) in enumerate(chevrons)):
+                raise ValueError('native PA sample lacks three actual alternating chevron walls')
+            if layer and any(not math.isclose(m['distance'], 30, abs_tol=.003) for _, _, m in chevrons):
+                raise ValueError('native PA chevron side length differs')
+    return {'policy': 'oct15-native-pa-pattern-v1', 'custom_layers': 4,
+            'samples_per_layer': count, 'pressure_advance_values': samples,
+            'walls_per_sample': 3, 'native_end_can_be_exceeded': samples[-1] > p['end']}
+
+
+def _klipper_macro_semantics(text, inputs, data):
     """Exact invocation parity does not claim execution of macro internals.
 
     PRINT_START BED_TEMP/EXTRUDER_TEMP and PRINT_END are the accepted target
@@ -139,6 +316,8 @@ def _klipper_temperature_semantics(text, inputs, data):
     separately. No arbitrary macro name or invocation is substituted here.
     """
     effective = inputs.get('effective', {})
+    initial_nozzle = (inputs['parameters']['start'] if inputs['calibration'] == 'temperature'
+                      else _scalar(effective, 'nozzle_temperature_initial_layer', positive=True))
     start_hook = executable(_native_unescape(effective.get('machine_start_gcode')))
     end_hook = executable(_native_unescape(effective.get('machine_end_gcode')))
     accepted_template = 'PRINT_START BED_TEMP=[bed_temperature_initial_layer_single] EXTRUDER_TEMP=[nozzle_temperature_initial_layer]'
@@ -180,11 +359,11 @@ def _klipper_temperature_semantics(text, inputs, data):
     try:
         valid = (set(values) == set(keys)
                  and float(values[keys[0]]) == initial_bed
-                 and float(values[keys[1]]) == inputs['parameters']['start'])
+                 and float(values[keys[1]]) == initial_nozzle)
     except (ValueError, KeyError):
         valid = False
     if original_abi:
-        for op, target in (('M190', initial_bed), ('M109', inputs['parameters']['start'])):
+        for op, target in (('M190', initial_bed), ('M109', initial_nozzle)):
             if not any(h['op'] == op and h['target'] == target and h['line'] < starts[0][0] for h in data['heaters']):
                 raise ValueError('original macro ABI requires independently matching visible waits before PRINT_START')
     if not valid or ends[0][1] != 'PRINT_END':
@@ -196,6 +375,8 @@ def _klipper_temperature_semantics(text, inputs, data):
     if (relative not in ('0', '1') or not xyz_modes or xyz_modes[-1] != 'G90'
             or not e_modes or e_modes[-1] != ('M83' if relative == '1' else 'M82')):
         raise ValueError('native coordinate/extrusion mode differs from immutable effective input')
+    if any(not m['absolute_xyz'] or m['relative_e'] != (relative == '1') for m in data['moves']):
+        raise ValueError('native coordinate/extrusion mode changes during deposition')
     for heater in data['heaters']:
         if heater['target'] and heater['op'] in ('M140', 'M190'):
             if heater['target'] != (initial_bed if heater['layer'] < 1 else normal_bed):
@@ -205,6 +386,7 @@ def _klipper_temperature_semantics(text, inputs, data):
     return {'policy': 'native-original-visible-waits-v1' if original_abi else 'accepted-klipper-macro-invocation-v1',
             'hardware_abi_qualified': False, 'accepted_abi_signature': not original_abi,
             'start': starts[0][1], 'end': ends[0][1],
+            'initial_nozzle_c': initial_nozzle,
             'initial_bed_c': initial_bed, 'normal_bed_c': normal_bed,
             'effective_hooks_sha256': digest({'start': effective['machine_start_gcode'], 'end': effective['machine_end_gcode']}),
             'effective_limits_sha256': digest(limits), 'coordinate_mode': 'absolute',
@@ -222,8 +404,9 @@ def invariants(text, inputs):
     if any(forbidden.search(x) for x in executable(text)):
         raise ValueError('persistent or external executable command')
     kind = inputs['calibration']
-    p = inputs['parameters']
+    p = validate_parameters(kind, inputs['parameters'])
     macro_semantics = None
+    calibration_semantics = None
     if kind == 'temperature':
         start, end = p['start'], p['end']
         count = int((start - end) / 5) + 1
@@ -252,9 +435,7 @@ def invariants(text, inputs):
                 target = start if h['layer'] <= 1 else start - 5 * band
                 if h['target'] != target:
                     raise ValueError('layer heater command differs from the calibration section')
-        if inputs.get('effective', {}).get('gcode_flavor') == 'klipper':
-            macro_semantics = _klipper_temperature_semantics(text, inputs, d)
-        else:
+        if inputs.get('effective', {}).get('gcode_flavor') != 'klipper':
             if not any(h['op'] == 'M109' and h['target'] == start and h['line'] < d['moves'][0]['line'] for h in d['heaters']):
                 raise ValueError('missing initial nozzle wait')
             if not all(any(h['op'] == op and h['target'] == 0 and h['line'] > d['moves'][-1]['line'] for h in d['heaters']) for op in ('M104', 'M140')):
@@ -264,12 +445,31 @@ def invariants(text, inputs):
         names = {re.sub(r'\s+id.*$', '', n) for n in d['objects']}
         if names != expected or p != {'pass': 1} or ';TYPE:Top surface' not in text:
             raise ValueError('missing native YOLO labeled patches or top surfaces')
+    elif kind == 'retraction':
+        calibration_semantics = _retraction_invariants(text, inputs, d)
+    elif kind == 'max_volumetric_speed':
+        calibration_semantics = _mvs_invariants(text, inputs, d)
+    elif kind == 'pressure_advance_pattern':
+        calibration_semantics = _pa_pattern_invariants(text, inputs, d)
     else:
-        raise ValueError('native-engine invariant adapter not yet implemented for ' + kind)
+        raise ValueError('unknown calibration invariant adapter')
+    if inputs.get('effective', {}).get('gcode_flavor') == 'klipper':
+        macro_semantics = _klipper_macro_semantics(text, inputs, d)
+        if kind != 'temperature':
+            initial = _scalar(inputs['effective'], 'nozzle_temperature_initial_layer', positive=True)
+            normal = _scalar(inputs['effective'], 'nozzle_temperature')
+            normal = normal or initial  # Native zero means retain first-layer temperature.
+            for heater in d['heaters']:
+                if heater['line'] <= d['moves'][-1]['line']:
+                    if heater['target'] == 0:
+                        raise ValueError('premature heater shutdown')
+                    if heater['op'] in ('M104', 'M109') and heater['target'] != (initial if heater['layer'] < 1 else normal):
+                        raise ValueError('nozzle command differs from immutable effective calibration temperatures')
     return {'model_moves': len(d['moves']), 'layers': d['layers'],
             'deposition_temperatures': sorted({m['nozzle'] for m in d['moves'] if m['nozzle'] is not None}),
             'objects': d['objects'], 'executable_commands': len(executable(text)),
-            'macro_semantics': macro_semantics, 'physical_readiness': False}
+            'macro_semantics': macro_semantics, 'calibration_semantics': calibration_semantics,
+            'physical_readiness': False}
 
 
 def emitted_settings(text):

@@ -69,6 +69,9 @@ def sanitized(report, prepared, native_manifest, code_files):
     for label in ('candidate', 'native'):
         inv = report.get(label + '_invariants', {})
         clean = {'passed': bool(inv)}
+        semantics = inv.get('macro_semantics')
+        clean['macro_semantics_present'] = isinstance(semantics, dict)
+        clean['accepted_abi_signature'] = isinstance(semantics, dict) and semantics.get('accepted_abi_signature') is True
         for key in ('model_moves', 'layers', 'executable_commands'):
             if type(inv.get(key)) is int:
                 clean[key] = inv[key]
