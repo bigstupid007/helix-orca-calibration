@@ -80,13 +80,13 @@ def _configs(snapshot):
         # Each native serialized option stays native serialized. Stock ConfigBase
         # accepts JSON strings and calls set_deserialize, including vectors.
         config = copy.deepcopy(edited['config'])
-        for metadata in ('inherits', 'name', 'from', 'type', 'instantiation'):
+        for metadata in ('inherits', 'name', 'from', 'type', 'instantiation', 'compatible_printers', 'compatible_printers_condition', 'compatible_prints', 'compatible_prints_condition', 'different_settings_to_system'):
             config.pop(metadata, None)
         for key in config:
             if key not in effective:
                 _blocked('effective_unavailable', 'Effective ' + key + ' is unavailable; no edited/saved fallback is permitted.')
             config[key] = effective[key]
-        for metadata in ('inherits', 'name', 'from', 'type', 'instantiation'):
+        for metadata in ('inherits', 'name', 'from', 'type', 'instantiation', 'compatible_printers', 'compatible_printers_condition', 'compatible_prints', 'compatible_prints_condition', 'different_settings_to_system'):
             config.pop(metadata, None)
         config.update({'name': edited['name'], 'from': 'User', 'type': kind, 'instantiation': 'true'})
         result[kind] = config

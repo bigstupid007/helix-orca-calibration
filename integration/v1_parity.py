@@ -141,9 +141,19 @@ def _klipper_temperature_semantics(text, inputs, data):
     effective = inputs.get('effective', {})
     start_hook = executable(_native_unescape(effective.get('machine_start_gcode')))
     end_hook = executable(_native_unescape(effective.get('machine_end_gcode')))
-    start_template = 'PRINT_START BED_TEMP=[bed_temperature_initial_layer_single] EXTRUDER_TEMP=[nozzle_temperature_initial_layer]'
-    if [line for line in start_hook if line.split()[0] == 'PRINT_START'] != [start_template]:
-        raise ValueError('effective PRINT_START hook differs from the retained accepted macro ABI')
+    accepted_template = 'PRINT_START BED_TEMP=[bed_temperature_initial_layer_single] EXTRUDER_TEMP=[nozzle_temperature_initial_layer]'
+    original_template = 'PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]'
+    templates = [line for line in start_hook if line.split()[0] == 'PRINT_START']
+    if templates == [accepted_template]:
+        original_abi = False
+    elif templates == [original_template]:
+        original_abi = True
+        prefix = start_hook[:start_hook.index(original_template)]
+        if ('M190 S[bed_temperature_initial_layer_single]' not in prefix
+                or 'M109 S[nozzle_temperature_initial_layer]' not in prefix):
+            raise ValueError('original macro ABI requires immutable explicit bed/nozzle wait hooks')
+    else:
+        raise ValueError('effective PRINT_START hook differs from either bounded native macro ABI')
     if [line for line in end_hook if line.split()[0] == 'PRINT_END'] != ['PRINT_END']:
         raise ValueError('effective PRINT_END hook differs from the retained accepted macro ABI')
     bed_field = _BED_FIELDS.get(effective.get('curr_bed_type'))
@@ -166,12 +176,17 @@ def _klipper_temperature_semantics(text, inputs, data):
     if len(arguments) != 2 or not all('=' in part for part in arguments):
         raise ValueError('malformed PRINT_START arguments')
     values = dict(part.split('=', 1) for part in arguments)
+    keys = ('BED', 'EXTRUDER') if original_abi else ('BED_TEMP', 'EXTRUDER_TEMP')
     try:
-        valid = (set(values) == {'BED_TEMP', 'EXTRUDER_TEMP'}
-                 and float(values['BED_TEMP']) == initial_bed
-                 and float(values['EXTRUDER_TEMP']) == inputs['parameters']['start'])
+        valid = (set(values) == set(keys)
+                 and float(values[keys[0]]) == initial_bed
+                 and float(values[keys[1]]) == inputs['parameters']['start'])
     except (ValueError, KeyError):
         valid = False
+    if original_abi:
+        for op, target in (('M190', initial_bed), ('M109', inputs['parameters']['start'])):
+            if not any(h['op'] == op and h['target'] == target and h['line'] < starts[0][0] for h in data['heaters']):
+                raise ValueError('original macro ABI requires independently matching visible waits before PRINT_START')
     if not valid or ends[0][1] != 'PRINT_END':
         raise ValueError('native macro arguments differ from the exact effective calibration targets')
     prefix = [code.split()[0] for line, code in commands if line < data['moves'][0]['line']]
@@ -187,7 +202,9 @@ def _klipper_temperature_semantics(text, inputs, data):
                 raise ValueError('bed command differs from immutable effective plate temperatures')
     limits = {key: value for key, value in effective.items()
               if key.startswith('machine_max_') or key in ('printable_area', 'printable_height', 'printable_volume', 'gcode_flavor')}
-    return {'policy': 'accepted-klipper-macro-invocation-v1', 'start': starts[0][1], 'end': ends[0][1],
+    return {'policy': 'native-original-visible-waits-v1' if original_abi else 'accepted-klipper-macro-invocation-v1',
+            'hardware_abi_qualified': False, 'accepted_abi_signature': not original_abi,
+            'start': starts[0][1], 'end': ends[0][1],
             'initial_bed_c': initial_bed, 'normal_bed_c': normal_bed,
             'effective_hooks_sha256': digest({'start': effective['machine_start_gcode'], 'end': effective['machine_end_gcode']}),
             'effective_limits_sha256': digest(limits), 'coordinate_mode': 'absolute',

@@ -106,6 +106,18 @@ class StockGeneration(unittest.TestCase):
             self.run_generation()
         self.assertFalse((self.root / 'job/prepared.json').exists())
 
+    def test_source_removed_compatibility_metadata_is_not_effective_fallback(self):
+        for role in ('printer', 'process', 'filament'):
+            self.snapshot[role]['edited']['config']['compatible_printers_condition'] = 'original compatibility metadata'
+            self.snapshot[role]['edited']['config']['inherits'] = 'saved parent identity'
+        self.request['context_sha256'] = contract.digest(self.snapshot)
+        result = self.run_generation()
+        self.assertFalse(result['parity']['qualified'])
+        for role in ('machine', 'process', 'filament'):
+            config = json.loads((self.root / ('job/' + role + '.json')).read_text())
+            self.assertNotIn('compatible_printers_condition', config)
+            self.assertNotIn('inherits', config)
+
     def test_effective_only_dynamic_axis_options_are_never_silently_defaulted(self):
         self.snapshot['effective']['machine_max_acceleration_x'] = '2000,2000'
         self.snapshot['effective']['machine_max_speed_x'] = '200,200'

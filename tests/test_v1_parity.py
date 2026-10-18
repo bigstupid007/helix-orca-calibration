@@ -117,7 +117,23 @@ class NativeParity(unittest.TestCase):
         self.klipper_pair()
         self.inputs['effective']['machine_start_gcode'] = 'PRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]'
         self.manifest['inputs_sha256'] = parity.digest(self.inputs)
-        self.assertIn('accepted macro ABI', self.evaluate()['reason'])
+        self.assertIn('wait hooks', self.evaluate()['reason'])
+
+    def test_original_klipper_abi_with_matching_visible_waits_has_no_hardware_claim(self):
+        self.klipper_pair()
+        self.inputs['effective']['machine_start_gcode'] = 'M190 S[bed_temperature_initial_layer_single]\\nM109 S[nozzle_temperature_initial_layer]\\nPRINT_START EXTRUDER=[nozzle_temperature_initial_layer] BED=[bed_temperature_initial_layer_single]'
+        for path in (self.candidate, self.native):
+            path.write_text(path.read_text().replace('PRINT_START BED_TEMP=60 EXTRUDER_TEMP=230',
+                                                    'M190 S60\nM109 S230\nPRINT_START EXTRUDER=230 BED=60'))
+        self.manifest.update(inputs_sha256=parity.digest(self.inputs), artifact=parity.file_record(self.native))
+        report = self.evaluate()
+        self.assertTrue(report['qualified'], report['reason'])
+        semantics = report['candidate_invariants']['macro_semantics']
+        self.assertEqual(semantics['policy'], 'native-original-visible-waits-v1')
+        self.assertFalse(semantics['hardware_abi_qualified'])
+        self.assertFalse(semantics['physical_readiness'])
+        self.candidate.write_text(self.candidate.read_text().replace('M109 S230\n', ''))
+        self.assertIn('visible waits', self.evaluate()['reason'])
 
     def test_same_bad_bed_command_in_both_klipper_files_still_blocks_invariant(self):
         self.klipper_pair()

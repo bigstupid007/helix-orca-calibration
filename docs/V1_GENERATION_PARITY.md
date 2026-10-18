@@ -270,3 +270,30 @@ bed commands even when both files share them, and M73-only differences. M73
 estimate differences are measured separately and still do not pass the current
 strict executable gate. These tests do not qualify any actual Windows or
 physical macro execution.
+
+The first actual October15 Windows context exposed source-intentional merged
+metadata erasures: `inherits`, `compatible_printers`,
+`compatible_printers_condition`, `compatible_prints`,
+`compatible_prints_condition` and `different_settings_to_system` are explicitly
+removed by `PresetBundle::full_fff_config`. Job copies omit only these verified
+composition-only fields rather than substituting their saved/edited values for
+missing effective values. Other missing settings still block. In particular,
+legacy public-diagnostic redaction treated `post_process` as a personal path;
+the new private V1 snapshot must retain that serialized value to distinguish
+empty post-processing from scripts. The incomplete earlier context/reference
+must remain history rather than having unknown fields retrofitted.
+
+A second lead-approved **command comparison only** variant preserves the exact
+immutable original native `PRINT_START EXTRUDER=… BED=…` hook when both the
+serialized original hook and the exported file contain independently matching
+explicit M190/M109 waits before PRINT_START. It requires the original exact
+placeholder signature, the requested nozzle target and selected-plate bed value,
+all subsequent section checks, the correct original modes and one PRINT_END
+after deposition. No replacement with the accepted target ABI occurs.
+`native-original-visible-waits-v1` reports `hardware_abi_qualified: false`,
+`macro_internals: unobserved` and `physical_readiness: false`. This can compare
+the unchanged original native file's commanded behavior; it cannot certify that
+the printer's actual macro accepts those original arguments or authorize a print.
+The earlier accepted-ABI variant also retains `hardware_abi_qualified: false`
+for this new candidate: matching a retained signature does not observe execution.
+Unsupported original hooks, missing waits or wrong arguments still block.
