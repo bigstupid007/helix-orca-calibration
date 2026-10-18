@@ -90,6 +90,12 @@ def _configs(snapshot):
             config.pop(metadata, None)
         config.update({'name': edited['name'], 'from': 'User', 'type': kind, 'instantiation': 'true'})
         result[kind] = config
+    # Project/effective-only options may be absent from preset-local key maps.
+    # The stock CLI applies supplied DynamicPrintConfig keys; preserve those
+    # authoritative options explicitly instead of silently taking CLI defaults.
+    owned = set().union(*(profile.keys() for profile in result.values()))
+    result['machine'].update({key: value for key, value in effective.items()
+                              if key not in owned and key not in ('name', 'from', 'type', 'inherits', 'instantiation')})
     # Credentials never enter a job bundle. They do not affect slicing.
     for config in result.values():
         for key in list(config):

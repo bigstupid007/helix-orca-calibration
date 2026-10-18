@@ -216,3 +216,16 @@ Klipper profiles whose inherited PRINT_START/PRINT_END macros hide heater waits
 or shutdown currently fail the visible-wait/shutdown invariants until those exact
 macro semantics are independently qualified; preserving the inherited macro
 text does not prove its executed behavior.
+
+Effective-only/project options absent from all three preset-local key maps are
+also explicitly carried in the job's machine DynamicPrintConfig. The stock CLI
+applies those serialized keys through its native `update_full_config` path;
+they must not disappear merely because a preset-local enumeration lacks them.
+Regression coverage preserves dynamically registered per-axis machine limits.
+The actual host's `bundle.full_config_keys()` and `full_config_value(key)` are
+the supported capture route. Exact October 15 source
+`PluginHostPresets.cpp:202` binds those to `bundle.full_config()` and
+`PluginBindingUtils.hpp:79` returns `opt_serialize(key)` (or unavailable).
+`PresetBundle::full_config` dispatches `full_fff_config` at line 5489; that
+function explicitly applies `project_config`, including `curr_bed_type`.
+No app-settings fallback or guessed bed default is required or permitted.

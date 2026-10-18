@@ -106,6 +106,15 @@ class StockGeneration(unittest.TestCase):
             self.run_generation()
         self.assertFalse((self.root / 'job/prepared.json').exists())
 
+    def test_effective_only_dynamic_axis_options_are_never_silently_defaulted(self):
+        self.snapshot['effective']['machine_max_acceleration_x'] = '2000,2000'
+        self.snapshot['effective']['machine_max_speed_x'] = '200,200'
+        self.request['context_sha256'] = contract.digest(self.snapshot)
+        self.run_generation()
+        machine = json.loads((self.root / 'job/machine.json').read_text())
+        self.assertEqual(machine['machine_max_acceleration_x'], '2000,2000')
+        self.assertEqual(machine['machine_max_speed_x'], '200,200')
+
     def test_staging_is_shared_with_native_adapter_without_slicing(self):
         del self.config['executable']
         staged = generation.prepare_inputs(self.request, self.snapshot, self.root / 'job', self.config)
