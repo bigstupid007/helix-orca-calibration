@@ -37,10 +37,15 @@ Default channel is an **offline directory** below the runtime journal. It cannot
 contact a printer. `context.json` and `status.json` there are test channel outputs;
 `native.json` is an explicit development input. `--once` performs one bounded
 poll. Normal foreground execution polls every two seconds, handles Ctrl+C/TERM,
-retains journals and uses a kernel-owned single-instance lock. No autostart or
-background deployment is performed. Health is retained at `v1/runtime/health.json`.
-A production startup/install package and Windows-hosted daemon qualification
-remain incomplete; a foreground loop alone is not a finished production service.
+retains journals and uses storage-scoped and journal-scoped kernel locks.
+Health is retained at `v1/runtime/health.json`. The explicit `--run-id` and
+`--stop-file` interface accepts only the exact nonce-bound JSON graceful stop.
+
+The [Windows lifecycle package](V1_WINDOWS_RUNTIME.md) adds per-user start,
+status and stop with an owned detached supervisor, exact process identity,
+private local state and bounded logs. It produces a review-only startup plan;
+it does not register startup entries or install a service. Actual Windows
+lifecycle qualification is tracked separately from the Linux state-machine tests.
 
 Generator configuration is explicit: exact executable/source/runtime hashes,
 assets and optional independent native reference as documented in
@@ -81,7 +86,10 @@ also needs the accepted owned-job/cancellation/configuration safeguards.
 A returned result binds original context, prepared bytes, exact job and completion
 proof. Orca retains each immutable originating snapshot under `origins/`; only a
 matching result can be durably committed. A receipt follows that commit and
-contains the full result/digest. Native delivery cannot be claimed before the
+contains the full result/digest. Later invalid inbox data cannot hide the last
+committed result. Supported host profile lifecycle events flag a subsequent UI
+poll to refresh saved/edited/effective context; unavailable selection disables
+new preparation without replacing an active job’s original context. Native delivery cannot be claimed before the
 originating receipt. The coordinator retains the session until native readback
 confirms ACK persistence, so event loss cannot discard the receipt. Results are
 **NOT APPLIED**. No preset setter or profile writeback exists.

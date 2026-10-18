@@ -51,6 +51,18 @@ class CompanionTests(unittest.TestCase):
             self.assertEqual(panel.context["origin_id"], first)
             self.assertTrue((Path(root)/"v1/context.json").is_file())
             self.assertFalse((Path(root)/"v1/result.json").exists())
+            bundle.values["nozzle_temperature"]="214"
+            panel.on_lifecycle_event("ProjectDirtyChanged", {})
+            self.assertEqual(panel.context["effective"]["nozzle_temperature"],"215")
+            panel.on_message({"command":"poll"})
+            self.assertEqual(panel.context["effective"]["nozzle_temperature"],"214")
+            self.assertNotEqual(panel.context["origin_id"],first)
+            self.assertEqual(json.loads((Path(root)/"v1/origins"/(first+".json")).read_text())["effective"]["nozzle_temperature"],"215")
+            del bundle.values["nozzle_temperature"]
+            panel.on_lifecycle_event("PresetSelected", {})
+            panel.on_message({"command":"poll"})
+            self.assertIsNone(panel.context)
+            self.assertFalse(json.loads((Path(root)/"v1/context-status.json").read_text())["available"])
 
     def test_generator_is_self_contained_and_accepted_capabilities_survive(self):
         plugin, orca = self.load()
@@ -85,6 +97,15 @@ class CompanionTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 plugin.v1_commit_inbox(directory)
             self.assertEqual(json.loads((directory/"receipt.json").read_text()),receipt)
+            panel=plugin.V1CalibrationPanel()
+            panel.directory=directory
+            panel.refresh_pending=False
+            messages=[]
+            panel.panel=types.SimpleNamespace(is_open=lambda:True,post=messages.append)
+            panel.on_message({"command":"poll"})
+            self.assertIn("different result",panel.error)
+            self.assertEqual(messages[-1]["view"]["result"],result)
+            self.assertEqual(messages[-1]["view"]["original"]["filament"],original["filament"]["saved"]["name"])
 
 
 if __name__ == "__main__":

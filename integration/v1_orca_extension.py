@@ -20,7 +20,7 @@ def v1_storage(root):
 
 
 def v1_write(path, value):
-    if path.is_symlink():
+    if path.is_symlink() or path.parent.is_symlink():
         raise ContractError("Linked V1 artifact refused")
     import tempfile
     fd, name = tempfile.mkstemp(prefix=".v1-", dir=path.parent)
@@ -38,7 +38,7 @@ def v1_write(path, value):
 def v1_read(path):
     if not path.exists():
         return None
-    if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_MESSAGE:
+    if path.is_symlink() or path.parent.is_symlink() or not path.is_file() or path.stat().st_size > MAX_MESSAGE:
         raise ContractError("Invalid V1 artifact")
     with path.open("rb") as stream:
         raw = stream.read(MAX_MESSAGE + 1)
@@ -135,6 +135,7 @@ class V1CalibrationPanel(orca.script.ScriptPluginCapabilityBase):
         self.directory = None
         self.context = None
         self.error = None
+        self.refresh_pending = True
 
     def get_name(self):
         return "Helix V1 Calibration"
@@ -155,12 +156,30 @@ class V1CalibrationPanel(orca.script.ScriptPluginCapabilityBase):
     def on_close(self):
         self.panel = None
 
+    def on_lifecycle_event(self, event, context):
+        if _enum_name(event) in {"PresetSelected", "ProjectDirtyChanged"}:
+            # Event callbacks may run outside the supported UI callback phase.
+            # Only flag a subsequent UI poll; never capture/write on that thread.
+            self.refresh_pending = True
+
+    def retained_result_view(self, view):
+        committed = v1_read(self.directory / "committed.json")
+        if view:
+            view["result"] = None
+        if committed:
+            view = view or {}
+            view["result"] = committed["result"]
+            view["original"] = {role: committed["original"][role]["saved"]["name"] for role in ("printer", "process", "filament")}
+        return view
+
     def on_message(self, message):
         if not isinstance(message, dict) or message.get("command") not in ("ready", "refresh", "poll"):
             return
         self.error = None
+        refreshing = message["command"] in ("ready", "refresh") or self.refresh_pending
         try:
-            if message["command"] in ("ready", "refresh"):
+            if refreshing:
+                self.refresh_pending = False
                 retained = v1_read(self.directory / "context.json")
                 origin = retained["origin_id"] if retained else secrets.token_hex(16)
                 current = v1_capture(orca.host, origin)
@@ -175,18 +194,23 @@ class V1CalibrationPanel(orca.script.ScriptPluginCapabilityBase):
                 if retained_origin is not None and canonical(retained_origin) != canonical(self.context):
                     raise ContractError("Original profile snapshot is immutable")
                 v1_write(origin_path, self.context)
+                v1_write(self.directory / "context-status.json", dict(available=True))
             view = v1_read(self.directory / "view.json")
             health = v1_read(self.directory / "runtime" / "health.json")
-            committed = v1_commit_inbox(self.directory)
-            if view:
-                view["result"] = None
-            if committed:
-                view = view or {}
-                view["result"] = committed["result"]
-                view["original"] = {role: committed["original"][role]["saved"]["name"] for role in ("printer", "process", "filament")}
+            v1_commit_inbox(self.directory)
+            view = self.retained_result_view(view)
         except Exception as exc:
             self.error = "Unavailable: " + str(exc)[:500]
-            view = health = None
+            if refreshing:
+                self.context = None
+                v1_write(self.directory / "context-status.json", dict(available=False, reason="Selected Orca context is unavailable. Refresh after restoring a valid profile selection."))
+            health = None
+            # A later malformed inbox or unavailable selection must not hide a
+            # previously committed NOT APPLIED result from the original context.
+            try:
+                view = self.retained_result_view(None)
+            except Exception:
+                view = None
         if self.panel and self.panel.is_open():
             self.panel.post(dict(command="v1_state", context=self.context, context_sha256=digest(self.context) if self.context else None,
                                  view=view, error=self.error,

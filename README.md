@@ -258,3 +258,9 @@ secondary target. Alpha physical integration and production adoption remain
 unauthorized. [Founder acceptance and closeout](docs/ISSUE_10_ACCEPTANCE.md)
 authorize PR #11 merge, main verification and Issue #10 closure only; GitHub
 records the final outcome. See the [qualification report](docs/ORCA_ALPHA_QUALIFICATION.md).
+
+V1 runtime lifecycle and recovery details are maintained in
+[the coordinator guide](docs/V1_RUNTIME.md) and
+[the Windows lifecycle package](docs/V1_WINDOWS_RUNTIME.md). These are development
+candidate instructions; physical activation and generator qualification remain
+separate gates.

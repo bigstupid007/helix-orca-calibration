@@ -112,6 +112,26 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(read_json(Path(root)/"history"/(first["request_id"]+".json"))["request"], req)
             self.assertEqual(second, runtime.offer(context()))
 
+    def test_tick_ignores_archived_native_artifacts_and_unavailable_context(self):
+        spec = importlib.util.spec_from_file_location("v1_cli_tick", Path(__file__).resolve().parents[1]/"scripts/v1-runtime.py")
+        cli = importlib.util.module_from_spec(spec); spec.loader.exec_module(cli)
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); storage=root/"storage"; storage.mkdir()
+            runtime=self.make(root/"runtime", available=False)
+            original=context(); atomic_json(storage/"context.json",original)
+            old=request(runtime.offer(original)); runtime.request(old)
+            channel=DirectoryEvents(root/"channel")
+            atomic_json(channel.directory/"native.json",dict(request=old,result=dict(request_id=old["request_id"]),intent=dict(request_id=old["request_id"])))
+            cli.tick(runtime,storage,channel)
+            fresh=runtime.state["offer"]
+            self.assertNotEqual(fresh["request_id"],old["request_id"])
+            self.assertIsNone(runtime.state["request"])
+            atomic_json(storage/"context-status.json",dict(available=False))
+            cli.tick(runtime,storage,channel)
+            disabled=read_json(channel.directory/"context.json")
+            self.assertTrue(all(not item["available"] for item in disabled["capabilities"]))
+            self.assertEqual(runtime.state["offer"],fresh)
+
     def test_available_is_not_qualification_and_unavailable_never_runs(self):
         with tempfile.TemporaryDirectory() as root:
             runtime = self.make(root, lambda *_: self.fail("Unavailable generator called"), available=False)
