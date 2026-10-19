@@ -102,10 +102,16 @@ class CompanionTests(unittest.TestCase):
             panel.refresh_pending=False
             messages=[]
             panel.panel=types.SimpleNamespace(is_open=lambda:True,post=messages.append)
+            active_original=dict(printer="New job printer",process="New job process",filament="New job filament",nozzle_mm=.6,context_sha256="f"*64)
+            active=dict(status=dict(request_id="4"*32,phase="review"),original=active_original)
+            retained=panel.retained_result_view(active)
+            self.assertEqual(retained["original"],active_original)
+            self.assertEqual(retained["result_original"]["filament"],original["filament"]["saved"]["name"])
+            self.assertEqual(retained["result_original"]["nozzle_mm"],.4)
             panel.on_message({"command":"poll"})
             self.assertIn("different result",panel.error)
             self.assertEqual(messages[-1]["view"]["result"],result)
-            self.assertEqual(messages[-1]["view"]["original"]["filament"],original["filament"]["saved"]["name"])
+            self.assertEqual(messages[-1]["view"]["result_original"]["filament"],original["filament"]["saved"]["name"])
 
 
 if __name__ == "__main__":

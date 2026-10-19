@@ -64,7 +64,9 @@ def tick(coordinator, storage, transport):
         atomic_json(storage / "status.json", status)
         context = coordinator.state["context"]
         atomic_json(storage / "view.json", dict(status=status, result=coordinator.state["result"],
-            original={role: context[role]["saved"]["name"] for role in ("printer", "process", "filament")}))
+            original=dict({role: context[role]["saved"]["name"] for role in ("printer", "process", "filament")},
+                nozzle_mm=context["nozzle_mm"], context_sha256=coordinator.state["request"]["context_sha256"],
+                edited_roles=[role for role in ("printer", "process", "filament") if context[role]["saved"] != context[role]["edited"]])))
         transport.send("helix_orca_v1.status.v1", status)
 
 
