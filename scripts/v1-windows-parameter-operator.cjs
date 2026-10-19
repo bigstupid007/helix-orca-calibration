@@ -175,10 +175,13 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
     await freshFrame(after); actions.push({type:'browser-native-navigation',action:label});
   }
   async function capture(name) {
+    const image=page.locator('#frame');
+    const previous=await image.evaluate(node=>node.src);
+    await freshFrame(previous);
     await until(async()=>{
-      const image=page.locator('#frame');
-      return await image.evaluate(node=>node.complete&&node.naturalWidth===800&&node.naturalHeight===480);
-    },'Native frame did not settle');
+      const value=String(await page.locator('#message').textContent());
+      return !/timed out|unavailable/i.test(value);
+    },'Viewer retained a native frame error');
     const target=path.join(output,name+'.png');
     await page.screenshot({path:target});
     screenshots.push({name:path.basename(target),sha256:sha256(fs.readFileSync(target))});
