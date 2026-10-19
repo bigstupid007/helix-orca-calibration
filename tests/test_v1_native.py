@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 def load(name,path):
@@ -131,3 +132,14 @@ class V1NativeTests(unittest.TestCase):
         for token in ('v1_same(s.prepared,d.prepared)','s.job_id~=d.job_id','s.completion_sha256~=d.completion_sha256'):
             self.assertIn(token,source)
         self.assertIn("elseif s.phase=='blocked' or s.phase=='failed' or s.phase=='cancelled' then",source)
+
+    def test_manual_reopen_deliberately_navigates_home_after_preserved_native_panel(self):
+        calls=[]
+        with patch.object(qualifier.q,'back_to_home',side_effect=lambda name:calls.append(('pop',name))),\
+             patch.object(qualifier,'ctl',side_effect=lambda *args:calls.append(args)),\
+             patch.object(qualifier,'navigation',return_value=dict(panel='home',overlays=[])),\
+             patch.object(qualifier,'tap',side_effect=lambda name,widget,*args:calls.append(('tap',widget))),\
+             patch.object(qualifier.a,'_assert_overlay'):
+            qualifier.reopen_job('owned',800,480,Path('/synthetic'))
+        self.assertLess(calls.index(('pop','owned')),calls.index(('owned','navigate','home')))
+        self.assertLess(calls.index(('owned','navigate','home')),calls.index(('tap','orcacal__tile')))

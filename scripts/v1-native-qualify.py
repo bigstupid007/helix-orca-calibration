@@ -265,7 +265,11 @@ def assert_compact_bounds(geometry,w,h):
     icon,identity,status=(children[k] for k in ('orcacal__tile_icon','orcacal__tile_identity','orcacal__tile_status'))
     require(icon['y']+icon['h']<=identity['y'] and identity['y']+identity['h']<=status['y'],'Compact tile children overlap')
 def reopen_job(name,w,h,work):
-    q.back_to_home(name);tap(name,'orcacal__tile',w,h,work);tap(name,'orcacal__v1_resume',w,h,work)
+    # Accepted helper only pops overlays; a preserved native panel is still
+    # selected. Follow the accepted Temperature proof's deliberate Home action.
+    q.back_to_home(name);ctl(name,'navigate','home');ctl(name,'wait_idle')
+    require(not navigation(name)['overlays'],'Native Home navigation left overlays')
+    tap(name,'orcacal__tile',w,h,work);tap(name,'orcacal__v1_resume',w,h,work)
     a._assert_overlay(navigation(name),['orcacal__wizard','orcacal__v1_job'])
 def restart_owned(name,work,snapshot=None):
     # Restart the exact ManagedRun-owned container, never create/remove another.
@@ -280,16 +284,23 @@ def temperature_native_page_proof(name,w,h,work,page):
     tap(name,'orcacal__v1_start',w,h,work);signal(name,5)
     if page=='print-status':ctl(name,'demo','print-status')
     else:q.back_to_home(name);ctl(name,'navigate','controls')
-    ctl(name,'wait_idle');before=navigation(name);signal(name,6);after=navigation(name)
+    ctl(name,'wait_idle');before=navigation(name)
+    if page=='print-status':require(any('print_status' in str(item) for item in before['overlays']),'Actual Print Status is not open')
+    else:require('controls' in str(before['panel']),'Actual Controls is not open')
+    signal(name,6);after=navigation(name)
     owned={'orcacal__wizard','orcacal__v1_temperature','orcacal__v1_job','orcacal__v1_cancel_confirm'}
     native_stack=[key for key in before['overlays'] if key not in owned]
     require(after==dict(panel=before['panel'],overlays=native_stack+['orcacal__v1_auto_result']),'Automatic Temperature result hid native page or retained stale preparation views')
     ctl(name,'go_back');ctl(name,'wait_idle');dismissed=dict(panel=before['panel'],overlays=native_stack)
     require(navigation(name)==dismissed,'Dismiss did not restore underlying native page')
     signal(name,12);require(navigation(name)==dismissed,'Duplicate reopened dismissed Temperature result')
+    proof=dict(page=page,before=before,presented=after,dismissed=dismissed)
+    a.json_write(work/('native-page-'+page+'-navigation.json'),proof)
     reopen_job(name,w,h,work);require(value(name,'evaluate_on')==1,'Pending Temperature result cannot be manually reopened')
     ctl(name,'set_value','orcacal__v1_evaluation','1');tap(name,'orcacal__v1_return',w,h,work);signal(name,7)
-    return dict(page=page,before=before,presented=after,dismissed=dismissed,manual_return=True)
+    proof.update(manual_reopened=navigation(name),manual_return=True)
+    a.json_write(work/('native-page-'+page+'-navigation.json'),proof)
+    return proof
 def pending_temperature_recovery(name,w,h,work):
     cases=recovery_fixtures();evidence={}
     for phase,case in cases.items():
