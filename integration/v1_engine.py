@@ -293,6 +293,43 @@ def _retained_processing_failure(destination):
         return None
 
 
+def select_native_reference(config, inputs_sha256):
+    """Select only an exact full-input key; never normalize or rebind context.
+
+    This validates trusted catalog structure, not native evidence. The ordinary
+    parity evaluator still verifies the selected manifest and native bytes.
+    Call it after native processor validation so a missing catalog entry cannot
+    hide an actual slicer warning.
+    """
+    if "native_references" not in config:
+        return config.get("native_reference")  # Existing single-reference policy.
+    if "native_reference" in config:
+        raise NativeEngineBlocked("Choose either a native reference catalog or a single native reference, not both",
+                                  "native_reference_catalog")
+    catalog = config["native_references"]
+    if not isinstance(catalog, dict) or len(catalog) > 64:
+        raise NativeEngineBlocked("Native reference catalog must contain at most 64 exact-input entries",
+                                  "native_reference_catalog")
+    for key, reference in catalog.items():
+        if not isinstance(key, str) or re.fullmatch(r"[0-9a-f]{64}", key) is None:
+            raise NativeEngineBlocked("Native reference catalog requires full lowercase SHA-256 input keys",
+                                      "native_reference_catalog")
+        if not isinstance(reference, dict) or set(reference) != {"manifest", "gcode"}:
+            raise NativeEngineBlocked("Native catalog entries require exactly pinned manifest and G-code records",
+                                      "native_reference_catalog")
+        for record in reference.values():
+            if (not isinstance(record, dict) or set(record) != {"path", "sha256"}
+                    or not isinstance(record["path"], str) or not 1 <= len(record["path"]) <= 4096
+                    or not isinstance(record["sha256"], str)
+                    or re.fullmatch(r"[0-9a-f]{64}", record["sha256"]) is None):
+                raise NativeEngineBlocked("Native catalog files require exact bounded path/SHA-256 records",
+                                          "native_reference_catalog")
+    # Never choose the nearest parameter range, a different calibration, a
+    # profile-only match, or a reference with a different origin/context hash.
+    selected = catalog.get(inputs_sha256)
+    return json.loads(json.dumps(selected)) if selected is not None else None
+
+
 def generate(request, snapshot, output_dir, config):
     """Invoke our built C++ CLI and shared parity gate; never an Orca Python API."""
     from integration import v1_contract as contract
@@ -387,7 +424,13 @@ def generate(request, snapshot, output_dir, config):
             or native.get("qualified") is not False or native.get("not_applied") is not True
             or native.get("processing") != {"error_code": 0, "warnings": []} or native.get("max_parallelism") != 2):
         raise NativeEngineBlocked("Native result does not bind exact request and artifact", "native_result")
-    reference = config.get("native_reference")
+    reference = select_native_reference(config, contract.digest(inputs))
+    if "native_references" in config:
+        (destination / "native-reference-selection.json").write_bytes(contract.canonical({
+            "schema": "helix-orca-v1-native-reference-selection/v1",
+            "method": "exact-full-input-sha256", "inputs_sha256": contract.digest(inputs),
+            "catalog_entries": len(config["native_references"]), "matched": reference is not None,
+            "reference": reference, "qualified": False}))
     if reference:
         try:
             manifest = json.loads(_checked(reference["manifest"], 1048576).read_text())
@@ -395,7 +438,11 @@ def generate(request, snapshot, output_dir, config):
         except (NativeEngineBlocked, OSError, ValueError, KeyError, TypeError) as exc:
             report = parity.unqualified(artifact, inputs, "Independent native reference unavailable: " + str(exc))
     else:
-        report = parity.unqualified(artifact, inputs, "No independent native UI reference with matching exact inputs has been retained.")
+        reason = ("No native catalog entry matches the exact context and selected parameters; "
+                  "the original values were preserved. A fresh origin is a different exact context."
+                  if "native_references" in config else
+                  "No independent native UI reference with matching exact inputs has been retained.")
+        report = parity.unqualified(artifact, inputs, reason)
     (destination / "parity.json").write_bytes(contract.canonical(report))
     prepared = {key: request[key] for key in ("request_id", "origin_id", "context_sha256", "calibration", "parameters")}
     prepared.update(schema="helix-orca-v1-prepared/v1", request_sha256=contract.digest(request),

@@ -302,6 +302,35 @@ def verify_all(reviewed,pinned,config=None):
     if config is not None: e._backend(config)
 
 
+def native_reference_config(args,inputs,pinned):
+    """Catalog selection changes no current reference, request or context."""
+    catalog_path = getattr(args,'native_catalog',None)
+    catalog_sha = getattr(args,'native_catalog_sha256',None)
+    if catalog_path is None:
+        if catalog_sha is not None: raise Refused('native_catalog_path_and_digest_required')
+        return dict(native_reference=dict(
+            manifest=dict(path=str(safe_path(args.native_manifest)),sha256=args.native_manifest_sha256),
+            gcode=dict(path=str(safe_path(args.native)),sha256=args.native_sha256)))
+    if catalog_sha is None: raise Refused('native_catalog_path_and_digest_required')
+    pinned.add(catalog_path,catalog_sha,1048576)
+    catalog = read_json(catalog_path)
+    config = dict(native_references=catalog)
+    selected = e.select_native_reference(config,c.digest(inputs))
+    for reference in catalog.values():
+        pinned.add(reference['manifest']['path'],reference['manifest']['sha256'],1048576)
+        pinned.add(reference['gcode']['path'],reference['gcode']['sha256'],p.MAX_GCODE_BYTES)
+    if selected is not None:
+        if (safe_path(selected['manifest']['path'])!=safe_path(args.native_manifest)
+                or selected['manifest']['sha256']!=args.native_manifest_sha256
+                or safe_path(selected['gcode']['path'])!=safe_path(args.native)
+                or selected['gcode']['sha256']!=args.native_sha256):
+            raise Refused('catalog_selection_differs_from_expected_native_reference')
+    # A missing key deliberately reaches the real generator. Native warnings
+    # retain priority; after successful processing the unchanged parity gate
+    # reports this exact context/parameter combination as unqualified.
+    return config
+
+
 def blocked_summary(args,request,destination,reviewed,pinned,config,error):
     verify_all(reviewed,pinned,config)
     code = error.code if isinstance(error,e.NativeEngineBlocked) else 'native_generation_failed'
@@ -311,6 +340,12 @@ def blocked_summary(args,request,destination,reviewed,pinned,config,error):
         request_sha256=c.digest(request),context_sha256=request['context_sha256'],
         reviewed_source_manifest_sha256=reviewed.manifest_sha256,source_files=reviewed.files,
         physical_actions=False,physical_readiness=False,not_applied=True)
+    if getattr(args,'native_catalog',None) is not None:
+        value['native_catalog_sha256'] = args.native_catalog_sha256
+    if code=='native_reference_missing':
+        value['blocker_reason']='No native catalog entry matches the exact context and selected parameters; original values were preserved.'
+    elif code=='native_reference_unavailable':
+        value['blocker_reason']='The exact catalog reference is unavailable for parity verification; inspect the retained private report.'
     processing_path = destination/'job/native-processing.json'
     if processing_path.is_file():
         processing = read_json(processing_path,65536)
@@ -338,11 +373,13 @@ def run(args):
     load_owned(reviewed)
     pinned = PinnedInputs()
     context,parameters = checked_context(args,pinned)
-    if args.register_native_only: return register_reference(args,reviewed,pinned,context,parameters)
+    if args.register_native_only:
+        if getattr(args,'native_catalog',None) is not None or getattr(args,'native_catalog_sha256',None) is not None:
+            raise Refused('native_catalog_is_for_generation_only')
+        return register_reference(args,reviewed,pinned,context,parameters)
     config,backend = backend_for(args,pinned)
     manifest,inputs = reference_for(args,context,parameters,pinned)
-    config['native_reference'] = dict(manifest=dict(path=str(safe_path(args.native_manifest)),sha256=args.native_manifest_sha256),
-        gcode=dict(path=str(safe_path(args.native)),sha256=args.native_sha256))
+    config.update(native_reference_config(args,inputs,pinned))
     request = request_for(context,args.calibration,parameters)
     destination = prepare_output(args,reviewed)
     for name,value in (('request.json',request),('source-files.json',reviewed.files),('generation-config.json',config)):
@@ -365,6 +402,12 @@ def run(args):
         raise Refused('actual_native_prepared_or_parity_binding_failed')
     if report.get('qualified') is True and not p.verify_report(report,prepared):
         raise Refused('strict_native_parity_revalidation_failed')
+    if (report.get('qualified') is not True and report.get('reference') is None
+            and 'native_references' in config):
+        code = ('native_reference_missing' if e.select_native_reference(config,c.digest(inputs)) is None
+                else 'native_reference_unavailable')
+        return blocked_summary(args,request,destination,reviewed,pinned,config,
+            e.NativeEngineBlocked('Exact-input native catalog reference unavailable',code))
     sanitizer = reviewed.execute('native_qualification_sanitizer','scripts/v1-windows-parity.py')
     summary = sanitizer.sanitized(report,prepared,manifest,reviewed.files)
     verify_all(reviewed,pinned,config)
@@ -377,6 +420,8 @@ def run(args):
         application_commit=backend['receipt']['application_commit'],prepared_sha256=c.digest(prepared),
         report_sha256=c.digest(report),timeout_seconds=args.timeout_seconds,not_applied=True,
         physical_actions=False,physical_readiness=False)
+    if getattr(args,'native_catalog',None) is not None:
+        provenance['native_catalog_sha256'] = args.native_catalog_sha256
     summary.update(schema=SCHEMA,mode='native-package-generation',calibration=args.calibration,
         parameters=parameters,request_id=request['request_id'],request_sha256=c.digest(request),
         context_sha256=c.digest(context),prepared=bool(report.get('qualified') is True),
@@ -385,6 +430,8 @@ def run(args):
         native_executable_sha256=args.native_executable_sha256,
         reviewed_source_manifest_sha256=reviewed.manifest_sha256,
         generation_provenance_sha256=c.digest(provenance))
+    if getattr(args,'native_catalog',None) is not None:
+        summary['native_catalog_sha256'] = args.native_catalog_sha256
     if len(c.canonical(summary))>65536: raise Refused('summary_too_large')
     verify_all(reviewed,pinned,config)
     write_json(destination/'generation-provenance.json',provenance)
@@ -405,9 +452,9 @@ def main():
             parser.add_argument('--'+name,required=True,type=Path)
         for name in ('source-manifest-sha256','context-sha256','parameters-sha256','native-sha256'):
             parser.add_argument('--'+name,required=True,type=digest_arg)
-        for name in ('native-manifest','native-executable','build-receipt','build-inputs','resources'):
+        for name in ('native-manifest','native-executable','build-receipt','build-inputs','resources','native-catalog'):
             parser.add_argument('--'+name,type=Path)
-        for name in ('native-manifest-sha256','native-executable-sha256','build-receipt-sha256','build-inputs-sha256'):
+        for name in ('native-manifest-sha256','native-executable-sha256','build-receipt-sha256','build-inputs-sha256','native-catalog-sha256'):
             parser.add_argument('--'+name,type=digest_arg)
         parser.add_argument('--native-evidence',action='append',type=Path,default=[])
         parser.add_argument('--native-evidence-sha256',action='append',type=digest_arg,default=[])

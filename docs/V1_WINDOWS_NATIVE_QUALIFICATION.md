@@ -118,3 +118,55 @@ qualification. Executable differences produce a false summary and exit 2;
 actual strict qualification exits 0. Full profiles, G-code, evidence images,
 processing data and reports remain local. Sanitized summaries never establish
 printer hardware, macro internals or physical readiness.
+
+## Native-only exact-input reference catalog
+
+One trusted native configuration can now hold up to 64 independent reference
+pairs under `native_references`. Each dictionary key must be the full lowercase
+SHA-256 of the unchanged `v1_parity.generation_inputs(request, context,
+source_commit)` object. Each value has exactly the existing pinned `manifest`
+and `gcode` records, with only `path` and `sha256` in each file record. A private
+catalog file contains that dictionary directly; the runtime configuration stores
+the same dictionary inside `native_engine.native_references`.
+
+The generator selects only an exact key after real native execution and
+processor validation. It does not select by calibration name alone, choose a
+nearby parameter range, fall back to another profile/reference, rewrite a
+manifest or substitute values. Catalog lookup never establishes qualification:
+the same executable comparison and mandatory native invariant checks remain.
+Actual slicer warnings, including `1000C001`, remain the first blocker even when
+the catalog lacks a matching key. Missing references retain the actual generated
+artifact and a false parity report with a specific missing-reference message.
+
+The legacy `native_reference` single-pair configuration remains supported.
+Supplying both `native_reference` and `native_references` is rejected. Empty
+catalogs are valid and qualify nothing. Malformed keys, extra entry fields,
+unpinned file records and catalogs larger than 64 entries are rejected.
+
+For actual Windows qualification, add both flags to the generation command:
+
+```text
+--native-catalog PRIVATE_CATALOG_JSON
+--native-catalog-sha256 EXPECTED_CATALOG_FILE_SHA256
+```
+
+The current case's explicit `--native-manifest`, `--native` and their expected
+hashes remain required for independent checking. A matching catalog entry must
+be exactly that checked pair. A missing catalog key is allowed to reach actual
+generation so it cannot mask native warnings; it then reports unqualified with
+`native_reference_missing`. The driver pins every catalog file and referenced
+manifest/G-code pair, including unselected entries, and rechecks them after
+generation and sanitization. It writes the catalog's expected digest into scalar
+provenance. Registration mode does not accept catalog flags.
+
+This supports automatic selection among the four retained exact native cases
+without test-worker reconfiguration. It does **not** qualify ordinary newly
+captured contexts. The current context digest includes `origin_id`; restoring
+identical profiles after changing selection or settings creates a fresh origin
+and therefore a different exact key. Saved/edited names, every serialized
+configuration value, effective settings, runtime, nozzle, selected parameters
+and source pin also remain exact. Neither origin equivalence nor profile-only
+reference reuse is implemented. A fresh origin remains explicitly unsupported
+until its own independent matching native evidence is registered under the
+unchanged policy. The accepted physical Temperature evidence, YOLO routes,
+contracts, UI and correlation behavior are unchanged.

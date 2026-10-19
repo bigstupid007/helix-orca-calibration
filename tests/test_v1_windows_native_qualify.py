@@ -210,5 +210,88 @@ print(json.dumps({'loaded':4,'bytecode':False,'verified':True}))
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(json.loads(result.stdout),dict(loaded=4,bytecode=False,verified=True))
 
+    def catalog(self,values=None):
+        if values is None:
+            values={self.reference['inputs_sha256']:dict(
+                manifest=dict(path=str(self.reference_path),sha256=driver.sha(self.reference_path)),
+                gcode=dict(path=str(self.native),sha256=driver.sha(self.native)))}
+        path=self.root/'native-catalog.json';path.write_bytes(c.canonical(values))
+        self.args.native_catalog=path;self.args.native_catalog_sha256=driver.sha(path)
+        return values
+
+    def test_one_catalog_reaches_real_engine_configuration_without_single_fallback(self):
+        catalog=self.catalog()
+        def generate(request,context,out,config):
+            self.assertNotIn('native_reference',config)
+            self.assertEqual(config['native_references'],catalog)
+            return self.produce(request,context,out,config)
+        with patch.object(e,'generate',side_effect=generate) as generate_call:
+            summary=driver.run(self.args)
+        generate_call.assert_called_once()
+        self.assertEqual(summary['native_catalog_sha256'],self.args.native_catalog_sha256)
+        provenance=json.loads((self.args.output_dir/'generation-provenance.json').read_text())
+        self.assertEqual(provenance['native_catalog_sha256'],self.args.native_catalog_sha256)
+
+    def test_empty_catalog_generates_then_reports_actual_missing_reference_without_sanitizer_error(self):
+        self.catalog({})
+        def missing(request,context,out,config):
+            self.assertNotIn('native_reference',config);self.assertEqual(config['native_references'],{})
+            prepared=self.produce(request,context,out,config)
+            report=p.unqualified(out/'native-calibration.gcode',p.generation_inputs(request,context,driver.PIN),
+                'No native catalog entry matches exact inputs')
+            prepared['parity'].update(report_sha256=c.digest(report),reason=report['reason'])
+            (out/'parity.json').write_bytes(c.canonical(report))
+            (out/'prepared.json').write_bytes(c.canonical(prepared))
+            return prepared
+        with patch.object(e,'generate',side_effect=missing) as generate:
+            summary=driver.run(self.args)
+        generate.assert_called_once();self.assertFalse(summary['qualified'])
+        self.assertEqual(summary['blocker'],'native_reference_missing')
+        self.assertEqual(summary['parameters'],self.parameters)
+        self.assertTrue((self.args.output_dir/'blocked-summary.json').is_file())
+        self.assertFalse((self.args.output_dir/'summary.json').exists())
+
+    def test_catalog_cannot_mask_actual_native_warning(self):
+        self.catalog({})
+        def warned(request,context,out,config):
+            self.assertEqual(config['native_references'],{})
+            out.mkdir()
+            (out/'native-processing.json').write_bytes(c.canonical(dict(error_code=0,warnings=[
+                dict(level=3,message='PRIVATE_ACTUAL_WARNING',error_code='1000C001')])))
+            raise e.NativeEngineBlocked('PRIVATE_WARNING','native_warning')
+        with patch.object(e,'generate',side_effect=warned) as generate:
+            summary=driver.run(self.args)
+        generate.assert_called_once();self.assertEqual(summary['blocker'],'native_warning')
+        self.assertEqual(summary['warning_codes'],['1000C001']);self.assertFalse(summary['qualified'])
+        self.assertNotIn('PRIVATE',json.dumps(summary))
+
+    def test_catalog_and_unselected_reference_are_rechecked_after_generation(self):
+        for kind in ('catalog','unselected_native'):
+            with self.subTest(kind=kind),tempfile.TemporaryDirectory() as directory:
+                self.args.output_dir=Path(directory)/'case'
+                other=self.root/'unselected.gcode';other.write_text('SYNTHETIC UNSELECTED NATIVE')
+                catalog=self.catalog()
+                catalog['f'*64]=dict(manifest=catalog[self.reference['inputs_sha256']]['manifest'],
+                    gcode=dict(path=str(other),sha256=driver.sha(other)))
+                self.catalog(catalog)
+                def mutate(*args):
+                    prepared=self.produce(*args)
+                    target=self.args.native_catalog if kind=='catalog' else other
+                    target.write_bytes(target.read_bytes()+b' changed')
+                    return prepared
+                with patch.object(e,'generate',side_effect=mutate):
+                    with self.assertRaisesRegex(driver.Refused,'qualification_input_changed'):driver.run(self.args)
+                self.assertFalse((self.args.output_dir/'summary.json').exists())
+
+    def test_catalog_entry_must_match_independently_checked_current_cli_reference(self):
+        reference=dict(manifest=dict(path=str(self.reference_path),sha256=driver.sha(self.reference_path)),
+            gcode=dict(path=str(self.native),sha256=driver.sha(self.native)))
+        copied=self.root/'wrong-native.gcode';copied.write_text('SYNTHETIC OTHER REFERENCE')
+        reference['gcode']=dict(path=str(copied),sha256=driver.sha(copied))
+        self.catalog({self.reference['inputs_sha256']:reference})
+        with patch.object(e,'generate') as generate:
+            with self.assertRaisesRegex(driver.Refused,'catalog_selection_differs'):driver.run(self.args)
+            generate.assert_not_called()
+
 
 if __name__=='__main__':unittest.main()
