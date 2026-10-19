@@ -16,7 +16,7 @@ October 15 Windows output.
 | Calibration | Verified native mechanism | Current route and qualification boundary |
 | --- | --- | --- |
 | Temperature standard tower | `Plater::calib_temp`, native DRC cut/scale; transient `Print::set_calib_params`; native layer-count temperature interpolation | Job-local model + explicit machine/process/filament serialized inputs + explicit bed + stock `--slice`. Recipe attempt supports hash-bound prepared geometry for exact scaled 0.4/0.6 mm single-tool Marlin/Klipper cases. Exact independent native parity remains mandatory. |
-| Flow Ratio YOLO Recommended | `calib_flowrate(true,1,ArchimedeanChords)`, `Orca-LinearFlow.3mf`, native eleven labeled objects, absolute additive flow increments and special top-infill order | Job-local copy adds native per-object settings and ratios, stock Orca slices it. Initial recipe envelope is 0.4 mm nozzle / 0.2 mm first layer. Actual matching Windows native/CLI comparison passes YOLO invariants but fails strict executable parity; retained measurements below. |
+| Flow Ratio YOLO Recommended | `calib_flowrate(true,1,ArchimedeanChords)`, `Orca-LinearFlow.3mf`, native eleven labeled objects, absolute additive flow increments and special top-infill order | Job-local copy adds native per-object settings and ratios, stock Orca slices it. Initial recipe envelope is 0.4 mm nozzle / 0.2 mm first layer. Corrected actual Windows production comparison passes exact executable parity and both YOLO invariant inspections for the retained context; R8 hashes below. |
 | Pressure Advance Pattern | `_calib_pa_pattern`, native `CalibPressureAdvancePattern::generate_custom_gcodes`, handles/arrangement and writer state | Stock CLI has no calibration-state input. Explicit native-generator blocker; a generic STL or PA command schedule cannot reproduce the custom pattern paths/digits. |
 | Retraction tower | `calib_retraction`; exporter changes software writer `retraction_length` per height | Explicit native-writer blocker. Firmware retraction commands cannot substitute for generated software retract/unretract moves. |
 | Max Volumetric Speed tower | `calib_max_vol_speed`, `Flow::mm3_per_mm`, spiral mode; exporter changes internal `outer_wall_speed` per height | Explicit native-planner blocker. Firmware feed scaling does not reproduce internal extrusion planning and limits. |
@@ -673,8 +673,9 @@ copy can be used if needed. The driver accepts only fixed bounded path arguments
 and returns ≤64 KiB fixed-key hashes, scalar observations and flags, with no raw
 commands, full coordinates, names, hooks or profile payload. A successful slice
 still needs exact executable parity; physical/hardware readiness remains false.
-The corrected actual Windows run is pending and must receive its own artifact,
-request, source and report fingerprints rather than replacing historical proof.
+At this pre-R8 preparation checkpoint, the corrected Windows run was pending.
+The distinct R8 run below now retains its own artifact, request, source and report
+fingerprints; historical failures remain unchanged.
 
 The first corrected-layout Windows R7 attempt failed before slicing: the exact
 log was `Invalid option --center`, retained with SHA-256
@@ -714,8 +715,8 @@ The unchanged resource XML digest is
 This check did not slice, compile, contact Windows/printer services or create a
 new private transfer bundle. New local generation retains `flow-layout.json`
 and binds that file plus the staged 3MF hash in generation provenance and the
-sanitized summary. Actual executable parity is still pending; these preparation
-hashes do not establish a pass or waive downstream differences.
+sanitized summary. Those preparation hashes alone did not establish parity.
+The later actual R8 result below supplies the independent executable pass.
 
 ## Corrected actual Windows YOLO production parity — R8
 

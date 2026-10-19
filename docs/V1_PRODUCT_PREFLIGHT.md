@@ -3,7 +3,7 @@
 Status: corrections integrated; final target-native recheck pending. This is an
 independent product review, not Founder acceptance or generator qualification.
 
-A fresh-context GPT-5.6 Sol reviewer at High effort inspected this program's
+A fresh-context independent Codex reviewer inspected this program's
 newly captured native beta.9 screens using the Product Design audit workflow.
 The reviewer did not read implementation, design rationale or older captures.
 The initial Helix audit covered all 31 fresh `480x272` workflow frames in the

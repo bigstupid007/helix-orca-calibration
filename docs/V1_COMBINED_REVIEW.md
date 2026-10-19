@@ -1,7 +1,7 @@
 # V1 combined independent review
 
 The program uses one combined substantial review, with bounded correction
-rechecks. A fresh-context GPT-5.6 Sol reviewer at High effort reviewed the
+rechecks. A fresh-context independent Codex reviewer reviewed the
 integrated change from accepted main `523bc5d` through `d7634bf`. The reviewer
 read the initiating scope, governing program, shared contracts and implementation;
 it did not implement the reviewed changes. Founder acceptance remains pending.
