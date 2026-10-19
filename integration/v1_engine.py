@@ -13,7 +13,7 @@ import os
 import platform
 import re
 import subprocess
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from types import MappingProxyType
 from integration import v1_contract as _contract
 
@@ -163,6 +163,81 @@ def _windows_builder_valid(builder, receipt):
         and _windows_compiler_valid(builder.get("compiler")))
 
 
+def _windows_configuration_valid(inputs):
+    """Validate retained CMake proof without requiring build tools on the target PC."""
+    try:
+        builder, probe, records = (inputs[key] for key in ('builder', 'compiler_probe', 'compiler_configurations'))
+        compiler, tools = builder['compiler'], builder['toolchain']
+        if (not _windows_compiler_valid(compiler) or not isinstance(probe, dict)
+                or set(probe) != {'source_sha256', 'command', 'configuration', 'toolchain',
+                    'compiler_version_output_sha256', 'linker_version_output_sha256'}
+                or probe['toolchain'] != tools or _contract.digest(probe) != compiler['probe_sha256']
+                or not isinstance(records, dict) or set(records) != {'probe', 'deps', 'engine'}
+                or records['probe'] != probe['configuration']):
+            return False
+        for key in ('compiler_version_output_sha256', 'linker_version_output_sha256'):
+            if not isinstance(probe[key], str) or re.fullmatch('[a-f0-9]{64}', probe[key]) is None:
+                return False
+        source = "cmake_minimum_required(VERSION 3.13)\nproject(HelixCompilerProbe LANGUAGES C CXX)\n"
+        if probe['source_sha256'] != hashlib.sha256(source.encode()).hexdigest():
+            return False
+        fields = {'c_compiler', 'cxx_compiler', 'c_linker', 'cxx_linker', 'c_flags', 'cxx_flags',
+                  'c_release_flags', 'cxx_release_flags', 'runtime_library'}
+        baseline = probe['configuration']
+        if not isinstance(baseline, dict) or set(baseline) != fields:
+            return False
+        identity = lambda value: {key: item for key, item in value.items() if key not in ('c_flags', 'cxx_flags')}
+        for record in records.values():
+            if (not isinstance(record, dict) or set(record) != fields
+                    or any(not isinstance(value, str) or len(value) > 16384 or '\0' in value for value in record.values())
+                    or record['runtime_library'] != 'MD' or identity(record) != identity(baseline)):
+                return False
+            for lang in ('c', 'cxx'):
+                flags = record[lang+'_flags']+' '+record[lang+'_release_flags']
+                tokens = flags.split()
+                if (not all(token in tokens for token in ('/O2', '/DNDEBUG', '/MD')) or any(token.casefold() == '/mdd' for token in tokens)
+                        or any(value in flags.lower() for value in ('/mt', '/fp:fast', '-ffast-math', '-ffp-model=fast', '-ofast'))):
+                    return False
+        release = {key: value for key, value in baseline.items() if key.endswith('_release_flags')}
+        if _contract.digest(release) != compiler['release_flags_sha256']:
+            return False
+        def path(value):
+            parsed = PureWindowsPath(value)
+            if (not parsed.is_absolute() or not re.fullmatch('[A-Za-z]:', parsed.drive)
+                    or '..' in parsed.parts or any(char in value for char in ('\r', '\n', '\0'))):
+                raise ValueError('Absolute local compiler path required')
+            return parsed
+        selected = path(baseline['c_compiler'])
+        parts = tuple(part.casefold() for part in selected.parts)
+        if (parts[-6:] != ('vc', 'tools', 'llvm', 'x64', 'bin', 'clang-cl.exe')
+                or parts[1:4] != ('program files', 'microsoft visual studio', '18')
+                or parts[4] not in ('enterprise', 'professional', 'community') or len(parts) != 11
+                or path(baseline['cxx_compiler']) != selected):
+            return False
+        vs = selected.parents[5]
+        linker = (vs/'VC/Tools/Llvm/x64/bin/lld-link.exe' if compiler['linker_family'] == 'LLD'
+                  else vs/'VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/link.exe')
+        if path(baseline['c_linker']) != linker or path(baseline['cxx_linker']) != linker:
+            return False
+        if compiler['linker_family'] == 'MSVC' and tools['selected-linker'] != tools['link']:
+            return False
+        command = probe['command']
+        if (not isinstance(command, list) or len(command) != 10
+                or any(not isinstance(item, str) or len(item) > 4096 for item in command)
+                or command[0] != 'cmake' or command[1] != '-S' or command[3] != '-B'
+                or command[5:8] != ['-G', 'Ninja Multi-Config', '-DCMAKE_BUILD_TYPE=Release']
+                or not command[8].startswith('-DCMAKE_C_COMPILER=')
+                or not command[9].startswith('-DCMAKE_CXX_COMPILER=')
+                or path(command[8].split('=', 1)[1]) != selected
+                or path(command[9].split('=', 1)[1]) != selected):
+            return False
+        source_dir, build_dir = path(command[2]), path(command[4])
+        return (source_dir.name == 'compiler-probe-source' and build_dir.name == 'compiler-probe'
+                and source_dir.parent == build_dir.parent)
+    except (KeyError, TypeError, ValueError, _contract.ContractError):
+        return False
+
+
 def _windows_closure(executable, receipt):
     from integration import v1_pe as pe
     files, closure = receipt.get("runtime_dlls"), receipt.get("import_closure")
@@ -243,10 +318,7 @@ def _backend(config):
             or (windows and not _windows_builder_valid(inputs.get("builder"), receipt))):
         raise NativeEngineBlocked("Native source/build provenance differs", "native_source")
     if windows and inputs['builder'].get('schema') == 'helix-orca-v1-windows-builder/v2':
-        probe = inputs.get('compiler_probe')
-        if (not isinstance(probe, dict) or probe.get('toolchain') != inputs['builder']['toolchain']
-                or _contract.digest(probe)
-                   != inputs['builder']['compiler']['probe_sha256']):
+        if not _windows_configuration_valid(inputs):
             raise NativeEngineBlocked("Actual compiler probe receipt differs", "native_compiler")
     owned = _WINDOWS_OWNED_INPUTS if windows else _OWNED_INPUTS
     if set(inputs.get("owned_inputs", {})) != set(owned) or any(

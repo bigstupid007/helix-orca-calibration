@@ -69,21 +69,37 @@ class WindowsNativeGuards(unittest.TestCase):
         self.assertFalse(result['parity']['qualified'])
         self.assertTrue(self.called)
 
-    def test_clang_probe_receipt_is_bound_and_cannot_substitute_legacy_tool_identity(self):
+    def clang_recipe(self):
         import json
         from integration import v1_contract as contract
         tools=dict(self.inputs['builder']['toolchain'])
         tools.update({'clang-cl':dict(size=2,sha256='a'*64),'selected-linker':dict(size=3,sha256='b'*64)})
-        probe=dict(toolchain=tools,synthetic_fixture=True)
-        probe_sha=contract.digest(probe)
+        compiler_path='C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/Llvm/x64/bin/clang-cl.exe'
+        linker_path=compiler_path.replace('clang-cl.exe','lld-link.exe')
+        configuration=dict(c_compiler=compiler_path,cxx_compiler=compiler_path,c_linker=linker_path,cxx_linker=linker_path,
+            c_flags='/DWIN32 /D_WINDOWS',cxx_flags='/DWIN32 /D_WINDOWS /GR /EHsc',
+            c_release_flags='/MD /O2 /Ob2 /DNDEBUG',cxx_release_flags='/MD /O2 /Ob2 /DNDEBUG',runtime_library='MD')
+        source="cmake_minimum_required(VERSION 3.13)\nproject(HelixCompilerProbe LANGUAGES C CXX)\n"
+        import hashlib
+        probe=dict(toolchain=copy.deepcopy(tools),configuration=configuration,source_sha256=hashlib.sha256(source.encode()).hexdigest(),
+            command=['cmake','-S','D:/work/compiler-probe-source','-B','D:/work/compiler-probe','-G','Ninja Multi-Config',
+                '-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_COMPILER='+compiler_path,'-DCMAKE_CXX_COMPILER='+compiler_path],
+            compiler_version_output_sha256='d'*64,linker_version_output_sha256='e'*64)
         compiler=dict(family='Clang',version='22.1.3',frontend_variant='MSVC',visual_studio_major='18',
             generator='Ninja Multi-Config',configuration='Release',runtime_library='MD',
             msvc_toolset_version='14.51.36231',windows_sdk_version='10.0.26100.0',
-            linker_family='LLD',linker_version='22.1.3',probe_sha256=probe_sha,release_flags_sha256='c'*64)
+            linker_family='LLD',linker_version='22.1.3',probe_sha256=contract.digest(probe),
+            release_flags_sha256=contract.digest({key:value for key,value in configuration.items()if key.endswith('_release_flags')}))
         self.inputs['builder'].update(schema='helix-orca-v1-windows-builder/v2',
             runner_image='windows-2025-vs2026',compiler=compiler,toolchain=tools)
         self.inputs['compiler_probe']=probe
-        self.refresh_receipts()
+        self.inputs['compiler_configurations']={key:copy.deepcopy(configuration)for key in ('probe','deps','engine')}
+        # The real upstream root changes global warning flags; identity/Release stay exact.
+        self.inputs['compiler_configurations']['engine']['cxx_flags']+=' /W3'
+
+    def test_clang_probe_receipt_is_bound_and_crlf_input_remains_valid(self):
+        import json
+        self.clang_recipe();self.refresh_receipts()
         inputs_path=self.root/'native-inputs.json'
         inputs_path.write_bytes((json.dumps(self.inputs,sort_keys=True,indent=2)+'\n').replace('\n','\r\n').encode())
         self.config['build_inputs']=self.record(inputs_path)
@@ -94,11 +110,74 @@ class WindowsNativeGuards(unittest.TestCase):
         self.assertIn(b'\r\n',inputs_path.read_bytes())
         self.assertFalse(self.generate()['parity']['qualified'])
         self.called=False
-        self.inputs['compiler_probe']['synthetic_fixture']='changed'
+        self.inputs['compiler_probe']['source_sha256']='0'*64
         self.refresh_receipts()
         with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
         self.assertEqual(failure.exception.code,'native_compiler')
         self.assertFalse(self.called)
+
+    def test_actual_msvc_linker_record_requires_matching_side_tool_bytes(self):
+        from integration import v1_contract as contract
+        self.clang_recipe()
+        compiler=self.inputs['builder']['compiler']
+        compiler.update(linker_family='MSVC',linker_version='14.51.36260.0')
+        self.inputs['builder']['toolchain']['selected-linker']=copy.deepcopy(self.inputs['builder']['toolchain']['link'])
+        probe=self.inputs['compiler_probe'];probe['toolchain']=copy.deepcopy(self.inputs['builder']['toolchain'])
+        linker='C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/link.exe'
+        for record in self.inputs['compiler_configurations'].values():record.update(c_linker=linker,cxx_linker=linker)
+        probe['configuration']=copy.deepcopy(self.inputs['compiler_configurations']['probe'])
+        compiler['probe_sha256']=contract.digest(probe)
+        self.refresh_receipts();self.assertFalse(self.generate()['parity']['qualified'])
+        self.inputs['builder']['toolchain']['selected-linker']=dict(size=2,sha256='0'*64)
+        probe['toolchain']=copy.deepcopy(self.inputs['builder']['toolchain']);compiler['probe_sha256']=contract.digest(probe)
+        self.refresh_receipts();self.called=False
+        with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
+        self.assertEqual(failure.exception.code,'native_compiler');self.assertFalse(self.called)
+
+    def test_missing_or_inconsistent_actual_configurations_block_before_dispatch(self):
+        self.clang_recipe();baseline=copy.deepcopy(self.inputs)
+        mutations=[lambda a:a.pop('compiler_configurations'),
+            lambda a:a['compiler_configurations'].pop('deps'),
+            lambda a:a['compiler_configurations']['engine'].update(cxx_compiler='C:/different/clang-cl.exe'),
+            lambda a:a['compiler_configurations']['deps'].update(c_linker='C:/different/link.exe'),
+            lambda a:a['compiler_configurations']['engine'].update(runtime_library='MT'),
+            lambda a:a['compiler_configurations']['engine'].update(unrecorded_field=True),
+            lambda a:a['builder']['compiler'].update(release_flags_sha256='0'*64),
+            lambda a:a['compiler_probe']['toolchain'].update(**{'clang-cl':dict(size=20,sha256='0'*64)})]
+        for mutate in mutations:
+            self.inputs=copy.deepcopy(baseline);mutate(self.inputs);self.refresh_receipts();self.called=False
+            with self.subTest(mutation=mutations.index(mutate)):
+                with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
+                self.assertEqual(failure.exception.code,'native_compiler');self.assertFalse(self.called)
+
+    def test_malformed_probe_baseline_blocks_without_runtime_exception(self):
+        from integration import v1_contract as contract
+        self.clang_recipe()
+        self.inputs['compiler_probe']['configuration']=7
+        self.inputs['compiler_configurations']={key:copy.deepcopy(self.inputs['compiler_configurations'][key])for key in ('deps','engine','probe')}
+        self.inputs['compiler_configurations']['probe']=7
+        self.inputs['builder']['compiler']['probe_sha256']=contract.digest(self.inputs['compiler_probe'])
+        self.refresh_receipts();self.called=False
+        with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
+        self.assertEqual(failure.exception.code,'native_compiler');self.assertFalse(self.called)
+
+    def test_self_consistent_rebound_probe_cannot_hide_unsafe_recipe_or_paths(self):
+        from integration import v1_contract as contract
+        self.clang_recipe();baseline=copy.deepcopy(self.inputs)
+        for field,value in [('c_flags','/fp:fast'),('cxx_flags','-ffast-math'),('c_flags','/MT'),
+                ('c_release_flags','/MDd /O2 /DNDEBUG'),('cxx_release_flags','/O2 /DNDEBUG'),
+                ('c_release_flags','/MD /DNDEBUG'),('cxx_release_flags','/MD /O2'),
+                ('c_compiler','C:/different/clang-cl.exe'),('c_linker','C:/different/lld-link.exe')]:
+            self.inputs=copy.deepcopy(baseline)
+            for record in self.inputs['compiler_configurations'].values():record[field]=value
+            self.inputs['compiler_probe']['configuration']=copy.deepcopy(self.inputs['compiler_configurations']['probe'])
+            self.inputs['builder']['compiler']['probe_sha256']=contract.digest(self.inputs['compiler_probe'])
+            self.inputs['builder']['compiler']['release_flags_sha256']=contract.digest({key:item for key,item in
+                self.inputs['compiler_probe']['configuration'].items()if key.endswith('_release_flags')})
+            self.refresh_receipts();self.called=False
+            with self.subTest(field=field,value=value):
+                with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
+                self.assertEqual(failure.exception.code,'native_compiler');self.assertFalse(self.called)
 
     def test_real_warning_semantics_remain_fatal_on_windows_envelope(self):
         fixtures.NativeTransport.test_legitimate_bed_warning_reports_exact_blocker_without_mutating_inputs(self)
