@@ -44,6 +44,7 @@ class ParameterRelay(unittest.TestCase):
     def result(self):
         event={'request':self.request}
         return dict(request=self.request,transport_request=copy.deepcopy(self.request),coordinator_request=copy.deepcopy(self.request),
+            actual_offline_coordinator=True,test_transport=True,offer=self.session['offer'],context_sha256=self.request['context_sha256'],
             request_sha256=digest(self.request),transport_request_sha256=digest(self.request),
             coordinator_request_sha256=digest(self.request),native_event_sha256=digest(event),transport_event_sha256=digest(event),
             status=dict(request_id=self.request['request_id'],origin_id=self.request['origin_id']),
@@ -56,6 +57,8 @@ class ParameterRelay(unittest.TestCase):
             bad=copy.deepcopy(good);bad[key]['parameters']={'pass':1}
             with self.subTest(key=key),self.assertRaises(ValueError):relay.independent_bindings(self.session,bad)
         bad=copy.deepcopy(good);bad['transport_event_sha256']='f'*64
+        with self.assertRaises(ValueError):relay.independent_bindings(self.session,bad)
+        bad=copy.deepcopy(good);bad['actual_offline_coordinator']=False
         with self.assertRaises(ValueError):relay.independent_bindings(self.session,bad)
 
     def test_native_status_readback_requires_actual_phase_sequence_and_preparation(self):

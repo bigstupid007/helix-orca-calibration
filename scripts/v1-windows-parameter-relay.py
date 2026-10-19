@@ -54,7 +54,8 @@ def powershell(args,op,session=None):
     declarations=';'.join('$'+key+'='+quote(value) for key,value in fields.items())
     script="$ErrorActionPreference='Stop';"+declarations+';'
     script+="$Bridge=Join-Path $windows_source 'scripts\\v1-windows-parameter-bridge.py';"
-    script+="if((Get-FileHash -LiteralPath $Bridge -Algorithm SHA256).Hash.ToLowerInvariant()-ne"+quote(args.bridge_sha256)+"){throw 'Public bridge source changed'};"
+    script+="$BridgeSha=(Get-FileHash -LiteralPath $Bridge -Algorithm SHA256).Hash.ToLowerInvariant();if($BridgeSha-ne"+quote(args.bridge_sha256)+"){throw 'Public bridge source changed'};"
+    script+="$ConfigSha=(Get-FileHash -LiteralPath $windows_config -Algorithm SHA256).Hash.ToLowerInvariant();"
     input_argument=''
     if session is not None:
         data=canonical({'v1_session':session});require(len(data)<=5000,'native_metadata_input_oversized')
@@ -66,7 +67,9 @@ def powershell(args,op,session=None):
         script+="$B=[Convert]::FromBase64String("+quote(encoded)+");$H=[IO.File]::Open($F,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None);try{$H.Write($B,0,$B.Length)}finally{$H.Dispose()};"
         input_argument=' --native-session $F'
     script+='$Out=@(& $windows_python -I -S $Bridge --op '+op+' --root $windows_root --context $windows_context --config $windows_config'+input_argument+');'
-    script+="if($LASTEXITCODE-ne0){throw 'Windows parameter bridge refused metadata'};$Text=$Out-join [Environment]::NewLine;if($Text.Length-gt65536){throw 'Metadata result oversized'};Write-Output $Text"
+    script+="if($LASTEXITCODE-ne0){throw 'Windows parameter bridge refused metadata'};$Text=$Out-join [Environment]::NewLine;if($Text.Length-gt64000){throw 'Metadata result oversized'};"
+    script+="if((Get-FileHash -LiteralPath $windows_config -Algorithm SHA256).Hash.ToLowerInvariant()-ne$ConfigSha-or(Get-FileHash -LiteralPath $Bridge -Algorithm SHA256).Hash.ToLowerInvariant()-ne$BridgeSha){throw 'Metadata source changed during operation'};"
+    script+="Write-Output ('{\"bridge\":'+$Text+',\"config_file_sha256\":\"'+$ConfigSha+'\",\"bridge_file_sha256\":\"'+$BridgeSha+'\"}')"
     require(len(script)<=8192,'guarded_windows_command_oversized')
     return script
 
@@ -74,6 +77,10 @@ def powershell(args,op,session=None):
 def independent_bindings(session,result):
     request=validate_request(session['request'])
     expected=digest(request)
+    require(result.get('actual_offline_coordinator') is True and result.get('test_transport') is True,
+            'actual_windows_coordinator_required')
+    require(canonical(result.get('offer'))==canonical(session.get('offer'))
+            and result.get('context_sha256')==request['context_sha256'],'windows_offer_or_context_binding_differs')
     for key in ('request','transport_request','coordinator_request'):
         require(canonical(result.get(key))==canonical(request),'independent_request_readback_differs')
     for key in ('request_sha256','transport_request_sha256','coordinator_request_sha256'):
@@ -144,21 +151,26 @@ def run(args):
         require(active() and deadline-time.monotonic()>65,'relay_deadline_before_windows_call')
         command=powershell(args,op,session)
         atomic_json(evidence/('command-'+str(time.time_ns())+'.json'),dict(op=op,sha256=hashlib.sha256(command.encode()).hexdigest(),characters=len(command)))
-        result=w.invoke(command,'v1-parameter-relay-'+op)
-        require(len(canonical(result))<=65536 and result.get('source_files')==expected_sources,'windows_source_or_metadata_binding_failed')
-        atomic_json(evidence/('windows-'+op+'-'+str(time.time_ns())+'.json'),result)
-        return result
+        response=w.invoke(command,'v1-parameter-relay-'+op)
+        require(set(response)=={'bridge','config_file_sha256','bridge_file_sha256'}
+                and response['bridge_file_sha256']==args.bridge_sha256
+                and re.fullmatch('[a-f0-9]{64}',response['config_file_sha256']) is not None,
+                'windows_configuration_or_bridge_binding_failed')
+        result=response['bridge']
+        require(len(canonical(response))<=65536 and result.get('source_files')==expected_sources,'windows_source_or_metadata_binding_failed')
+        atomic_json(evidence/('windows-'+op+'-'+str(time.time_ns())+'.json'),response)
+        return response
 
     def saved():
         path=work/'config/plugin-data/orcacal.json'
         return read_json(path).get('v1_session') if path.exists() else None
 
     def new_offer():
-        result=call('offer');offer=result['offer']
+        response=call('offer');result=response['bridge'];offer=result['offer']
         require(result.get('op')=='offer' and result.get('actual_offline_coordinator') is True,'actual_windows_offer_required')
         require(active(),'review_ended_before_offer_delivery')
         r.deliver(container,'helix_orca_v1.context.v1',offer)
-        atomic_json(evidence/('offered-'+offer['request_id']+'.json'),result)
+        atomic_json(evidence/('offered-'+offer['request_id']+'.json'),response)
         return offer
 
     offer=new_offer();last_input=None;pending=None;completed=set();count=0;last_readback=None;completion='bounded-stop'
@@ -198,7 +210,7 @@ def run(args):
             # Native phase/sequence changes after delivery are readback, not new input.
             fingerprint=digest(dict(request=request,intent=intent))
             if fingerprint!=last_input and request['request_id'] not in completed:
-                result=call('consume',current);request=independent_bindings(current,result)
+                response=call('consume',current);result=response['bridge'];request=independent_bindings(current,result)
                 require(active(),'review_ended_before_status_delivery')
                 r.deliver(container,'helix_orca_v1.status.v1',result['status'])
                 trace=dict(schema='helix-orca-v1-parameter-trace/v1',native_request=request,
@@ -207,7 +219,12 @@ def run(args):
                     coordinator_sha256=result['coordinator_request_sha256'],phase=result['status']['phase'],
                     message=result['status']['message'],prepared=result['status']['prepared'],
                     generator_dispatched=result['generator_dispatched'],artifact_generated=result['artifact_generated'],
-                    actual_windows_source_files=result['source_files'],actual_windows_metadata_sha256=digest(result),
+                    actual_windows_source_files=result['source_files'],actual_windows_metadata_sha256=digest(response),
+                    actual_windows_coordinator=True,actual_windows_transport='DirectoryEvents',
+                    actual_windows_bridge_sha256=response['bridge_file_sha256'],
+                    actual_windows_config_file_sha256=response['config_file_sha256'],
+                    actual_windows_offer_sha256=digest(result['offer']),actual_windows_context_sha256=result['context_sha256'],
+                    actual_windows_qualified=result['qualified'],qualified=result['qualified'],
                     actual_native_session_sha256=digest(current),actual_windows_event_sha256=result['transport_event_sha256'],
                     physical_adapter_enabled=False)
                 atomic_json(work/'parameter-traces'/(request['request_id']+'.json'),trace)

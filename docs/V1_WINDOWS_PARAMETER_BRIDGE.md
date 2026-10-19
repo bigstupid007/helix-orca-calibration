@@ -158,3 +158,16 @@ wait within the same hard deadline; at most10 completed trials may be requested.
 A new native review run is needed if frozen sources change. Implementing this
 wrapper is not evidence that it ran; source-only tests exercise no Windows or
 native target and establish no qualification.
+
+The separate relay's `parameter-traces` include explicit
+`actual_windows_coordinator:true`, `actual_windows_transport:"DirectoryEvents"`,
+`actual_windows_bridge_sha256`, `actual_windows_config_file_sha256`,
+`actual_windows_offer_sha256`, `actual_windows_context_sha256`,
+`actual_windows_source_files`, `actual_windows_metadata_sha256`, and
+`actual_windows_qualified`/`qualified`. The PowerShell wrapper hashes the private
+config and public bridge independently before/after the operation and returns
+only those digests beside the unchanged raw bridge JSON. It never reserializes
+request numbers through PowerShell JSON conversion. The envelope is retained in
+XDG state and its canonical digest binds the trace. Request/event/DirectoryEvents/
+journal hashes are checked independently before status delivery. These fields
+let the final operator driver reject local-coordinator-shaped traces.
