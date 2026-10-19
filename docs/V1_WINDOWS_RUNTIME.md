@@ -206,7 +206,7 @@ validation limits. No startup registration, install, physical test,
 profile/configuration mutation or printer connection occurred. Original
 settings, Temperature evidence and rollback material remain preserved.
 
-## Integrated correction closure — qualification-044ff4216374
+## Historical integrated correction closure — qualification-044ff4216374
 
 The later integrated runtime was requalified on actual Windows using the same
 existing Python 3.13.9 and PowerShell 5.1, default offline transport and new
@@ -218,14 +218,14 @@ All staged source hashes matched afterward; no owned process or error log
 remained, and the marked Orca GUI retained its exact identity. No deployment
 authorization or physical adapter was supplied.
 
-Current CLI SHA-256:
+CLI SHA-256 at that stage:
 `31e75a9fe94ae05030f7cd16a6de00a89aae40fb2e33193ca85493819ca85426`.
 That stage complete Python runtime fingerprint:
 `ddd6132628c88603461f69a0cb9832c45d1ad78b07e670bdd60239373ffa3dd8`.
 Source-only ZIP SHA-256:
 `146674089eb13797919e74ecc9296b4c0a8438970d4f2a89c3bc98faa1c2f2e2`.
 The wrapper remains the hash-qualified `271f34ab…` source.
-[The bounded current inventory](evidence/issue-14/windows-runtime-current.json)
+[The historical stage inventory](evidence/issue-14/windows-runtime-044ff4216374.json)
 retains every source-file digest and the check outcomes without private paths,
 profile payloads, owner SID or process command lines. This stage supersedes
 the older closure checks for these exact bytes; it does not prove physical

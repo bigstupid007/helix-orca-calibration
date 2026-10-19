@@ -1,7 +1,10 @@
 # Issue #14 V1 candidate evidence
 
-`native/` is the complete, source-bound beta.9 native UI matrix: all eleven
-pinned targets, all five calibration workflows, 341 frames. Every context,
+`native/` currently retains the historical beta.9 matrix for its exact recorded
+sources: all eleven pinned targets, all five calibration workflows, 341 frames.
+It does not qualify the current corrected candidate. Its replacement is a
+frozen 396-frame matrix; only a complete passing source-bound capture may be
+promoted. The historical report and hashes remain unchanged until that promotion. Every context,
 capability, prepared artifact, parity flag, printer status, completion proof and
 receipt in this capture is **synthetic test input**. It proves real native UI
 behavior and interaction, not generator parity, Windows operation or printing.

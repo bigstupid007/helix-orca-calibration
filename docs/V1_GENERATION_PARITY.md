@@ -17,16 +17,18 @@ October 15 Windows output.
 | --- | --- | --- |
 | Temperature standard tower | `Plater::calib_temp`, native DRC cut/scale; transient `Print::set_calib_params`; native layer-count temperature interpolation | Job-local model + explicit machine/process/filament serialized inputs + explicit bed + stock `--slice`. Recipe attempt supports hash-bound prepared geometry for exact scaled 0.4/0.6 mm single-tool Marlin/Klipper cases. Exact independent native parity remains mandatory. |
 | Flow Ratio YOLO Recommended | `calib_flowrate(true,1,ArchimedeanChords)`, `Orca-LinearFlow.3mf`, native eleven labeled objects, absolute additive flow increments and special top-infill order | Job-local copy adds native per-object settings and ratios, stock Orca slices it. Initial recipe envelope is 0.4 mm nozzle / 0.2 mm first layer. Corrected actual Windows production comparison passes exact executable parity and both YOLO invariant inspections for the retained context; R8 hashes below. |
-| Pressure Advance Pattern | `_calib_pa_pattern`, native `CalibPressureAdvancePattern::generate_custom_gcodes`, handles/arrangement and writer state | Stock CLI has no calibration-state input. Explicit native-generator blocker; a generic STL or PA command schedule cannot reproduce the custom pattern paths/digits. |
-| Retraction tower | `calib_retraction`; exporter changes software writer `retraction_length` per height | Explicit native-writer blocker. Firmware retraction commands cannot substitute for generated software retract/unretract moves. |
-| Max Volumetric Speed tower | `calib_max_vol_speed`, `Flow::mm3_per_mm`, spiral mode; exporter changes internal `outer_wall_speed` per height | Explicit native-planner blocker. Firmware feed scaling does not reproduce internal extrusion planning and limits. |
+| Pressure Advance Pattern | `_calib_pa_pattern`, native `CalibPressureAdvancePattern::generate_custom_gcodes`, handles/arrangement and writer state | Stock CLI has no calibration-state input. A built Linux grouped adapter is blocked at shared native initialization; a generic STL or PA command schedule cannot reproduce the custom pattern paths/digits. |
+| Retraction tower | `calib_retraction`; exporter changes software writer `retraction_length` per height | The built Linux grouped adapter remains blocked at shared native initialization; stock CLI cannot supply this native writer state. Firmware retraction commands cannot substitute for generated software retract/unretract moves. |
+| Max Volumetric Speed tower | `calib_max_vol_speed`, `Flow::mm3_per_mm`, spiral mode; exporter changes internal `outer_wall_speed` per height | The built Linux grouped adapter remains blocked at shared native initialization; stock CLI cannot supply this native planner state. Firmware feed scaling does not reproduce internal extrusion planning and limits. |
 
 The grouped source paths are `src/slic3r/GUI/Plater.cpp`,
 `src/libslic3r/GCode.cpp`, `src/libslic3r/calib.cpp`,
 `src/slic3r/Utils/CalibUtils.cpp`, and `src/OrcaSlicer.cpp`. The stock CLI at
 both pins exposes no `Calib_Params` or calibration selector. No supported
-Python generator API is assumed. Native engine integration is researched in
-parallel and must preserve upstream reference files.
+Python generator API is assumed. Parallel native integration has built and
+linked the Linux adapter and passed capabilities; actual generation is blocked
+at a shared native wait. No native artifact or Windows package is qualified.
+Upstream reference files remain unchanged.
 
 ## Job contract and invocation
 
@@ -62,8 +64,10 @@ The trusted local generator configuration contains:
 
 The stock argv uses `--datadir` beneath the job directory,
 `--load-settings machine.json;process.json`, `--load-filaments filament.json`,
-`--curr-bed-type` from the effective snapshot, `--arrange 1 --orient 0 --strict`,
-`--export-settings`, and `--slice 0 model`. No default bed is allowed: the lab
+`--curr-bed-type` from the effective snapshot, `--export-settings`, and
+`--slice 0 model`. Temperature uses `--arrange 1 --orient 0 --strict`; YOLO
+preserves its job-local native group translation with
+`--arrange 0 --orient 0 --strict`. No default bed is allowed: the lab
 found a real 35°C versus 60°C difference when this input was omitted. Child XDG
 and WebView2 paths are job-local for direct execution. Confinement/resource
 limits belong to the local runner; no printer route or network API exists here.
@@ -609,7 +613,9 @@ report SHA-256 `5c5fb10764918deba29573a1ac5465b108ffdf659ad92418ed79152e287b27d3
 
 Native PA Pattern, Retraction and MVS references also pass their source-derived
 invariants after Retraction's measured layer-transition checker correction. Their
-references do not qualify an unbuilt native adapter. All exact native/report/tool
+references do not qualify the adapter. It was unbuilt at this checkpoint; the
+later Linux build/capability pass still has no generated calibration artifact.
+All exact native/report/tool
 hashes and the historical failed Retraction inspection are retained in the
 [public-safe Windows inventory](evidence/issue-14/windows-reference-inventory.json).
 [Windows observations](V1_WINDOWS_ORCA.md) distinguish actual native references,

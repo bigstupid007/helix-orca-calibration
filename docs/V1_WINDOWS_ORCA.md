@@ -124,10 +124,12 @@ aggregate SHA-256 `41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9
 Only isolated native test edits were discarded; the baseline was not rewritten.
 The [public-safe reference inventory](evidence/issue-14/windows-reference-inventory.json)
 retains all five native checks, exact source/report digests, the historical
-Retraction failure, actual YOLO parity failure and preservation proof.
+Retraction failure, historical R6 YOLO parity failure, later R8 production pass
+and preservation proof.
 
-Remaining exact generation comparisons, native runtime refresh, independent
-review corrections and Founder acceptance are still pending. No
+At this pre-R7/R8 checkpoint, runtime refresh and review corrections remained
+open; the later sections record their completed outcomes. Other generator
+comparisons and Founder acceptance remain open. No
 new physical print, upload/queue, heat/motion, firmware/configuration change,
 writeback or printer deployment is validation evidence for this program.
 
