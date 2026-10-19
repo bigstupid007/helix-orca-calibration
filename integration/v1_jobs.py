@@ -279,7 +279,7 @@ class PinnedMoonraker:
         if stats.get("state") not in ("standby", "printing", "paused", "complete", "cancelled", "error"):
             raise ContractError("Unknown printer state")
         latest = final["status"]["print_stats"]
-        elapsed = latest.get("print_duration")
+        elapsed = latest.get("total_duration")
         elapsed = float(elapsed) if type(elapsed) in (int, float) and math.isfinite(elapsed) and 0 <= elapsed <= 31*86400 else None
         sd = final["status"].get("virtual_sdcard", {})
         progress = sd.get("progress") if isinstance(sd, dict) else None

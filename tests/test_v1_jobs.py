@@ -39,7 +39,7 @@ class PrinterFixture:
         self.job_id = 'ABC123'; self.start_time = 10; self.history_status = 'in_progress'
         self.history_override = None; self.baseline = []; self.queue = []; self.started = False
         self.posts = []; self.gets = []; self.upload_fields = None
-        self.progress = .25; self.print_duration = 120; self.sd_path_override = None
+        self.progress = .25; self.print_duration = 100; self.total_duration = 120; self.sd_path_override = None
         self.tamper = False; self.start_error = False; self.cancel_error = False; self.auto_queue = False
         fixture = self
         class Handler(BaseHTTPRequestHandler):
@@ -56,7 +56,7 @@ class PrinterFixture:
                 if self.path == '/server/job_queue/status': return self.response(dict(queued_jobs=fixture.queue, queue_state='ready'))
                 if self.path in ('/printer/objects/query?print_stats', '/printer/objects/query?print_stats&virtual_sdcard'):
                     fixture.event += 1
-                    return self.response(dict(eventtime=fixture.event, status=dict(print_stats=dict(state=fixture.state, filename=fixture.filename, print_duration=fixture.print_duration),virtual_sdcard=dict(progress=fixture.progress,file_path=fixture.sd_path_override or '/fixture/gcodes/'+fixture.filename))))
+                    return self.response(dict(eventtime=fixture.event, status=dict(print_stats=dict(state=fixture.state, filename=fixture.filename, print_duration=fixture.print_duration,total_duration=fixture.total_duration),virtual_sdcard=dict(progress=fixture.progress,file_path=fixture.sd_path_override or '/fixture/gcodes/'+fixture.filename))))
                 if p.path == '/server/files/metadata':
                     name = q['filename'][0]
                     if name not in fixture.files: return self.response({}, 404)
@@ -166,7 +166,7 @@ class OwnedJobsTests(unittest.TestCase):
         self.fixture.progress=.5;self.fixture.sd_path_override='/fixture/gcodes/foreign.gcode'
         self.adapter.observe(job)
         self.assertIsNone(self.adapter.monitor(job)['progress'])
-        self.fixture.print_duration=-1
+        self.fixture.total_duration=-1
         self.adapter.observe(job)
         self.assertIsNone(self.adapter.monitor(job)['elapsed_s'])
         self.fixture.filename='foreign.gcode'
