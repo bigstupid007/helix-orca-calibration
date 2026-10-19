@@ -170,7 +170,7 @@ local function v1_render()
     local p=s.request.parameters
     local kind=s.request.calibration
     local unit=kind=='temperature' and '°C' or kind=='retraction' and 'mm' or kind=='max_volumetric_speed' and 'mm³/s' or 's'
-    local summary=kind=='flow_ratio_yolo' and 'YOLO recommended · Archimedean surface' or
+    local summary=kind=='flow_ratio_yolo' and ((p.pass==2 and 'YOLO Perfectionist · 16 samples' or 'YOLO Recommended · 11 samples')..' · Archimedean surface') or
         (tostring(p.start)..' to '..tostring(p['end'])..' '..unit..' · '..tostring(p.step)..' '..unit..' increments')
     if kind=='temperature' then summary=summary..(p.scale and ' · Scaled for nozzle' or ' · Original tower size') end
     v1_set('parameters',summary)
