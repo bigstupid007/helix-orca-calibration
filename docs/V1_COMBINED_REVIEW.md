@@ -25,9 +25,8 @@ UI captures or actual generator parity.
 
 Later integrated deltas include nullable same-job monitoring, native product
 review corrections, the stock YOLO recipe correction and actual native-engine
-build/generation. Their bounded final recheck and evidence disposition remain
-pending. This document does not claim the entire current head has received that
-final recheck.
+build/generation. Their bounded correction rechecks are recorded below. Runtime outcomes and
+target-native evidence remain separate from a source-review verdict.
 
 ## Bounded final source rechecks
 
@@ -71,6 +70,10 @@ qualifier tests. No new material finding remained in those corrections.
 The new interactive viewer received bounded review before any listener launch.
 Corrections cover lazy portable/pinned lifecycle loading, source closure for its
 privacy validator, authoritative helper-root lookup, private first-launch state,
-frame denial and conservative pointer release after lost replies. Actual viewer
-qualification and the final correction verdict remain pending. These changes
-affect review infrastructure, not the frozen native product/capture source.
+frame denial and conservative pointer release after lost replies. The final
+independent correction recheck through `48b7e0c` found no remaining material
+source defect and passed all 13 focused viewer tests plus `git diff --check`.
+The integrated lead suite passed 434 tests with two Windows-only skips on Linux.
+Actual viewer lifecycle/browser qualification remains a separate gate. These
+changes affect review infrastructure, not the frozen native product/capture
+source.

@@ -132,8 +132,12 @@ post-process rejection, slicing warnings, explicit grouped blockers, native
 provenance tampering, changed motion/bed, actual-Z and late-heater failures,
 self-reference, changed evidence, report revalidation and forged flags.
 
-All five genuine October 15 Windows native references now pass their calibration
-invariants; candidate/native parity remains unqualified for every generator.
+All five genuine October 15 Windows native references pass their calibration
+invariants. The corrected Windows R8 YOLO production generator now passes exact
+candidate/native parity for its retained inputs. Temperature remains blocked by
+executable/geometry differences; the three native-engine generators remain
+unavailable. The distinct historical checkpoints below retain their original
+failed or unqualified dispositions.
 Production edited-profile fidelity, wider nozzle/dialect support, a native-engine
 adapter for the three internal-state calibrations, full distribution packaging
 and real print quality remain unqualified. No generated file is authorized for a
@@ -160,8 +164,9 @@ M201/M203 machine limits. Both files pass the bounded temperature/deposition
 checks, but those checks do not erase input or executable differences. The
 exploratory report explicitly keeps `qualified: false`. That October 11 lab
 checkpoint had no matching native YOLO export. The later October 15 Windows
-YOLO reference/comparison below exists and fails strict parity. Neither prepared
-artifact is Ready.
+YOLO R6 comparison below failed strict parity. Its distinct corrected R8
+production run passes; neither artifact from this older Linux checkpoint is
+Ready.
 
 Logs, input snapshots, generated profiles, exact invocation/container commands,
 G-code, reports and the checkpoint source are retained beneath
