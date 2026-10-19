@@ -1,5 +1,17 @@
 # Bounded Windows native package qualification
 
+Actual Windows package `227b447` is verified on SPARE, including all 17 DLLs.
+PA Pattern passes the complete strict harness for the exact retained explicit
+50°C context and 0→0.08 / 0.005 parameters. Temperature remains blocked by real
+motion differences. Retraction and MVS have respectively 215 and 203 executable
+object-name differences; every other executable byte matches. The shared
+Windows import now follows Orca's native path normalization, but a new build
+and unchanged full parity are still required. The actual GUI and dependencies
+used Clang 22.1.3 / VS2026; the retained adapter used MSVC 19.44. The next
+candidate aligns that verified recipe rather than changing geometry or parity.
+[Exact results and causal evidence](V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections).
+
+
 `scripts/v1-windows-native-qualify.py` is a separate acceptance driver for PA
 Pattern, Retraction, Max Volumetric Speed and native Temperature. It invokes the
 actual `integration.v1_engine._backend` and `generate` paths. It does not alter

@@ -1,5 +1,17 @@
 # Bounded Windows native-engine package
 
+Actual Windows package `227b447` is verified on SPARE, including all 17 DLLs.
+PA Pattern passes the complete strict harness for the exact retained explicit
+50°C context and 0→0.08 / 0.005 parameters. Temperature remains blocked by real
+motion differences. Retraction and MVS have respectively 215 and 203 executable
+object-name differences; every other executable byte matches. The shared
+Windows import now follows Orca's native path normalization, but a new build
+and unchanged full parity are still required. The actual GUI and dependencies
+used Clang 22.1.3 / VS2026; the retained adapter used MSVC 19.44. The next
+candidate aligns that verified recipe rather than changing geometry or parity.
+[Exact results and causal evidence](V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections).
+
+
 The clean Windows runner exposed an upstream Expat discovery conflict after all
 25 dependencies built: failed system discovery created an `expat` fallback in
 the root, then `deps_src/expat` created the same target again. The Windows-only

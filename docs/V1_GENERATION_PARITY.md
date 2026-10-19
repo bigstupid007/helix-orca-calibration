@@ -1,9 +1,15 @@
 # V1 generation and mandatory native G-code parity
 
-Generator-only continuation: see the [current repair checkpoint](V1_GENERATOR_BLOCKER_CHECKPOINT.md)
-for actual Windows build gates, source-material limits and the separate explicitly
-edited 50°C qualification context. No new native route is claimed qualified;
-Founder review remains pending actual package/parity evidence.
+Actual Windows package `227b447` is verified on SPARE, including all 17 DLLs.
+PA Pattern passes the complete strict harness for the exact retained explicit
+50°C context and 0→0.08 / 0.005 parameters. Temperature remains blocked by real
+motion differences. Retraction and MVS have respectively 215 and 203 executable
+object-name differences; every other executable byte matches. The shared
+Windows import now follows Orca's native path normalization, but a new build
+and unchanged full parity are still required. The actual GUI and dependencies
+used Clang 22.1.3 / VS2026; the retained adapter used MSVC 19.44. The next
+candidate aligns that verified recipe rather than changing geometry or parity.
+[Exact results and causal evidence](V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections).
 
 Build Program #14 approves these recipes and the grouped engine investigation.
 This document records a working foundation, not a V1 qualification or approval
@@ -22,9 +28,9 @@ October 15 Windows output.
 | --- | --- | --- |
 | Temperature standard tower | `Plater::calib_temp`, native DRC cut/scale; transient `Print::set_calib_params`; native layer-count temperature interpolation | Job-local model + explicit machine/process/filament serialized inputs + explicit bed + stock `--slice`. Recipe attempt supports hash-bound prepared geometry for exact scaled 0.4/0.6 mm single-tool Marlin/Klipper cases. The direct native Cut/Print route now generates a real warning-free 50°C-context candidate, but material motion differences remain; neither route is qualified. Exact independent native parity remains mandatory. |
 | Flow Ratio YOLO Recommended | `calib_flowrate(true,1,ArchimedeanChords)`, `Orca-LinearFlow.3mf`, native eleven labeled objects, absolute additive flow increments and special top-infill order | Job-local copy adds native per-object settings and ratios, stock Orca slices it. Initial recipe envelope is 0.4 mm nozzle / 0.2 mm first layer. Corrected actual Windows production comparison passes exact executable parity and both YOLO invariant inspections for the retained context; R8 hashes below. |
-| Pressure Advance Pattern | `_calib_pa_pattern`, native `CalibPressureAdvancePattern::generate_custom_gcodes`, handles/arrangement and writer state | Stock CLI has no calibration-state input. The built Linux adapter rejects the original 60/55 context with native warning `1000C001`. A separate explicit 50°C context passes candidate invariants and matches its independent Windows native executable digest diagnostically; full parity and Windows package execution remain open; a generic STL or PA command schedule cannot reproduce the custom pattern paths/digits. |
-| Retraction tower | `calib_retraction`; exporter changes software writer `retraction_length` per height | The built Linux grouped adapter passes real generation and candidate invariants for the separate explicit 50°C context; its executable digest matches the independent Windows native reference diagnostically. Full Windows package/parity qualification remains pending; stock CLI cannot supply this native writer state. Firmware retraction commands cannot substitute for generated software retract/unretract moves. |
-| Max Volumetric Speed tower | `calib_max_vol_speed`, `Flow::mm3_per_mm`, spiral mode; exporter changes internal `outer_wall_speed` per height | The built Linux grouped adapter passes real generation and candidate invariants for the separate explicit 50°C context; its executable digest matches the independent Windows native reference diagnostically. Full Windows package/parity qualification remains pending; stock CLI cannot supply this native planner state. Firmware feed scaling does not reproduce internal extrusion planning and limits. |
+| Pressure Advance Pattern | `_calib_pa_pattern`, native custom paths, handles/arrangement and writer state | Actual Windows `227b447` passes the complete unchanged strict harness: 2,904 commands for exact retained explicit 50°C context and 0→0.08 / 0.005. Both candidate/native invariants pass. Original 60/55 context is rejected with real `1000C001` before Prepared/reference selection. A new compiler-aligned candidate must requalify. |
+| Retraction tower | Native software retract writer length varies by height | Actual Windows `227b447` retains 16,585 commands and passing invariants but fails strict parity on 215 object NAME tokens. Every other executable byte matches. The source-causal shared path correction awaits actual rebuild and full unmodified comparison; no NAME masking qualifies output. |
+| Max Volumetric Speed tower | Native `Flow::mm3_per_mm`, spiral mode and planner speed ramp | Actual Windows `227b447` retains 35,672 commands and passing invariants but fails strict parity on 203 object NAME tokens. Every other executable byte matches. Shared path correction and compiler alignment await actual rebuild/full unmodified comparison. |
 
 The grouped source paths are `src/slic3r/GUI/Plater.cpp`,
 `src/libslic3r/GCode.cpp`, `src/libslic3r/calib.cpp`,
@@ -38,7 +44,7 @@ Windows UI references. Temperature has material motion differences. These are
 diagnostics only; actual Windows package execution and the unchanged complete
 parity harness remain required. The original 60°C bed / 55°C threshold context
 still rejects preparation with genuine warning `1000C001`. No original setting,
-warning policy or parity rule changed. No new native route is qualified.
+warning policy or parity rule changed. Later actual Windows results above supersede this historical pre-package checkpoint.
 Upstream reference files remain unchanged.
 
 ## Job contract and invocation

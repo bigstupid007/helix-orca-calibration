@@ -321,3 +321,16 @@ import closure. The narrow classification is supported by Microsoft Windows
 Sockets documentation and a valid Microsoft-signed actual system file on SPARE;
 unknown private DLL rejection and all slicer/parity gates remain unchanged.
 Successful compilation alone is not package or generator qualification.
+
+
+Actual package227b447 independently passes all 17 DLL/import/resource/source
+checks, with original checkpoint publisher retained. Its real Windows strict
+harness qualifies PA Pattern only; Temperature has material motion differences,
+Retraction/MVS have exact NAME-only differences. Independent source review
+confirms the six-line Windows-only path correction follows native Plater's
+normalization and does not alter Linux path bytes or geometry/settings/warnings.
+The comparator remains unchanged. Actual public GUI/dependency logs establish
+Clang22.1.3/VS18 versus candidate MSVC19.44; aligning that recipe is justified,
+while no geometry/seed/TBB/FP workaround is supported. Current source changes
+still require a new actual package and full harness; historical successful PA
+parity does not automatically qualify the next compiler/build.

@@ -154,7 +154,13 @@ static void model_asset(Model &model, const DynamicPrintConfig &config,
     // Plater load_files loads mesh assets without default instances, then
     // load_model_objects sorts/centers their volumes before adding and placing
     // the instance. Cut must see those same volume/instance transforms.
-    model = Model::read_from_file((resources / asset).string(),nullptr,nullptr,LoadStrategy::LoadModel);
+    auto input = resources / asset;
+#ifdef _WIN32
+    // Match Plater::load_files: the DRC loader splits object names on the
+    // native separator. Mixed separators would change executable object names.
+    input.make_preferred();
+#endif
+    model = Model::read_from_file(input.string(),nullptr,nullptr,LoadStrategy::LoadModel);
     if (model.objects.size() != 1 || !model.objects[0]->instances.empty())
         throw std::runtime_error("Expected one unplaced native tower asset");
     auto *object=model.objects[0];

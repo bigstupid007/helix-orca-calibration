@@ -1,0 +1,24 @@
+{
+  "after": {
+    "aggregate_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+    "baseline_file_count": 1429,
+    "baseline_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+    "file_count": 1429,
+    "physical_actions": false,
+    "recorded_at_utc": "2026-10-19T11:05:32.0885633Z",
+    "schema": "helix-orca-v1-normal-preservation/v1",
+    "unchanged": true
+  },
+  "before": {
+    "aggregate_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+    "baseline_file_count": 1429,
+    "baseline_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+    "file_count": 1429,
+    "physical_actions": false,
+    "recorded_at_utc": "2026-10-19T10:47:36.1908517Z",
+    "schema": "helix-orca-v1-normal-preservation/v1",
+    "unchanged": true
+  },
+  "physical_actions": false,
+  "schema": "helix-orca-v1-windows-native-preservation/v1"
+}

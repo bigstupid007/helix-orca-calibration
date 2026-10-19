@@ -218,3 +218,64 @@ The frozen `b603ffb` integrated boundary passed 561 tests with six host skips.
 No broad UI capture was repeated. Actual Windows package execution and full
 four-route native parity remain pending; no new generator is qualified.
 See [exact stage and dependency checkpoint evidence](evidence/issue-14/generator-blockers/windows-native-build-r3.json).
+
+
+## Actual Windows results and shared causal corrections
+
+[Real package/run 39233686041](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39233686041)
+passes source/PE/resource/import checks on SPARE. Package SHA
+`d4f250e89867b2e49df0ca179420f6ce6d0880c381987de5805a7d0f72eba07c`,
+real executable SHA `6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0`.
+Independent package review rechecked all 17 DLLs, 13 owned source inputs,
+11 upstream pins, three resources and 29 source-archive entries. Explicit
+checkpoint restore preserved its original producer. Complete lifecycle elapsed
+2,996.922 seconds, peak growth 5,041,557,504 bytes, all children exited. Historical
+GNU vendor builds and opaque static IPP remain production source-acceptance
+limits; package completeness is not that acceptance.
+
+The [four actual production-generator/harness results](evidence/issue-14/generator-blockers/native-four-windows-parity-r1.json)
+use the retained independent native UI references and exact explicit bed50 context.
+PA Pattern qualifies: both streams contain 2,904 commands with SHA
+`5e8e5478a1f5b312e7ff3d21a547948f648a4c5c9c65e61745c7fece3f273173`.
+Retraction and MVS stay unqualified: 215 of 16,585 / 203 of 35,672 commands differ.
+[Full positional diagnosis](evidence/issue-14/generator-blockers/windows-name-differences-r1.json)
+proves only `EXCLUDE_OBJECT_* NAME` tokens differ, with every other byte unchanged.
+Pinned GUI Plater9026 calls `make_preferred()` on Windows because the DRC loader
+splits names only at native separators. The adapter omitted this normalization.
+The minimal shared correction follows that exact behavior; Linux path bytes,
+geometry, config and warning semantics are unchanged. Diagnostic name masking
+never qualifies output; the corrected real binary still needs the full harness.
+
+Temperature remains unqualified: Windows candidate 105,929 / native106,508
+commands, material toolpath/acceleration differences, no native warnings and
+both calibration invariants pass. [Numeric motion diagnosis](evidence/issue-14/generator-blockers/temperature-windows-numeric-r1.json)
+finds the first geometric difference at top-surface layer5, an 8.731mm Y endpoint
+choice with equal extrusion, and differences on 381 layers. It is not number
+spelling alone. [Geometry-only diagnosis](evidence/issue-14/generator-blockers/temperature-windows-geometry-r1.json)
+reproduces exactly the retained Linux STL SHA `e7ee12fd387eae6d0ee5f3ca6500fe9376cca8e0dbf229d8394fee2b15b309a6`
+on Windows: 27,238 triangles / 13,585 vertices. Native saved-project XY projections
+match; its tiny reconstructed Z discrepancy is limited serialized transform
+precision, not proof of a missing Cut step. All private geometry remains on SPARE.
+
+[Actual upstream compiler provenance](evidence/issue-14/generator-blockers/native-gui-compiler-provenance-r1.json)
+confirms GUI and dependencies were built with Clang22.1.3 on
+`windows-2025-vs2026`, VS18/MSVC14.51, Ninja Multi-Config. The adapter used
+MSVC19.44 on Windows2022. This established recipe mismatch is the next shared
+correction; no Cut, random seed, TBB or floating-point workaround is justified.
+The old dependency checkpoint is retained and is not relabeled for a different
+compiler recipe. The corrected build requires fresh strict provenance and parity.
+
+The three absent native footer options are `bed_custom_model`,
+`bed_custom_texture` (display assets) and legacy-ignored `silent_mode`. The latter's
+executable consumers apply to Marlin stealth estimation, inactive in this retained
+Klipper case. These are documented non-executable provenance differences, not a
+waiver for the remaining real command differences.
+
+[Actual original-profile negative test](evidence/issue-14/generator-blockers/windows-original-warning-r1.json)
+verifies the product throws `native_warning` / `1000C001`, processor mask0,
+before native-reference selection; no Prepared job is produced. The normal
+1,429-file Orca fingerprint remains unchanged after all actual generation and
+geometry probes. Both qualified YOLO modes, functional control proof and accepted
+physical Temperature evidence remain untouched. No print, deployment, writeback,
+firmware/configuration change or merge occurred. No intermediate Founder review
+is requested.

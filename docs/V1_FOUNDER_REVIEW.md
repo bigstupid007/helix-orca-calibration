@@ -1,9 +1,15 @@
 # Integrated V1 Founder Review
 
-Generator-only continuation: see the [current repair checkpoint](V1_GENERATOR_BLOCKER_CHECKPOINT.md)
-for actual Windows build gates, source-material limits and the separate explicitly
-edited 50°C qualification context. No new native route is claimed qualified;
-Founder review remains pending actual package/parity evidence.
+Actual Windows package `227b447` is verified on SPARE, including all 17 DLLs.
+PA Pattern passes the complete strict harness for the exact retained explicit
+50°C context and 0→0.08 / 0.005 parameters. Temperature remains blocked by real
+motion differences. Retraction and MVS have respectively 215 and 203 executable
+object-name differences; every other executable byte matches. The shared
+Windows import now follows Orca's native path normalization, but a new build
+and unchanged full parity are still required. The actual GUI and dependencies
+used Clang 22.1.3 / VS2026; the retained adapter used MSVC 19.44. The next
+candidate aligns that verified recipe rather than changing geometry or parity.
+[Exact results and causal evidence](V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections).
 
 Build Program #14 and draft PR #15 are the governing review unit. Founder
 acceptance, merge and physical deployment remain pending. This candidate keeps
@@ -41,8 +47,9 @@ written. [Windows evidence](V1_WINDOWS_ORCA.md) distinguishes those proof levels
 | Calibration | Current disposition |
 | --- | --- |
 | Flow Ratio YOLO Recommended and Perfectionist | Actual Windows production generator passes strict executable and calibration-invariant parity for the exact retained context and mode-specific parameters, each against a separate independent native reference. Hardware ABI and physical readiness remain false. |
-| Temperature standard tower | The old stock Windows slice has material differences. Native Cut geometry is source-bound and reproducible; direct Linux native generation passes calibration invariants for the explicit 50°C context but still differs in executable motion. Actual Windows package/parity remains pending. Accepted physical Temperature behavior is preserved separately. |
-| PA Pattern, Retraction, Max Volumetric Speed | All three real Linux generation/invariant checks pass for the separately captured explicit unsaved 50°C context; each executable digest matches its independent Windows native UI reference diagnostically. Actual Windows package execution and complete unchanged parity qualification are pending. The original 60/55 context remains rejected before Prepared with genuine warning `1000C001`. |
+| Temperature standard tower | Unqualified. Actual Windows MSVC adapter: 105,929 versus native 106,508 executable commands, real motion/acceleration differences despite passing invariants. Windows and Linux prepared STL bytes are identical; Windows first XYZE difference is top-surface layer 5. The next build aligns the verified native GUI Clang 22.1.3 recipe. Accepted physical baseline is separate and preserved. |
+| PA Pattern | Actual Windows `227b447` passes exact executable and both invariant checks: 2,904 commands for retained explicit 50°C context / 0→0.08 / 0.005. A new compiler-aligned candidate must requalify. Original 60/55 context remains rejected with genuine warning `1000C001`. |
+| Retraction / Max Volumetric Speed | Unqualified in the retained MSVC package: 16,585 / 35,672 commands, with only 215 / 203 executable object-name token differences. Shared import-path correction matches native GUI source; actual corrected build/full parity remains mandatory. |
 
 All five independent Windows-native references are retained and pass their
 calibration invariant inspections. A native reference is not its candidate

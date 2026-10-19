@@ -23,30 +23,26 @@ with blocking generator limits.
 Stock Flow Ratio YOLO Recommended and Perfectionist pass strict executable and
 calibration-invariant parity against separate independent October 15 Windows
 references for their exact retained profiles and mode-specific parameters.
-Temperature native geometry has a reproducible source-bound repair; direct
-native generation still has material motion differences (net nine executable
-commands) under investigation. The old stock candidate retains material differences.
-The [grouped actual-generation diagnostic](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md#grouped-actual-generation-diagnostic)
-uses four fresh independent Windows native UI references for a separately
-captured, deliberately selected unsaved 50°C bed context. All four native and
-Linux candidate invariant checks pass; PA Pattern, Retraction and Max Volumetric
-Speed have exact executable digests. These diagnostics qualify no generator.
-Actual Windows package execution and the complete unchanged parity harness
-remain mandatory. The original bed 60°C / filament threshold 55°C combination
-still produces legitimate warning `1000C001` and remains unsupported without
-changing its profiles. The actual Windows package CI build is the next shared
-infrastructure gate. The first actual Windows build completed all 25 dependencies
-then exposed an Expat configuration conflict; the Windows-only repair and strict
-explicit dependency checkpoint have independent source review and focused
-checks. A second actual build exposed an empty-submodule inventory assumption
-in the new checkpoint; its correction now validates before compilation and
-passes fifteen actual Windows filesystem checks. The third actual run completed
-native MSVC compile/link, then packaging rejected Windows' `wsock32.dll` because
-the system-DLL classifier omitted that exact compatibility library. Its
-Microsoft-signed system copy and documented identity are verified; the narrow
-classifier correction retains strict unknown-DLL rejection. The complete
-dependency checkpoint is retained for explicit reuse. No new native generator
-is yet qualified.
+The actual Windows package at `227b447` is verified on SPARE with its full
+17-DLL closure. PA Pattern passes strict native executable/invariant parity for
+the exact retained explicit unsaved 50°C context and 0→0.08 / 0.005 range.
+Temperature remains unqualified with material motion differences. Retraction
+and Max Volumetric Speed have only executable object-name differences (215 and
+203 commands); the shared native import-path normalization is corrected in
+source and awaits real rebuild/parity. The retained GUI's actual public build
+logs identify Clang 22.1.3 / VS2026 for both dependencies and core; the MSVC 19.44
+adapter used a different recipe. The next candidate aligns that recipe without
+changing geometry, warning handling or the mandatory comparator.
+
+The [actual Windows results and causal checkpoint](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections)
+retain full strict reports, exact stream digests, source/PE/DLL provenance,
+independent package review and bounded diagnostics. The original saved 60°C bed /
+55°C filament threshold is genuinely rejected with `1000C001`, before Prepared
+or reference selection, on actual Windows. No profile or default is substituted.
+Normal Orca's 1,429-file fingerprint remains identical before and after these
+actual tests. Both YOLO modes, all verified parameter controls and the accepted
+physical Temperature milestone are preserved. The new compiler-aligned candidate
+must pass its own complete Windows harness before further qualification.
 
 The earlier native matrix passed all eleven sizes and 396 frames; its synthetic
 browser workflow and exact browser/listener/container cleanup are retained as

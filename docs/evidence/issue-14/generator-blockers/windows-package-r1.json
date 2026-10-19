@@ -1,0 +1,76 @@
+{
+  "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+  "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+  "builder_commit": "227b44795a69d68999fc5cda429002d73764626b",
+  "builder_run_id": "39233686041",
+  "managed_fetch_lifecycle": {
+    "exit_code": 0,
+    "run_id": "bdbcad8823924fb79e635a12a8745a30",
+    "state": "complete",
+    "verification": {
+      "errors": [],
+      "runtime_clear": true
+    }
+  },
+  "native_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+  "package_sha256": "d4f250e89867b2e49df0ca179420f6ce6d0880c381987de5805a7d0f72eba07c",
+  "physical_actions": false,
+  "qualified": false,
+  "run_id": "bdbcad8823924fb79e635a12a8745a30",
+  "schema": "helix-orca-v1-public-windows-package-receipt/v1",
+  "source_materials": {
+    "complete_corresponding_source_claim": false,
+    "exact_historical_vendor_build_reproduced": false,
+    "excluded_binary_build_inputs": [
+      "ffmpeg-n7.0.3-33-g887d4b4919-win64-orca-shared-7.0.zip",
+      "cpython-bin-deps-libffi-3.4.4.zip",
+      "cpython-bin-deps-openssl-bin-3.0.16.2.zip"
+    ],
+    "opaque_static_components": [
+      "OpenCV Intel IPP-ICV enabled by upstream Windows recipe; vendor build/source provenance unverified"
+    ],
+    "production_source_acceptance_required": true,
+    "schema": "helix-orca-v1-windows-source-materials/v1",
+    "source_archive_created": true,
+    "source_archive_inventory_sha256": "fbba9a2a18676fde5470725ed43d529872d95943ba82c26ad5e591af4c85cb20",
+    "source_failure": null,
+    "source_materials_state": "matching-upstream-sources-retained",
+    "source_supplements": [
+      {
+        "archive": "gmp-5.0.1.tar.bz2",
+        "component": "GMP",
+        "executed": false,
+        "sha256": "a2a610f01fd3298dc08c87bf30498c2402590e1bcb227fc40b15ee6d280939fb",
+        "size": 2006109,
+        "url": "https://ftp.gnu.org/gnu/gmp/gmp-5.0.1.tar.bz2",
+        "verified": true,
+        "version": "5.0.1"
+      },
+      {
+        "archive": "mpfr-3.0.0.tar.bz2",
+        "component": "MPFR",
+        "executed": false,
+        "sha256": "8f4e5f9c53536cb798a30455ac429b1f9fc75a0f8af32d6e0ac31ebf1024821f",
+        "size": 1138685,
+        "url": "https://www.mpfr.org/mpfr-3.0.0/mpfr-3.0.0.tar.bz2",
+        "verified": true,
+        "version": "3.0.0"
+      }
+    ],
+    "unresolved_prebuilt_runtime_components": [],
+    "vendor_limitation": "Pinned GMP/MPFR binaries match upstream versions; historical vendor compiler, flags and patches are unverified."
+  },
+  "target": {
+    "application_commit": "227b44795a69d68999fc5cda429002d73764626b",
+    "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+    "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+    "native_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+    "package_sha256": "d4f250e89867b2e49df0ca179420f6ce6d0880c381987de5805a7d0f72eba07c",
+    "package_verified": true,
+    "physical_actions": false,
+    "qualified": false,
+    "runtime_dll_count": 17,
+    "schema": "helix-orca-v1-public-windows-target-package/v1",
+    "source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5"
+  }
+}

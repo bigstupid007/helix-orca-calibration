@@ -1,9 +1,15 @@
 # V1 grouped native-engine reuse
 
-Generator-only continuation: see the [current repair checkpoint](V1_GENERATOR_BLOCKER_CHECKPOINT.md)
-for actual Windows build gates, source-material limits and the separate explicitly
-edited 50°C qualification context. No new native route is claimed qualified;
-Founder review remains pending actual package/parity evidence.
+Actual Windows package `227b447` is verified on SPARE, including all 17 DLLs.
+PA Pattern passes the complete strict harness for the exact retained explicit
+50°C context and 0→0.08 / 0.005 parameters. Temperature remains blocked by real
+motion differences. Retraction and MVS have respectively 215 and 203 executable
+object-name differences; every other executable byte matches. The shared
+Windows import now follows Orca's native path normalization, but a new build
+and unchanged full parity are still required. The actual GUI and dependencies
+used Clang 22.1.3 / VS2026; the retained adapter used MSVC 19.44. The next
+candidate aligns that verified recipe rather than changing geometry or parity.
+[Exact results and causal evidence](V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections).
 
 Build Program #14 owns this investigation. Baseline:
 `6a7763f08d1a175a464a00ce13f0b5a815662fc4`, the accepted October 15 Orca nightly.
