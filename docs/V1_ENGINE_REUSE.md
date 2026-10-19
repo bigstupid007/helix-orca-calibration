@@ -3,16 +3,16 @@
 Build Program #14 owns this investigation. Baseline:
 `6a7763f08d1a175a464a00ce13f0b5a815662fc4`, the accepted October 15 Orca nightly.
 The real Linux x86_64 native adapter and its capability command now build.
-The native enum-default startup repair passes actual retained-configuration
-loading and Temperature model preparation. The subsequent wait is now localized
-to Orca's thread-name/locale initialization barrier; the downstream two-worker
-task-arena repair awaits its targeted runtime check.
-No native calibration is qualified by this document. All five independent
-native Windows references are retained separately; they do not change the
-adapter's generation status. The accepted physical Temperature milestone and
-lab remain unchanged. Historical checkpoints below retain the actual failures
-rather than implying that a successful build alone is a working or qualified
-generator.
+The native enum-default and two-worker task-arena repairs now pass actual
+retained-configuration loading, PA Pattern slicing and G-code export. The real
+PA artifact passes candidate-only calibration invariants, but remains rejected
+because Orca reports a retained-profile bed-temperature warning. Exact independent
+local native-reference parity has not run; no native route is qualified.
+All five independent native Windows references remain retained separately;
+matching summary counts do not change candidate qualification. The accepted
+physical Temperature milestone and lab remain unchanged. Historical checkpoints
+below retain the actual failures rather than implying that a successful build
+alone is a working or qualified generator.
 
 ## Common engine and three preparation families
 
@@ -423,7 +423,7 @@ called at `Print.cpp:3146`. The native barrier counts
 worker availability. A larger host arena therefore waits for unavailable
 workers. The owned adapter now executes process/export in `tbb::task_arena(2)`
 while retaining the persistent global two-worker cap. This changes no upstream
-source or calibration behavior; its targeted runtime check is pending.
+source or calibration behavior; the actual targeted check below clears this wait.
 The failed job reached its 45-second watchdog, retained all inputs/diagnostics,
 and cleared its exact process/container with runtime clear.
 
@@ -434,3 +434,50 @@ Prepared job. A successful exit seeds the same false disposition before its
 result identity/processor validation, so a malformed or warning-bearing result
 cannot leave an undisposed candidate. An ineligible artifact instead retains
 an explicit parity blocker; it cannot qualify.
+
+
+## Actual PA export and retained-profile processor blocker
+
+Build `729eb5226e2d429dbe5abf0c5e6a9aff` successfully rebuilt the adapter with
+its two-worker task arena. The real Linux ELF is 71,632,712 bytes, SHA-256
+`eacec58763d9a973b70e425a0e996399c87da875e43e0a6a1074e9d139bcafb5`.
+Its retained `native-build.json` SHA-256 is
+`f27b8f1904070b370d080e21d1fcaf1da11acf4765f764b113a40134009eaeff`;
+`native-inputs.json` is
+`1e0957de2b3153515700153bbbe68cd77b3d8a33b87b0ccf208723307f4ed68a`.
+The successful build cleared its exact process and container.
+
+One bounded PA Pattern job, `7aabbba11d844358801bd93c67919c64`, reached both
+`process-ready` and `export-ready`. It produced a real 122,119-byte G-code file,
+SHA-256 `d35a92c6110933cd70dc341ac4fee2df9963e6bbc5c4fe62b1c1c83b45eb2e93`.
+Candidate-only `v1_parity.invariants` passes: four layers, 789 deposition moves,
+2,904 executable commands, 17 PA values from 0 through 0.08 in 0.005 steps,
+three walls per sample and 220°C deposition. This inspection uses the candidate
+and retained generation inputs; it creates no reference or qualification.
+The actual Windows native reference remains independent. Matching summary
+counts do not establish exact executable parity.
+
+The adapter correctly exits 2 after exporting because the native processor
+reports `1000C001`, level 3, `bed_temperature_too_high_than_filament`, with an
+otherwise zero error mask. The retained profile requests a 60°C bed and has
+`temperature_vitrification=55`. The exact native check is
+`GCodeProcessor.cpp:7866–7877`: highest commanded bed temperature greater than
+or equal to the used filament's nonzero vitrification temperature emits this
+warning. The filament threshold is read from the retained configuration
+(`GCodeProcessor.cpp:3113`, `7679–7685`). This condition does not depend on a
+Bambu vendor flag; `Print.hpp:1506` also initializes that flag to false.
+No temperature, threshold, profile or warning policy was changed to obtain a
+passing status. Repeating the remaining routes against this shared condition
+would not establish a usable generator.
+
+The private job retains `native-processing.json`, the actual artifact, immutable
+inputs, native log, mandatory false `parity.json` and a separately labeled
+`candidate-invariants.json`. It creates no Prepared job and grants no physical
+Start. The retained parity SHA-256 is
+`f5e820b915bc1c9e3b36e615c5374934fd9ef4c65a38b0906a6862be053a748b`.
+The exact foreground process is absent and container
+`7c4370cd3d8faf2f87aab363c2b6a0ce010629bae59b5e788d1b80a887b0116a`
+was stopped/removed; lifecycle verification records runtime clear with no errors.
+The heavy slot was explicitly released for the integrated viewer review.
+Windows native packaging and independent local native-reference parity remain
+separate open gates.

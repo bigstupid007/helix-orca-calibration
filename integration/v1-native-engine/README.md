@@ -2,8 +2,9 @@
 
 This source uses exact October 15 internal C++ `Model`, `Cut`, `Flow`, `Print`
 and calibration state; it does not modify Orca. Its Linux x86_64 executable and
-actual capability command now build, but it remains **unqualified and blocked
-on runtime configuration**. Do not infer working generation from compilation.
+actual capability command now build. Real PA Pattern slicing/export and
+candidate-only invariants pass, but the artifact remains **unqualified and
+blocked by a native processor warning**. Compilation does not establish parity.
 
 The intended CLI reads an immutable V1 request and complete effective context,
 explicit pinned native resources and an existing empty output directory. It
@@ -21,13 +22,15 @@ unavailable on Windows; Windows needs its own real compatible audited build.
 All 25 native dependencies and the real static engine/adapter now build. Actual
 grouped generation exposed a shared enum-default deserialization crash before
 G-code. Its source-backed fresh dynamic-config repair now passes full config
-and model preparation. A subsequent native wait after model prep is being
-localized with bounded phase diagnostics; no G-code has been generated yet.
-Native export
-also retains and checks processor errors/warnings, and a persistent TBB control
-limits generation to two workers. Exact source/build receipts and actual failed
-jobs are retained in the managed run evidence; no generated native calibration
-or qualification is claimed yet.
+and model preparation. A native worker-initialization barrier was fixed with
+an explicit two-worker task arena, retaining the persistent global worker cap.
+The targeted real PA job exported 122,119 bytes and passed candidate-only
+invariants, then correctly failed its post-export processor gate: the retained
+60°C bed exceeds the profile's 55°C vitrification threshold (native warning
+1000C001). No profile value or warning was changed or suppressed. Its exact
+artifact and mandatory false parity report remain retained; no Prepared job or
+qualification is claimed. See `docs/V1_ENGINE_REUSE.md` for exact build, job,
+artifact and cleanup receipts. Windows packaging remains unavailable.
 
 Use `-DCMAKE_PROJECT_OrcaSlicer_INCLUDE=/absolute/path/add-target.cmake` on a
 pinned Orca source root to add target `helix_orca_native` without editing that
