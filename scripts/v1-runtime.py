@@ -48,6 +48,7 @@ def tick(coordinator, storage, transport):
     if isinstance(native.get("intent"), dict) and retained and native["intent"].get("request_id") == retained["request_id"]:
         coordinator.intent(native["intent"])
     coordinator.poll_job()
+    coordinator.reconcile_native(native)
     if isinstance(native.get("result"), dict) and retained and native["result"].get("request_id") == retained["request_id"]:
         result = coordinator.result(native["result"])
         atomic_json(storage / "inbox.json", dict(result=result, request=coordinator.state["request"],

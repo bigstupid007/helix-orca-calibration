@@ -234,8 +234,6 @@ class Coordinator:
             return self.status()
         if value["action"] != "cancel" and self.now() >= req["expires_at"]:
             raise ContractError("Original Start window expired")
-        self.state["consumed_intents"].append(value["intent_id"])
-        self._persist()
         if value["action"] == "confirm":
             if self.state["phase"] != "review":
                 raise ContractError("Confirmation requires a verified prepared job")
@@ -247,18 +245,30 @@ class Coordinator:
                 if confirm is not None:
                     confirm(copy.deepcopy(req), copy.deepcopy(prepared), directory, copy.deepcopy(value))
             except Exception as exc:
+                self.state["consumed_intents"].append(value["intent_id"])
                 self._status("blocked", "Prepared job cannot start: " + str(exc))
                 return self.status()
+            # Confirmation is local/idempotent. A crash before this atomic journal
+            # write can safely reconcile the same confirmation again.
+            self.state["consumed_intents"].append(value["intent_id"])
             self._status("confirmed", "Confirmed. Start remains a separate deliberate action.")
         elif value["action"] == "start":
             if self.state["phase"] != "confirmed":
                 raise ContractError("Start requires prior confirmation")
             if self.job_adapter is None:
+                self.state["consumed_intents"].append(value["intent_id"])
                 self._status("blocked", "Physical execution is disabled for this review candidate. No upload, queue, heat or motion was requested.")
             else:
                 directory = self.root / "jobs" / req["request_id"]
-                self.verify_artifact(prepared, directory)
-                self.verify_parity(prepared, directory)
+                try:
+                    self.verify_artifact(prepared, directory)
+                    self.verify_parity(prepared, directory)
+                except Exception as exc:
+                    self.state["consumed_intents"].append(value["intent_id"])
+                    self._status("blocked", "Prepared job cannot start: " + str(exc))
+                    return self.status()
+                # Consume and mark the dispatch phase in the same atomic journal.
+                self.state["consumed_intents"].append(value["intent_id"])
                 # Durable intent before dispatch. A crash cannot authorize replay.
                 self._status("starting", "Start requested. Confirming the same printer job.")
                 try:
@@ -275,11 +285,13 @@ class Coordinator:
             if self.state["phase"] in ("starting", "printing", "verifying", "uncertain") and self.state.get("job"):
                 if self.job_adapter is None:
                     raise ContractError("Physical cancellation adapter unavailable; use native printer controls")
+                self.state["consumed_intents"].append(value["intent_id"])
                 self._status("uncertain", "Cancellation requested; waiting for independent printer confirmation.")
                 self.job_adapter.cancel(copy.deepcopy(self.state["job"]), copy.deepcopy(value))
                 return self.status()
             if self.state["phase"] not in ("review", "confirmed", "blocked"):
                 raise ContractError("No cancellable prepared job")
+            self.state["consumed_intents"].append(value["intent_id"])
             self._status("cancelled", "Preparation cancelled. Nothing was sent to the printer.")
         return self.status()
 
@@ -362,6 +374,30 @@ class Coordinator:
             self.state["receipt"] = copy.deepcopy(receipt)
             self._status("delivered", "Result returned to original Orca. NOT APPLIED.")
         return copy.deepcopy(receipt)
+
+    def reconcile_native(self, native):
+        """Republish retained authority after a native restart, without an action.
+
+        A repeated marker cannot keep advancing the journal: only an exact equal
+        sequence needs a durable version bump; an older reader gets current state.
+        """
+        req = self.state["request"]
+        if (not isinstance(native, dict) or native.get("recovery_required") is not True
+                or native.get("phase") != "uncertain" or req is None
+                or native.get("request") != req or type(native.get("sequence")) is not int
+                or not 0 <= native["sequence"] <= self.state["sequence"]):
+            return False
+        prepared = self.state["prepared"]
+        bindings = {"prepared_sha256": digest(prepared) if prepared else None,
+                    "job_id": self.state["job"]["job_id"] if self.state.get("job") else None,
+                    "completion_sha256": digest(self.state["completion"]) if self.state.get("completion") else None}
+        if any(native.get(key) is not None and native[key] != expected for key, expected in bindings.items()):
+            return False
+        if native.get("prepared") is not None and native["prepared"] != prepared:
+            return False
+        if native["sequence"] == self.state["sequence"]:
+            self._status(self.state["phase"], self.state["message"])
+        return True
 
     def status(self):
         req = self.state["request"]
