@@ -36,6 +36,12 @@ def save(path, value):
     path.write_text(json.dumps(value, sort_keys=True, indent=2)+'\n', encoding='utf-8')
 
 
+def cmake_path(name, path):
+    # CMake cache values can later be interpolated into generated CMake code.
+    # A native Windows backslash (for example \a) is then an invalid escape.
+    return '-D'+name+'='+path.as_posix()
+
+
 def audit_source(source, evidence):
     """Retain exact public byte diagnostics before the unchanged strict audit."""
     sources, inventory = {}, {}
@@ -158,6 +164,7 @@ class Build:
         save(self.evidence/(label+'.json'), {'exit_code': code, 'output_bytes': total,
             'log_bytes': kept, 'elapsed_seconds': round(time.monotonic()-started, 3)})
         if code:
+            print(tail.decode('utf-8', 'replace'), flush=True)
             raise RuntimeError('Native Windows stage failed: '+label)
 
     def package(self):
@@ -192,20 +199,20 @@ class Build:
         deps, prefix, build = (self.work/name for name in ('deps', 'prefix', 'engine'))
         self.run('deps-configure', ['cmake', '-S', source/'deps', '-B', deps, '-G', 'Ninja',
             '-DCMAKE_BUILD_TYPE=Release', '-DSLIC3R_CAD=OFF', '-DDEP_DEBUG=OFF',
-            '-DDESTDIR='+str(prefix), '-DDEP_DOWNLOAD_DIR='+str(self.work/'downloads'),
-            '-DDEP_PYTHON_HOST='+sys.executable, '-DCMAKE_C_COMPILER=cl', '-DCMAKE_CXX_COMPILER=cl'])
+            cmake_path('DESTDIR', prefix), cmake_path('DEP_DOWNLOAD_DIR', self.work/'downloads'),
+            cmake_path('DEP_PYTHON_HOST', Path(sys.executable)), '-DCMAKE_C_COMPILER=cl', '-DCMAKE_CXX_COMPILER=cl'])
         targets = [item['target'] for item in lock['sources']]
         targets[5:5] = lock['in_tree_targets']
         for target in targets:
             self.run(target, ['cmake', '--build', deps, '--target', target, '--parallel', '1'])
         actual_prefix = prefix/'usr/local'
         self.run('engine-configure', ['cmake', '-S', source, '-B', build, '-G', 'Ninja',
-            '-DCMAKE_BUILD_TYPE=Release', '-DCMAKE_PREFIX_PATH='+str(actual_prefix),
+            '-DCMAKE_BUILD_TYPE=Release', cmake_path('CMAKE_PREFIX_PATH', actual_prefix),
             '-DSLIC3R_GUI=OFF', '-DSLIC3R_CAD=OFF', '-DSLIC3R_STATIC=ON',
             '-DSLIC3R_BUILD_TESTS=OFF', '-DORCA_TOOLS=OFF', '-DSLIC3R_PCH=OFF',
             '-DSLIC3R_MSVC_COMPILE_PARALLEL=OFF', '-DSLIC3R_MSVC_PDB=OFF',
             '-DCMAKE_C_COMPILER=cl', '-DCMAKE_CXX_COMPILER=cl',
-            '-DCMAKE_PROJECT_OrcaSlicer_INCLUDE='+str(ROOT/'integration/v1-native-engine/add-target.cmake')])
+            cmake_path('CMAKE_PROJECT_OrcaSlicer_INCLUDE', ROOT/'integration/v1-native-engine/add-target.cmake')])
         self.run('native-adapter', ['cmake', '--build', build, '--target', 'helix_orca_native', '--parallel', '2'])
         package = self.work/'package'
         package.mkdir()

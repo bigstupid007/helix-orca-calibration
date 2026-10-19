@@ -121,6 +121,18 @@ class WindowsNativeGuards(unittest.TestCase):
         with self.assertRaises(ValueError):
             pe.inspect(self.exe)
 
+    def test_cmake_cache_path_values_do_not_contain_windows_escape_sequences(self):
+        from pathlib import PureWindowsPath
+        spec = importlib.util.spec_from_file_location('windows_builder_paths', engine._ROOT/'scripts/v1-engine-windows.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        path = PureWindowsPath('D:/a/_temp/native build/prefix')
+        for key in ('DESTDIR', 'DEP_DOWNLOAD_DIR', 'DEP_PYTHON_HOST', 'CMAKE_PREFIX_PATH',
+                    'CMAKE_PROJECT_OrcaSlicer_INCLUDE'):
+            argument = module.cmake_path(key, path)
+            self.assertEqual(argument, '-D'+key+'=D:/a/_temp/native build/prefix')
+            self.assertNotIn('\\', argument)
+
     def test_source_byte_diagnostic_retains_crlf_mismatch_without_normalizing(self):
         import hashlib
         import json
