@@ -6,6 +6,12 @@
 #if !defined(__linux__) || !defined(__x86_64__)
 #error This registered V1 native build target requires Linux x86_64; other platforms need their own audited build registration.
 #endif
+// Match the upstream headless profile validator: define these implementations
+// before native headers can include NanoSVG's guarded declarations.
+#define NANOSVG_IMPLEMENTATION
+#include "nanosvg/nanosvg.h"
+#define NANOSVGRAST_IMPLEMENTATION
+#include "nanosvg/nanosvgrast.h"
 #include "libslic3r/Arrange.hpp"
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/TriangleMesh.hpp"
