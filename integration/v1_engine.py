@@ -171,6 +171,52 @@ def _backend(config):
             "receipt_sha256": _sha_file(receipt_path), "inputs_sha256": _sha_file(inputs_path)}
 
 
+
+def _processing_failure(value):
+    """Describe actual native rejection without trusting arbitrary diagnostic text.
+
+    This cannot grant qualification: every warning and nonzero processor mask is
+    fatal. Unknown codes remain fatal and retain their private native diagnostic.
+    """
+    if (not isinstance(value, dict) or type(value.get("error_code")) is not int
+            or value["error_code"] < 0 or not isinstance(value.get("warnings"), list)
+            or len(value["warnings"]) > 64):
+        return None
+    warnings = value["warnings"]
+    for warning in warnings:
+        if (not isinstance(warning, dict) or type(warning.get("level")) is not int
+                or warning["level"] < 0 or not isinstance(warning.get("message"), str)
+                or len(warning["message"]) > 512 or not isinstance(warning.get("error_code"), str)
+                or not 1 <= len(warning["error_code"]) <= 32
+                or any(char not in "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-"
+                       for char in warning["error_code"])):
+            return None
+    if value["error_code"]:
+        return ("Orca rejected generated G-code with processor error mask "
+                + str(value["error_code"]) + "; see retained native-processing.json.", "native_processing")
+    if warnings:
+        codes = ", ".join(dict.fromkeys(warning["error_code"] for warning in warnings))
+        reason = "Orca rejected generated G-code with warning " + codes + ". "
+        if any(warning["error_code"] == "1000C001" for warning in warnings):
+            reason += ("The commanded bed temperature meets or exceeds the retained filament's "
+                       "vitrification temperature. This profile/input combination is unsupported; "
+                       "the original profile has not been changed.")
+        else:
+            reason += "This profile/input combination is unsupported; see retained native-processing.json."
+        return reason, "native_warning"
+    return None
+
+
+def _retained_processing_failure(destination):
+    path = destination / "native-processing.json"
+    try:
+        if path.is_symlink() or not path.is_file() or path.stat().st_size > 65536:
+            return None
+        return _processing_failure(json.loads(path.read_text(encoding="utf-8")))
+    except (OSError, ValueError, UnicodeError):
+        return None
+
+
 def generate(request, snapshot, output_dir, config):
     """Invoke our built C++ CLI and shared parity gate; never an Orca Python API."""
     from integration import v1_contract as contract
@@ -242,6 +288,13 @@ def generate(request, snapshot, output_dir, config):
         code = result.returncode
     if code != 0:
         retain_unqualified("Native generation or post-export validation failed; retained artifact is unqualified.")
+        failure = _retained_processing_failure(destination)
+        if failure:
+            reason, code = failure
+            (destination / "native-blocker.json").write_bytes(contract.canonical({
+                "schema": "helix-orca-v1-native-blocker/v1", "request_sha256": contract.digest(request),
+                "code": code, "reason": reason, "qualified": False, "not_applied": True}))
+            raise NativeEngineBlocked(reason, code)
         raise NativeEngineBlocked("Native generation failed; retained native.log has diagnostics", "native_failed")
     if artifact.is_symlink() or list(destination.glob("*.gcode")) != [artifact]:
         raise NativeEngineBlocked("Expected exactly one native artifact", "native_artifact")

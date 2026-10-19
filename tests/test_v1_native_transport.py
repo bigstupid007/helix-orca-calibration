@@ -168,6 +168,70 @@ class NativeTransport(unittest.TestCase):
         self.assertEqual(report['candidate'], parity.file_record(self.root/'job/native-calibration.gcode'))
         self.assertFalse((self.root/'job/prepared.json').exists())
 
+    def test_legitimate_bed_warning_reports_exact_blocker_without_mutating_inputs(self):
+        original = copy.deepcopy(self.snapshot)
+        def warning_runner(argv, out):
+            self.runner(argv, out)
+            (out/'native-processing.json').write_text(json.dumps({
+                'error_code': 0, 'warnings': [{'level': 3, 'message': 'bed_temperature_too_high_than_filament',
+                                             'error_code': '1000C001', 'params': ['0']}]}))
+            return 2
+        self.config['runner'] = warning_runner
+        with self.assertRaises(engine.NativeEngineBlocked) as caught:
+            self.generate()
+        self.assertEqual(caught.exception.code, 'native_warning')
+        self.assertIn('1000C001', str(caught.exception))
+        self.assertIn('vitrification temperature', str(caught.exception))
+        self.assertEqual(original, self.snapshot)
+        self.assertFalse((self.root/'job/prepared.json').exists())
+        disposition = json.loads((self.root/'job/parity.json').read_text())
+        self.assertFalse(disposition['qualified'])
+        blocker = json.loads((self.root/'job/native-blocker.json').read_text())
+        self.assertEqual(blocker['request_sha256'], contract.digest(self.request))
+        self.assertFalse(blocker['qualified'])
+
+    def test_unknown_warning_and_processor_error_are_fatal_without_echoing_native_text(self):
+        for name, processing, code in (
+            ('warning', {'error_code': 0, 'warnings': [{'level': 1, 'message': 'private profile path',
+                                                     'error_code': 'NEW_NATIVE_WARNING'}]}, 'native_warning'),
+            ('error', {'error_code': 4, 'warnings': []}, 'native_processing')):
+            with self.subTest(name=name):
+                def failed_runner(argv, out):
+                    self.runner(argv, out)
+                    (out/'native-processing.json').write_text(json.dumps(processing))
+                    return 2
+                self.config['runner'] = failed_runner
+                with self.assertRaises(engine.NativeEngineBlocked) as caught:
+                    self.generate(name)
+                self.assertEqual(caught.exception.code, code)
+                self.assertNotIn('private profile path', str(caught.exception))
+                self.assertFalse((self.root/name/'prepared.json').exists())
+                self.assertFalse(json.loads((self.root/name/'parity.json').read_text())['qualified'])
+
+    def test_malformed_or_linked_processing_diagnostics_cannot_hide_failed_exit(self):
+        for name, payload in (('invalid-json', '{'), ('clean', '{"error_code":0,"warnings":[]}'),
+                              ('invalid-code', '{"error_code":0,"warnings":[{"level":3,"message":"x","error_code":"private/path"}]}')):
+            with self.subTest(name=name):
+                def failed_runner(argv, out):
+                    self.runner(argv, out)
+                    (out/'native-processing.json').write_text(payload)
+                    return 2
+                self.config['runner'] = failed_runner
+                with self.assertRaises(engine.NativeEngineBlocked) as caught:
+                    self.generate(name)
+                self.assertEqual(caught.exception.code, 'native_failed')
+                self.assertFalse((self.root/name/'prepared.json').exists())
+        external = self.root/'external-processing.json'
+        external.write_text('{"error_code":1,"warnings":[]}')
+        def linked_runner(argv, out):
+            self.runner(argv, out)
+            (out/'native-processing.json').symlink_to(external)
+            return 2
+        self.config['runner'] = linked_runner
+        with self.assertRaises(engine.NativeEngineBlocked) as caught:
+            self.generate('linked')
+        self.assertEqual(caught.exception.code, 'native_failed')
+
     def test_executable_receipt_and_owned_source_substitution_stop_before_runner(self):
         self.exe.write_text('substituted executable')
         with self.assertRaises(engine.NativeEngineBlocked):

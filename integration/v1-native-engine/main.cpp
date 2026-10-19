@@ -440,7 +440,7 @@ int main(int argc,char **argv)
         json processing={{"error_code",processed.gcode_check_result.error_code},{"warnings",json::array()}};
         for(const auto &warning:processed.warnings)
             processing["warnings"].push_back({{"level",warning.level},{"message",warning.msg},
-                                               {"error_code",warning.error_code}});
+                                               {"error_code",warning.error_code},{"params",warning.params}});
         std::ofstream(output/"native-processing.json")<<processing.dump(2)<<'\n';
         if(processed.gcode_check_result.error_code!=0 || !processed.warnings.empty())
             throw std::runtime_error("Native post-export validation rejected artifact; see native-processing.json");
