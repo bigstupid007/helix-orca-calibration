@@ -134,6 +134,21 @@ class WindowsNativeGuards(unittest.TestCase):
         with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
         self.assertEqual(failure.exception.code,'native_compiler');self.assertFalse(self.called)
 
+    def test_explicit_cmake_dynamic_crt_normalized_record_needs_no_literal_md_flag(self):
+        from integration import v1_contract as contract
+        self.clang_recipe()
+        # Frozen builder validates CMAKE_MSVC_RUNTIME_LIBRARY before retaining MD.
+        for record in self.inputs['compiler_configurations'].values():
+            record['c_release_flags']='/O2 /Ob2 /DNDEBUG'
+            record['cxx_release_flags']='/O2 /Ob2 /DNDEBUG'
+        probe=self.inputs['compiler_probe']
+        probe['configuration']=copy.deepcopy(self.inputs['compiler_configurations']['probe'])
+        self.inputs['builder']['compiler']['probe_sha256']=contract.digest(probe)
+        self.inputs['builder']['compiler']['release_flags_sha256']=contract.digest({key:value for key,value in
+            probe['configuration'].items()if key.endswith('_release_flags')})
+        self.refresh_receipts()
+        self.assertFalse(self.generate()['parity']['qualified']);self.assertTrue(self.called)
+
     def test_missing_or_inconsistent_actual_configurations_block_before_dispatch(self):
         self.clang_recipe();baseline=copy.deepcopy(self.inputs)
         mutations=[lambda a:a.pop('compiler_configurations'),
@@ -165,7 +180,7 @@ class WindowsNativeGuards(unittest.TestCase):
         from integration import v1_contract as contract
         self.clang_recipe();baseline=copy.deepcopy(self.inputs)
         for field,value in [('c_flags','/fp:fast'),('cxx_flags','-ffast-math'),('c_flags','/MT'),
-                ('c_release_flags','/MDd /O2 /DNDEBUG'),('cxx_release_flags','/O2 /DNDEBUG'),
+                ('c_release_flags','/MDd /O2 /DNDEBUG'),
                 ('c_release_flags','/MD /DNDEBUG'),('cxx_release_flags','/MD /O2'),
                 ('c_compiler','C:/different/clang-cl.exe'),('c_linker','C:/different/lld-link.exe')]:
             self.inputs=copy.deepcopy(baseline)

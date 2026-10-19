@@ -195,7 +195,7 @@ def _windows_configuration_valid(inputs):
             for lang in ('c', 'cxx'):
                 flags = record[lang+'_flags']+' '+record[lang+'_release_flags']
                 tokens = flags.split()
-                if (not all(token in tokens for token in ('/O2', '/DNDEBUG', '/MD')) or any(token.casefold() == '/mdd' for token in tokens)
+                if (not all(token in tokens for token in ('/O2', '/DNDEBUG')) or any(token.casefold() == '/mdd' for token in tokens)
                         or any(value in flags.lower() for value in ('/mt', '/fp:fast', '-ffast-math', '-ffp-model=fast', '-ofast'))):
                     return False
         release = {key: value for key, value in baseline.items() if key.endswith('_release_flags')}
