@@ -104,7 +104,7 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
     const x=Number(widget.x),y=Number(widget.y),w=Number(widget.w),h=Number(widget.h);
     return widget.hidden!==true && Number.isFinite(x) && Number.isFinite(y) &&
       Number.isFinite(w) && Number.isFinite(h) && w>0 && h>0 && x>=0 &&
-      x+w<=VIEWPORT.width && y+h/2>=80 && y+h/2<=400;
+      x+w<=VIEWPORT.width && y>=70 && y+h<=VIEWPORT.height;
   }
   async function frameBox() {
     const box=await page.locator('#frame').boundingBox();
@@ -132,8 +132,8 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
       const {widget}=await rawGeometry(name);
       if (visible(widget)) return widget;
       const y=Number(widget.y),h=Number(widget.h);
-      if (Number.isFinite(y) && y+h/2>400) await browserDrag(400,410,400,115,`reveal ${name}`);
-      else if (Number.isFinite(y) && y+h/2<80) await browserDrag(400,115,400,410,`reveal ${name}`);
+      if (Number.isFinite(y) && y+h>VIEWPORT.height) await browserDrag(400,410,400,115,`reveal ${name}`);
+      else if (Number.isFinite(y) && y<70) await browserDrag(400,115,400,410,`reveal ${name}`);
       else await browserDrag(400,410,400,115,`search ${name}`);
     }
     throw Error(`Could not reveal native widget ${name} using browser drag`);
