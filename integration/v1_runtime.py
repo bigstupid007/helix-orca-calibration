@@ -8,6 +8,7 @@ import copy
 from decimal import Decimal
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import secrets
@@ -125,7 +126,7 @@ class Coordinator:
             self.state = {"schema": "helix-orca-v1-journal/v1", "context": None, "offer": None,
                           "request": None, "prepared": None, "result": None, "phase": "requested",
                           "sequence": 0, "message": "Waiting for Orca profiles.", "consumed_intents": [],
-                          "job": None, "completion": None, "receipt": None, "pending_start_intent": None}
+                          "job": None, "completion": None, "receipt": None, "pending_start_intent": None, "monitor": None}
             self._persist()
 
     def _persist(self):
@@ -156,7 +157,7 @@ class Coordinator:
             offer[role] = context[role]["saved"]["name"]
         self.state.update(context=context, offer=offer, request=None, prepared=None, result=None,
                           phase="requested", message="Choose a calibration on Helix.", consumed_intents=[],
-                          job=None, completion=None, receipt=None, native_acknowledged=False, pending_start_intent=None)
+                          job=None, completion=None, receipt=None, native_acknowledged=False, pending_start_intent=None, monitor=None)
         self._persist()
         return copy.deepcopy(offer)
 
@@ -322,9 +323,19 @@ class Coordinator:
                 self.state["job"] = copy.deepcopy(job)
                 self._status("uncertain", "Recovered exact owned job. Verifying independent printer status/history.")
             proof = self.job_adapter.observe(copy.deepcopy(job))
+            self.state["monitor"] = None
             exact(proof, "job_id file_sha256 print_state history_state history_job_id history_file_sha256", "independent observation")
             if proof["job_id"] != job["job_id"] or proof["file_sha256"] != job["file_sha256"]:
                 raise ContractError("Unrelated job cannot advance calibration")
+            monitor_read = getattr(self.job_adapter, "monitor", None)
+            if monitor_read is not None:
+                monitor = monitor_read(copy.deepcopy(job))
+                if isinstance(monitor, dict) and set(monitor) == {"elapsed_s", "progress"}:
+                    normalized = {}
+                    for key, maximum in (("elapsed_s", 31*86400), ("progress", 1)):
+                        value = monitor[key]
+                        normalized[key] = value if type(value) in (int, float) and math.isfinite(value) and 0 <= value <= maximum else None
+                    self.state["monitor"] = normalized
             state = proof["print_state"]
             if state in ("error", "failed", "cancelled"):
                 self._status("cancelled" if state == "cancelled" else "failed", "Calibration did not complete successfully. No result is available.")
@@ -339,6 +350,7 @@ class Coordinator:
             else:
                 self._status("uncertain", "Printer status is uncertain. Original job retained; evaluation locked.")
         except Exception:
+            self.state["monitor"] = None
             self._status("uncertain", "Independent printer status unavailable. Original job retained; no automatic Start retry.")
             raise
         return self.status()
@@ -428,4 +440,5 @@ class Coordinator:
                     prepared=copy.deepcopy(prepared), prepared_sha256=digest(prepared) if prepared else None,
                     job_id=self.state["job"]["job_id"] if self.state.get("job") else None,
                     completion_sha256=digest(self.state["completion"]) if self.state.get("completion") else None,
-                    evaluation=self.evaluation() if self.state.get("completion") else None)
+                    evaluation=self.evaluation() if self.state.get("completion") else None,
+                    monitor=copy.deepcopy(self.state.get("monitor")) if self.state["phase"] in ("printing", "verifying", "complete") else None)

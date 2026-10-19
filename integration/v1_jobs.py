@@ -273,12 +273,22 @@ class PinnedMoonraker:
         stats = first["status"]["print_stats"]
         filename = stats.get("filename") or None
         metadata = self.metadata(filename) if filename and OWNED_FILE.fullmatch(filename) else None
-        final = self._wire("/printer/objects/query?print_stats")
+        final = self._wire("/printer/objects/query?print_stats&virtual_sdcard")
         if any(final["status"]["print_stats"].get(k) != stats.get(k) for k in ("filename", "state")) or time.monotonic() - began > 5:
             raise ContractError("Printer changed during bounded snapshot")
         if stats.get("state") not in ("standby", "printing", "paused", "complete", "cancelled", "error"):
             raise ContractError("Unknown printer state")
+        latest = final["status"]["print_stats"]
+        elapsed = latest.get("print_duration")
+        elapsed = float(elapsed) if type(elapsed) in (int, float) and math.isfinite(elapsed) and 0 <= elapsed <= 31*86400 else None
+        sd = final["status"].get("virtual_sdcard", {})
+        progress = sd.get("progress") if isinstance(sd, dict) else None
+        sd_path = sd.get("file_path") if isinstance(sd, dict) else None
+        if (not isinstance(sd_path, str) or sd_path.rsplit("/", 1)[-1] != filename
+                or type(progress) not in (int, float) or not math.isfinite(progress) or not 0 <= progress <= 1):
+            progress = None
         return dict(eventtime=_number(final["eventtime"], "printer eventtime"), state=stats["state"], filename=filename,
+            monitor=dict(elapsed_s=elapsed, progress=progress),
             job_id=metadata.get("job_id") if metadata else None, start_time=metadata.get("print_start_time") if metadata else None,
             queue_job_ids=tuple(j["job_id"] for j in queue["queued_jobs"]), physical_identity=physical,
             configuration_sha256=config_hash, macro_sources_sha256=macro_sources,
@@ -596,7 +606,13 @@ class OwnedJobAdapter:
             _number(record['job']['start_time'], 'durable owned job start')
             return self._public_job(record)
 
+    def monitor(self, job):
+        """Display-only data from this exact job's most recent successful observe."""
+        retained = getattr(self, "_last_monitor", None)
+        return copy.deepcopy(retained["value"]) if retained and retained["job"] == job else None
+
     def observe(self, job):
+        self._last_monitor = None
         with InstanceLock(self.root / "adapter.lock"):
             record = self._owned(job)
             sample = self._snapshot(record); self._fresh(sample, record)
@@ -622,6 +638,8 @@ class OwnedJobAdapter:
             elif state == "complete":
                 proof["print_state"] = "complete"  # Runtime keeps evaluation locked pending history.
             self._save(record)
+            if proof["print_state"] in ("printing", "complete") and proof["history_job_id"] == job["job_id"]:
+                self._last_monitor = dict(job=copy.deepcopy(job), value=copy.deepcopy(sample.get("monitor")))
             return proof
 
     def cancel(self, job, intent):

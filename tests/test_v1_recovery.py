@@ -133,6 +133,25 @@ class RecoveryTests(unittest.TestCase):
                 self.assertEqual(recovered.status()['job_id'],'fixture-job')
                 self.assertEqual(adapter.starts,1)
 
+    def test_monitor_is_optional_display_data_and_cannot_unlock_completion(self):
+        with tempfile.TemporaryDirectory() as root:
+            r=self.make(root,'printing')
+            class Adapter:
+                state='printing';history=None;info=dict(elapsed_s=120,progress=.25)
+                def observe(self,job):
+                    return dict(job_id=job['job_id'],file_sha256=job['file_sha256'],print_state=self.state,history_state=self.history,
+                        history_job_id=job['job_id'] if self.history else None,history_file_sha256=job['file_sha256'] if self.history else None)
+                def monitor(self,job):return self.info
+            adapter=Adapter();r.job_adapter=adapter
+            r.poll_job();self.assertEqual(r.status()['monitor'],dict(elapsed_s=120,progress=.25))
+            adapter.state='complete';adapter.info=dict(elapsed_s=150,progress=1)
+            r.poll_job();self.assertEqual(r.status()['phase'],'verifying');self.assertIsNone(r.state['completion'])
+            adapter.info=dict(elapsed_s=float('nan'),progress=1.1)
+            r.poll_job();self.assertEqual(r.status()['monitor'],dict(elapsed_s=None,progress=None))
+            self.assertEqual(r.status()['phase'],'verifying')
+            adapter.info=None;adapter.history='completed'
+            r.poll_job();self.assertEqual(r.status()['phase'],'complete');self.assertIsNone(r.status()['monitor'])
+
     def test_invalid_phase_does_not_consume_an_intent(self):
         with tempfile.TemporaryDirectory() as root:
             r=self.make(root,'review')
