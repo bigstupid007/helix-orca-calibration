@@ -279,6 +279,8 @@ def native_hidden(name,widget):
     # Native state may descend to a control. Assert the named section's flag,
     # not only its picker's flag, so heading/explanation cannot remain visible.
     return state.get('target',state)['flags']['hidden'] is True
+def evaluation_hidden(name):
+    return all(native_hidden(name,'orcacal__v1_'+key) for key in ('evaluation_heading','evaluation_note','evaluation','return'))
 def compact_tile_proof(name,work,w,h):
     a._wait_visible_landing(name,w,h)
     home=ctl(name,'home','list')
@@ -426,7 +428,9 @@ def drive(entry,name,work):
         else:
             require(after==before and not storage(work).get('auto_presentation_claim'),'Automatic presentation expanded beyond Temperature')
             selector='orcacal__v1_evaluation';return_button='orcacal__v1_return';returned='orcacal__v1_returned_status'
-        ctl(name,'scroll',selector);a._screenshot(name,work,id+'-evaluate.png')
+        ctl(name,'scroll',selector)
+        a._visible_widget_geometry(ctl(name,'geom',selector,'0'),selector,w,h)
+        a._screenshot(name,work,id+'-evaluate.png')
         signal(name,12);require(navigation(name)==after,'Duplicate completion changed navigation')
         # Both native views share the original immutable return/NOT APPLIED handler.
         ctl(name,'set_value',selector,'1')
@@ -477,7 +481,7 @@ def drive(entry,name,work):
         if time.monotonic()>deadline:raise ValueError('Confirmed cancellation was not durable')
         time.sleep(.05)
     signal(name,11);require(value(name,'evaluate_on')==0,'Cancelled print unlocked evaluation')
-    require(native_hidden(name,'orcacal__v1_evaluation_section'),'Cancelled print still shows evaluation')
+    require(evaluation_hidden(name),'Cancelled print still shows evaluation')
     cancelled=navigation(name);signal(name,12);require(navigation(name)==cancelled and not storage(work).get('auto_presentation_claim'),'Cancelled print presented a result')
     a._screenshot(name,work,'cancelled.png')
     q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
@@ -499,7 +503,7 @@ def drive(entry,name,work):
     require(next_request['calibration']=='flow_ratio_yolo' and next_request['context_sha256']=='b'*64,'Next calibration retargeted context')
     signal(name,14)
     stored_when(work,lambda s:s.get('phase')=='failed','Failed calibration was not retained')
-    require(value(name,'evaluate_on')==0 and native_hidden(name,'orcacal__v1_evaluation_section'),'Failed calibration still shows evaluation')
+    require(value(name,'evaluate_on')==0 and evaluation_hidden(name),'Failed calibration still shows evaluation')
     logs=a.run(['docker','logs',name],capture=True,check=False)
     (work/'runtime.log').write_text(logs.stdout+logs.stderr)
     require('[plugin orcacal]' not in logs.stdout+logs.stderr,'Native runtime error')

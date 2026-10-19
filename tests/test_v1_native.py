@@ -147,12 +147,12 @@ class V1NativeTests(unittest.TestCase):
         self.assertLess(calls.index(('pop','owned')),calls.index(('owned','navigate','home')))
         self.assertLess(calls.index(('owned','navigate','home')),calls.index(('tap','orcacal__tile')))
 
-    def test_terminal_evaluation_is_one_hidden_section_and_cancel_has_native_danger_style(self):
+    def test_terminal_evaluation_uses_flat_native_scroll_parent_and_hidden_bindings(self):
         doc=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_job.xml')
-        section=next(n for n in doc.iter() if n.attrib.get('name')=='orcacal__v1_evaluation_section')
-        self.assertEqual(section.find('bind_flag_if_eq').attrib,dict(subject='orcacal__v1_evaluate_on',flag='hidden',ref_value='0'))
-        self.assertTrue(section.findall('.//lv_dropdown'))
-        self.assertTrue(any(n.attrib.get('text')=='EVALUATION' for n in section.iter()))
+        content=doc.find('view/lv_obj')
+        for key in ('evaluation_heading','evaluation_note','evaluation','return'):
+            node=next(n for n in content if n.attrib.get('name')=='orcacal__v1_'+key)
+            self.assertEqual(node.find('bind_flag_if_eq').attrib,dict(subject='orcacal__v1_evaluate_on',flag='hidden',ref_value='0'))
         self.assertNotIn('Printing is unavailable',ET.tostring(doc.getroot(),encoding='unicode'))
         cancel=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_cancel_confirm.xml')
         colors={n.attrib['name']:n.attrib['style_bg_color'] for n in cancel.iter('lv_button')}

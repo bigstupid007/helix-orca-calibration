@@ -129,8 +129,10 @@ Lua execution still requires the new complete managed capture before promotion.
 ## Compact-screen product audit corrections
 
 Parameter ranges use the native-font-safe word **to**. The evaluation heading,
-explanation, picker and Return button are one hidden section until exact
-successful completion enables selection. Failed and Cancelled retain their
+explanation, picker and Return button each bind to the same hidden-until-complete
+state. They remain direct children of the accepted native scroll area: a nested
+non-scrollable wrapper prevents beta.9 scroll-to-view from reaching Return on the
+smallest screen. Exact successful completion enables selection. Failed and Cancelled retain their
 terminal outcome without evaluation or an Active tile label. The monitor no
 longer claims printing is unavailable unconditionally: a disabled Start is
 reported by the coordinator's actual blocker.
