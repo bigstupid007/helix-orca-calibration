@@ -167,6 +167,9 @@ class WindowsNativeGuards(unittest.TestCase):
                             'sha256':hashlib.sha256(payload).hexdigest()}],
                 'source_supplements':[], 'binary_only_downloads':['excluded.zip']}
         roots = {'dependency-archives':downloads}
+        with self.assertRaisesRegex(module.SourceMaterialsUnavailable, 'unrecognized_source_archive'):
+            module.inventory_source_archives(lock, roots, lambda:None)
+        (downloads/'unlocked.zip').unlink()
         inventory = module.inventory_source_archives(lock, roots, lambda:None)
         output = io.BytesIO()
         with zipfile.ZipFile(output, 'w') as archive:

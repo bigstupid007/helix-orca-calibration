@@ -92,10 +92,12 @@ def inventory_source_archives(lock, roots, guard):
             if path.stat().st_size > 512*1024**2:
                 raise SourceMaterialsUnavailable('source_archive_exceeds_bound')
             row = dict(root=label, path=path.relative_to(directory).as_posix(), **record(path))
-            if path.name in excluded or row['sha256'] not in expected:
-                row['reason'] = 'excluded_binary_build_input' if path.name in excluded else 'not_a_locked_source'
+            if path.name in excluded:
+                row['reason'] = 'excluded_binary_build_input'
                 ignored.append(row)
                 continue
+            if row['sha256'] not in expected:
+                raise SourceMaterialsUnavailable('unrecognized_source_archive')
             selected.append(row)
             seen[row['sha256']] = seen.get(row['sha256'], 0)+1
     incorrect = [digest+'='+str(seen.get(digest, 0)) for digest in sorted(expected) if seen.get(digest, 0) != 1]
