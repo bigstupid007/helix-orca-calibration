@@ -235,3 +235,14 @@ Windows build or target run. The new four-case Linux receipts remain
 diagnostic-only, with false qualification. Temperature has material motion
 differences despite the net count difference of nine. Windows package execution,
 complete strict parity and explicit fresh-origin limitations remain gates.
+
+
+Two independent pinned-source Temperature audits found no demonstrated owned
+setup defect to change. Post-cut instance handling and recipe overrides match
+the source for these inputs; the omitted preferred import orientation is
+explicitly zero in this exact context. Draco decode, double-to-float transforms
+and cut/slice rounding provide plausible precision-sensitive paths, but the
+small volume difference does not prove compiler causation. The actual MSVC
+Windows run remains the next discriminating test. All three installed native
+GUI calibration DRC assets were independently hash-checked against the pinned
+source; each matches exactly. No speculative C++ change was made.

@@ -7,17 +7,22 @@ Founder review remains pending actual package/parity evidence.
 
 Build Program #14 owns this investigation. Baseline:
 `6a7763f08d1a175a464a00ce13f0b5a815662fc4`, the accepted October 15 Orca nightly.
-The real Linux x86_64 native adapter and its capability command now build.
-The native enum-default and two-worker task-arena repairs now pass actual
-retained-configuration loading, PA Pattern slicing and G-code export. The real
-PA artifact passes candidate-only calibration invariants, but remains rejected
-because Orca reports a retained-profile bed-temperature warning. Exact independent
-local native-reference parity has not run; no native route is qualified.
-All five independent native Windows references remain retained separately;
-matching summary counts do not change candidate qualification. The accepted
-physical Temperature milestone and lab remain unchanged. Historical checkpoints
-below retain the actual failures rather than implying that a successful build
-alone is a working or qualified generator.
+The real Linux x86_64 adapter and capabilities build. All four native routes
+now generate with zero processor errors/warnings and passing candidate invariants
+for the separately native-captured, deliberately selected unsaved 50°C context.
+PA Pattern, Retraction and MVS executable digests match their independent Windows
+native UI exports diagnostically. Temperature retains material motion
+differences. The [current grouped receipt](evidence/issue-14/generator-blockers/native-four-linux-diagnostic-r1.json)
+reports false qualification for every route. Actual Windows package execution
+and the complete unchanged native parity harness remain mandatory.
+
+The original 60°C bed / 55°C filament threshold context remains rejected by the
+genuine warning; neither profile values nor warning policy are substituted.
+Native UI references remain independent and preserved, as do the accepted
+physical Temperature milestone and lab. Historical checkpoints below retain
+actual failures. A native-only exact-input catalog supports automatic selection
+among retained cases; a fresh capture origin remains unsupported without its own
+matching native evidence.
 
 ## Common engine and three preparation families
 

@@ -154,3 +154,9 @@ reconfiguration. Its strict context key includes the capture origin; a fresh
 origin remains unsupported until independently registered. No reference
 rebinding or profile-only equivalence is claimed. The YOLO route and its
 previously qualified modes are unchanged.
+
+
+At the integrated catalog/provenance candidate `fe9d415`, the required local suite
+passes **533 tests** with two Windows-only skips. The unchanged native-control
+preservation gate and whitespace check pass. This broad local boundary check
+does not replace the pending Windows target checks.

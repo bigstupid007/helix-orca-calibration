@@ -20,23 +20,25 @@ October 15 Windows output.
 
 | Calibration | Verified native mechanism | Current route and qualification boundary |
 | --- | --- | --- |
-| Temperature standard tower | `Plater::calib_temp`, native DRC cut/scale; transient `Print::set_calib_params`; native layer-count temperature interpolation | Job-local model + explicit machine/process/filament serialized inputs + explicit bed + stock `--slice`. Recipe attempt supports hash-bound prepared geometry for exact scaled 0.4/0.6 mm single-tool Marlin/Klipper cases. Exact independent native parity remains mandatory. |
+| Temperature standard tower | `Plater::calib_temp`, native DRC cut/scale; transient `Print::set_calib_params`; native layer-count temperature interpolation | Job-local model + explicit machine/process/filament serialized inputs + explicit bed + stock `--slice`. Recipe attempt supports hash-bound prepared geometry for exact scaled 0.4/0.6 mm single-tool Marlin/Klipper cases. The direct native Cut/Print route now generates a real warning-free 50°C-context candidate, but material motion differences remain; neither route is qualified. Exact independent native parity remains mandatory. |
 | Flow Ratio YOLO Recommended | `calib_flowrate(true,1,ArchimedeanChords)`, `Orca-LinearFlow.3mf`, native eleven labeled objects, absolute additive flow increments and special top-infill order | Job-local copy adds native per-object settings and ratios, stock Orca slices it. Initial recipe envelope is 0.4 mm nozzle / 0.2 mm first layer. Corrected actual Windows production comparison passes exact executable parity and both YOLO invariant inspections for the retained context; R8 hashes below. |
-| Pressure Advance Pattern | `_calib_pa_pattern`, native `CalibPressureAdvancePattern::generate_custom_gcodes`, handles/arrangement and writer state | Stock CLI has no calibration-state input. The built Linux adapter exports real PA and passes candidate-only invariants, but native warning `1000C001` rejects Prepared; exact native-reference parity and Windows packaging remain open; a generic STL or PA command schedule cannot reproduce the custom pattern paths/digits. |
-| Retraction tower | `calib_retraction`; exporter changes software writer `retraction_length` per height | The built Linux grouped adapter has not repeated this route against its shared retained-profile warning; stock CLI cannot supply this native writer state. Firmware retraction commands cannot substitute for generated software retract/unretract moves. |
-| Max Volumetric Speed tower | `calib_max_vol_speed`, `Flow::mm3_per_mm`, spiral mode; exporter changes internal `outer_wall_speed` per height | The built Linux grouped adapter has not repeated this route against its shared retained-profile warning; stock CLI cannot supply this native planner state. Firmware feed scaling does not reproduce internal extrusion planning and limits. |
+| Pressure Advance Pattern | `_calib_pa_pattern`, native `CalibPressureAdvancePattern::generate_custom_gcodes`, handles/arrangement and writer state | Stock CLI has no calibration-state input. The built Linux adapter rejects the original 60/55 context with native warning `1000C001`. A separate explicit 50°C context passes candidate invariants and matches its independent Windows native executable digest diagnostically; full parity and Windows package execution remain open; a generic STL or PA command schedule cannot reproduce the custom pattern paths/digits. |
+| Retraction tower | `calib_retraction`; exporter changes software writer `retraction_length` per height | The built Linux grouped adapter passes real generation and candidate invariants for the separate explicit 50°C context; its executable digest matches the independent Windows native reference diagnostically. Full Windows package/parity qualification remains pending; stock CLI cannot supply this native writer state. Firmware retraction commands cannot substitute for generated software retract/unretract moves. |
+| Max Volumetric Speed tower | `calib_max_vol_speed`, `Flow::mm3_per_mm`, spiral mode; exporter changes internal `outer_wall_speed` per height | The built Linux grouped adapter passes real generation and candidate invariants for the separate explicit 50°C context; its executable digest matches the independent Windows native reference diagnostically. Full Windows package/parity qualification remains pending; stock CLI cannot supply this native planner state. Firmware feed scaling does not reproduce internal extrusion planning and limits. |
 
 The grouped source paths are `src/slic3r/GUI/Plater.cpp`,
 `src/libslic3r/GCode.cpp`, `src/libslic3r/calib.cpp`,
 `src/slic3r/Utils/CalibUtils.cpp`, and `src/OrcaSlicer.cpp`. The stock CLI at
 both pins exposes no `Calib_Params` or calibration selector. No supported
-Python generator API is assumed. Parallel native integration has built and
-linked the Linux adapter and passed capabilities. Its fixed two-worker arena
-now passes real PA slicing/export and candidate-only invariants. Orca warning
-`1000C001` rejects that artifact: retained bed 60°C is at least the filament
-vitrification threshold 55°C. No setting or warning policy was changed. The
-remaining routes were not repeated against that shared blocker. No native
-artifact or Windows package is qualified.
+Python generator API is assumed. The Linux adapter is built and source-bound.
+Its fixed two-worker arena passes all four native routes for the deliberately
+selected, independently captured 50°C unsaved context. All candidate calibration
+invariants pass; PA/Retraction/MVS executable digests match their separate native
+Windows UI references. Temperature has material motion differences. These are
+diagnostics only; actual Windows package execution and the unchanged complete
+parity harness remain required. The original 60°C bed / 55°C threshold context
+still rejects preparation with genuine warning `1000C001`. No original setting,
+warning policy or parity rule changed. No new native route is qualified.
 Upstream reference files remain unchanged.
 
 ## Job contract and invocation

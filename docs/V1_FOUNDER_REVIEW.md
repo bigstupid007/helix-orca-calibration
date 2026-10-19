@@ -41,8 +41,8 @@ written. [Windows evidence](V1_WINDOWS_ORCA.md) distinguishes those proof levels
 | Calibration | Current disposition |
 | --- | --- |
 | Flow Ratio YOLO Recommended and Perfectionist | Actual Windows production generator passes strict executable and calibration-invariant parity for the exact retained context and mode-specific parameters, each against a separate independent native reference. Hardware ABI and physical readiness remain false. |
-| Temperature standard tower | Actual stock Windows slice exists, but executable/geometry differences from the independent native reference remain unexplained. Qualification is blocked. Accepted physical Temperature behavior is preserved separately. |
-| PA Pattern, Retraction, Max Volumetric Speed | Native preparation uses the real pinned internal engine. Linux build/capabilities and real PA export pass; candidate-only PA invariants pass. Native warning `1000C001` (retained bed 60°C versus vitrification 55°C) rejects the export before Prepared. Remaining routes are not repeated against that shared blocker. Exact native-reference parity remains open. No compatible audited Windows engine package exists. |
+| Temperature standard tower | The old stock Windows slice has material differences. Native Cut geometry is source-bound and reproducible; direct Linux native generation passes calibration invariants for the explicit 50°C context but still differs in executable motion. Actual Windows package/parity remains pending. Accepted physical Temperature behavior is preserved separately. |
+| PA Pattern, Retraction, Max Volumetric Speed | All three real Linux generation/invariant checks pass for the separately captured explicit unsaved 50°C context; each executable digest matches its independent Windows native UI reference diagnostically. Actual Windows package execution and complete unchanged parity qualification are pending. The original 60/55 context remains rejected before Prepared with genuine warning `1000C001`. |
 
 All five independent Windows-native references are retained and pass their
 calibration invariant inspections. A native reference is not its candidate
