@@ -191,8 +191,8 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
     await freshFrame(previous);
     await until(async()=>{
       const value=String(await page.locator('#message').textContent());
-      return !/timed out|unavailable/i.test(value);
-    },'Viewer retained a native frame error');
+      return value==='Native frame current; no printer connected.';
+    },'Viewer did not confirm the fresh native frame');
     const target=path.join(output,name+'.png');
     await page.screenshot({path:target});
     screenshots.push({name:path.basename(target),sha256:sha256(fs.readFileSync(target))});
