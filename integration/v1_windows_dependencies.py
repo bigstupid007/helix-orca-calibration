@@ -29,7 +29,7 @@ MAX_ZIP_BYTES=3*1024**3
 MAX_MANIFEST_BYTES=16*1024**2
 CHUNK=1024**2
 TOOLS={'cl','link','cmake','ninja','perl','msbuild'}
-CLANG_TOOLS=TOOLS|{'clang-cl','selected-linker'}
+CLANG_TOOLS=TOOLS|{'clang-cl','selected-linker','static-archiver'}
 CONTRACT_KEYS={'schema','source_commit','submodules','dependencies_lock_sha256','builder_sha256',
     'workflow_sha256','module_sha256','toolchain','environment','prefix','downloads'}
 PUBLISHER_KEYS={'schema','repository','workflow','application_commit','run_id','run_attempt',

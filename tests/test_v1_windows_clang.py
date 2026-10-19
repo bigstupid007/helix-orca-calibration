@@ -36,7 +36,7 @@ class ClangRecipe(unittest.TestCase):
             (self.root/('CMakeFiles/4.3.5/CMake'+lang+'Compiler.cmake')).write_text(''.join(
                 'set(CMAKE_'+lang+'_'+key+' "'+value+'")\n'for key,value in values.items()))
         (self.root/'CMakeCache.txt').write_text('CMAKE_GENERATOR:INTERNAL=Ninja Multi-Config\nCMAKE_BUILD_TYPE:STRING=Release\n'
-            'CMAKE_C_FLAGS_RELEASE:STRING=/MD /O2 /Ob2 /DNDEBUG\nCMAKE_CXX_FLAGS_RELEASE:STRING=/MD /O2 /Ob2 /DNDEBUG\n')
+            'CMAKE_AR:FILEPATH=C:/VS18/VC/Tools/Llvm/x64/bin/llvm-lib.exe\nCMAKE_C_FLAGS_RELEASE:STRING=/MD /O2 /Ob2 /DNDEBUG\nCMAKE_CXX_FLAGS_RELEASE:STRING=/MD /O2 /Ob2 /DNDEBUG\n')
 
     def test_both_languages_actual_compiler_and_linker_metadata_are_required(self):
         self.configuration();actual=self.b.compiler_configuration(self.root)
@@ -95,7 +95,8 @@ class ArchivePreflight(unittest.TestCase):
         tools=self.root/'tools';tools.mkdir()
         run.compiler=tools/'clang-cl.exe';run.selected_linker=tools/'lld-link.exe'
         for path in (run.compiler,run.selected_linker,tools/'llvm-lib.exe',tools/'ccache.exe'):path.write_bytes(b'fixture-only')
-        run.tools={name:self.b.record(path)for name,path in [('clang-cl',run.compiler),('selected-linker',run.selected_linker)]}
+        run.static_archiver=tools/'llvm-lib.exe'
+        run.tools={name:self.b.record(path)for name,path in [('clang-cl',run.compiler),('selected-linker',run.selected_linker),('static-archiver',run.static_archiver)]}
         run.compiler_probe={'configuration':{'same_actual_flags':'fixture-only'}}
         calls=[]
         def execute(label,argv,**kwargs):
@@ -106,11 +107,15 @@ class ArchivePreflight(unittest.TestCase):
                 build.mkdir();(build/'detected-ccache.txt').write_text(str(tools/'ccache.exe')if enabled else'')
                 (build/'CMakeCache.txt').write_text('CMAKE_AR:FILEPATH='+str(tools/'llvm-lib.exe')+'\nUSE_CCACHE:BOOL='+('ON'if enabled else'OFF'))
                 (build/'detected-launcher.txt').write_text('ccache'if enabled else'')
+                (build/'detected-compile-launcher.txt').write_text('ccache'if enabled else'')
                 return 0
             valid=on_valid if enabled else off_valid
             if valid:
                 (build/'probe.cpp.obj').write_bytes(b'\x64\x86'+b'0'*30)
-                (build/'Release').mkdir();(build/'Release/helix_archive_probe.lib').write_bytes(b'!<arch>\nfixture')
+                (build/'Release').mkdir()
+                payload=(build/'probe.cpp.obj').read_bytes()
+                header=(b'probe.cpp.obj/'.ljust(16)+b'0'.ljust(12)+b'0'.ljust(6)+b'0'.ljust(6)+b'100644'.ljust(8)+str(len(payload)).encode().ljust(10)+b'`\n')
+                (build/'Release/helix_archive_probe.lib').write_bytes(b'!<arch>\n'+header+payload)
             return 0 if valid else 1
         run.run=execute
         process=lambda argv,**kwargs:SimpleNamespace(returncode=0,stdout=str(tools/'ccache.exe')+'\n'if argv[0]=='where.exe'else'ccache fixture',stderr='')
@@ -129,6 +134,9 @@ class ArchivePreflight(unittest.TestCase):
         self.assertEqual(calls[1][1][3:],calls[3][1][3:])
         self.assertEqual(result['results']['off']['rule_launch_link'],'')
         self.assertEqual(result['results']['off']['use_ccache'],'OFF')
+        self.assertEqual(result['results']['off']['object_member_matches'],1)
+        self.assertEqual(self.b.record(run.evidence/'archive-probe-off.obj'),result['results']['off']['objects'][0])
+        self.assertEqual(self.b.record(run.evidence/'archive-probe-off.lib'),result['results']['off']['archive'])
         self.assertEqual(result['results']['on']['archiver'],result['results']['off']['archiver'])
 
     def test_missing_off_outputs_are_fatal_even_if_cache_on_produced_them(self):
@@ -137,6 +145,15 @@ class ArchivePreflight(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'Uncached native object'):run.probe_archive()
         result=json.loads((run.evidence/'archive-probe.json').read_text())
         self.assertTrue(result['results']['on']['archive_valid']);self.assertFalse(result['results']['off']['archive_valid'])
+
+    def test_magic_only_archive_or_substituted_member_is_not_production_proof(self):
+        object_file=self.root/'expected.obj';object_file.write_bytes(b'\x64\x86'+b'0'*30)
+        archive=self.root/'empty.lib';archive.write_bytes(b'!<arch>\n')
+        self.assertEqual(self.b.archive_object_matches(archive,object_file),0)
+        payload=b'\x64\x86'+b'1'*30
+        header=b'other.obj/'.ljust(16)+b'0'.ljust(12)+b'0'.ljust(6)+b'0'.ljust(6)+b'100644'.ljust(8)+str(len(payload)).encode().ljust(10)+b'`\n'
+        archive.write_bytes(b'!<arch>\n'+header+payload)
+        self.assertEqual(self.b.archive_object_matches(archive,object_file),0)
 
     def test_preflight_only_main_never_calls_dependency_or_package_build(self):
         import time

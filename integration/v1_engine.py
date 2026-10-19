@@ -159,7 +159,7 @@ def _windows_builder_valid(builder, receipt):
                 and set(tools) == ordinary_tools)
     return (builder.get("schema") == "helix-orca-v1-windows-builder/v2"
         and set(builder) == base_keys | {"compiler"} and builder.get("runner_image") == "windows-2025-vs2026"
-        and set(tools) == ordinary_tools | {"clang-cl", "selected-linker"}
+        and set(tools) == ordinary_tools | {"clang-cl", "selected-linker", "static-archiver"}
         and _windows_compiler_valid(builder.get("compiler")))
 
 
@@ -182,7 +182,7 @@ def _windows_configuration_valid(inputs):
         if probe['source_sha256'] != hashlib.sha256(source.encode()).hexdigest():
             return False
         fields = {'c_compiler', 'cxx_compiler', 'c_linker', 'cxx_linker', 'c_flags', 'cxx_flags',
-                  'c_release_flags', 'cxx_release_flags', 'runtime_library'}
+                  'c_release_flags', 'cxx_release_flags', 'runtime_library', 'static_archiver', 'c_launcher', 'cxx_launcher'}
         baseline = probe['configuration']
         if not isinstance(baseline, dict) or set(baseline) != fields:
             return False
@@ -190,7 +190,7 @@ def _windows_configuration_valid(inputs):
         for record in records.values():
             if (not isinstance(record, dict) or set(record) != fields
                     or any(not isinstance(value, str) or len(value) > 16384 or '\0' in value for value in record.values())
-                    or record['runtime_library'] != 'MD' or identity(record) != identity(baseline)):
+                    or record['runtime_library'] != 'MD' or record['c_launcher'] or record['cxx_launcher'] or identity(record) != identity(baseline)):
                 return False
             for lang in ('c', 'cxx'):
                 flags = record[lang+'_flags']+' '+record[lang+'_release_flags']
@@ -217,25 +217,83 @@ def _windows_configuration_valid(inputs):
         vs = selected.parents[5]
         linker = (vs/'VC/Tools/Llvm/x64/bin/lld-link.exe' if compiler['linker_family'] == 'LLD'
                   else vs/'VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/link.exe')
+        if path(baseline['static_archiver']) != selected.parent/'llvm-lib.exe':
+            return False
         if path(baseline['c_linker']) != linker or path(baseline['cxx_linker']) != linker:
             return False
         if compiler['linker_family'] == 'MSVC' and tools['selected-linker'] != tools['link']:
             return False
         command = probe['command']
-        if (not isinstance(command, list) or len(command) != 10
+        if (not isinstance(command, list) or len(command) != 12
                 or any(not isinstance(item, str) or len(item) > 4096 for item in command)
                 or command[0] != 'cmake' or command[1] != '-S' or command[3] != '-B'
-                or command[5:8] != ['-G', 'Ninja Multi-Config', '-DCMAKE_BUILD_TYPE=Release']
-                or not command[8].startswith('-DCMAKE_C_COMPILER=')
-                or not command[9].startswith('-DCMAKE_CXX_COMPILER=')
-                or path(command[8].split('=', 1)[1]) != selected
-                or path(command[9].split('=', 1)[1]) != selected):
+                or command[5:10] != ['-G', 'Ninja Multi-Config', '-DCMAKE_BUILD_TYPE=Release',
+                    '-DCMAKE_C_COMPILER_LAUNCHER:STRING=', '-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=']
+                or not command[10].startswith('-DCMAKE_C_COMPILER=')
+                or not command[11].startswith('-DCMAKE_CXX_COMPILER=')
+                or path(command[10].split('=', 1)[1]) != selected
+                or path(command[11].split('=', 1)[1]) != selected):
             return False
         source_dir, build_dir = path(command[2]), path(command[4])
         return (source_dir.name == 'compiler-probe-source' and build_dir.name == 'compiler-probe'
-                and source_dir.parent == build_dir.parent)
+                and source_dir.parent == build_dir.parent and _windows_archive_valid(inputs))
     except (KeyError, TypeError, ValueError, _contract.ContractError):
         return False
+
+
+def _windows_archive_valid(inputs):
+    try:
+        proof=inputs['archive_preflight'];tools=inputs['builder']['toolchain'];configuration=inputs['compiler_probe']['configuration']
+        if (not isinstance(proof,dict)or set(proof)!={'schema','source_sha256','cpp_sha256','resolution','results','qualified','physical_actions'}
+                or proof['schema']!='helix-orca-v1-windows-archive-preflight/v1'
+                or proof['source_sha256']!='7e81ec23e188e1b5e3fbdd8116841ca96ca2d32b5e488b9c10463b11a2f18e7e'
+                or proof['cpp_sha256']!='850b96803db8fb4951cc0803854c330a84fad2d9c27aad2dc9c78a57087364cb'
+                or proof['qualified']is not False or proof['physical_actions']is not False
+                or _contract.digest(proof)!=inputs['archive_preflight_sha256']
+                or not isinstance(proof['results'],dict)or set(proof['results'])!={'on','off'}):return False
+        resolution=proof['resolution']
+        if (not isinstance(resolution,dict)or set(resolution)!={'where_exit','where','which','pathext'}
+                or type(resolution['where_exit'])is not int or resolution['where_exit']not in (0,1)
+                or not isinstance(resolution['where'],list)or len(resolution['where'])>32
+                or any(not isinstance(value,str)or len(value)>4096 for value in resolution['where'])
+                or resolution['which']is not None and (not isinstance(resolution['which'],str)or len(resolution['which'])>4096)
+                or not isinstance(resolution['pathext'],str)or len(resolution['pathext'])>4096):return False
+        def file_record(value):
+            return (isinstance(value,dict)and set(value)=={'size','sha256'}and type(value['size'])is int
+                and 0<value['size']<=1048576 and isinstance(value['sha256'],str)and re.fullmatch('[a-f0-9]{64}',value['sha256'])is not None)
+        fields={'exit_code','use_ccache','ccache','rule_launch_compile','rule_launch_link','archiver','object_count',
+            'objects_valid','archive_valid','object_member_matches','object_member_sha256','objects','archive','configuration'}
+        for mode,result in proof['results'].items():
+            if (not isinstance(result,dict)or set(result)!=fields or result['configuration']!=configuration
+                    or result['use_ccache']!=mode.upper()or type(result['exit_code'])is not int
+                    or not -2147483648<=result['exit_code']<=2147483647
+                    or type(result['object_count'])is not int or not 0<=result['object_count']<=4
+                    or type(result['objects_valid'])is not bool or type(result['archive_valid'])is not bool
+                    or type(result['object_member_matches'])is not int or not 0<=result['object_member_matches']<=4
+                    or not isinstance(result['objects'],list)or len(result['objects'])>result['object_count']
+                    or any(not file_record(value)for value in result['objects'])
+                    or not isinstance(result['archiver'],dict)or set(result['archiver'])!={'path','size','sha256'}
+                    or PureWindowsPath(result['archiver']['path'])!=PureWindowsPath(configuration['static_archiver'])
+                    or {key:result['archiver'][key]for key in ('size','sha256')}!=tools['static-archiver']):return False
+            if (result['archive_valid']and not file_record(result['archive'])or not result['archive_valid']and result['archive']is not None):return False
+            if result['objects_valid']and (result['object_count']!=1 or len(result['objects'])!=1):return False
+            if (result['object_member_matches']==1 and (not result['objects_valid']or not result['archive_valid']
+                    or result['object_member_sha256']!=result['objects'][0]['sha256'])
+                    or result['object_member_matches']!=1 and result['object_member_sha256']is not None):return False
+            cache=result['ccache']
+            if cache is not None and (not isinstance(cache,dict)or set(cache)!={'path','size','sha256','version'}
+                    or not isinstance(cache['path'],str)or len(cache['path'])>4096
+                    or not isinstance(cache['version'],str)or len(cache['version'])>16384
+                    or type(cache['size'])is not int or not 0<cache['size']<=2*1024**3
+                    or not isinstance(cache['sha256'],str)or re.fullmatch('[a-f0-9]{64}',cache['sha256'])is None):return False
+            for key in ('rule_launch_compile','rule_launch_link'):
+                if not isinstance(result[key],str)or len(result[key])>4096:return False
+            if mode=='on'and any(result[key]!=('ccache'if cache is not None else'')for key in ('rule_launch_compile','rule_launch_link')):return False
+            if mode=='off'and (result['exit_code']!=0 or cache is not None or result['rule_launch_compile']or result['rule_launch_link']
+                    or not result['objects_valid']or not result['archive_valid']or result['object_member_matches']!=1
+                    or result['object_member_sha256']!=result['objects'][0]['sha256']):return False
+        return True
+    except(KeyError,TypeError,ValueError,_contract.ContractError):return False
 
 
 def _windows_closure(executable, receipt):

@@ -73,17 +73,18 @@ class WindowsNativeGuards(unittest.TestCase):
         import json
         from integration import v1_contract as contract
         tools=dict(self.inputs['builder']['toolchain'])
-        tools.update({'clang-cl':dict(size=2,sha256='a'*64),'selected-linker':dict(size=3,sha256='b'*64)})
+        tools.update({'clang-cl':dict(size=2,sha256='a'*64),'selected-linker':dict(size=3,sha256='b'*64),'static-archiver':dict(size=4,sha256='c'*64)})
         compiler_path='C:/Program Files/Microsoft Visual Studio/18/Enterprise/VC/Tools/Llvm/x64/bin/clang-cl.exe'
         linker_path=compiler_path.replace('clang-cl.exe','lld-link.exe')
         configuration=dict(c_compiler=compiler_path,cxx_compiler=compiler_path,c_linker=linker_path,cxx_linker=linker_path,
+            c_launcher='',cxx_launcher='',static_archiver=compiler_path.replace('clang-cl.exe','llvm-lib.exe'),
             c_flags='/DWIN32 /D_WINDOWS',cxx_flags='/DWIN32 /D_WINDOWS /GR /EHsc',
             c_release_flags='/MD /O2 /Ob2 /DNDEBUG',cxx_release_flags='/MD /O2 /Ob2 /DNDEBUG',runtime_library='MD')
         source="cmake_minimum_required(VERSION 3.13)\nproject(HelixCompilerProbe LANGUAGES C CXX)\n"
         import hashlib
         probe=dict(toolchain=copy.deepcopy(tools),configuration=configuration,source_sha256=hashlib.sha256(source.encode()).hexdigest(),
             command=['cmake','-S','D:/work/compiler-probe-source','-B','D:/work/compiler-probe','-G','Ninja Multi-Config',
-                '-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_COMPILER='+compiler_path,'-DCMAKE_CXX_COMPILER='+compiler_path],
+                '-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_COMPILER_LAUNCHER:STRING=','-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=','-DCMAKE_C_COMPILER='+compiler_path,'-DCMAKE_CXX_COMPILER='+compiler_path],
             compiler_version_output_sha256='d'*64,linker_version_output_sha256='e'*64)
         compiler=dict(family='Clang',version='22.1.3',frontend_variant='MSVC',visual_studio_major='18',
             generator='Ninja Multi-Config',configuration='Release',runtime_library='MD',
@@ -96,6 +97,24 @@ class WindowsNativeGuards(unittest.TestCase):
         self.inputs['compiler_configurations']={key:copy.deepcopy(configuration)for key in ('probe','deps','engine')}
         # The real upstream root changes global warning flags; identity/Release stay exact.
         self.inputs['compiler_configurations']['engine']['cxx_flags']+=' /W3'
+        archive_record=dict(size=80,sha256='e'*64);object_record=dict(size=32,sha256='f'*64)
+        result=dict(exit_code=0,use_ccache='OFF',ccache=None,rule_launch_compile='',rule_launch_link='',
+            archiver=dict(path=configuration['static_archiver'],**tools['static-archiver']),object_count=1,
+            objects_valid=True,archive_valid=True,object_member_matches=1,object_member_sha256=object_record['sha256'],
+            objects=[object_record],archive=archive_record,configuration=copy.deepcopy(configuration))
+        proof=dict(schema='helix-orca-v1-windows-archive-preflight/v1',
+            source_sha256='7e81ec23e188e1b5e3fbdd8116841ca96ca2d32b5e488b9c10463b11a2f18e7e',
+            cpp_sha256='850b96803db8fb4951cc0803854c330a84fad2d9c27aad2dc9c78a57087364cb',
+            resolution=dict(where_exit=1,where=[],which=None,pathext='.EXE;.BAT'),results={'off':result,'on':copy.deepcopy(result)},
+            qualified=False,physical_actions=False)
+        proof['results']['on']['use_ccache']='ON'
+        self.inputs['archive_preflight']=proof;self.inputs['archive_preflight_sha256']=contract.digest(proof)
+
+    def refresh_archive_configuration(self):
+        from integration import v1_contract as contract
+        for result in self.inputs['archive_preflight']['results'].values():
+            result['configuration']=copy.deepcopy(self.inputs['compiler_probe']['configuration'])
+        self.inputs['archive_preflight_sha256']=contract.digest(self.inputs['archive_preflight'])
 
     def test_clang_probe_receipt_is_bound_and_crlf_input_remains_valid(self):
         import json
@@ -127,9 +146,11 @@ class WindowsNativeGuards(unittest.TestCase):
         for record in self.inputs['compiler_configurations'].values():record.update(c_linker=linker,cxx_linker=linker)
         probe['configuration']=copy.deepcopy(self.inputs['compiler_configurations']['probe'])
         compiler['probe_sha256']=contract.digest(probe)
+        self.refresh_archive_configuration()
         self.refresh_receipts();self.assertFalse(self.generate()['parity']['qualified'])
         self.inputs['builder']['toolchain']['selected-linker']=dict(size=2,sha256='0'*64)
         probe['toolchain']=copy.deepcopy(self.inputs['builder']['toolchain']);compiler['probe_sha256']=contract.digest(probe)
+        self.refresh_archive_configuration()
         self.refresh_receipts();self.called=False
         with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
         self.assertEqual(failure.exception.code,'native_compiler');self.assertFalse(self.called)
@@ -146,6 +167,7 @@ class WindowsNativeGuards(unittest.TestCase):
         self.inputs['builder']['compiler']['probe_sha256']=contract.digest(probe)
         self.inputs['builder']['compiler']['release_flags_sha256']=contract.digest({key:value for key,value in
             probe['configuration'].items()if key.endswith('_release_flags')})
+        self.refresh_archive_configuration()
         self.refresh_receipts()
         self.assertFalse(self.generate()['parity']['qualified']);self.assertTrue(self.called)
 
@@ -191,6 +213,55 @@ class WindowsNativeGuards(unittest.TestCase):
                 self.inputs['compiler_probe']['configuration'].items()if key.endswith('_release_flags')})
             self.refresh_receipts();self.called=False
             with self.subTest(field=field,value=value):
+                with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
+                self.assertEqual(failure.exception.code,'native_compiler');self.assertFalse(self.called)
+
+    def test_archive_proof_digest_and_semantics_are_required_before_dispatch(self):
+        from integration import v1_contract as contract
+        self.clang_recipe();baseline=copy.deepcopy(self.inputs)
+        mutations=[lambda a:a.pop('archive_preflight'),
+            lambda a:a.update(archive_preflight_sha256='0'*64),
+            lambda a:a['archive_preflight']['results']['off'].update(use_ccache='ON'),
+            lambda a:a['archive_preflight']['results']['off'].update(rule_launch_compile='ccache'),
+            lambda a:a['archive_preflight']['results']['off'].update(rule_launch_link='ccache'),
+            lambda a:a['archive_preflight']['results']['off'].update(objects_valid=False),
+            lambda a:a['archive_preflight']['results']['off'].update(object_member_matches=0,object_member_sha256=None),
+            lambda a:a['archive_preflight']['results']['off'].update(object_member_sha256='0'*64),
+            lambda a:a['archive_preflight']['results']['off']['archiver'].update(sha256='0'*64),
+            lambda a:a['archive_preflight']['results']['off']['configuration'].update(static_archiver='C:/different/llvm-lib.exe'),
+            lambda a:a['archive_preflight'].update(source_sha256='0'*64)]
+        for index,mutate in enumerate(mutations):
+            self.inputs=copy.deepcopy(baseline);mutate(self.inputs)
+            if index>1:self.inputs['archive_preflight_sha256']=contract.digest(self.inputs['archive_preflight'])
+            self.refresh_receipts();self.called=False
+            with self.subTest(index=index):
+                with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
+                self.assertEqual(failure.exception.code,'native_compiler');self.assertFalse(self.called)
+
+    def test_cache_on_diagnostic_may_fail_but_uncached_proof_remains_required(self):
+        from integration import v1_contract as contract
+        self.clang_recipe()
+        self.inputs['archive_preflight']['results']['on'].update(exit_code=1,object_count=0,objects_valid=False,
+            archive_valid=False,object_member_matches=0,object_member_sha256=None,objects=[],archive=None)
+        self.inputs['archive_preflight_sha256']=contract.digest(self.inputs['archive_preflight'])
+        self.refresh_receipts();self.assertFalse(self.generate()['parity']['qualified']);self.assertTrue(self.called)
+
+    def test_rebound_archiver_tool_or_configured_compiler_launcher_cannot_dispatch(self):
+        from integration import v1_contract as contract
+        self.clang_recipe();baseline=copy.deepcopy(self.inputs)
+        for changed in ('tool','path','launcher'):
+            self.inputs=copy.deepcopy(baseline)
+            if changed=='tool':
+                self.inputs['builder']['toolchain']['static-archiver']['sha256']='0'*64
+                self.inputs['compiler_probe']['toolchain']=copy.deepcopy(self.inputs['builder']['toolchain'])
+            else:
+                field,value=('static_archiver','C:/different/llvm-lib.exe')if changed=='path'else('cxx_launcher','ccache')
+                for result in self.inputs['compiler_configurations'].values():result[field]=value
+                self.inputs['compiler_probe']['configuration']=copy.deepcopy(self.inputs['compiler_configurations']['probe'])
+                self.refresh_archive_configuration()
+            self.inputs['builder']['compiler']['probe_sha256']=contract.digest(self.inputs['compiler_probe'])
+            self.refresh_receipts();self.called=False
+            with self.subTest(changed=changed):
                 with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
                 self.assertEqual(failure.exception.code,'native_compiler');self.assertFalse(self.called)
 

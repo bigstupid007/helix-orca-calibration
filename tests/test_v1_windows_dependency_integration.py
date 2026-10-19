@@ -26,7 +26,8 @@ class DependencyBuildWiring(unittest.TestCase):
         self.build.compiler_identity=dict(family='Clang',version='22.1.3',frontend_variant='MSVC',visual_studio_major='18',
             generator='Ninja Multi-Config',configuration='Release',runtime_library='MD',msvc_toolset_version='14.51.36231',
             windows_sdk_version='10.0.26100.0',linker_family='LLD',linker_version='22.1.3',probe_sha256='a'*64,release_flags_sha256='b'*64)
-        self.build.verify_compiler_configuration=lambda path:None
+        self.verified_configurations=[]
+        self.build.verify_compiler_configuration=lambda path:self.verified_configurations.append(path.name)
         self.build.tools={name:dict(size=1,sha256='1'*64)for name in self.module.dependencies.CLANG_TOOLS}
         self.build.children=[]
         self.build.guard=lambda:None
@@ -35,7 +36,7 @@ class DependencyBuildWiring(unittest.TestCase):
             self.calls.append((label,argv));self.environments.append(environment)
             if label=='deps-configure':
                 for directory in ('deps','prefix','downloads'):
-                    (self.build.work/directory).mkdir()
+                    (self.build.work/directory).mkdir(exist_ok=True)
                 (self.build.work/'deps/intermediate').write_bytes(b'synthetic compiler intermediate')
                 (self.build.work/'prefix/library.lib').write_bytes(b'synthetic dependency payload, not a real library')
                 (self.build.work/'downloads/source.tar').write_bytes(b'synthetic source archive')
@@ -70,7 +71,7 @@ class DependencyBuildWiring(unittest.TestCase):
         self.assertIn('-DDEP_CMAKE_OPTS=-DUSE_CCACHE:BOOL=OFF',json.loads(contract['environment']['DEPENDENCY_CONFIGURE_ARGV']))
         self.assertEqual(self.environments,[None,None])
 
-    def test_explicit_pinned_restore_skips_all_dependency_commands_and_keeps_original_producer(self):
+    def test_explicit_pinned_restore_configures_without_building_targets_and_keeps_original_producer(self):
         receipt=self.build.prepare_dependencies(self.lock,self.submodules,self.publisher)
         self.calls.clear()
         for directory in ('deps','prefix','downloads'):shutil.rmtree(self.build.work/directory)
@@ -81,8 +82,10 @@ class DependencyBuildWiring(unittest.TestCase):
         result=self.build.prepare_dependencies(self.lock,self.submodules,current)
         self.assertTrue(result['restored']);self.assertFalse(result['qualified'])
         self.assertEqual(result['publisher'],self.publisher)
-        self.assertEqual(self.calls,[])
-        self.assertFalse((self.build.work/'deps').exists())
+        self.assertEqual([label for label,_ in self.calls],['deps-configure'])
+        self.assertFalse(any('--build'in command for _,command in self.calls))
+        self.assertEqual(self.verified_configurations,['deps','deps'])
+        self.assertTrue((self.build.work/'deps').is_dir())
 
     def test_changed_compiler_flags_or_include_path_reject_restore_before_commands(self):
         receipt=self.build.prepare_dependencies(self.lock,self.submodules,self.publisher)

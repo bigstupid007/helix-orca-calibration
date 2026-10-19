@@ -179,7 +179,7 @@ def dependency_input(args):
 
 def dependency_environment(environment):
     """Bind named compiler inputs with Windows case-insensitive semantics."""
-    names = ('CMAKE_BUILD_PARALLEL_LEVEL', 'CL_MPCOUNT', 'CL', '_CL_',
+    names = ('CMAKE_C_COMPILER_LAUNCHER','CMAKE_CXX_COMPILER_LAUNCHER', 'CMAKE_BUILD_PARALLEL_LEVEL', 'CL_MPCOUNT', 'CL', '_CL_',
         'MSBUILDDISABLENODEREUSE', 'DEP_PYTHON_HOST', 'CFLAGS', 'CXXFLAGS',
         'CPPFLAGS', 'LDFLAGS', 'INCLUDE', 'LIB', 'LIBPATH', 'PATH',
         'VCTOOLSVERSION', 'WINDOWSSDKVERSION', 'VCTOOLSINSTALLDIR',
@@ -210,6 +210,8 @@ if(USE_CCACHE)
   endif()
 endif()
 file(WRITE "${CMAKE_BINARY_DIR}/detected-ccache.txt" "${CCACHE_PATH}")
+get_property(_compile_launcher GLOBAL PROPERTY RULE_LAUNCH_COMPILE)
+file(WRITE "${CMAKE_BINARY_DIR}/detected-compile-launcher.txt" "${_compile_launcher}")
 get_property(_archive_launcher GLOBAL PROPERTY RULE_LAUNCH_LINK)
 file(WRITE "${CMAKE_BINARY_DIR}/detected-launcher.txt" "${_archive_launcher}")
 add_library(helix_archive_probe STATIC probe.cpp)
@@ -238,6 +240,8 @@ def compiler_configuration(build):
         result[language.lower()+'_compiler']=values.get('COMPILER')or cache.get('CMAKE_'+language+'_COMPILER')
         result[language.lower()+'_linker']=values.get('COMPILER_LINKER')or cache.get('CMAKE_LINKER')
         result[language.lower()+'_release_flags']=cache.get('CMAKE_'+language+'_FLAGS_RELEASE','')
+        result[language.lower()+'_launcher']=cache.get('CMAKE_'+language+'_COMPILER_LAUNCHER','')
+        if result[language.lower()+'_launcher']:raise ValueError('Compiler launcher must be empty')
         result[language.lower()+'_flags']=cache.get('CMAKE_'+language+'_FLAGS','')
         flags=result[language.lower()+'_flags']+' '+result[language.lower()+'_release_flags']
         tokens=flags.split()
@@ -248,7 +252,27 @@ def compiler_configuration(build):
     if cache.get('CMAKE_GENERATOR')!=GENERATOR or cache.get('CMAKE_BUILD_TYPE')!='Release':
         raise ValueError('Exact upstream multi-config Release recipe required')
     result['runtime_library']='MD'
+    result['static_archiver']=cache.get('CMAKE_AR')
+    if not result['static_archiver']:raise ValueError('Actual static archiver required')
     return result
+
+
+def archive_object_matches(archive,object_file):
+    """Count exact expected COFF member bytes in a bounded ordinary archive."""
+    if archive.stat().st_size>1048576 or object_file.stat().st_size>1048576:return 0
+    raw=archive.read_bytes();expected=object_file.read_bytes()
+    if not raw.startswith(b'!<arch>\n')or expected[:2]!=b'\x64\x86':return 0
+    offset=8;matches=0
+    while offset<len(raw):
+        header=raw[offset:offset+60]
+        if len(header)!=60 or header[58:]!=b'`\n':return 0
+        try:size=int(header[48:58].decode('ascii').strip())
+        except(ValueError,UnicodeError):return 0
+        offset+=60
+        if size<0 or offset+size>len(raw):return 0
+        if raw[offset:offset+size]==expected:matches+=1
+        offset+=size+(size%2)
+    return matches if offset==len(raw)else 0
 
 
 class Build:
@@ -272,10 +296,11 @@ class Build:
             raise ValueError('Windows build lacks declared disk headroom')
         self.guard()
         self.environment = self.msvc_environment()
-        if self.environment.get('CL') or self.environment.get('_CL_'):
+        if any(self.environment.get(key)for key in ('CL','_CL_','CMAKE_C_COMPILER_LAUNCHER','CMAKE_CXX_COMPILER_LAUNCHER')):
             raise ValueError('Clean upstream compiler flag environment required')
         self.environment.update(CMAKE_BUILD_PARALLEL_LEVEL='2', CL_MPCOUNT='1', CL='', _CL_='',
-                                MSBUILDDISABLENODEREUSE='1', DEP_PYTHON_HOST=sys.executable)
+                                MSBUILDDISABLENODEREUSE='1', DEP_PYTHON_HOST=sys.executable,
+                                CMAKE_C_COMPILER_LAUNCHER='',CMAKE_CXX_COMPILER_LAUNCHER='')
         self.children = []
         self.tools = {name: record(shutil.which(name, path=self.environment['PATH']))
                       for name in ('cl', 'link', 'cmake', 'ninja', 'perl')}
@@ -294,9 +319,9 @@ class Build:
     def prepare_dependencies(self,lock,submodules,builder):
         deps,prefix,downloads=(self.work/name for name in ('deps','prefix','downloads'))
         configure=['cmake','-S',self.source/'deps','-B',deps,'-G',GENERATOR,
-            '-DCMAKE_BUILD_TYPE=Release','-DSLIC3R_CAD=OFF','-DDEP_DEBUG=OFF',
+            '-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_COMPILER_LAUNCHER:STRING=','-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=','-DSLIC3R_CAD=OFF','-DDEP_DEBUG=OFF',
             # Source-supported superbuild option is forwarded to every child;
-            # OpenVDB alone recognizes this optional-cache switch.
+            # This disables the supported optional cache in each child recognizing it.
             '-DDEP_CMAKE_OPTS='+DEPENDENCY_CMAKE_OPTIONS,
             cmake_path('DESTDIR',prefix),cmake_path('DEP_DOWNLOAD_DIR',downloads),
             cmake_path('DEP_PYTHON_HOST',Path(sys.executable)),
@@ -326,6 +351,10 @@ class Build:
                 run_url='https://github.com/'+builder['repository']+'/actions/runs/'+supplied['run_id'])
             receipt=dependencies.restore_bundle(supplied['path'],supplied['sha256'],prefix,downloads,
                 contract,expected,self.guard)
+            # Restore retains the producer; configure only records this runner's
+            # exact deps compiler/archiver/launcher identity without building targets.
+            self.run('deps-configure',configure)
+            self.verify_compiler_configuration(deps)
             save(self.evidence/'dependency-checkpoint.json',receipt)
             return receipt
         self.run('deps-configure',configure)
@@ -406,7 +435,7 @@ class Build:
         source=self.work/'compiler-probe-source';source.mkdir()
         (source/'CMakeLists.txt').write_text(PROBE_SOURCE,encoding='utf-8')
         build=self.work/'compiler-probe'
-        command=['cmake','-S',source,'-B',build,'-G',GENERATOR,'-DCMAKE_BUILD_TYPE=Release',
+        command=['cmake','-S',source,'-B',build,'-G',GENERATOR,'-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_COMPILER_LAUNCHER:STRING=','-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=',
             cmake_path('CMAKE_C_COMPILER',self.compiler),cmake_path('CMAKE_CXX_COMPILER',self.compiler)]
         self.run('compiler-probe',command,timeout_seconds=90)
         configuration=compiler_configuration(build)
@@ -428,6 +457,10 @@ class Build:
             raise ValueError('Actual selected linker version differs')
         self.tools['selected-linker']=record(selected)
         self.selected_linker=selected
+        self.static_archiver=Path(configuration['static_archiver']).resolve()
+        if self.static_archiver!=(self.compiler.parent/'llvm-lib.exe').resolve():
+            raise ValueError('Actual VS18 LLVM static archiver required')
+        self.tools['static-archiver']=record(self.static_archiver)
         self.compiler_configurations={'probe':configuration}
         self.compiler_probe=dict(source_sha256=hashlib.sha256(PROBE_SOURCE.encode()).hexdigest(),
             command=[str(item)for item in command],configuration=configuration,toolchain=self.tools,
@@ -455,7 +488,7 @@ class Build:
         for enabled in (True,False):
             label='archive-cache-'+('on'if enabled else'off');build=self.work/label
             self.run(label+'-configure',['cmake','-S',source,'-B',build,'-G',GENERATOR,
-                '-DCMAKE_BUILD_TYPE=Release',cmake_path('CMAKE_C_COMPILER',self.compiler),
+                '-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_COMPILER_LAUNCHER:STRING=','-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=',cmake_path('CMAKE_C_COMPILER',self.compiler),
                 cmake_path('CMAKE_CXX_COMPILER',self.compiler),'-DUSE_CCACHE:BOOL='+('ON'if enabled else'OFF')],timeout_seconds=90)
             configuration=compiler_configuration(build)
             if configuration!=self.compiler_probe['configuration']:
@@ -468,13 +501,16 @@ class Build:
             if cache_values.get('USE_CCACHE')!=requested:
                 raise ValueError('Archive cache configuration differs from requested mode')
             archiver=Path(cache_values['CMAKE_AR'])
-            if archiver.resolve()!=(self.compiler.parent/'llvm-lib.exe').resolve():
+            if archiver.resolve()!=self.static_archiver:
                 raise ValueError('Exact VS18 LLVM archiver required')
             archiver_record=dict(path=str(archiver),**record(archiver))
+            if record(archiver)!=self.tools['static-archiver']:
+                raise ValueError('Configured LLVM archiver hash differs')
             if not enabled and archiver_record!=results['on']['archiver']:
                 raise ValueError('Archive comparison changed the actual LLVM archiver')
             launcher=(build/'detected-launcher.txt').read_text()
-            if len(launcher)>4096 or not enabled and launcher:
+            compile_launcher=(build/'detected-compile-launcher.txt').read_text()
+            if max(len(launcher),len(compile_launcher))>4096 or not enabled and (launcher or compile_launcher):
                 raise ValueError('Uncached archive must have no rule launcher')
             detected=(build/'detected-ccache.txt').read_text()
             if len(detected)>4096:raise ValueError('Bounded discovered ccache path required')
@@ -495,8 +531,13 @@ class Build:
                 and 20<=objects[0].stat().st_size<=1048576 and objects[0].read_bytes()[:2]==b'\x64\x86')
             archive_valid=(archive.is_file() and not archive.is_symlink() and 8<=archive.stat().st_size<=1048576
                 and archive.read_bytes()[:8]==b'!<arch>\n')
-            results['on'if enabled else'off']=dict(exit_code=code,use_ccache=cache_values['USE_CCACHE'],ccache=cache,rule_launch_link=launcher,archiver=archiver_record,object_count=len(objects),
-                objects_valid=objects_valid,archive_valid=archive_valid,
+            matches=archive_object_matches(archive,objects[0])if archive_valid and objects_valid else 0
+            if not enabled and objects_valid and archive_valid and matches==1:
+                shutil.copy2(objects[0],self.evidence/'archive-probe-off.obj')
+                shutil.copy2(archive,self.evidence/'archive-probe-off.lib')
+            results['on'if enabled else'off']=dict(exit_code=code,use_ccache=cache_values['USE_CCACHE'],ccache=cache,rule_launch_compile=compile_launcher,rule_launch_link=launcher,archiver=archiver_record,object_count=len(objects),
+                objects_valid=objects_valid,archive_valid=archive_valid,object_member_matches=matches,
+                object_member_sha256=sha(objects[0])if matches==1 else None,
                 objects=[record(path)for path in objects[:4] if path.is_file()and not path.is_symlink()and path.stat().st_size<=1048576],
                 archive=record(archive)if archive_valid else None,configuration=configuration)
             save(self.evidence/'archive-probe.json',dict(schema='helix-orca-v1-windows-archive-preflight/v1',
@@ -505,10 +546,10 @@ class Build:
                 resolution=dict(where_exit=where.returncode,where=where.stdout.splitlines(),
                     which=shutil.which('ccache',path=self.environment['PATH']),pathext=self.environment.get('PATHEXT','')),
                 results=results,qualified=False,physical_actions=False))
-            if not enabled and (code!=0 or not objects_valid or not archive_valid):
+            if not enabled and (code!=0 or not objects_valid or not archive_valid or matches!=1):
                 raise ValueError('Uncached native object and archive production required before dependencies')
-        for name,path in (('clang-cl',self.compiler),('selected-linker',self.selected_linker)):
-            if record(path)!=self.tools[name]:raise ValueError('Archive preflight compiler/linker bytes changed')
+        self.archive_preflight=json.loads((self.evidence/'archive-probe.json').read_text())
+        self.verify_native_tools()
 
     def verify_compiler_configuration(self,build):
         actual=compiler_configuration(build)
@@ -516,13 +557,17 @@ class Build:
         identity=lambda value:{key:item for key,item in value.items()if key not in ('c_flags','cxx_flags')}
         if identity(actual)!=identity(expected):
             raise ValueError('Configured compiler/linker/Release recipe differs from preflight')
-        for name,path in (('clang-cl',self.compiler),('selected-linker',self.selected_linker)):
-            if record(path)!=self.tools[name]:raise ValueError('Selected compiler/linker bytes changed')
+        self.verify_native_tools()
         self.compiler_configurations[build.name]=actual
         save(self.evidence/(build.name+'-compiler-identity.json'),actual)
 
+    def verify_native_tools(self):
+        for name,path in (('clang-cl',self.compiler),('selected-linker',self.selected_linker),('static-archiver',self.static_archiver)):
+            if record(path)!=self.tools[name]:raise ValueError('Selected native tool bytes changed')
+
     def run(self, label, command, cwd=None, environment=None, timeout_seconds=None, allow_failure=False):
         self.guard()
+        if hasattr(self,'static_archiver'):self.verify_native_tools()
         print(json.dumps({'stage': label, 'state': 'started'}), flush=True)
         child = subprocess.Popen([str(arg) for arg in command], cwd=cwd or self.work,
             env=environment or self.environment, stdin=subprocess.DEVNULL,
@@ -567,6 +612,7 @@ class Build:
             (self.evidence/(label+'-tail.log')).write_bytes(tail)
         save(self.evidence/(label+'.json'), {'exit_code': code, 'output_bytes': total,
             'log_bytes': kept, 'elapsed_seconds': round(time.monotonic()-started, 3)})
+        if hasattr(self,'static_archiver'):self.verify_native_tools()
         if code:
             print(tail.decode('utf-8', 'replace'), flush=True)
             if not allow_failure:raise RuntimeError('Native Windows stage failed: '+label)
@@ -595,7 +641,8 @@ class Build:
             'run_url': os.environ['GITHUB_SERVER_URL']+'/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['GITHUB_RUN_ID']}
         if not engine._windows_builder_valid(builder, {'application_commit': commit}):
             raise ValueError('Registered Windows CI provenance required')
-        inputs = {'compiler_probe':self.compiler_probe,'source': source_report, 'builder': builder, 'submodules': modules.splitlines(),
+        inputs = {'compiler_probe':self.compiler_probe,'archive_preflight':self.archive_preflight,
+            'archive_preflight_sha256':contract.digest(self.archive_preflight),'source': source_report, 'builder': builder, 'submodules': modules.splitlines(),
             'owned_inputs': {name:sha(ROOT/name) for name in engine._WINDOWS_OWNED_INPUTS},
             'compiler_slots': 4, 'cmake_jobs': 2, 'occt_jobs': 4, 'dependency_top_level_jobs': 1,
             'reserve_bytes': RESERVE, 'peak_bytes': PEAK, 'margin_bytes': MARGIN,
@@ -607,7 +654,7 @@ class Build:
         prefix,build=self.work/'prefix',self.work/'engine'
         actual_prefix = prefix/'usr/local'
         self.run('engine-configure', ['cmake', '-S', source, '-B', build, '-G', GENERATOR,
-            '-DCMAKE_BUILD_TYPE=Release', cmake_path('CMAKE_PREFIX_PATH', actual_prefix),
+            '-DCMAKE_BUILD_TYPE=Release','-DCMAKE_C_COMPILER_LAUNCHER:STRING=','-DCMAKE_CXX_COMPILER_LAUNCHER:STRING=', cmake_path('CMAKE_PREFIX_PATH', actual_prefix),
             cmake_path('CMAKE_MODULE_PATH', ROOT/'integration/v1-native-engine/windows-cmake'),
             '-DSLIC3R_GUI=OFF', '-DSLIC3R_CAD=OFF', '-DSLIC3R_STATIC=ON',
             '-DSLIC3R_BUILD_TESTS=OFF', '-DORCA_TOOLS=OFF', '-DSLIC3R_PCH=OFF',
@@ -732,6 +779,12 @@ class Build:
             'Redistribution and production source acceptance remain separate from this code-only calibration candidate.\n'
             'No calibration is qualified by this build; native parity and all processor checks remain mandatory.\n', encoding='utf-8')
         self.guard()
+        self.verify_native_tools()
+        if contract.digest(json.loads((self.evidence/'archive-probe.json').read_text()))!=inputs['archive_preflight_sha256']:
+            raise ValueError('Retained archive preflight differs before packaging')
+        off=self.archive_preflight['results']['off']
+        if record(self.evidence/'archive-probe-off.obj')!=off['objects'][0]or record(self.evidence/'archive-probe-off.lib')!=off['archive']:
+            raise ValueError('Retained public archive probe outputs differ')
         shutil.make_archive(str(self.work/'native-windows-package'), 'zip', package)
         save(self.evidence/'package-summary.json', {'schema': 'helix-orca-v1-windows-package/v1',
             'built': True, 'qualified': False, 'physical_actions': False,
