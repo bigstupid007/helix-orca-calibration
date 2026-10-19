@@ -3,8 +3,9 @@
 `integration/v1_jobs.py` supplies a bounded owned-job adapter for the integrated
 coordinator. It supports every calibration through the same prepared-artifact
 contract. It neither generates G-code nor makes an unqualified generator work.
-The adapter requires an explicit reviewed `orca_machine_sha256` in addition to
-the transport's physical/configuration pins. Both action switches default to `actions=False`. The ordinary review
+The adapter requires an explicit reviewed `orca_machine_sha256` and a typed
+physical target qualification in addition to the transport's physical/configuration
+pins. Both action switches default to `actions=False`. The ordinary review
 launcher has no enabled physical action adapter. No physical deployment or print
 is claimed by this source implementation or its loopback HTTP fixtures.
 
@@ -24,6 +25,7 @@ The coordinator calls these exact interfaces:
 ```python
 adapter.confirm(request, prepared, directory, native_confirm_intent)
 job = adapter.start(request, prepared, directory, native_start_intent)
+job_or_none = adapter.recover(request, prepared, exact_retained_native_start_intent)
 proof = adapter.observe(job)
 adapter.cancel(job, native_cancel_intent)
 ```
@@ -36,8 +38,9 @@ Native-only `PRINT_START EXTRUDER/BED` parity cannot pass this gate for the
 accepted target's `EXTRUDER_TEMP/BED_TEMP` signature. Missing/null semantics also
 blocks upload (including a Flow report that has not implemented this invariant).
 The report's `hardware_abi_qualified` and `physical_readiness` remain false:
-recognizing the accepted command signature under pinned configuration is not a
-new physical qualification.
+recognizing the accepted command signature alone is not a physical qualification.
+An additional independently reviewed local target qualification is mandatory;
+the source implementation and synthetic tests create no operational qualification.
 Start requires a different native ID bound to the same prepared SHA-256. It
 re-verifies the artifact/parity and original expiry before any upload and again
 checks expiry before Start dispatch. Cancellation remains available after the
@@ -65,6 +68,7 @@ not a deployable configuration):
     "physical_identity": "<reviewed lowercase 64-hex digest>",
     "configuration_sha256": "<reviewed lowercase 64-hex digest>",
     "orca_machine_sha256": "<reviewed full Orca printer-profile and nozzle digest>",
+    "physical_qualification": "<typed reviewed object described below; never a flag>",
     "existing_trusted_lan_ack": true,
     "actions_enabled": false
   }
@@ -101,6 +105,57 @@ selection remain request scope and are not pinned by this field. Any machine-pin
 change changes the private configuration digest and requires a new separately
 approved deployment record.
 
+## Required physical target qualification
+
+The local `physical_qualification` object has exactly these fields:
+
+- `schema`: `helix-orca-v1-physical-target-qualification/v1`.
+- `physical_identity`, `configuration_sha256`, `orca_machine_sha256` and
+  `moonraker_version`: exactly the transport/machine pins above.
+- `macro_safety_reviewed` and `printer_safety_reviewed`: both boolean `true`;
+  `review_reference`: a nonempty bounded reference of at most 512 characters.
+- `start_required_arguments`: exactly `["BED_TEMP", "EXTRUDER_TEMP"]`.
+- `macro_sources_sha256`: uppercase custom macro names mapped to SHA-256 of each
+  actual parsed Klipper `gcode_macro <name>` settings section using the shared
+  canonical JSON digest. The exact inventory includes directly invoked custom
+  macros and every statically resolved transitive custom call.
+- `motion_bounds`: exact `X`, `Y`, `Z` keys, each a finite increasing two-number
+  list. `filament_range_c`, `nozzle_range_c`, and `bed_range_c`: reviewed finite
+  increasing temperature ranges (bounded to 0–600°C for filament/nozzle and
+  0–150°C for bed).
+
+Constructor validation binds this record to the exact physical/configuration,
+machine/nozzle and Moonraker version. Confirm retains its digest; Start must see
+that identical qualification digest. Actual candidate bytes are independently
+parsed before any HTTP: every visible travel/deposition coordinate must fit the
+reviewed XYZ envelope, every nonzero visible nozzle target must fit both
+filament and nozzle ranges, and every nonzero bed target must fit the bed range.
+Zero heater-off commands are permitted. Exactly one positive-target
+`PRINT_START BED_TEMP=… EXTRUDER_TEMP=…` and one argument-free `PRINT_END` must
+surround actual visible deposition. Arc geometry, XYZ rebasing, unknown units,
+malformed motion/heater values, unreviewed custom commands and extra custom
+macro arguments require separate qualification and remain blocked. Named
+heater/offset/stepper mutation commands in candidate G-code are outside the
+bounded visible-command inspector and are rejected rather than skipped.
+
+Every live snapshot already re-verifies full printer configuration and physical
+identity. It additionally hashes actual macro sections, inspects the real
+PRINT_START `params.*` argument names and builds a static transitive call graph.
+The candidate's exact custom invocation closure must match the reviewed source
+inventory and digests. Standard Klipper/G-code commands remain built-ins;
+configured macro overrides of their names require their actual reviewed sources.
+Missing helper macros, dynamic command names, unsupported inline template
+constructs, unresolved calls, recursive calls or unrelated inventory entries
+block upload. No template or macro is executed during this inspection.
+
+This conservative static inventory supports literal command names, separate-line
+bounded Jinja control/set statements and response/error template actions. It
+does not claim a general Jinja interpreter or prove runtime macro expansion.
+The explicit source safety review remains mandatory; macro internals remain
+unobserved in parity reports, and their `hardware_abi_qualified` and
+`physical_readiness` flags remain false. No safety record, deployment approval,
+real macro qualification or new physical print is produced by this build.
+
 ## Ownership and failure behavior
 
 Each staging filename contains the exact request ID and a fresh random 128-bit
@@ -121,7 +176,25 @@ an actual new job ID/start time: same unique filename, live print metadata and
 matching `in_progress` history beyond the retained history baseline. A command
 acknowledgment alone never becomes a running job. If correlation times out,
 state stays uncertain and dispatch retry is forbidden; native printer controls
-and retained journals are the recovery route.
+and retained journals are the recovery route for an unproven job.
+
+`recover(request, prepared, intent)` is a read-only, idempotent adoption path
+under the adapter lock. It performs zero transport calls, writes no job state,
+and never uploads, dispatches, retries Start or sends any HTTP mutation. It
+returns a four-field public handle only when the exact retained request,
+prepared descriptor, full distinct Start intent and qualification digest match
+an already independently history-confirmed durable job. Supported durable phases
+are printing, terminal states and owned cancel phases; pre-job or ambiguous
+phases return `None`. Mismatched identities or intents fail closed. Merely
+having metadata or a non-null job ID in an uncertain journal is insufficient.
+
+Before dispatch the coordinator atomically retains the complete
+`pending_start_intent`. If the adapter saved independently confirmed printing
+but the coordinator died before saving its job handle, `poll_job` adopts only
+the exact recovered handle, persists it and then obtains fresh independent
+observation. Recovery does not reuse old status as completion proof. Monitoring,
+exact cancellation and returned results remain available after the original
+Start expiry; no new Start window or action is created.
 
 Observation requires fresh eventtime and the exact owned filename/job ID/start
 time. Successful completion additionally requires independent history with that
@@ -158,6 +231,14 @@ separate Confirm/Start, request expiry, upload readback mismatch, ambiguous Star
 and recovery, unresolved earlier jobs, bounded history timeout, unrelated jobs,
 independent successful history, exact owned Cancel, cancellation ambiguity and
 racing completion. No fixture result can qualify production physical behavior.
+The added true Coordinator↔OwnedJobAdapter HTTP fixtures kill execution after
+the adapter's durable independently confirmed `printing` journal and before
+the coordinator saves its handle. A fresh coordinator/adapter then adopts and
+observes that same job, proves successful completion and returns a result, or
+cancels the exact owned job. Both paths assert one upload and one Start only.
+Additional negative tests cover review/binding/range errors, actual macro source
+and argument mismatch, transitive/dynamic macro resolution, unchanged
+qualification digest and read-only ambiguous/mismatched recovery.
 
 Known limits remain explicit:
 

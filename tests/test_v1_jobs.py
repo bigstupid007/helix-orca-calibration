@@ -30,7 +30,9 @@ def sha(value):
 
 class PrinterFixture:
     def __init__(self):
-        self.config = {'mcu': {'serial': 'fixture-only-mcu'}}
+        self.config = {'mcu': {'serial': 'fixture-only-mcu'},
+                       'gcode_macro print_start': {'gcode': 'G28\nM190 S{params.BED_TEMP}\nM109 S{params.EXTRUDER_TEMP}'},
+                       'gcode_macro print_end': {'gcode': 'M104 S0\nM140 S0\nM84'}}
         self.identity = sha(dict(mcu_kind='serial', mcu_identity='fixture-only-mcu', macs=['fixture-mac']))
         self.config_hash = sha(self.config)
         self.files = {}; self.filename = ''; self.state = 'standby'; self.event = 1
@@ -110,17 +112,24 @@ class OwnedJobsTests(unittest.TestCase):
         self.request = dict(schema='helix-orca-v1-request/v1', request_id='1'*32, origin_id='2'*32, context_sha256='3'*64,
             calibration='temperature', parameters=DEFAULTS['temperature'], created_at=100, expires_at=3700, not_applied=True)
         self.directory = self.root / self.request['request_id']; self.directory.mkdir()
-        data = b'; SYNTHETIC OFFLINE HTTP FIXTURE\nG1 X1 Y1\n'; (self.directory/'fixture.gcode').write_bytes(data)
+        data = b'; SYNTHETIC OFFLINE HTTP FIXTURE\nG90\nM83\nPRINT_START BED_TEMP=60 EXTRUDER_TEMP=230\nM104 S230\nG1 Z0.2\nG1 X1 Y1 E1 F1200\nPRINT_END\n'; (self.directory/'fixture.gcode').write_bytes(data)
         self.prepared = {k: self.request[k] for k in ('request_id', 'origin_id', 'context_sha256', 'calibration', 'parameters')}
         self.prepared.update(schema='helix-orca-v1-prepared/v1', request_sha256=digest(self.request), artifact=dict(name='fixture.gcode', size=len(data), sha256=hashlib.sha256(data).hexdigest()),
             generator=dict(build='fixture', route='fixture'), parity=dict(qualified=True, report_sha256='4'*64, reason='Synthetic verifier injection only'), not_applied=True)
         self.machine_inputs = dict(printer=dict(saved=dict(name='Synthetic printer', config={'machine': 'fixture'}), edited=dict(name='Synthetic printer', config={'machine': 'fixture'})), nozzle_mm=0.4)
         self.machine = digest(self.machine_inputs)
+        self.qualification = dict(schema='helix-orca-v1-physical-target-qualification/v1',
+            physical_identity=self.fixture.identity, configuration_sha256=self.fixture.config_hash,
+            orca_machine_sha256=self.machine, moonraker_version='fixture-version',
+            macro_sources_sha256={name.upper(): digest(self.fixture.config['gcode_macro '+name]) for name in ('print_start', 'print_end')},
+            start_required_arguments=['BED_TEMP', 'EXTRUDER_TEMP'], macro_safety_reviewed=True, printer_safety_reviewed=True,
+            review_reference='SYNTHETIC HTTP FIXTURE ONLY; NOT A PHYSICAL QUALIFICATION',
+            motion_bounds=dict(X=[0,300], Y=[0,300], Z=[0,300]), filament_range_c=[190,250], nozzle_range_c=[0,280], bed_range_c=[0,110])
         self.report = dict(synthetic_http_fixture_only=True, inputs=dict(profiles=dict(printer=self.machine_inputs['printer']), nozzle_mm=0.4), candidate_invariants=dict(
             macro_semantics=dict(accepted_abi_signature=True, hardware_abi_qualified=False, physical_readiness=False), physical_readiness=False))
         (self.directory/'parity.json').write_text(json.dumps(self.report))
         self.prepared['parity']['report_sha256'] = digest(self.report)
-        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine, actions=True, now=lambda: 100)
+        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine, physical_qualification=self.qualification, actions=True, now=lambda: 100)
     def tearDown(self):
         self.verifier.stop(); self.fixture.close(); self.temp.cleanup()
     def intent(self, action, token):
@@ -132,7 +141,7 @@ class OwnedJobsTests(unittest.TestCase):
     def record(self):
         return read_json(self.root/'journal'/('1'*32+'.json'))
     def test_disabled_default_and_missing_confirmation_do_not_contact_http(self):
-        default_adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'disabled', orca_machine_sha256=self.machine, now=lambda: 100)
+        default_adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'disabled', orca_machine_sha256=self.machine, physical_qualification=self.qualification, now=lambda: 100)
         default_adapter.confirm(self.request, self.prepared, self.directory, self.intent('confirm', '5'))
         with self.assertRaises(ContractError): default_adapter.start(self.request, self.prepared, self.directory, self.intent('start', '6'))
         self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
@@ -171,7 +180,7 @@ class OwnedJobsTests(unittest.TestCase):
         self.confirm(); self.fixture.tamper = True
         with self.assertRaises(ContractError): self.start()
         self.assertEqual(self.fixture.posts, ['/server/files/upload']); self.assertEqual(self.record()['phase'], 'uncertain')
-        recovered = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine, actions=True, now=lambda: 100)
+        recovered = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine, physical_qualification=self.qualification, actions=True, now=lambda: 100)
         with self.assertRaises(ContractError): recovered.start(self.request, self.prepared, self.directory, self.intent('start', '7'))
         self.assertEqual(self.fixture.posts, ['/server/files/upload'])
     def test_ambiguous_start_is_durable_and_never_retried(self):
@@ -255,6 +264,7 @@ class OwnedJobsTests(unittest.TestCase):
     def test_factory_is_default_off_and_requires_separate_typed_local_gate(self):
         deployment = dict(schema='helix-orca-v1-job-deployment/v1', origin='http://192.168.1.2', expected_host='192.168.1.2',
             expected_version='fixture-version', physical_identity=self.fixture.identity, configuration_sha256=self.fixture.config_hash, orca_machine_sha256=self.machine,
+            physical_qualification=self.qualification,
             existing_trusted_lan_ack=True, actions_enabled=True)
         target = self.root/'factory'
         self.assertIsNone(from_config({}, target))
@@ -303,3 +313,110 @@ class OwnedJobsTests(unittest.TestCase):
             (self.directory/'parity.json').write_text(json.dumps(report))
             with self.assertRaisesRegex(ContractError, 'machine/nozzle'): self.confirm()
         self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
+
+    def test_typed_physical_qualification_requires_all_reviews_and_exact_bindings(self):
+        for key, bad in (('physical_identity', 'a'*64), ('configuration_sha256', 'b'*64),
+                         ('orca_machine_sha256', 'c'*64), ('macro_safety_reviewed', 1),
+                         ('printer_safety_reviewed', False), ('review_reference', ''),
+                         ('start_required_arguments', ['BED', 'EXTRUDER']),
+                         ('motion_bounds', dict(X=[0,300], Y=[0,300], Z=[0,float('inf')]))):
+            value = copy.deepcopy(self.qualification); value[key] = bad
+            with self.subTest(key=key), self.assertRaises(ContractError):
+                OwnedJobAdapter(self.fixture.transport(), self.root/'invalid', orca_machine_sha256=self.machine,
+                                physical_qualification=value, actions=True)
+        with self.assertRaises(ContractError):
+            OwnedJobAdapter(self.fixture.transport(), self.root/'missing', orca_machine_sha256=self.machine)
+        self.assertFalse((self.root/'invalid').exists())
+        self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
+
+    def test_visible_motion_and_heaters_are_checked_independently_of_parity_abi_flag(self):
+        original = (self.directory/'fixture.gcode').read_text()
+        cases = (original.replace('X1 Y1', 'X301 Y1'),
+                 original.replace('M104 S230', 'M104 S290'),
+                 original.replace('M104 S230', 'M104 S180'),
+                 original.replace('BED_TEMP=60', 'BED_TEMP=120'),
+                 original.replace('G1 Z0.2', 'G92 Z0\nG1 Z0.2'),
+                 original.replace('M104 S230', 'SET_HEATER_TEMPERATURE HEATER=extruder TARGET=900'),
+                 original.replace('G1 Z0.2', 'SET_GCODE_OFFSET Z=500\nG1 Z0.2'))
+        for body in cases:
+            data = body.encode(); (self.directory/'fixture.gcode').write_bytes(data)
+            self.prepared['artifact'].update(size=len(data), sha256=hashlib.sha256(data).hexdigest())
+            with self.subTest(body=body), self.assertRaises(ContractError): self.confirm()
+        self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
+
+    def test_live_macro_section_hash_and_actual_argument_names_are_required_before_upload(self):
+        self.qualification['macro_sources_sha256']['PRINT_START'] = 'a'*64
+        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine,
+                                       physical_qualification=self.qualification, actions=True, now=lambda:100)
+        self.confirm()
+        with self.assertRaisesRegex(ContractError, 'source'): self.start()
+        self.assertEqual(self.fixture.posts, [])
+
+    def test_transitive_custom_macro_inventory_is_exact_and_unresolved_calls_fail_closed(self):
+        self.fixture.config['gcode_macro print_start']['gcode'] = 'SAFE_PREP\nM190 S{params.BED_TEMP}\nM109 S{params.EXTRUDER_TEMP}'
+        self.fixture.config['gcode_macro safe_prep'] = {'gcode':'G28'}
+        self.fixture.config_hash = sha(self.fixture.config)
+        self.qualification['configuration_sha256'] = self.fixture.config_hash
+        self.qualification['macro_sources_sha256'] = {key[len('gcode_macro '):].upper(): digest(value)
+            for key,value in self.fixture.config.items() if key.startswith('gcode_macro ')}
+        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine,
+                                       physical_qualification=self.qualification, actions=True, now=lambda:100)
+        self.confirm(); self.start()
+        self.assertEqual(len(self.fixture.posts), 2)
+
+    def test_unreviewed_transitive_or_dynamic_macro_and_old_start_arguments_block_upload(self):
+        for suffix in ('UNDEFINED_HELPER', '{params.COMMAND}', 'M109 S{params.EXTRUDER}'):
+            # Fresh journal, pinned actual source and reviewed top-level hashes;
+            # a top-level safety boolean cannot resolve the bad called source.
+            self.fixture.config['gcode_macro print_start']['gcode'] = 'M190 S{params.BED_TEMP}\nM109 S{params.EXTRUDER_TEMP}\n'+suffix
+            self.fixture.config_hash = sha(self.fixture.config)
+            value = copy.deepcopy(self.qualification)
+            value['configuration_sha256'] = self.fixture.config_hash
+            value['macro_sources_sha256']['PRINT_START'] = digest(self.fixture.config['gcode_macro print_start'])
+            self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/('case'+str(len(self.fixture.gets))),
+                orca_machine_sha256=self.machine, physical_qualification=value, actions=True, now=lambda:100)
+            self.confirm()
+            with self.assertRaises(ContractError): self.start()
+        self.assertEqual(self.fixture.posts, [])
+
+    def test_qualification_digest_cannot_change_between_confirm_and_start(self):
+        self.confirm()
+        changed = copy.deepcopy(self.qualification); changed['review_reference'] += ' changed'
+        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine,
+            physical_qualification=changed, actions=True, now=lambda:100)
+        with self.assertRaises(ContractError): self.start()
+        self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
+
+    def test_recovery_after_durable_printing_is_read_only_idempotent_and_can_observe_cancel(self):
+        self.confirm(); save = self.adapter._save
+        def crash(record):
+            save(record)
+            if record['phase'] == 'printing': raise SystemExit('synthetic process death after durable printing')
+        with patch.object(self.adapter, '_save', side_effect=crash), self.assertRaises(SystemExit): self.start()
+        record = self.record(); self.assertEqual(record['phase'], 'printing'); self.assertTrue(record['ownership_confirmed'])
+        before = (self.root/'journal'/('1'*32+'.json')).read_bytes()
+        gets, posts = list(self.fixture.gets), list(self.fixture.posts)
+        recovered = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine,
+            physical_qualification=self.qualification, actions=True, now=lambda:10000)
+        job = recovered.recover(self.request, self.prepared, self.intent('start', '6'))
+        self.assertEqual(recovered.recover(self.request, self.prepared, self.intent('start', '6')), job)
+        self.assertEqual(self.fixture.gets, gets); self.assertEqual(self.fixture.posts, posts)
+        self.assertEqual((self.root/'journal'/('1'*32+'.json')).read_bytes(), before)
+        self.assertEqual(recovered.observe(job)['print_state'], 'printing')
+        recovered.cancel(job, self.intent('cancel', '7'))
+        self.assertEqual(recovered.observe(job)['history_state'], 'cancelled')
+        self.assertEqual(sum(path.startswith('/printer/print/start?') for path in self.fixture.posts), 1)
+        self.assertEqual(self.fixture.posts.count('/server/files/upload'), 1)
+
+    def test_recovery_prejob_ambiguity_or_mismatched_intents_never_dispatches(self):
+        self.assertIsNone(self.adapter.recover(self.request, self.prepared, self.intent('start', '6')))
+        self.confirm()
+        self.assertIsNone(self.adapter.recover(self.request, self.prepared, self.intent('start', '6')))
+        self.fixture.start_error = True
+        with self.assertRaises(ContractError): self.start()
+        gets, posts = list(self.fixture.gets), list(self.fixture.posts)
+        self.assertIsNone(self.adapter.recover(self.request, self.prepared, self.intent('start', '6')))
+        with self.assertRaises(ContractError): self.adapter.recover(self.request, self.prepared, self.intent('start', '7'))
+        changed = dict(self.request, context_sha256='a'*64)
+        with self.assertRaises(ContractError): self.adapter.recover(changed, self.prepared, self.intent('start', '6'))
+        self.assertEqual(self.fixture.gets, gets); self.assertEqual(self.fixture.posts, posts)

@@ -27,6 +27,154 @@ from integration.v1_transport import NoRedirect
 MAX_BYTES = 20_000_000
 JOB_ID = re.compile(r"[0-9A-Fa-f]{6,64}")
 OWNED_FILE = re.compile(r"helix-orca-v1-[a-f0-9]{32}-[a-f0-9]{32}\.gcode")
+BUILTINS = frozenset(('G0 G1 G4 G21 G28 G90 G91 G92 M82 M83 M84 M104 M106 M107 M109 M117 M118 M140 M190 '
+    'M201 M203 M204 M205 M220 M221 M73 M400 M900 SET_PRESSURE_ADVANCE SET_VELOCITY_LIMIT '
+    'EXCLUDE_OBJECT_DEFINE EXCLUDE_OBJECT_START EXCLUDE_OBJECT_END SET_GCODE_OFFSET '
+    'BED_MESH_CALIBRATE BED_MESH_PROFILE BED_MESH_CLEAR QUAD_GANTRY_LEVEL Z_TILT_ADJUST '
+    'STATUS GET_POSITION TEMPERATURE_WAIT SET_HEATER_TEMPERATURE SET_FAN_SPEED TURN_OFF_HEATERS '
+    'SET_IDLE_TIMEOUT SAVE_GCODE_STATE RESTORE_GCODE_STATE RESPOND QUERY_ENDSTOPS '
+    'SET_INPUT_SHAPER SET_SKEW SKEW_PROFILE SET_STEPPER_ENABLE').split())
+ARTIFACT_BUILTINS = frozenset(('G0 G1 G4 G21 G28 G90 G91 G92 M82 M83 M84 M104 M106 M107 M109 M117 M118 M140 M190 '
+    'M201 M203 M204 M205 M220 M221 M73 M400 M900 SET_PRESSURE_ADVANCE SET_VELOCITY_LIMIT '
+    'EXCLUDE_OBJECT_DEFINE EXCLUDE_OBJECT_START EXCLUDE_OBJECT_END').split())
+NUMBER = r'[-+]?(?:\d+(?:\.\d*)?|\.\d+)'
+
+
+def _macro_inventory(config):
+    """Static, conservative call inventory; no Jinja or macro is executed."""
+    sections = {key[len('gcode_macro '):].upper(): value for key, value in config.items()
+                if isinstance(key, str) and key.lower().startswith('gcode_macro ')}
+    hashes, graph = {}, {}
+    for name, section in sections.items():
+        if re.fullmatch(r'[A-Z_][A-Z_0-9]*', name) is None or not isinstance(section, dict) or not isinstance(section.get('gcode'), str):
+            raise ContractError('Actual custom macro source unavailable')
+        hashes[name] = digest(section)
+        calls, resolved = set(), True
+        for raw in section['gcode'].splitlines():
+            code = raw.split(';', 1)[0].split('#', 1)[0].strip()
+            if not code:
+                continue
+            if re.fullmatch(r'\{%\s*(?:if|elif|else|endif|set|for|endfor)\b[^{}]*%\}', code):
+                continue
+            if re.fullmatch(r'\{\s*action_(?:respond_info|raise_error)\([^{}]*\)\s*\}', code):
+                continue
+            match = re.match(r'([A-Za-z_][A-Za-z_0-9]*)(?:\s|$)', code)
+            op = match[1].upper() if match else None
+            if op in sections:
+                calls.add(op)
+            elif op not in BUILTINS:
+                resolved = False
+        graph[name] = dict(calls=sorted(calls), resolved=resolved)
+    start = sections.get('PRINT_START', {}).get('gcode', '')
+    arguments = sorted(set(re.findall(r'\bparams\.([A-Za-z_][A-Za-z_0-9]*)', start)))
+    return hashes, graph, arguments
+
+
+def _qualification(value, transport, machine):
+    exact(value, 'schema physical_identity configuration_sha256 orca_machine_sha256 moonraker_version macro_sources_sha256 start_required_arguments macro_safety_reviewed printer_safety_reviewed review_reference motion_bounds filament_range_c nozzle_range_c bed_range_c', 'reviewed physical target qualification')
+    if value['schema'] != 'helix-orca-v1-physical-target-qualification/v1' or value['macro_safety_reviewed'] is not True or value['printer_safety_reviewed'] is not True:
+        raise ContractError('Explicit physical printer/macro safety review required')
+    for key, expected in (('physical_identity', transport.identity), ('configuration_sha256', transport.configuration), ('orca_machine_sha256', machine)):
+        if hex_value(value[key]) != expected:
+            raise ContractError('Physical qualification target/configuration/machine binding differs')
+    if value['moonraker_version'] != transport.version:
+        raise ContractError('Physical qualification Moonraker version differs')
+    text(value['review_reference'], 'physical safety review reference', 512)
+    if value['start_required_arguments'] != ['BED_TEMP', 'EXTRUDER_TEMP']:
+        raise ContractError('Reviewed PRINT_START arguments must be exactly BED_TEMP/EXTRUDER_TEMP')
+    sources = value['macro_sources_sha256']
+    if not isinstance(sources, dict) or not 2 <= len(sources) <= 128 or not {'PRINT_START', 'PRINT_END'} <= set(sources):
+        raise ContractError('Reviewed custom macro source inventory unavailable')
+    for name, source in sources.items():
+        if not isinstance(name, str) or re.fullmatch(r'[A-Z_][A-Z_0-9]*', name) is None:
+            raise ContractError('Malformed reviewed macro name')
+        hex_value(source)
+    exact(value['motion_bounds'], 'X Y Z', 'reviewed motion envelope')
+    for label, bounds in [*value['motion_bounds'].items(), *((key, value[key]) for key in ('filament_range_c', 'nozzle_range_c', 'bed_range_c'))]:
+        if not isinstance(bounds, list) or len(bounds) != 2 or any(type(v) not in (int, float) or not math.isfinite(v) for v in bounds) or not -10000 <= bounds[0] < bounds[1] <= 10000:
+            raise ContractError('Reviewed finite ' + label + ' range required')
+        if label.endswith('_range_c') and not 0 <= bounds[0] < bounds[1] <= (150 if label == 'bed_range_c' else 600):
+            raise ContractError('Reviewed temperature range outside bounded qualification')
+    return copy.deepcopy(value)
+
+
+def _inspect_physical(data, qualification):
+    """Independently inspect all visible motion/targets, not only model moves."""
+    try:
+        body = data.decode('utf-8')
+    except UnicodeError as error:
+        raise ContractError('Qualified artifact must be UTF-8') from error
+    xyz = dict.fromkeys('XYZ'); absolute = True; relative_e = False; e = 0.
+    commands, starts, ends, depositions, nozzle_targets, bed_targets = set(), [], [], [], [], []
+    for line, raw in enumerate(body.splitlines(), 1):
+        code = raw.split(';', 1)[0].strip()
+        if not code:
+            continue
+        match = re.match(r'([A-Za-z_][A-Za-z_0-9]*)(?:\s|$)', code)
+        if match is None:
+            raise ContractError('Unparsed executable command in physical qualification')
+        op, rest = match[1].upper(), code[len(match[1]):]
+        commands.add(op)
+        if op not in ARTIFACT_BUILTINS and op not in qualification['macro_sources_sha256']:
+            raise ContractError('Custom command lacks reviewed source')
+        if op in qualification['macro_sources_sha256'] and op not in ('PRINT_START', 'PRINT_END') and rest.strip():
+            raise ContractError('Additional custom macro arguments require explicit separate qualification')
+        if op in ('G2', 'G3') or op == 'G92' and re.search('[XYZ]', rest):
+            raise ContractError('Arc or XYZ rebasing requires separate physical qualification')
+        fields = {}
+        if op in ('G0', 'G1', 'G92', 'M104', 'M109', 'M140', 'M190'):
+            if re.fullmatch(r'\s*(?:[A-Z]' + NUMBER + r'\s*)*', rest) is None:
+                raise ContractError('Malformed qualified motion/heater command')
+            pairs = re.findall(r'([A-Z])(' + NUMBER + ')', rest)
+            fields = {key: float(value) for key, value in pairs}
+            if len(fields) != len(pairs) or any(not math.isfinite(v) for v in fields.values()):
+                raise ContractError('Ambiguous or nonfinite qualified motion/heater value')
+        if op == 'PRINT_START':
+            pairs = re.findall(r'([A-Z_]+)=(' + NUMBER + ')', rest)
+            args = {key: float(value) for key, value in pairs}
+            if re.fullmatch(r'\s*(?:[A-Z_]+=' + NUMBER + r'\s*)*', rest) is None or len(args) != len(pairs) or set(args) != {'BED_TEMP', 'EXTRUDER_TEMP'}:
+                raise ContractError('Actual PRINT_START arguments differ from reviewed exact ABI')
+            starts.append((line, args)); nozzle_targets.append(args['EXTRUDER_TEMP']); bed_targets.append(args['BED_TEMP'])
+        if op == 'PRINT_END':
+            if rest.strip():
+                raise ContractError('PRINT_END arguments are unreviewed')
+            ends.append(line)
+        if op in ('M104', 'M109', 'M140', 'M190'):
+            if fields.get('T', 0) != 0:
+                raise ContractError('Multiple physical heater tools are unsupported')
+            target = fields.get('S', fields.get('R'))
+            if target is None:
+                raise ContractError('Actual heater target unavailable')
+            (nozzle_targets if op in ('M104', 'M109') else bed_targets).append(target)
+        if op in ('G90', 'G91'): absolute = op == 'G90'
+        if op in ('M82', 'M83'): relative_e = op == 'M83'
+        if op == 'G92': e = fields.get('E', e)
+        if op not in ('G0', 'G1'):
+            continue
+        for axis in xyz:
+            if axis in fields:
+                if not absolute and xyz[axis] is None:
+                    raise ContractError('Relative physical motion starts from unknown coordinate')
+                xyz[axis] = fields[axis] if absolute else xyz[axis] + fields[axis]
+            if xyz[axis] is not None and not qualification['motion_bounds'][axis][0] <= xyz[axis] <= qualification['motion_bounds'][axis][1]:
+                raise ContractError('Actual motion exceeds reviewed physical envelope')
+        delta = fields.get('E', 0.) if relative_e else fields.get('E', e) - e
+        if 'E' in fields: e += delta
+        if delta > 0 and ('X' in fields or 'Y' in fields):
+            if any(value is None for value in xyz.values()):
+                raise ContractError('Physical deposition coordinates are unavailable')
+            depositions.append(line)
+    if len(starts) != 1 or len(ends) != 1 or not depositions or not starts[0][0] < depositions[0] <= depositions[-1] < ends[0]:
+        raise ContractError('Reviewed start/end must surround actual visible deposition')
+    for target in nozzle_targets:
+        if target != 0 and any(not qualification[key][0] <= target <= qualification[key][1] for key in ('filament_range_c', 'nozzle_range_c')):
+            raise ContractError('Actual nozzle target exceeds reviewed filament/nozzle range')
+    for target in bed_targets:
+        if target != 0 and not qualification['bed_range_c'][0] <= target <= qualification['bed_range_c'][1]:
+            raise ContractError('Actual bed target exceeds reviewed range')
+    if starts[0][1]['EXTRUDER_TEMP'] <= 0 or starts[0][1]['BED_TEMP'] <= 0:
+        raise ContractError('Positive reviewed macro heater targets required')
+    return sorted(commands)
 
 
 def _number(value, label):
@@ -117,6 +265,7 @@ class PinnedMoonraker:
         physical = _hash(json.dumps(dict(mcu_kind=kind, mcu_identity=serial, macs=macs), sort_keys=True, separators=(",", ":")).encode())
         if config_hash != self.configuration or physical != self.identity:
             raise ContractError("Physical printer/configuration identity differs")
+        macro_sources, macro_calls, start_arguments = _macro_inventory(config)
         queue = self._wire("/server/job_queue/status")
         if not isinstance(queue.get("queued_jobs"), list) or queue.get("queue_state") not in ("paused", "ready"):
             raise ContractError("Queue transition or unavailable queue")
@@ -131,7 +280,9 @@ class PinnedMoonraker:
             raise ContractError("Unknown printer state")
         return dict(eventtime=_number(final["eventtime"], "printer eventtime"), state=stats["state"], filename=filename,
             job_id=metadata.get("job_id") if metadata else None, start_time=metadata.get("print_start_time") if metadata else None,
-            queue_job_ids=tuple(j["job_id"] for j in queue["queued_jobs"]))
+            queue_job_ids=tuple(j["job_id"] for j in queue["queued_jobs"]), physical_identity=physical,
+            configuration_sha256=config_hash, macro_sources_sha256=macro_sources,
+            macro_calls=macro_calls, start_required_arguments=start_arguments)
 
     def metadata(self, filename):
         value = self._wire("/server/files/metadata?filename=" + quote(_filename(filename), safe=""), missing=True)
@@ -209,10 +360,12 @@ class OwnedJobAdapter:
     local action gates, and notify confirm before calling start. Shipped CLI does
     not instantiate this class. No wire field may enable actions.
     """
-    def __init__(self, transport, root, *, orca_machine_sha256, actions=False, now=time.time, monotonic=time.monotonic, sleep=time.sleep):
+    def __init__(self, transport, root, *, orca_machine_sha256, physical_qualification=None, actions=False, now=time.time, monotonic=time.monotonic, sleep=time.sleep):
         if type(actions) is not bool:
             raise ContractError("Actions must be a separate local boolean")
         self.machine = hex_value(orca_machine_sha256)
+        self.qualification = _qualification(physical_qualification, transport, self.machine)
+        self.qualification_sha256 = digest(self.qualification)
         self.transport, self.root, self.actions = transport, Path(root), actions
         self.now, self.monotonic, self.sleep = now, monotonic, sleep
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -236,6 +389,38 @@ class OwnedJobAdapter:
         atomic_json(self._path(record["request"]["request_id"]), record)
         if record["phase"] != "confirmed":
             atomic_json(self.root / "active.json", dict(request_id=record["request"]["request_id"], phase=record["phase"]))
+
+    def _snapshot(self, record):
+        sample = self.transport.snapshot()
+        q = self.qualification
+        if sample.get('physical_identity') != q['physical_identity'] or sample.get('configuration_sha256') != q['configuration_sha256'] or sample.get('start_required_arguments') != q['start_required_arguments']:
+            raise ContractError('Live physical qualification identity/configuration/macro arguments differ')
+        sources, graph = sample.get('macro_sources_sha256'), sample.get('macro_calls')
+        if not isinstance(sources, dict) or not isinstance(graph, dict):
+            raise ContractError('Live custom macro sources/calls unavailable')
+        needed, visiting = set(), set()
+        def resolve(name):
+            if name in visiting:
+                raise ContractError('Recursive custom macro calls need separate safety qualification')
+            if name in needed:
+                return
+            if name not in sources or sources[name] != q['macro_sources_sha256'].get(name) or not isinstance(graph.get(name), dict) or graph[name].get('resolved') is not True:
+                raise ContractError('Custom macro source or transitive call is unreviewed/unresolved')
+            visiting.add(name)
+            calls = graph[name].get('calls')
+            if not isinstance(calls, list) or any(not isinstance(child, str) for child in calls):
+                raise ContractError('Transitive custom macro call inventory unavailable')
+            for child in calls:
+                resolve(child)
+            visiting.remove(name); needed.add(name)
+        for op in record['commands']:
+            if op in sources:
+                resolve(op)
+            elif op not in BUILTINS:
+                raise ContractError('Actual custom macro invocation has no live source')
+        if needed != set(q['macro_sources_sha256']):
+            raise ContractError('Reviewed custom macro inventory differs from exact transitive invocations')
+        return sample
 
     @staticmethod
     def _intent(request, prepared, intent, action):
@@ -268,20 +453,21 @@ class OwnedJobAdapter:
         data = (directory / prepared["artifact"]["name"]).read_bytes()
         if not 0 < len(data) <= MAX_BYTES:
             raise ContractError("Owned upload supports at most 20 MB")
-        return data
+        return data, _inspect_physical(data, self.qualification)
 
     def confirm(self, request, prepared, directory, intent):
         self._intent(request, prepared, intent, "confirm")
-        self._candidate(request, prepared, directory)
+        _, commands = self._candidate(request, prepared, directory)
         with InstanceLock(self.root / "adapter.lock"):
             if self._path(request["request_id"]).exists():
                 record = self._read(request["request_id"])
-                if record["request"] == request and record["prepared"] == prepared and record["confirm"] == intent and record["phase"] == "confirmed":
+                if record["request"] == request and record["prepared"] == prepared and record["confirm"] == intent and record["phase"] == "confirmed" and record.get('qualification_sha256') == self.qualification_sha256 and record.get('commands') == commands:
                     return
                 raise ContractError("Existing one-shot job cannot be replaced")
             record = dict(schema="helix-orca-v1-owned-job/v1", request=copy.deepcopy(request), prepared=copy.deepcopy(prepared),
                 confirm=copy.deepcopy(intent), filename="helix-orca-v1-" + request["request_id"] + "-" + secrets.token_hex(16) + ".gcode",
-                phase="confirmed", start=None, cancel=None, job=None, last_eventtime=None, baseline=None)
+                phase="confirmed", start=None, cancel=None, job=None, last_eventtime=None, baseline=None, ownership_confirmed=False)
+            record.update(qualification_sha256=self.qualification_sha256, commands=commands)
             self._save(record)
 
     def _enabled(self):
@@ -317,11 +503,11 @@ class OwnedJobAdapter:
     def start(self, request, prepared, directory, intent):
         self._enabled()
         self._intent(request, prepared, intent, "start")
-        data = self._candidate(request, prepared, directory)
+        data, commands = self._candidate(request, prepared, directory)
         with InstanceLock(self.root / "adapter.lock"):
             record = self._read(request["request_id"])
             self._intent(request, prepared, record["confirm"], "confirm")
-            if record["request"] != request or record["prepared"] != prepared or record["phase"] != "confirmed" or intent["intent_id"] == record["confirm"]["intent_id"]:
+            if record["request"] != request or record["prepared"] != prepared or record["phase"] != "confirmed" or intent["intent_id"] == record["confirm"]["intent_id"] or record.get('qualification_sha256') != self.qualification_sha256 or record.get('commands') != commands:
                 raise ContractError("Start requires distinct retained native Confirm; retry prohibited")
             active_path = self.root / "active.json"
             if active_path.exists():
@@ -332,7 +518,7 @@ class OwnedJobAdapter:
                 hex_value(active["request_id"], 32)
                 if active["request_id"] != request["request_id"] and active["phase"] not in ("complete", "cancelled", "error"):
                     raise ContractError("Earlier owned job remains unresolved; new dispatch blocked")
-            sample = self.transport.snapshot(); self._idle(sample); self._fresh(sample, record)
+            sample = self._snapshot(record); self._idle(sample); self._fresh(sample, record)
             record["baseline"] = self.transport.history()
             filename = record["filename"]
             if self.transport.metadata(filename) is not None or self.transport.file(filename, missing=True) is not None:
@@ -342,13 +528,13 @@ class OwnedJobAdapter:
                 self.transport.upload(filename, data)
                 if self.transport.file(filename) != data:
                     raise ContractError("Uploaded bytes differ from prepared artifact")
-                sample = self.transport.snapshot(); self._idle(sample); self._fresh(sample, record)
+                sample = self._snapshot(record); self._idle(sample); self._fresh(sample, record)
                 validate_request(request, self.now())
                 record["phase"] = "start-intent"; self._save(record)
                 self.transport.start(filename)
                 deadline = self.monotonic() + 30
                 while self.monotonic() < deadline:
-                    sample = self.transport.snapshot(); self._fresh(sample, record)
+                    sample = self._snapshot(record); self._fresh(sample, record)
                     if sample["queue_job_ids"]:
                         raise ContractError("Queue changed during owned start")
                     if sample["state"] == "printing" and sample["filename"] == filename and sample["job_id"] and sample["start_time"] is not None:
@@ -361,7 +547,7 @@ class OwnedJobAdapter:
                             raise ContractError("Stale prior job metadata cannot establish ownership")
                         record["job"] = dict(job_id=job_id, start_time=sample["start_time"])
                         if self._history_matches(self.transport.history(job_id), record, "in_progress"):
-                            record["phase"] = "printing"; self._save(record)
+                            record.update(phase="printing", ownership_confirmed=True); self._save(record)
                             return self._public_job(record)
                     elif sample["state"] != "standby":
                         raise ContractError("Unexpected job during owned start")
@@ -377,14 +563,43 @@ class OwnedJobAdapter:
         record = self._read(job["request_id"])
         self._intent(record["request"], record["prepared"], record["confirm"], "confirm")
         self._intent(record["request"], record["prepared"], record["start"], "start")
-        if not record["job"] or self._public_job(record) != job:
+        if not record["job"] or self._public_job(record) != job or record.get('ownership_confirmed') is not True or record.get('qualification_sha256') != self.qualification_sha256:
             raise ContractError("Unrelated job handle refused")
         return record
+
+    def recover(self, request, prepared, intent):
+        """Adopt only an already independently confirmed durable owned job.
+
+        Read-only and idempotent: no dispatch, retries, journal writes or HTTP.
+        Fresh observation remains mandatory after the coordinator adopts it.
+        """
+        self._intent(request, prepared, intent, 'start')
+        with InstanceLock(self.root / 'adapter.lock'):
+            if self._path(request['request_id']).is_symlink():
+                raise ContractError('Symlink job journal refused')
+            if not self._path(request['request_id']).exists():
+                return None
+            record = self._read(request['request_id'])
+            if record['request'] != request or record['prepared'] != prepared or record.get('qualification_sha256') != self.qualification_sha256:
+                raise ContractError('Recovery request/prepared/physical qualification differs')
+            self._intent(request, prepared, record['confirm'], 'confirm')
+            if record['start'] is None:
+                return None
+            self._intent(request, prepared, record['start'], 'start')
+            if record['start'] != intent or record['start']['intent_id'] == record['confirm']['intent_id']:
+                raise ContractError('Recovery requires the exact retained distinct native Start intent')
+            if record['phase'] not in ('printing', 'complete', 'cancelled', 'error', 'cancel-intent', 'cancel-pending', 'cancel-uncertain') or record['job'] is None or record.get('ownership_confirmed') is not True:
+                return None
+            exact(record['job'], 'job_id start_time', 'durable independently confirmed job')
+            if not isinstance(record['job']['job_id'], str) or JOB_ID.fullmatch(record['job']['job_id']) is None:
+                raise ContractError('Durable owned job ID unavailable')
+            _number(record['job']['start_time'], 'durable owned job start')
+            return self._public_job(record)
 
     def observe(self, job):
         with InstanceLock(self.root / "adapter.lock"):
             record = self._owned(job)
-            sample = self.transport.snapshot(); self._fresh(sample, record)
+            sample = self._snapshot(record); self._fresh(sample, record)
             if not self._matching(sample, record):
                 raise ContractError("Printer changed away from exact owned job")
             history = self.transport.history(job["job_id"])
@@ -417,7 +632,7 @@ class OwnedJobAdapter:
             if record["phase"] != "printing" or record["cancel"] is not None or intent["intent_id"] in (record["confirm"]["intent_id"], record["start"]["intent_id"]):
                 raise ContractError("Owned cancellation is one-shot and requires separate native intent")
             for _ in range(2):
-                sample = self.transport.snapshot(); self._fresh(sample, record)
+                sample = self._snapshot(record); self._fresh(sample, record)
                 if sample["state"] != "printing" or sample["queue_job_ids"] or not self._matching(sample, record) or not self._history_matches(self.transport.history(job["job_id"]), record, "in_progress"):
                     raise ContractError("Cancellation target is not the same independently owned running job")
             record.update(phase="cancel-intent", cancel=copy.deepcopy(intent)); self._save(record)
@@ -442,7 +657,7 @@ def from_config(config: dict, root: Path, *, deployment_authorized: bool = False
     value = config.get("owned_jobs")
     if value is None:
         return None
-    exact(value, "schema origin expected_host expected_version physical_identity configuration_sha256 orca_machine_sha256 existing_trusted_lan_ack actions_enabled", "private owned-job deployment")
+    exact(value, "schema origin expected_host expected_version physical_identity configuration_sha256 orca_machine_sha256 physical_qualification existing_trusted_lan_ack actions_enabled", "private owned-job deployment")
     if value["schema"] != "helix-orca-v1-job-deployment/v1" or type(value["existing_trusted_lan_ack"]) is not bool or type(value["actions_enabled"]) is not bool:
         raise ContractError("Malformed owned-job deployment safety flags")
     machine = hex_value(value["orca_machine_sha256"])
@@ -450,7 +665,8 @@ def from_config(config: dict, root: Path, *, deployment_authorized: bool = False
     transport = PinnedMoonraker(value["origin"], value["expected_host"], value["expected_version"],
         value["physical_identity"], value["configuration_sha256"], trusted_lan=value["existing_trusted_lan_ack"],
         api_key=api_key, actions=False)
+    qualification = _qualification(value['physical_qualification'], transport, machine)
     if not deployment_authorized or not value["actions_enabled"]:
         return None
     transport.actions = True
-    return OwnedJobAdapter(transport, root, orca_machine_sha256=machine, actions=True)
+    return OwnedJobAdapter(transport, root, orca_machine_sha256=machine, physical_qualification=qualification, actions=True)
