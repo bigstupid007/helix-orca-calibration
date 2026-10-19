@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import os
+import platform
 import subprocess
 from pathlib import Path
 from types import MappingProxyType
@@ -91,6 +92,7 @@ _NATIVE_ROUTES = {"temperature", "pressure_advance_pattern", "retraction", "max_
 _NATIVE_ASSETS = {"calib/temperature_tower/temperature_tower.drc", "calib/retraction/retraction_tower.drc",
                   "calib/volumetric_speed/SpeedTestStructure.drc"}
 _ROOT = Path(__file__).resolve().parents[1]
+_TARGET = {"system": "Linux", "architecture": "x86_64", "format": "ELF64-LE-EM_X86_64"}
 
 
 def _sha_file(path):
@@ -136,6 +138,16 @@ def _backend(config):
             or receipt["adapter"]["size"] != executable.stat().st_size or not os.access(executable, os.X_OK)):
         raise NativeEngineBlocked("Actual built executable differs", "native_executable")
     caps = receipt["capabilities"]
+    if (receipt.get("target") != _TARGET or caps.get("target") != _TARGET
+            or platform.system() != "Linux" or platform.machine().lower() not in ("x86_64", "amd64")):
+        raise NativeEngineBlocked("Native backend requires an actual compatible Linux x86_64 build; Windows and other targets are unavailable", "native_platform")
+    with executable.open("rb") as stream:
+        header = stream.read(64)
+    if (len(header) != 64 or header[:7] != b"\x7fELF\x02\x01\x01"
+            or int.from_bytes(header[18:20], "little") != 62):
+        raise NativeEngineBlocked("Native executable is not the recorded Linux x86_64 ELF64 target", "native_format")
+    if caps.get("max_parallelism") != 2:
+        raise NativeEngineBlocked("Native scheduler bound is unavailable", "native_scheduler")
     required = caps.get("required_effective_keys")
     if (caps.get("schema") != "helix-orca-v1-native-capabilities/v1" or caps.get("source_commit") != ORCA_SOURCE
             or set(caps.get("routes", [])) != _NATIVE_ROUTES or not isinstance(required, list)
@@ -216,17 +228,24 @@ def generate(request, snapshot, output_dir, config):
     if artifact.is_symlink() or list(destination.glob("*.gcode")) != [artifact]:
         raise NativeEngineBlocked("Expected exactly one native artifact", "native_artifact")
     record = parity.file_record(artifact)
-    native = json.loads((destination / "native-generation.json").read_text())
+    native_path = destination / "native-generation.json"
+    if native_path.is_symlink() or native_path.stat().st_size > 1048576:
+        raise NativeEngineBlocked("Bounded native result required", "native_result")
+    native = json.loads(native_path.read_text())
     if (native.get("source_commit") != ORCA_SOURCE or native.get("calibration") != request["calibration"]
             or native.get("parameters") != request["parameters"] or native.get("request_id") != request["request_id"]
             or native.get("origin_id") != request["origin_id"] or native.get("context_sha256") != request["context_sha256"]
             or native.get("artifact") != artifact.name or native.get("size") != record["size"]
-            or native.get("qualified") is not False or native.get("not_applied") is not True):
+            or native.get("qualified") is not False or native.get("not_applied") is not True
+            or native.get("processing") != {"error_code": 0, "warnings": []} or native.get("max_parallelism") != 2):
         raise NativeEngineBlocked("Native result does not bind exact request and artifact", "native_result")
     reference = config.get("native_reference")
     if reference:
-        manifest = json.loads(_checked(reference["manifest"], 1048576).read_text())
-        report = parity.evaluate(artifact, _checked(reference["gcode"], parity.MAX_GCODE_BYTES), manifest, inputs)
+        try:
+            manifest = json.loads(_checked(reference["manifest"], 1048576).read_text())
+            report = parity.evaluate(artifact, _checked(reference["gcode"], parity.MAX_GCODE_BYTES), manifest, inputs)
+        except (NativeEngineBlocked, OSError, ValueError, KeyError, TypeError) as exc:
+            report = parity.unqualified(artifact, inputs, "Independent native reference unavailable: " + str(exc))
     else:
         report = parity.unqualified(artifact, inputs, "No independent native UI reference with matching exact inputs has been retained.")
     (destination / "parity.json").write_bytes(contract.canonical(report))

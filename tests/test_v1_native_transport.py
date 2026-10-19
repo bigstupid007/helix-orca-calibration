@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 from integration import v1_contract as contract
 from integration import v1_engine as engine
 from integration import v1_parity as parity
@@ -23,7 +24,10 @@ class NativeTransport(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.exe = self.root / 'test-only-native'
-        self.exe.write_text('test-only runner fixture, never an actual executable build')
+        header = bytearray(64)
+        header[:7] = b'\x7fELF\x02\x01\x01'
+        header[18:20] = (62).to_bytes(2, 'little')
+        self.exe.write_bytes(header + b'test-only header fixture; never an actual executable build')
         self.exe.chmod(0o700)
         self.resources = self.root / 'resources'
         assets = {}
@@ -50,10 +54,11 @@ class NativeTransport(unittest.TestCase):
                        'builder_image': 'sha256:f67960f55aa1b7cfa8af41bd89943b13730b791ce55e1925bc575d5eef89f6d9',
                        'owned_inputs': {name: engine._sha_file(engine._ROOT/name) for name in engine._OWNED_INPUTS}}
         self.receipt = {'schema': 'helix-orca-v1-native-build/v1', 'source_commit': engine.ORCA_SOURCE,
-                        'built': True, 'qualified': False, 'resources': assets,
+                        'built': True, 'qualified': False, 'resources': assets, 'target': dict(engine._TARGET),
                         'adapter': {'size': self.exe.stat().st_size, 'sha256': engine._sha_file(self.exe)},
                         'capabilities': {'schema': 'helix-orca-v1-native-capabilities/v1',
                                          'source_commit': engine.ORCA_SOURCE, 'routes': sorted(engine._NATIVE_ROUTES),
+                                         'target': dict(engine._TARGET), 'max_parallelism': 2,
                                          'required_effective_keys': sorted(effective)}}
         self.config = {'native_executable': self.record(self.exe), 'native_resources': str(self.resources),
                        'now': 150, 'runner': self.runner}
@@ -79,7 +84,7 @@ class NativeTransport(unittest.TestCase):
         artifact.write_text(fixture_gcode())
         report = {key: self.request[key] for key in ('calibration', 'parameters', 'request_id', 'origin_id', 'context_sha256')}
         report.update(source_commit=engine.ORCA_SOURCE, artifact=artifact.name, size=artifact.stat().st_size,
-                      qualified=False, not_applied=True)
+                      qualified=False, not_applied=True, processing={'error_code': 0, 'warnings': []}, max_parallelism=2)
         (out/'native-generation.json').write_text(json.dumps(report))
         return 0
 
@@ -109,6 +114,44 @@ class NativeTransport(unittest.TestCase):
         self.assertEqual(original, self.snapshot)
         self.assertEqual(contract.validate_prepared(result, self.request), result)
         self.assertEqual(result['parity']['report_sha256'], contract.digest(json.loads((self.root/'job/parity.json').read_text())))
+
+    def test_foreign_host_or_elf_target_never_enables_native(self):
+        for system, machine in [('Windows', 'AMD64'), ('Linux', 'aarch64'), ('Darwin', 'x86_64')]:
+            with self.subTest(system=system, machine=machine), patch.object(engine.platform, 'system', return_value=system), patch.object(engine.platform, 'machine', return_value=machine):
+                with self.assertRaises(engine.NativeEngineBlocked) as caught:
+                    self.generate()
+                self.assertEqual(caught.exception.code, 'native_platform')
+                self.assertFalse(any(row['available'] for row in engine.capabilities(self.config)))
+                self.assertFalse(self.called)
+        self.exe.write_bytes(b'MZ' + b'not an ELF target' * 10)
+        self.config['native_executable'] = self.record(self.exe)
+        self.receipt['adapter'] = {'size': self.exe.stat().st_size, 'sha256': engine._sha_file(self.exe)}
+        self.refresh_receipts()
+        with self.assertRaises(engine.NativeEngineBlocked) as caught:
+            self.generate()
+        self.assertEqual(caught.exception.code, 'native_format')
+        self.assertFalse(self.called)
+
+    def test_missing_or_mutated_reference_retains_unqualified_artifact_report(self):
+        self.add_reference()
+        Path(self.config['native_reference']['gcode']['path']).write_text('substituted reference')
+        result = self.generate()
+        self.assertFalse(result['parity']['qualified'])
+        self.assertIn('reference unavailable', result['parity']['reason'])
+        self.assertTrue((self.root/'job/parity.json').is_file())
+
+    def test_post_export_warning_cannot_reach_parity_or_ready(self):
+        def warning_runner(argv, out):
+            self.runner(argv, out)
+            report = json.loads((out/'native-generation.json').read_text())
+            report['processing']['warnings'] = [{'level': 1, 'message': 'outside retained envelope'}]
+            (out/'native-generation.json').write_text(json.dumps(report))
+            return 0
+        self.config['runner'] = warning_runner
+        with self.assertRaises(engine.NativeEngineBlocked) as caught:
+            self.generate()
+        self.assertEqual(caught.exception.code, 'native_result')
+        self.assertFalse((self.root/'job/prepared.json').exists())
 
     def test_executable_receipt_and_owned_source_substitution_stop_before_runner(self):
         self.exe.write_text('substituted executable')

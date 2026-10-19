@@ -3,6 +3,9 @@
 // https://github.com/OrcaSlicer/OrcaSlicer/blob/6a7763f08d1a175a464a00ce13f0b5a815662fc4/LICENSE.txt
 // Separate, source-pinned adapter. No Orca application source is modified.
 // Experimental until compiled and independently compared with native UI output.
+#if !defined(__linux__) || !defined(__x86_64__)
+#error This registered V1 native build target requires Linux x86_64; other platforms need their own audited build registration.
+#endif
 #include "libslic3r/Arrange.hpp"
 #include "libslic3r/BuildVolume.hpp"
 #include "libslic3r/TriangleMesh.hpp"
@@ -15,6 +18,7 @@
 #include "libslic3r/calib.hpp"
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include <nlohmann/json.hpp>
+#include <tbb/global_control.h>
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -309,6 +313,9 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
 int main(int argc,char **argv)
 {
     try {
+        // Keep the guard alive through Print destruction: an environment hint
+        // does not bound oneTBB's scheduler.
+        tbb::global_control scheduler_limit(tbb::global_control::max_allowed_parallelism,2);
         if(argc==2 && std::string(argv[1])=="--capabilities") {
             auto defaults=DynamicPrintConfig::full_print_config();
             defaults.erase("bed_custom_model");defaults.erase("bed_custom_texture");
@@ -318,6 +325,8 @@ int main(int argc,char **argv)
             std::sort(keys.begin(),keys.end());
             std::cout<<json{{"schema","helix-orca-v1-native-capabilities/v1"},
                 {"source_commit",source_commit},{"required_effective_keys",keys},
+                {"target",{{"system","Linux"},{"architecture","x86_64"},{"format","ELF64-LE-EM_X86_64"}}},
+                {"max_parallelism",2},
                 {"routes",{"temperature","pressure_advance_pattern","retraction","max_volumetric_speed"}}}.dump()<<'\n';
             return 0;
         }
@@ -363,12 +372,21 @@ int main(int argc,char **argv)
         if(print.empty()) throw std::runtime_error("Native print is empty");
         Model::setExtruderParams(config,1);Model::setPrintSpeedTable(config,print.config());
         print.process();
-        print.export_gcode(gcode.string(),nullptr,nullptr);
+        GCodeProcessorResult processed;
+        print.export_gcode(gcode.string(),&processed,nullptr);
+        json processing={{"error_code",processed.gcode_check_result.error_code},{"warnings",json::array()}};
+        for(const auto &warning:processed.warnings)
+            processing["warnings"].push_back({{"level",warning.level},{"message",warning.msg},
+                                               {"error_code",warning.error_code}});
+        std::ofstream(output/"native-processing.json")<<processing.dump(2)<<'\n';
+        if(processed.gcode_check_result.error_code!=0 || !processed.warnings.empty())
+            throw std::runtime_error("Native post-export validation rejected artifact; see native-processing.json");
         json report={{"source_commit",source_commit},{"calibration",calibration},{"parameters",request.at("parameters")},
                      {"request_id",request.at("request_id")},{"origin_id",request.at("origin_id")},
                      {"context_sha256",request.at("context_sha256")},
                      {"artifact",gcode.filename().string()},{"size",fs::file_size(gcode)},
                      {"qualified",false},{"not_applied",true},
+                     {"processing",processing},{"max_parallelism",2},
                      {"excluded_visual_keys",{"bed_custom_model","bed_custom_texture"}}};
         std::ofstream(output/"native-generation.json")<<report.dump(2)<<'\n';
         std::cout<<report.dump()<<'\n';return 0;

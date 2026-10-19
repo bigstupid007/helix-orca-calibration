@@ -289,8 +289,43 @@ result identities. Every actual artifact gets a shared parity report: absent
 native reference stays unqualified; a retained independent native reference is
 evaluated for exact inputs, executable commands and calibration invariants.
 
-Seven adversarial transport tests use conspicuously synthetic build receipts,
+Ten adversarial transport tests use conspicuously synthetic build receipts,
 resources, executable runners and UI evidence to test the checker only. They
 prove substituted executable/source/assets, incomplete context, active hooks
 and forged result qualification cannot bypass the gate. Their synthetic
 checker success is not a native build, native UI capture or V1 qualification.
+
+## Actual offline dependency checkpoint
+
+Managed run `6eac3c294ff24ca8a1323196d4123f9b` successfully built the first
+21 locked native dependency targets, including OCCT (1,224.753 seconds), OpenCV
+(113.008 seconds), Assimp (33.032 seconds) and CPython 3.12.13. Root configuration
+then failed at the exact source's unconditional OpenVDB requirement
+(`CMakeLists.txt:1034–1041`): OpenVDB and IlmBase were missing. This is a real
+failed build checkpoint, not a built or available generator. Its retained
+`engine-configure.log` and stage JSON files record the failure. Cgroup peak was
+3,341,504,512 bytes and 31 PIDs, with zero OOM events. The exact container was
+removed and lifecycle verification records `runtime_clear=true`.
+
+The dependency lock now also includes the exact upstream `dep_Blosc`,
+`dep_OpenEXR` and `dep_OpenVDB` URLs and SHA-256 values from `deps/Blosc/Blosc.cmake`,
+`deps/OpenEXR/OpenEXR.cmake` and `deps/OpenVDB/OpenVDB.cmake`. OpenVDB depends on
+Blosc, OpenEXR, TBB and Boost. These targets will use the retained owned prefix
+under the same bounded network-none build; no host installation or upstream
+patch is implied. Downloads and compilation remain serialized with native UI
+capture through the shared lifecycle lock.
+
+The registered build target is explicitly Linux x86_64 ELF64 little-endian.
+Its receipt and actual capability response must agree on target, the host must
+match, and the executable must contain an actual ELF64 `EM_X86_64` header.
+Copying the Linux binary or receipt to Windows cannot enable generation.
+A compatible Windows build remains unavailable: the read-only target probe
+found no CMake, Ninja, MSVC, MSBuild or Visual Studio installer toolchain.
+The C++ source also refuses an unregistered platform at compile time.
+
+A persistent `tbb::global_control` limits native generation to two workers.
+Export retains `native-processing.json` and rejects native processor errors or
+warnings, including executable build-volume failures; successful slicing alone
+cannot bypass Orca's post-export checks. Missing, malformed or substituted local
+reference material retains an unqualified parity report for the generated
+artifact. Remote qualification flags are never accepted.

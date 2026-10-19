@@ -17,6 +17,14 @@ Stock Flow YOLO preparation is
 owned by the stock generation module. All artifacts remain unqualified until
 mandatory independent native-UI parity; this file grants no physical action.
 
+The registered executable target is Linux x86_64 ELF64. Its receipt is
+unavailable on Windows; Windows needs its own real compatible audited build.
+The actual build checkpoint passed 21 dependencies, then root configuration
+failed on missing OpenVDB/IlmBase. The three source-pinned supporting dependency
+targets are now retained in the lock for the next bounded build. Native export
+also retains and checks processor errors/warnings, and a persistent TBB control
+limits generation to two workers. None of these source changes is a build proof.
+
 Use `-DCMAKE_PROJECT_OrcaSlicer_INCLUDE=/absolute/path/add-target.cmake` on a
 pinned Orca source root to add target `helix_orca_native` without editing that
 root. This injection/build procedure still needs actual qualification.

@@ -129,7 +129,7 @@ def compile_offline():
             'calib/retraction/retraction_tower.drc','calib/volumetric_speed/SpeedTestStructure.drc')
     (evidence/'native-build.json').write_text(json.dumps(dict(
         schema='helix-orca-v1-native-build/v1',source_commit=lock['source_commit'],
-        built=True,qualified=False,libraries=libraries,capabilities=capabilities,
+        built=True,qualified=False,libraries=libraries,capabilities=capabilities,target=capabilities['target'],
         native_inputs_sha256=sha(evidence/'native-inputs.json'),
         resources={name:sha(Path('/source/resources')/name) for name in assets},
         adapter={'path':str(executable),'size':executable.stat().st_size,'sha256':sha(executable)}),indent=2)+'\n')

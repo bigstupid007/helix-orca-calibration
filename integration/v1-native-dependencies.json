@@ -108,6 +108,21 @@
       "target": "dep_python3",
       "url": "https://www.python.org/ftp/python/3.12.13/Python-3.12.13.tar.xz",
       "sha256": "c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684"
+    },
+    {
+      "target": "dep_Blosc",
+      "url": "https://github.com/tamasmeszaros/c-blosc/archive/refs/heads/v1.17.0_tm.zip",
+      "sha256": "dcb48bf43a672fa3de6a4b1de2c4c238709dad5893d1e097b8374ad84b1fc3b3"
+    },
+    {
+      "target": "dep_OpenEXR",
+      "url": "https://github.com/AcademySoftwareFoundation/openexr/archive/refs/tags/v2.5.5.zip",
+      "sha256": "0307a3d7e1fa1e77e9d84d7e9a8694583fbbbfd50bdc6884e2c96b8ef6b902de"
+    },
+    {
+      "target": "dep_OpenVDB",
+      "url": "https://github.com/tamasmeszaros/openvdb/archive/a68fd58d0e2b85f01adeb8b13d7555183ab10aa5.zip",
+      "sha256": "f353e7b99bd0cbfc27ac9082de51acf32a8bc0b3e21ff9661ecca6f205ec1d81"
     }
   ],
   "bootstrap_sources": [
