@@ -391,9 +391,9 @@ class Coordinator:
         bindings = {"prepared_sha256": digest(prepared) if prepared else None,
                     "job_id": self.state["job"]["job_id"] if self.state.get("job") else None,
                     "completion_sha256": digest(self.state["completion"]) if self.state.get("completion") else None}
-        if any(native.get(key) is not None and native[key] != expected for key, expected in bindings.items()):
+        if any(native.get(key) != expected for key, expected in bindings.items()):
             return False
-        if native.get("prepared") is not None and native["prepared"] != prepared:
+        if native.get("prepared") != prepared:
             return False
         if native["sequence"] == self.state["sequence"]:
             self._status(self.state["phase"], self.state["message"])

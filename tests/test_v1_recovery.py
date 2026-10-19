@@ -41,6 +41,11 @@ class RecoveryTests(unittest.TestCase):
                 for key,value in (('sequence',True),('sequence',old['sequence']+1),('request',{}),('prepared_sha256','f'*64),('job_id','wrong'),('completion_sha256','e'*64)):
                     self.assertFalse(r.reconcile_native(dict(native,**{key:value})))
                     self.assertEqual(r.status(),old)
+                for key in ('prepared','prepared_sha256','job_id','completion_sha256'):
+                    if native[key] is not None:
+                        missing=dict(native);missing.pop(key)
+                        self.assertFalse(r.reconcile_native(missing))
+                        self.assertEqual(r.status(),old)
                 self.assertTrue(r.reconcile_native(native))
                 self.assertEqual(r.status()['sequence'],old['sequence']+1)
                 self.assertEqual(r.status()['phase'],phase)
