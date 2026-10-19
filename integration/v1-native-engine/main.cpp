@@ -27,6 +27,7 @@
 #include <tbb/global_control.h>
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -38,6 +39,10 @@ using namespace Slic3r;
 using json = nlohmann::json;
 namespace fs = std::filesystem;
 static constexpr const char *source_commit = "6a7763f08d1a175a464a00ce13f0b5a815662fc4";
+static void diagnostic(const std::string &stage)
+{
+    if(std::getenv("HELIX_NATIVE_DIAGNOSTICS")) std::cerr<<"native-stage: "<<stage<<std::endl;
+}
 
 static json read_json(const fs::path &path)
 {
@@ -66,6 +71,7 @@ static DynamicPrintConfig retained_config(const json &snapshot)
     const auto &effective = snapshot.at("effective");
     if (!effective.is_object()) throw std::runtime_error("Effective config unavailable");
     DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
+    diagnostic("config-defaults");
     // GUI-only bed asset paths are deliberately redacted from retained context.
     // PrintConfig.cpp 1037/1043 define them; no executable slicing consumes them.
     config.erase("bed_custom_model");config.erase("bed_custom_texture");
@@ -76,8 +82,10 @@ static DynamicPrintConfig retained_config(const json &snapshot)
     }
     for (auto it = effective.begin(); it != effective.end(); ++it) {
         if (!it.value().is_string()) throw std::runtime_error("Serialized config required");
+        diagnostic("config-key "+it.key());
         config.set_deserialize_strict(it.key(), it.value().get<std::string>());
     }
+    diagnostic("config-deserialized");
     for (const std::string key : {"plugins", "post_process", "slicing_pipeline_plugin"}) {
         if (const auto *option = config.option<ConfigOptionStrings>(key))
             for (const auto &value : option->values)
@@ -87,7 +95,7 @@ static DynamicPrintConfig retained_config(const json &snapshot)
     if (!nozzles || nozzles->values.size() != 1 || nozzles->get_at(0) <= 0)
         throw std::runtime_error("V1 native adapter requires one known nozzle");
     const auto *filaments = config.option<ConfigOptionFloats>("filament_diameter");
-    const auto *ratios = config.option<ConfigOptionFloatsNullable>("filament_flow_ratio");
+    const auto *ratios = config.option<ConfigOptionFloats>("filament_flow_ratio");
     if (!filaments || filaments->values.size()!=1 || !ratios || ratios->values.size()!=1)
         throw std::runtime_error("V1 native adapter requires one retained filament");
     if (config.has("belt_printer") && config.opt_bool("belt_printer"))
@@ -235,7 +243,7 @@ static void volumetric(Model &model,DynamicPrintConfig &config,Calib_Params &par
     if(top>object->bounding_box_exact().size().z()+EPSILON)
         throw std::runtime_error("Requested range exceeds native volumetric asset");
     if(top<object->bounding_box_exact().size().z()) cut(model,top,ModelObjectCutAttribute::KeepLower);
-    const double ratio=config.option<ConfigOptionFloatsNullable>("filament_flow_ratio")->get_at(0);
+    const double ratio=config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
     const double volume=Flow(width,height,nozzle).mm3_per_mm()*ratio;
     if(!std::isfinite(volume)||volume<=0) throw std::runtime_error("Effective flow unavailable");
     params.start/=volume;params.end/=volume;params.step/=volume;
@@ -351,13 +359,16 @@ int main(int argc,char **argv)
         set_resources_dir(resources.string());
         set_data_dir(data.string());
         set_temporary_dir(output.string());
+        diagnostic("resources-ready");
         auto config=retained_config(snapshot);
+        diagnostic("config-ready");
         Model model;Calib_Params params;
         if(calibration=="temperature") temperature(model,config,params,request.at("parameters"),resources);
         else if(calibration=="retraction") retraction(model,config,params,request.at("parameters"),resources);
         else if(calibration=="pressure_advance_pattern") pressure_advance(model,config,params,request.at("parameters"));
         else if(calibration=="max_volumetric_speed") volumetric(model,config,params,request.at("parameters"),resources);
         else throw std::runtime_error("Native adapter route is not implemented for this calibration");
+        diagnostic("model-ready");
         const auto area=config.option<ConfigOptionPoints>("printable_area")->values;
         const double height=config.opt_float("printable_height");
         if(calibration!="pressure_advance_pattern") model.center_instances_around_point(get_extents(area).center());
