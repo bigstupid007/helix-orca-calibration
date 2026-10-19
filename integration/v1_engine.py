@@ -88,7 +88,8 @@ def require_native_generation(calibration, config=None):
 
 
 _OWNED_INPUTS = ("integration/v1-native-dependencies.json", "integration/v1-native-engine/main.cpp",
-                 "integration/v1-native-engine/add-target.cmake", "integration/v1-native-build-tools.py",
+                 "integration/v1-native-engine/add-target.cmake", "integration/v1-native-engine/temperature_prepare.hpp",
+                 "integration/v1-native-build-tools.py",
                  "scripts/v1-engine-native.py")
 _NATIVE_ROUTES = {"temperature", "pressure_advance_pattern", "retraction", "max_volumetric_speed"}
 _NATIVE_ASSETS = {"calib/temperature_tower/temperature_tower.drc", "calib/retraction/retraction_tower.drc",
