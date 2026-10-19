@@ -162,3 +162,21 @@ build uses four child jobs only for OCCT, within the existing four-compiler
 upper bound, while native and other dependency builds remain at two. Speed or
 memory improvement is not claimed before measurement. Disk/deadline guards and
 all source, warning, package and parity requirements are unchanged.
+
+Actual [run 39224687302](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39224687302)
+completed all dependencies, CMake configuration and all 307 native compile/link
+steps. OCCT took 1,379.5 seconds and native compilation 1,547.485 seconds;
+the complete run's peak measured growth was 12,768,280,576 bytes. Packaging then
+rejected `wsock32.dll` as an unresolved non-system DLL. Microsoft documents this
+[Windows Sockets compatibility library](https://learn.microsoft.com/en-us/windows/win32/winsock/windows-sockets-compatibility-issues-2),
+and the actual SPARE system-directory copy has a valid Microsoft Windows
+signature. Only that exact library name is added to the OS classification;
+unknown/changed private DLLs still fail. No DLL is copied from the system or
+substituted, and no slicer warning or parity rule changes.
+
+The [actual build checkpoint](evidence/issue-14/generator-blockers/windows-native-build-r3.json)
+retains successful stage receipts, the OS probe and the complete 29,616-file
+dependency ZIP's external SHA. This classifier-only correction preserves the
+dependency recipe contract, allowing explicitly pinned reuse while the new
+native package binds the corrected owned source and new application commit.
+Compile/link success is not a completed package or calibration qualification.

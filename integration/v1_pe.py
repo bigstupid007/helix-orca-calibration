@@ -7,7 +7,7 @@ DLL_NAME = re.compile(r'[a-z0-9][a-z0-9_.-]{0,120}\.dll\Z')
 SYSTEM_DLLS = frozenset(('advapi32 bcrypt cabinet cfgmgr32 comctl32 comdlg32 crypt32 cryptbase '
     'dbghelp dnsapi dwmapi gdi32 imm32 iphlpapi kernel32 kernelbase mpr msvcrt ncrypt netapi32 '
     'normaliz ntdll msasn1 mswsock wldap32 wintrust imagehlp shcore kernel.appcore dpapi ole32 oleaut32 powrprof propsys psapi rpcrt4 secur32 setupapi shell32 shlwapi '
-    'sspicli ucrtbase user32 userenv usp10 version winhttp wininet winmm winspool ws2_32 wtsapi32').split())
+    'sspicli ucrtbase user32 userenv usp10 version winhttp wininet winmm winspool ws2_32 wsock32 wtsapi32').split())
 
 
 def system_dll(name):

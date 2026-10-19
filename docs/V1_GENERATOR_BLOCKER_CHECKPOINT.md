@@ -203,3 +203,18 @@ passed independent review (eight wiring tests). Accepted control preservation
 and whitespace checks pass. The previous integrated 557-test boundary remains
 retained; no broad UI recertification was repeated for this narrow repair.
 Actual MSVC compilation and full four-route parity remain outstanding.
+
+## Actual MSVC success and packaging classification correction
+
+Run `39224687302` completed all 25 dependencies, native configuration and all
+307 compile/link steps. The third attempt retained its full explicit dependency
+checkpoint, then failed packaging on `wsock32.dll`, an omitted Windows Sockets
+compatibility system library. Official Microsoft documentation and a read-only
+actual SPARE system-file/signature probe establish its identity. The correction
+adds only this exact name to the system classifier. The focused Windows guard
+suite passes fifteen checks, including acceptance without bundling that OS DLL
+while still withholding parity qualification and rejecting unknown names.
+The frozen `b603ffb` integrated boundary passed 561 tests with six host skips.
+No broad UI capture was repeated. Actual Windows package execution and full
+four-route native parity remain pending; no new generator is qualified.
+See [exact stage and dependency checkpoint evidence](evidence/issue-14/generator-blockers/windows-native-build-r3.json).

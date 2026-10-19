@@ -72,6 +72,20 @@ class WindowsNativeGuards(unittest.TestCase):
     def test_real_warning_semantics_remain_fatal_on_windows_envelope(self):
         fixtures.NativeTransport.test_legitimate_bed_warning_reports_exact_blocker_without_mutating_inputs(self)
 
+    def test_windows_winsock_compatibility_import_needs_no_bundled_dll(self):
+        self.exe.write_bytes(pe_fixture(['kernel32.dll', 'msvcp140.dll', 'WSOCK32.dll']))
+        self.receipt['adapter'] = dict(size=self.exe.stat().st_size, sha256=engine._sha_file(self.exe))
+        self.receipt['import_closure'][self.exe.name] = ['kernel32.dll', 'msvcp140.dll', 'wsock32.dll']
+        self.receipt['system_imports'] = ['kernel32.dll', 'wsock32.dll']
+        self.config['native_executable'] = self.record(self.exe)
+        self.refresh_receipts()
+        result = self.generate()
+        self.assertTrue(self.called)
+        self.assertFalse(result['parity']['qualified'])
+        self.assertFalse(pe.system_dll('wsock32-extra.dll'))
+        self.assertFalse(pe.system_dll('../wsock32.dll'))
+        self.assertFalse(pe.system_dll('msvcp140.dll'))
+
     def test_wrong_architecture_and_dll_substitution_never_dispatch(self):
         data = bytearray(self.exe.read_bytes())
         struct.pack_into('<H', data, 132, 0x14c)

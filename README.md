@@ -40,8 +40,13 @@ then exposed an Expat configuration conflict; the Windows-only repair and strict
 explicit dependency checkpoint have independent source review and focused
 checks. A second actual build exposed an empty-submodule inventory assumption
 in the new checkpoint; its correction now validates before compilation and
-passes fifteen actual Windows filesystem checks. No new native generator is
-yet qualified.
+passes fifteen actual Windows filesystem checks. The third actual run completed
+native MSVC compile/link, then packaging rejected Windows' `wsock32.dll` because
+the system-DLL classifier omitted that exact compatibility library. Its
+Microsoft-signed system copy and documented identity are verified; the narrow
+classifier correction retains strict unknown-DLL rejection. The complete
+dependency checkpoint is retained for explicit reuse. No new native generator
+is yet qualified.
 
 The earlier native matrix passed all eleven sizes and 396 frames; its synthetic
 browser workflow and exact browser/listener/container cleanup are retained as

@@ -310,3 +310,14 @@ additional concrete defect. A per-target OCCT four-job override remains inside
 the existing four-compiler upper bound, preserves all other two-job scheduling
 and is explicitly recorded in recipe provenance. Its eight wiring checks passed
 independently; actual resource/time improvement remains unclaimed.
+
+The third actual Windows run completed configuration and all 307 native
+compile/link steps. Packaging stopped at the first unclassified OS import,
+`wsock32.dll`. Independent read-only review confirmed the successful stage
+receipts and that a classifier-only correction can reuse the exact retained
+dependency contract without changing its producer identity. No further missing
+import can be inferred because this failed package did not publish its complete
+import closure. The narrow classification is supported by Microsoft Windows
+Sockets documentation and a valid Microsoft-signed actual system file on SPARE;
+unknown private DLL rejection and all slicer/parity gates remain unchanged.
+Successful compilation alone is not package or generator qualification.
