@@ -164,7 +164,10 @@ The failed portrait tile check was caused by the synthetic seed's inherited
 `grid: 12x8` landscape stamp. The pinned host's `PanelWidgetConfig::switch_to_grid`
 reprojects positioned entries to a different measured grid; this stretched the
 1×1 logical tile to 1×2 on the 272×480 target. A new V1 test layout now omits the
-stamp and parked grids so native adopts its actual grid without reprojection.
+stamp and parked grids and requests native auto-placement (`col=row=-1`), so
+native adopts its actual grid without reprojection. The native load guard rejects
+positioned coordinates without a grid stamp; leaving old `0,0` coordinates would
+reset the whole synthetic layout to defaults rather than place the plugin.
 Manifest 1×1, accepted tile bytes, actual home span and every child/nonoverlap
 assertion remain mandatory. Bounds are recorded even when the assertion fails.
 No existing user, printer, accepted or physical layout is migrated or changed.

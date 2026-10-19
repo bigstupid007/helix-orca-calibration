@@ -231,6 +231,10 @@ def settings(path):
             # Persisted spans are half-cell tracks, unlike manifest/home API
             # spans. Omit overrides so the actual manifest1x1 default is tested.
             widget.pop('colspan',None);widget.pop('rowspan',None)
+            # Without a grid stamp, positioned coordinates are intentionally
+            # rejected by the host's load guard. This fresh synthetic layout
+            # must request native auto-placement, not pretend to know a grid.
+            widget['col']=-1;widget['row']=-1
     a.json_write(path/'settings-test.json',s)
 def ctl(name,*args):return a.ctl(name,*args)
 def value(name,key):return ctl(name,'get','orcacal__v1_'+key).get('value')

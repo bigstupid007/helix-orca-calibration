@@ -66,6 +66,7 @@ class V1NativeTests(unittest.TestCase):
             self.assertNotIn('grid',home);self.assertNotIn('parked_grids',home)
             tile=next(w for w in widgets if w['id']=='orcacal__tile')
             self.assertNotIn('colspan',tile);self.assertNotIn('rowspan',tile)
+            self.assertEqual((tile['col'],tile['row']),(-1,-1))
     def test_compact_geometry_rejects_clipping_and_overlap(self):
         geometry={'widgets':[
             dict(name='orcacal__tile',x=0,y=0,w=100,h=100),
