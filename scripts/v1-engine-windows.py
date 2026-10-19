@@ -199,6 +199,23 @@ def dependency_environment(environment):
 
 PROBE_SOURCE = "cmake_minimum_required(VERSION 3.13)\nproject(HelixCompilerProbe LANGUAGES C CXX)\n"
 GENERATOR = 'Ninja Multi-Config'
+ARCHIVE_PROBE_SOURCE = """cmake_minimum_required(VERSION 3.13)
+project(HelixArchiveProbe LANGUAGES C CXX)
+option(USE_CCACHE "Build using Ccache if found on the path" ON)
+if(USE_CCACHE)
+  find_program(CCACHE_PATH ccache)
+  if(CCACHE_PATH)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+  endif()
+endif()
+file(WRITE "${CMAKE_BINARY_DIR}/detected-ccache.txt" "${CCACHE_PATH}")
+get_property(_archive_launcher GLOBAL PROPERTY RULE_LAUNCH_LINK)
+file(WRITE "${CMAKE_BINARY_DIR}/detected-launcher.txt" "${_archive_launcher}")
+add_library(helix_archive_probe STATIC probe.cpp)
+"""
+ARCHIVE_PROBE_CPP = 'int helix_archive_probe() { return 7; }\n'
+DEPENDENCY_CMAKE_OPTIONS = '-DUSE_CCACHE:BOOL=OFF'
 
 
 def compiler_configuration(build):
@@ -264,6 +281,7 @@ class Build:
                       for name in ('cl', 'link', 'cmake', 'ninja', 'perl')}
         self.tools['msbuild'] = record(self.environment['MSBUILD'])
         self.probe_compiler()
+        self.probe_archive()
 
     def guard(self):
         free = shutil.disk_usage(self.work).free
@@ -277,6 +295,9 @@ class Build:
         deps,prefix,downloads=(self.work/name for name in ('deps','prefix','downloads'))
         configure=['cmake','-S',self.source/'deps','-B',deps,'-G',GENERATOR,
             '-DCMAKE_BUILD_TYPE=Release','-DSLIC3R_CAD=OFF','-DDEP_DEBUG=OFF',
+            # Source-supported superbuild option is forwarded to every child;
+            # OpenVDB alone recognizes this optional-cache switch.
+            '-DDEP_CMAKE_OPTS='+DEPENDENCY_CMAKE_OPTIONS,
             cmake_path('DESTDIR',prefix),cmake_path('DEP_DOWNLOAD_DIR',downloads),
             cmake_path('DEP_PYTHON_HOST',Path(sys.executable)),
             cmake_path('CMAKE_C_COMPILER',self.compiler),cmake_path('CMAKE_CXX_COMPILER',self.compiler)]
@@ -421,6 +442,69 @@ class Build:
         if not engine._windows_compiler_valid(self.compiler_identity):
             raise ValueError('Unregistered upstream compiler identity')
 
+    def probe_archive(self):
+        """Exercise OpenVDB's optional launcher before any dependency compilation."""
+        self.guard()
+        where=subprocess.run(['where.exe','ccache'],env=self.environment,capture_output=True,text=True,timeout=10)
+        if len(where.stdout)+len(where.stderr)>16384 or where.returncode not in (0,1):
+            raise ValueError('Bounded ccache resolution required')
+        source=self.work/'archive-probe-source';source.mkdir()
+        (source/'CMakeLists.txt').write_text(ARCHIVE_PROBE_SOURCE,encoding='utf-8')
+        (source/'probe.cpp').write_text(ARCHIVE_PROBE_CPP,encoding='utf-8')
+        results={}
+        for enabled in (True,False):
+            label='archive-cache-'+('on'if enabled else'off');build=self.work/label
+            self.run(label+'-configure',['cmake','-S',source,'-B',build,'-G',GENERATOR,
+                '-DCMAKE_BUILD_TYPE=Release',cmake_path('CMAKE_C_COMPILER',self.compiler),
+                cmake_path('CMAKE_CXX_COMPILER',self.compiler),'-DUSE_CCACHE:BOOL='+('ON'if enabled else'OFF')],timeout_seconds=90)
+            configuration=compiler_configuration(build)
+            if configuration!=self.compiler_probe['configuration']:
+                raise ValueError('Archive probe compiler or flags differ from actual preflight')
+            cache_values={}
+            for line in (build/'CMakeCache.txt').read_text().splitlines():
+                if '='in line and ':'in line.split('=',1)[0] and not line.startswith(('//','#')):
+                    key,value=line.split('=',1);cache_values[key.split(':',1)[0]]=value
+            archiver=Path(cache_values['CMAKE_AR'])
+            if archiver.resolve()!=(self.compiler.parent/'llvm-lib.exe').resolve():
+                raise ValueError('Exact VS18 LLVM archiver required')
+            archiver_record=dict(path=str(archiver),**record(archiver))
+            if not enabled and archiver_record!=results['on']['archiver']:
+                raise ValueError('Archive comparison changed the actual LLVM archiver')
+            launcher=(build/'detected-launcher.txt').read_text()
+            if len(launcher)>4096 or not enabled and launcher:
+                raise ValueError('Uncached archive must have no rule launcher')
+            detected=(build/'detected-ccache.txt').read_text()
+            if len(detected)>4096:raise ValueError('Bounded discovered ccache path required')
+            cache=None
+            if detected and not detected.endswith('-NOTFOUND'):
+                path=Path(detected)
+                version=subprocess.run([str(path),'--version'],env=self.environment,capture_output=True,text=True,timeout=10)
+                if version.returncode or len(version.stdout)+len(version.stderr)>16384:
+                    raise ValueError('Bounded discovered ccache version required')
+                cache=dict(path=detected,**record(path),version=version.stdout.strip())
+            code=self.run(label+'-build',['cmake','--build',build,'--config','Release','--target','helix_archive_probe',
+                '--parallel','2'],timeout_seconds=90,allow_failure=enabled)
+            objects=list(build.rglob('probe.cpp.obj'))
+            archive=build/'Release/helix_archive_probe.lib'
+            objects_valid=(len(objects)==1 and not objects[0].is_symlink() and objects[0].is_file()
+                and 20<=objects[0].stat().st_size<=1048576 and objects[0].read_bytes()[:2]==b'\x64\x86')
+            archive_valid=(archive.is_file() and not archive.is_symlink() and 8<=archive.stat().st_size<=1048576
+                and archive.read_bytes()[:8]==b'!<arch>\n')
+            results['on'if enabled else'off']=dict(exit_code=code,ccache=cache,rule_launch_link=launcher,archiver=archiver_record,object_count=len(objects),
+                objects_valid=objects_valid,archive_valid=archive_valid,
+                objects=[record(path)for path in objects[:4] if path.is_file()and not path.is_symlink()and path.stat().st_size<=1048576],
+                archive=record(archive)if archive_valid else None,configuration=configuration)
+            save(self.evidence/'archive-probe.json',dict(schema='helix-orca-v1-windows-archive-preflight/v1',
+                source_sha256=hashlib.sha256(ARCHIVE_PROBE_SOURCE.encode()).hexdigest(),
+                cpp_sha256=hashlib.sha256(ARCHIVE_PROBE_CPP.encode()).hexdigest(),
+                resolution=dict(where_exit=where.returncode,where=where.stdout.splitlines(),
+                    which=shutil.which('ccache',path=self.environment['PATH']),pathext=self.environment.get('PATHEXT','')),
+                results=results,qualified=False,physical_actions=False))
+            if not enabled and (code!=0 or not objects_valid or not archive_valid):
+                raise ValueError('Uncached native object and archive production required before dependencies')
+        for name,path in (('clang-cl',self.compiler),('selected-linker',self.selected_linker)):
+            if record(path)!=self.tools[name]:raise ValueError('Archive preflight compiler/linker bytes changed')
+
     def verify_compiler_configuration(self,build):
         actual=compiler_configuration(build)
         expected=self.compiler_probe['configuration']
@@ -432,7 +516,7 @@ class Build:
         self.compiler_configurations[build.name]=actual
         save(self.evidence/(build.name+'-compiler-identity.json'),actual)
 
-    def run(self, label, command, cwd=None, environment=None, timeout_seconds=None):
+    def run(self, label, command, cwd=None, environment=None, timeout_seconds=None, allow_failure=False):
         self.guard()
         print(json.dumps({'stage': label, 'state': 'started'}), flush=True)
         child = subprocess.Popen([str(arg) for arg in command], cwd=cwd or self.work,
@@ -480,7 +564,8 @@ class Build:
             'log_bytes': kept, 'elapsed_seconds': round(time.monotonic()-started, 3)})
         if code:
             print(tail.decode('utf-8', 'replace'), flush=True)
-            raise RuntimeError('Native Windows stage failed: '+label)
+            if not allow_failure:raise RuntimeError('Native Windows stage failed: '+label)
+        return code
 
     def package(self):
         source = self.source
@@ -663,13 +748,19 @@ def main():
     parser.add_argument('--dependency-run-id')
     parser.add_argument('--dependency-application-commit')
     parser.add_argument('--dependency-run-attempt')
+    parser.add_argument('--toolchain-preflight-only',action='store_true')
     args = parser.parse_args()
     supplied=dependency_input(args)
+    if args.toolchain_preflight_only and supplied:raise ValueError('Preflight cannot consume dependency checkpoint inputs')
     run = None
     try:
         run = Build(args.source, args.work)
         run.dependency_input=supplied
-        run.package()
+        if args.toolchain_preflight_only:
+            save(run.evidence/'toolchain-preflight-summary.json',dict(
+                schema='helix-orca-v1-windows-toolchain-preflight/v1',completed=True,built=False,qualified=False,
+                compiler=run.compiler_identity,archive_preflight_sha256=sha(run.evidence/'archive-probe.json'),physical_actions=False))
+        else:run.package()
     finally:
         if run is None and (args.work/'evidence').is_dir():
             save(args.work/'evidence/build-lifecycle.json', {
@@ -680,7 +771,7 @@ def main():
         if run is not None:
             save(run.evidence/'build-lifecycle.json', {
                 'schema': 'helix-orca-v1-windows-build-lifecycle/v1',
-                'state': 'complete' if (run.evidence/'package-summary.json').exists() else 'failed',
+                'state': 'complete' if any((run.evidence/name).exists()for name in ('package-summary.json','toolchain-preflight-summary.json')) else 'failed',
                 'stage_processes_exited': all(child.poll() is not None for child in run.children),
                 'runtime_cleanup': 'GitHub-hosted disposable job teardown',
                 'owned_runner_vm': True, 'physical_actions': False,

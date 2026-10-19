@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 from integration import v1_engine as e, v1_windows_dependencies as d
 
 
@@ -82,6 +84,77 @@ class ClangRecipe(unittest.TestCase):
         with self.assertRaisesRegex(d.BundleError,'compiler_recipe_identity_mismatch'):
             d.validate_provenance(contract,self.publisher,prefix,downloads,lambda:None)
         self.assertFalse(prefix.exists());self.assertFalse(downloads.exists())
+
+
+class ArchivePreflight(unittest.TestCase):
+    setUp=ClangRecipe.setUp
+    def archive_fixture(self, off_valid=True, on_valid=False):
+        run=self.b.Build.__new__(self.b.Build)
+        run.work=self.root/'work';run.work.mkdir();run.evidence=run.work/'evidence';run.evidence.mkdir()
+        run.environment={'PATH':'fixture-only','PATHEXT':'.EXE;.BAT'};run.guard=lambda:None
+        tools=self.root/'tools';tools.mkdir()
+        run.compiler=tools/'clang-cl.exe';run.selected_linker=tools/'lld-link.exe'
+        for path in (run.compiler,run.selected_linker,tools/'llvm-lib.exe',tools/'ccache.exe'):path.write_bytes(b'fixture-only')
+        run.tools={name:self.b.record(path)for name,path in [('clang-cl',run.compiler),('selected-linker',run.selected_linker)]}
+        run.compiler_probe={'configuration':{'same_actual_flags':'fixture-only'}}
+        calls=[]
+        def execute(label,argv,**kwargs):
+            calls.append((label,argv,kwargs))
+            build=run.work/label.removesuffix('-configure').removesuffix('-build')
+            enabled='-on-'in label
+            if label.endswith('-configure'):
+                build.mkdir();(build/'detected-ccache.txt').write_text(str(tools/'ccache.exe')if enabled else'')
+                (build/'CMakeCache.txt').write_text('CMAKE_AR:FILEPATH='+str(tools/'llvm-lib.exe'))
+                (build/'detected-launcher.txt').write_text('ccache'if enabled else'')
+                return 0
+            valid=on_valid if enabled else off_valid
+            if valid:
+                (build/'probe.cpp.obj').write_bytes(b'\x64\x86'+b'0'*30)
+                (build/'Release').mkdir();(build/'Release/helix_archive_probe.lib').write_bytes(b'!<arch>\nfixture')
+            return 0 if valid else 1
+        run.run=execute
+        process=lambda argv,**kwargs:SimpleNamespace(returncode=0,stdout=str(tools/'ccache.exe')+'\n'if argv[0]=='where.exe'else'ccache fixture',stderr='')
+        return run,calls,process
+
+    def test_optional_cache_failure_does_not_replace_required_uncached_outputs(self):
+        run,calls,process=self.archive_fixture()
+        with patch.object(self.b.subprocess,'run',side_effect=process),patch.object(self.b,'compiler_configuration',return_value=run.compiler_probe['configuration']):
+            run.probe_archive()
+        result=json.loads((run.evidence/'archive-probe.json').read_text())
+        self.assertFalse(result['qualified']);self.assertFalse(result['physical_actions'])
+        self.assertFalse(result['results']['on']['objects_valid']);self.assertEqual(result['results']['on']['exit_code'],1)
+        self.assertTrue(result['results']['off']['objects_valid']);self.assertTrue(result['results']['off']['archive_valid'])
+        self.assertTrue(calls[1][2]['allow_failure']);self.assertFalse(calls[3][2]['allow_failure'])
+        self.assertIn('-DUSE_CCACHE:BOOL=OFF',calls[2][1])
+        self.assertEqual(calls[1][1][3:],calls[3][1][3:])
+        self.assertEqual(result['results']['off']['rule_launch_link'],'')
+        self.assertEqual(result['results']['on']['archiver'],result['results']['off']['archiver'])
+
+    def test_missing_off_outputs_are_fatal_even_if_cache_on_produced_them(self):
+        run,calls,process=self.archive_fixture(off_valid=False,on_valid=True)
+        with patch.object(self.b.subprocess,'run',side_effect=process),patch.object(self.b,'compiler_configuration',return_value=run.compiler_probe['configuration']):
+            with self.assertRaisesRegex(ValueError,'Uncached native object'):run.probe_archive()
+        result=json.loads((run.evidence/'archive-probe.json').read_text())
+        self.assertTrue(result['results']['on']['archive_valid']);self.assertFalse(result['results']['off']['archive_valid'])
+
+    def test_preflight_only_main_never_calls_dependency_or_package_build(self):
+        import time
+        from unittest.mock import Mock
+        evidence=self.root/'evidence';evidence.mkdir();(evidence/'archive-probe.json').write_text('{}')
+        run=SimpleNamespace(evidence=evidence,compiler_identity={'fixture_only':True},children=[],
+            start=time.monotonic(),free=0,min_free=0,package=Mock(side_effect=AssertionError('package must not run')))
+        args=['builder','--source',str(self.root/'source'),'--work',str(self.root/'work'),'--toolchain-preflight-only']
+        with patch.object(self.b.sys,'argv',args),patch.object(self.b,'Build',return_value=run):self.b.main()
+        run.package.assert_not_called()
+        summary=json.loads((evidence/'toolchain-preflight-summary.json').read_text())
+        self.assertTrue(summary['completed']);self.assertFalse(summary['built']);self.assertFalse(summary['qualified'])
+        self.assertEqual(json.loads((evidence/'build-lifecycle.json').read_text())['state'],'complete')
+
+    def test_archive_diagnostic_cannot_change_compiler_recipe(self):
+        run,calls,process=self.archive_fixture()
+        with patch.object(self.b.subprocess,'run',side_effect=process),patch.object(self.b,'compiler_configuration',return_value={'changed_flags':True}):
+            with self.assertRaisesRegex(ValueError,'compiler or flags differ'):run.probe_archive()
+        self.assertEqual(len(calls),1)
 
 
 if __name__=='__main__':unittest.main()

@@ -11,6 +11,11 @@ on:
       - '.github/workflows/v1-windows-engine.yml'
   workflow_dispatch:
     inputs:
+      toolchain_preflight_only:
+        description: Only run bounded compiler and static archive diagnostics; no dependencies or package
+        required: false
+        default: false
+        type: boolean
       dependency_run_id:
         description: Explicit reviewed dependency producer run (optional)
         required: false
@@ -58,7 +63,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Retrieve only an explicitly pinned owned dependency checkpoint
-        if: github.event_name == 'workflow_dispatch' && inputs.dependency_run_id != ''
+        if: github.event_name == 'workflow_dispatch' && !inputs.toolchain_preflight_only && inputs.dependency_run_id != ''
         env:
           GH_TOKEN: ${{ github.token }}
           DEPENDENCY_RUN_ID: ${{ inputs.dependency_run_id }}
@@ -85,16 +90,20 @@ jobs:
           if (Test-Path -LiteralPath $Destination) { throw 'Fresh checkpoint input directory required.' }
           gh run download $env:DEPENDENCY_RUN_ID --repo $env:GITHUB_REPOSITORY --name ("v1-windows-native-dependencies-"+$env:DEPENDENCY_RUN_ID) --dir $Destination
           if ($LASTEXITCODE -ne 0) { throw 'Pinned dependency checkpoint download failed.' }
-      - name: Build bounded source-pinned native package
+      - name: Run bounded toolchain preflight or source-pinned native package
         timeout-minutes: 120
         env:
           DEPENDENCY_RUN_ID: ${{ inputs.dependency_run_id }}
           DEPENDENCY_COMMIT: ${{ inputs.dependency_application_commit }}
           DEPENDENCY_SHA: ${{ inputs.dependency_bundle_sha256 }}
           DEPENDENCY_ATTEMPT: ${{ inputs.dependency_run_attempt }}
+          TOOLCHAIN_PREFLIGHT_ONLY: ${{ inputs.toolchain_preflight_only }}
         run: |
           $Arguments = @('scripts/v1-engine-windows.py', '--source', 'upstream', '--work', "${{ runner.temp }}/helix-orca-native-windows")
-          if ($env:DEPENDENCY_RUN_ID) {
+          if ($env:TOOLCHAIN_PREFLIGHT_ONLY -eq 'true') {
+            if ($env:DEPENDENCY_RUN_ID -or $env:DEPENDENCY_COMMIT -or $env:DEPENDENCY_SHA -or ($env:DEPENDENCY_ATTEMPT -and $env:DEPENDENCY_ATTEMPT -ne '1')) { throw 'Preflight cannot consume dependency inputs.' }
+            $Arguments += '--toolchain-preflight-only'
+          } elseif ($env:DEPENDENCY_RUN_ID) {
             $Arguments += @('--dependency-bundle', "${{ runner.temp }}/helix-orca-dependency-input/native-windows-dependencies.zip",
               '--dependency-bundle-sha256', $env:DEPENDENCY_SHA, '--dependency-run-id', $env:DEPENDENCY_RUN_ID,
               '--dependency-application-commit', $env:DEPENDENCY_COMMIT, '--dependency-run-attempt', $env:DEPENDENCY_ATTEMPT)
@@ -118,6 +127,7 @@ jobs:
           path: ${{ runner.temp }}/helix-orca-native-windows/evidence
           retention-days: 7
       - uses: actions/upload-artifact@v4
+        if: ${{ !inputs.toolchain_preflight_only }}
         with:
           name: v1-windows-native-package-${{ github.run_id }}
           path: |

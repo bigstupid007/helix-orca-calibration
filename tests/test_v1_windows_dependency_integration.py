@@ -58,6 +58,18 @@ class DependencyBuildWiring(unittest.TestCase):
         self.assertEqual(result['sha256'],self.module.sha(self.build.work/'native-windows-dependencies.zip'))
         self.assertFalse((self.build.evidence/'dependency-intermediates-retired.json').exists())
 
+    def test_openvdb_cache_opt_out_is_forwarded_and_bound_without_compiler_changes(self):
+        self.build.prepare_dependencies(self.lock,self.submodules,self.publisher)
+        command=self.calls[0][1]
+        self.assertIn('-DDEP_CMAKE_OPTS=-DUSE_CCACHE:BOOL=OFF',command)
+        self.assertIn('-DCMAKE_C_COMPILER='+self.build.compiler.as_posix(),command)
+        self.assertIn('-DCMAKE_CXX_COMPILER='+self.build.compiler.as_posix(),command)
+        self.assertIn('Ninja Multi-Config',command)
+        self.assertFalse(any('/fp:'in str(item)or'/MD'in str(item)for item in command))
+        contract=json.loads((self.build.evidence/'dependency-contract.json').read_text())
+        self.assertIn('-DDEP_CMAKE_OPTS=-DUSE_CCACHE:BOOL=OFF',json.loads(contract['environment']['DEPENDENCY_CONFIGURE_ARGV']))
+        self.assertEqual(self.environments,[None,None])
+
     def test_explicit_pinned_restore_skips_all_dependency_commands_and_keeps_original_producer(self):
         receipt=self.build.prepare_dependencies(self.lock,self.submodules,self.publisher)
         self.calls.clear()
