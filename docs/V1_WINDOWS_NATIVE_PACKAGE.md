@@ -10,6 +10,15 @@ discovery and its existing six owned input hashes remain unchanged. Focused
 host CMake tests reproduce the duplicate and build/link one actual target with
 the fix; these are not Windows package or calibration qualification evidence.
 
+The Windows target injection also waits until the root directory finishes
+configuration. CMake copies directory compile options when a target is created;
+the original early project hook missed later upstream MSVC options, including
+`/Zc:lambda`, `/bigobj`, `/utf-8` and warning options. The Windows-only wrapper
+requires CMake 3.19 or newer and captures its owned include path before deferral.
+It preserves the upstream options without duplicating or changing individual
+flags. A focused CMake property check compares early and deferred creation;
+Windows compilation and exact calibration parity remain separate gates.
+
 The Windows engine package is a separate build target for the approved October
 15 Orca commit `6a7763f08d1a175a464a00ce13f0b5a815662fc4`. A successful
 package provides an actual PE32+ AMD64 executable, its complete non-system DLL

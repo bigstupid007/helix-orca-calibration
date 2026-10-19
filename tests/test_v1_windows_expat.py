@@ -71,6 +71,37 @@ endif()
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('Windows-only', result.stderr)
 
+    def test_deferred_windows_target_inherits_late_upstream_compile_options(self):
+        injection = MODULE.parent
+        for mode, filename in (('early', 'add-target.cmake'), ('deferred', 'windows-target.cmake')):
+            source = self.root/mode
+            source.mkdir()
+            (source/'CMakeLists.txt').write_text('''cmake_minimum_required(VERSION 3.19)
+project(target_option_reproducer CXX)
+set(WIN32 TRUE) # property simulation; no Windows compiler or compile claim
+add_library(libslic3r INTERFACE)
+add_library(boost_libs INTERFACE)
+foreach(name cereal::cereal TBB::tbb OpenSSL::Crypto)
+  add_library(${name} INTERFACE IMPORTED)
+endforeach()
+include("'''+str(injection/filename)+'''")
+add_compile_options(-DV1_LATE_UPSTREAM_OPTION)
+function(capture)
+  get_target_property(options helix_orca_native COMPILE_OPTIONS)
+  file(WRITE "${CMAKE_BINARY_DIR}/adapter-options.txt" "${options}")
+endfunction()
+cmake_language(DEFER CALL capture)
+''')
+            build = self.root/(mode+'-build')
+            result = subprocess.run(['cmake', '-S', str(source), '-B', str(build)],
+                text=True, capture_output=True, timeout=20)
+            self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+            options = (build/'adapter-options.txt').read_text()
+            if mode == 'early':
+                self.assertNotIn('V1_LATE_UPSTREAM_OPTION', options)
+            else:
+                self.assertIn('V1_LATE_UPSTREAM_OPTION', options)
+
 
 if __name__ == '__main__':
     unittest.main()

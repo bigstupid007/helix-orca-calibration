@@ -307,7 +307,7 @@ class Build:
             '-DSLIC3R_BUILD_TESTS=OFF', '-DORCA_TOOLS=OFF', '-DSLIC3R_PCH=OFF',
             '-DSLIC3R_MSVC_COMPILE_PARALLEL=OFF', '-DSLIC3R_MSVC_PDB=OFF',
             '-DCMAKE_C_COMPILER=cl', '-DCMAKE_CXX_COMPILER=cl',
-            cmake_path('CMAKE_PROJECT_OrcaSlicer_INCLUDE', ROOT/'integration/v1-native-engine/add-target.cmake')])
+            cmake_path('CMAKE_PROJECT_OrcaSlicer_INCLUDE', ROOT/'integration/v1-native-engine/windows-target.cmake')])
         self.run('native-adapter', ['cmake', '--build', build, '--target', 'helix_orca_native', '--parallel', '2'])
         package = self.work/'package'
         package.mkdir()
