@@ -99,6 +99,7 @@ _ROOT = Path(__file__).resolve().parents[1]
 _TARGET = {"system": "Linux", "architecture": "x86_64", "format": "ELF64-LE-EM_X86_64"}
 _WINDOWS_TARGET = {"system": "Windows", "architecture": "x86_64", "format": "PE32+-LE-AMD64"}
 _WINDOWS_OWNED_INPUTS = _OWNED_INPUTS + (
+    "integration/v1-native-engine/windows-cmake/FindEXPAT.cmake",
     "integration/v1_pe.py", "integration/v1-native-windows-dependencies.json",
     "scripts/v1-engine-windows.py", ".github/workflows/v1-windows-engine.yml")
 

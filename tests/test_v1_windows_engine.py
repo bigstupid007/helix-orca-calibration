@@ -218,7 +218,7 @@ class WindowsNativeGuards(unittest.TestCase):
         spec.loader.exec_module(module)
         path = PureWindowsPath('D:/a/_temp/native build/prefix')
         for key in ('DESTDIR', 'DEP_DOWNLOAD_DIR', 'DEP_PYTHON_HOST', 'CMAKE_PREFIX_PATH',
-                    'CMAKE_PROJECT_OrcaSlicer_INCLUDE'):
+                    'CMAKE_PROJECT_OrcaSlicer_INCLUDE', 'CMAKE_MODULE_PATH'):
             argument = module.cmake_path(key, path)
             self.assertEqual(argument, '-D'+key+'=D:/a/_temp/native build/prefix')
             self.assertNotIn('\\', argument)

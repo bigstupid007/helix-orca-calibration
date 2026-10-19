@@ -1,5 +1,15 @@
 # Bounded Windows native-engine package
 
+The clean Windows runner exposed an upstream Expat discovery conflict after all
+25 dependencies built: failed system discovery created an `expat` fallback in
+the root, then `deps_src/expat` created the same target again. The Windows-only
+owned find module now selects the real `deps_src/expat` headers and later-created
+static target. It creates no target or binary location itself. Both the Windows
+build receipt and reviewed qualification source closure pin this module. Linux
+discovery and its existing six owned input hashes remain unchanged. Focused
+host CMake tests reproduce the duplicate and build/link one actual target with
+the fix; these are not Windows package or calibration qualification evidence.
+
 The Windows engine package is a separate build target for the approved October
 15 Orca commit `6a7763f08d1a175a464a00ce13f0b5a815662fc4`. A successful
 package provides an actual PE32+ AMD64 executable, its complete non-system DLL

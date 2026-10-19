@@ -28,6 +28,7 @@ SOURCE_SCHEMA = 'helix-orca-v1-reviewed-python-source/v1'
 CALIBRATIONS = ('pressure_advance_pattern','retraction','max_volumetric_speed','temperature')
 MODULE_NAMES = frozenset('integration.'+name for name in ('v1_contract','v1_engine','v1_parity','v1_pe'))
 SOURCE_NAMES = (
+    'integration/v1-native-engine/windows-cmake/FindEXPAT.cmake',
     'integration/v1_contract.py','integration/v1_parity.py','integration/v1_engine.py','integration/v1_pe.py',
     'integration/v1-native-dependencies.json','integration/v1-native-engine/main.cpp',
     'integration/v1-native-engine/add-target.cmake','integration/v1-native-engine/temperature_prepare.hpp',

@@ -302,6 +302,7 @@ class Build:
         actual_prefix = prefix/'usr/local'
         self.run('engine-configure', ['cmake', '-S', source, '-B', build, '-G', 'Ninja',
             '-DCMAKE_BUILD_TYPE=Release', cmake_path('CMAKE_PREFIX_PATH', actual_prefix),
+            cmake_path('CMAKE_MODULE_PATH', ROOT/'integration/v1-native-engine/windows-cmake'),
             '-DSLIC3R_GUI=OFF', '-DSLIC3R_CAD=OFF', '-DSLIC3R_STATIC=ON',
             '-DSLIC3R_BUILD_TESTS=OFF', '-DORCA_TOOLS=OFF', '-DSLIC3R_PCH=OFF',
             '-DSLIC3R_MSVC_COMPILE_PARALLEL=OFF', '-DSLIC3R_MSVC_PDB=OFF',
