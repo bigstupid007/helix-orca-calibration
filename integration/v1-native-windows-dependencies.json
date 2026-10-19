@@ -1,0 +1,185 @@
+{
+  "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+  "sources": [
+    {
+      "target": "dep_Boost",
+      "url": "https://github.com/boostorg/boost/releases/download/boost-1.84.0/boost-1.84.0.tar.gz",
+      "sha256": "4d27e9efed0f6f152dc28db6430b9d3dfb40c0345da7342eaa5a987dde57bd95"
+    },
+    {
+      "target": "dep_Cereal",
+      "url": "https://github.com/USCiLab/cereal/archive/refs/tags/v1.3.0.zip",
+      "sha256": "71642cb54658e98c8f07a0f0d08bf9766f1c3771496936f6014169d3726d9657"
+    },
+    {
+      "target": "dep_Qhull",
+      "url": "https://github.com/qhull/qhull/archive/v8.0.2.zip",
+      "sha256": "a378e9a39e718e289102c20d45632f873bfdc58a7a5f924246ea4b176e185f1e"
+    },
+    {
+      "target": "dep_GLFW",
+      "url": "https://github.com/glfw/glfw/archive/refs/tags/3.4.zip",
+      "sha256": "a133ddc3d3c66143eba9035621db8e0bcf34dba1ee9514a9e23e96afd39fd57a"
+    },
+    {
+      "target": "dep_TBB",
+      "url": "https://github.com/oneapi-src/oneTBB/archive/refs/tags/v2021.5.0.zip",
+      "sha256": "83ea786c964a384dd72534f9854b419716f412f9d43c0be88d41874763e7bb47"
+    },
+    {
+      "target": "dep_Eigen",
+      "url": "https://gitlab.com/libeigen/eigen/-/archive/5.0.1/eigen-5.0.1.zip",
+      "sha256": "0dbb1f9e3aaad66f352c03227d8c983f6f0b49e0b07e71a7300f4abcc01aee12"
+    },
+    {
+      "target": "dep_CGAL",
+      "url": "https://github.com/CGAL/cgal/releases/download/v6.2.1/CGAL-6.2.1.zip",
+      "sha256": "eebd737d9b7f0199647ba5c1f9f6c7a3d0651aacef9c2fd4dedc52da6c25edbe"
+    },
+    {
+      "target": "dep_NLopt",
+      "url": "https://github.com/stevengj/nlopt/archive/v2.5.0.tar.gz",
+      "sha256": "c6dd7a5701fff8ad5ebb45a3dc8e757e61d52658de3918e38bab233e7fd3b4ae"
+    },
+    {
+      "target": "dep_libnoise",
+      "url": "https://github.com/SoftFever/Orca-deps-libnoise/archive/refs/tags/1.0.zip",
+      "sha256": "96ffd6cc47898dd8147aab53d7d1b1911b507d9dbaecd5613ca2649468afd8b6"
+    },
+    {
+      "target": "dep_Draco",
+      "url": "https://github.com/google/draco/archive/refs/tags/1.5.7.zip",
+      "sha256": "27b72ba2d5ff3d0a9814ad40d4cb88f8dc89a35491c0866d952473f8f9416b77"
+    },
+    {
+      "target": "dep_OpenSSL",
+      "url": "https://github.com/openssl/openssl/archive/OpenSSL_1_1_1w.tar.gz",
+      "sha256": "2130e8c2fb3b79d1086186f78e59e8bc8d1a6aedf17ab3907f4cb9ae20918c41"
+    },
+    {
+      "target": "dep_CURL",
+      "url": "https://github.com/curl/curl/archive/refs/tags/curl-7_75_0.zip",
+      "sha256": "a63ae025bb0a14f119e73250f2c923f4bf89aa93b8d4fafa4a9f5353a96a765a"
+    },
+    {
+      "target": "dep_FREETYPE",
+      "url": "https://github.com/SoftFever/orca_deps/releases/download/freetype-2.12.1.tar.gz/freetype-2.12.1.tar.gz",
+      "sha256": "efe71fd4b8246f1b0b1b9bfca13cfff1c9ad85930340c27df469733bbb620938"
+    },
+    {
+      "target": "dep_PNG",
+      "url": "https://github.com/glennrp/libpng/archive/refs/tags/v1.6.35.zip",
+      "sha256": "3d22d46c566b1761a0e15ea397589b3a5f36ac09b7c785382e6470156c04247f"
+    },
+    {
+      "target": "dep_JPEG",
+      "url": "https://github.com/libjpeg-turbo/libjpeg-turbo/archive/refs/tags/3.0.1.zip",
+      "sha256": "d6d99e693366bc03897677650e8b2dfa76b5d6c54e2c9e70c03f0af821b0a52f"
+    },
+    {
+      "target": "dep_OCCT",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT/archive/refs/tags/V8_0_1.zip",
+      "sha256": "7c033d917ee8f040c0512d289dcc5f02c148889d5bac17c3e25639accb44f0da"
+    },
+    {
+      "target": "dep_OpenCV",
+      "url": "https://github.com/opencv/opencv/archive/refs/tags/4.6.0.tar.gz",
+      "sha256": "1ec1cba65f9f20fe5a41fda1586e01c70ea0c9a6d7b67c9e13edf0cfe2239277"
+    },
+    {
+      "target": "dep_Assimp",
+      "url": "https://github.com/assimp/assimp/archive/refs/tags/v5.4.3.tar.gz",
+      "sha256": "66dfbaee288f2bc43172440a55d0235dfc7bf885dda6435c038e8000e79582cb"
+    },
+    {
+      "target": "dep_python3",
+      "url": "https://www.python.org/ftp/python/3.12.13/Python-3.12.13.tar.xz",
+      "sha256": "c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684"
+    },
+    {
+      "target": "dep_Blosc",
+      "url": "https://github.com/tamasmeszaros/c-blosc/archive/refs/heads/v1.17.0_tm.zip",
+      "sha256": "dcb48bf43a672fa3de6a4b1de2c4c238709dad5893d1e097b8374ad84b1fc3b3"
+    },
+    {
+      "target": "dep_OpenEXR",
+      "url": "https://github.com/AcademySoftwareFoundation/openexr/archive/refs/tags/v2.5.5.zip",
+      "sha256": "0307a3d7e1fa1e77e9d84d7e9a8694583fbbbfd50bdc6884e2c96b8ef6b902de"
+    },
+    {
+      "target": "dep_OpenVDB",
+      "url": "https://github.com/tamasmeszaros/openvdb/archive/a68fd58d0e2b85f01adeb8b13d7555183ab10aa5.zip",
+      "sha256": "f353e7b99bd0cbfc27ac9082de51acf32a8bc0b3e21ff9661ecca6f205ec1d81"
+    },
+    {
+      "target": "dep_FFMPEG",
+      "url": "https://github.com/Noisyfox/FFmpeg-Builds-Orca/releases/download/autobuild-2026-09-18-16-50/ffmpeg-n7.0.3-33-g887d4b4919-win64-orca-shared-7.0.zip",
+      "sha256": "85da19daf198f5548259d8aabb349db84997a3f6e6886d8d7764114add9c6dae"
+    }
+  ],
+  "schema": "helix-orca-v1-windows-dependencies/v1",
+  "platform": "Windows AMD64",
+  "generator": "Ninja",
+  "compiler": "MSVC",
+  "in_tree_targets": [
+    "dep_GMP",
+    "dep_MPFR"
+  ],
+  "in_tree_files": {
+    "deps/GMP/gmp/include/gmp.h": "6b7a4c57b819b6c5af8f8255c6e8800694c1b53b8f8e09c167e7d3779e6d6505",
+    "deps/GMP/gmp/lib/win-x64/libgmp-10.lib": "63fbb59cd3b7879f71cf2d3d9133f6edcd6d6afb122a1fff085afb7c2f486f0f",
+    "deps/GMP/gmp/lib/win-x64/libgmp-10.dll": "fec43cb18ce0ec8a5dd6ad1db745747167310ccb92b5acff0d445a8b3013f009",
+    "deps/MPFR/mpfr/include/mpfr.h": "05d2d1c356fe541c67ba8660efc0384fe56714149cff2bd896c387e931e7fd95",
+    "deps/MPFR/mpfr/include/mpf2mpfr.h": "656ee5c68af6e0b76ed08c5c919ab0f51b8670207f4499c30a55fcf04266dacf",
+    "deps/MPFR/mpfr/lib/win-x64/libmpfr-4.lib": "db89bd46fcbbd99b56197284e5593b3f9ce744ccb8ead9aebee9b714bd2547dc",
+    "deps/MPFR/mpfr/lib/win-x64/libmpfr-4.dll": "09b3b868b96433991fc15c9c5ae6f9a44c62d2e21194110442607917391ed927"
+  },
+  "source_supplements": [
+    {
+      "component": "GMP",
+      "version": "5.0.1",
+      "url": "https://ftp.gnu.org/gnu/gmp/gmp-5.0.1.tar.bz2",
+      "sha256": "a2a610f01fd3298dc08c87bf30498c2402590e1bcb227fc40b15ee6d280939fb",
+      "size": 2006109
+    },
+    {
+      "component": "MPFR",
+      "version": "3.0.0",
+      "url": "https://www.mpfr.org/mpfr-3.0.0/mpfr-3.0.0.tar.bz2",
+      "sha256": "8f4e5f9c53536cb798a30455ac429b1f9fc75a0f8af32d6e0ac31ebf1024821f",
+      "size": 1138685
+    }
+  ],
+  "binary_only_downloads": [
+    "ffmpeg-n7.0.3-33-g887d4b4919-win64-orca-shared-7.0.zip",
+    "cpython-bin-deps-libffi-3.4.4.zip",
+    "cpython-bin-deps-openssl-bin-3.0.16.2.zip"
+  ],
+  "transitive_sources": [
+    {
+      "component": "ZLIB",
+      "url": "https://github.com/madler/zlib/archive/refs/tags/v1.2.13.zip",
+      "sha256": "c2856951bbf30e30861ace3765595d86ba13f2cf01279d901f6c62258c57f4ff"
+    },
+    {
+      "component": "CPython bzip2",
+      "url": "https://github.com/python/cpython-source-deps/archive/05301997b2f9590f49c672cf3dfd3d3dfa7ad521.zip",
+      "sha256": "44b15bede52b32f8673a2976621a847258b041243c003e30f4d9a05214785fe5"
+    },
+    {
+      "component": "CPython sqlite",
+      "url": "https://github.com/python/cpython-source-deps/archive/cb7a3997059739fe9c63b2819aeda7c6907510ef.zip",
+      "sha256": "586fe469463f5b27b749f9eef1938baa8e8a12030341e96160a371356c2d6759"
+    },
+    {
+      "component": "CPython xz",
+      "url": "https://github.com/python/cpython-source-deps/archive/c6bc0c612605622aaef101a33a751f9de2ecc193.zip",
+      "sha256": "d99882a8f9fd48be0e605e27e3c077e5eaab370f6f52ebcc8ff754480ffdf0bc"
+    },
+    {
+      "component": "CPython zlib",
+      "url": "https://github.com/python/cpython-source-deps/archive/4dc98e1909830e2bdc2a9cc2236e3c5d5037335b.zip",
+      "sha256": "39d867c083ebc37c77cf03a442f87c0f83db006eb64343bd4a19f1c84c26f50c"
+    }
+  ]
+}

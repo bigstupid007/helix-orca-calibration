@@ -1,0 +1,422 @@
+-- SPDX-License-Identifier: GPL-3.0-or-later
+-- V1 derivative uses documented beta.9 subjects/overlays/event+storage only.
+-- No printer RPC, file transfer, HTTP, process, wall clock or physical action.
+local v1_subjects = {}
+local function string_subject(name, value)
+    local s=helix.subject.string('v1_'..name,value or '')
+    v1_subjects[name]=s; return s
+end
+local function int_subject(name,value)
+    local s=helix.subject.int('v1_'..name,value or 0)
+    v1_subjects[name]=s; return s
+end
+for _,name in ipairs({'printer','profiles','context_note','message','calibration','phase','parameters','artifact','qualification','evaluation_note','returned','result_heading','result_note','monitor','offer_printer','offer_profiles','offer_note'}) do string_subject(name) end
+string_subject('tile','Ready')
+for _,name in ipairs({'resume_on','confirm_on','start_on','cancel_on','evaluate_on','evaluation_idx','monitor_on'}) do int_subject(name) end
+local v1_drafts={}
+for id,entry in pairs(V1_CATALOG) do
+    string_subject('availability_'..id,'Waiting for Orca companion')
+    for key,_ in pairs(entry.parameters) do string_subject(id..'_'..key..'_value') end
+end
+for _,name in ipairs({'keypad_title','keypad_value','keypad_error','keypad_limits','flow_samples','pa_defaults_note'}) do string_subject(name) end
+local v1_settings={temperature='nozzle_temperature',flow_ratio_yolo='filament_flow_ratio',pressure_advance_pattern='pressure_advance',retraction='filament_retraction_length',max_volumetric_speed='filament_max_volumetric_speed'}
+local v1_offer=nil
+local v1_session=nil
+local v1_job_handle=nil
+local v1_result_handle=nil
+local v1_refresh_result=false
+local v1_wizard_handle=nil
+local v1_detail_handle=nil
+local v1_cancel_handle=nil
+local v1_cancel_request=nil
+local function v1_set(name,value) v1_subjects[name]:set(value) end
+local function v1_text(s,limit) return type(s)=='string' and #s>0 and #s<=(limit or 256) and utf8.len(s)~=nil and not s:find('%c') end
+local function v1_hex(s,n) return type(s)=='string' and #s==n and s:match('^[0-9a-f]+$')~=nil end
+local function v1_number(n) return type(n)=='number' and n==n and n>-math.huge and n<math.huge end
+local function v1_same(a,b)
+    if type(a)~=type(b) then return false end
+    if type(a)~='table' then return a==b end
+    for k,v in pairs(a) do if not v1_same(v,b[k]) then return false end end
+    for k,_ in pairs(b) do if a[k]==nil then return false end end
+    return true
+end
+local function v1_exact(t,fields)
+    if type(t)~='table' then return false end
+    local allowed={}
+    for k in fields:gmatch('%S+') do allowed[k]=true end
+    for k,_ in pairs(t) do if not allowed[k] then return false end end
+    return true
+end
+local function v1_valid_field(rule,value)
+    if rule.kind=='fixed' then return value==rule.value and math.type(value)==math.type(rule.value) end
+    if rule.kind=='boolean' then return type(value)=='boolean' end
+    if rule.kind=='choice' then
+        for _,v in ipairs(rule.values) do if value==v and math.type(value)==math.type(v) then return true end end
+        return false
+    end
+    return v1_number(value) and value>=rule.min and value<=rule.max
+        and (not rule.integer or math.type(value)=='integer') and (not rule.multiple or value%rule.multiple==0)
+end
+local function v1_valid_parameters(id,p)
+    local entry=V1_CATALOG[id]
+    if not entry or type(p)~='table' then return false end
+    for key,_ in pairs(p) do if not entry.parameters[key] then return false end end
+    for key,rule in pairs(entry.parameters) do if not v1_valid_field(rule,p[key]) then return false end end
+    if id=='flow_ratio_yolo' then return true end
+    if id=='temperature' then return p.start>=p['end']+5 end
+    return p['end']>=p.start+p.step and (p['end']-p.start)/p.step<=1000
+end
+local function v1_identity(data)
+    return v1_session and type(data)=='table' and data.request_id==v1_session.request.request_id
+        and data.origin_id==v1_session.request.origin_id
+end
+local function v1_persist()
+    local ok=pcall(helix.storage.set,'v1_session',v1_session)
+    if not ok then
+        v1_completion_presentation.disarm()
+        if v1_session then v1_session.phase='uncertain' end
+        v1_set('message','Local storage unavailable · actions locked')
+        for _,key in ipairs({'confirm_on','start_on','cancel_on','evaluate_on'}) do v1_set(key,0) end
+    end
+    return ok
+end
+-- V1_PARAMETER_CONTROLS
+local function v1_options()
+    local out={}
+    local e=v1_session and v1_session.evaluation
+    if e then for _,value in ipairs(e.options) do out[#out+1]=tostring(value)..(e.unit~='' and (' '..e.unit) or '') end end
+    return #out>0 and table.concat(out,'\n') or 'Unavailable'
+end
+local v1_open_job
+local v1_open_result
+local v1_refresh_job=false
+v1_open_job=function()
+    if not v1_session then return end
+    if v1_session.result then v1_open_result();return end
+    if v1_job_handle then
+        local old=v1_job_handle;v1_job_handle=nil;v1_refresh_job=true;pcall(old.close);return
+    end
+    local h
+    h=helix.ui.overlay('orcacal__v1_job',{evaluation_options=v1_options(),on_close=function()
+        if v1_job_handle==h then v1_job_handle=nil end
+        if v1_refresh_job then v1_refresh_job=false;v1_open_job() end
+    end})
+    v1_job_handle=h
+end
+local function v1_retire_preparation_views()
+    local job,wizard,detail,cancel=v1_job_handle,v1_wizard_handle,v1_detail_handle,v1_cancel_handle
+    v1_job_handle=nil;v1_wizard_handle=nil;v1_detail_handle=nil
+    v1_cancel_handle=nil;v1_cancel_request=nil;v1_refresh_job=false
+    -- Queue after the automatic push; preserve native Print Status/other dialogs.
+    if cancel then pcall(cancel.close) end
+    if job then pcall(job.close) end
+    if detail then pcall(detail.close) end
+    if wizard then pcall(wizard.close) end
+end
+-- Only an explicit Return click or manual Resume calls this. ACK/status only
+-- update subjects, so an unrelated native page can never be covered on receipt.
+v1_open_result=function()
+    if not v1_session or not v1_session.result then return end
+    if v1_result_handle then
+        v1_refresh_result=true;local old=v1_result_handle;v1_result_handle=nil;pcall(old.close);return
+    end
+    local handle
+    handle=helix.ui.overlay('orcacal__v1_result',{on_close=function()
+        if v1_result_handle==handle then v1_result_handle=nil end
+        if v1_refresh_result then v1_refresh_result=false;v1_open_result() end
+    end})
+    v1_result_handle=handle
+end
+helix.ui.on('v1_result_close',function()
+    v1_refresh_result=false
+    if v1_result_handle then local h=v1_result_handle;v1_result_handle=nil;pcall(h.close) end
+end)
+local function v1_monitor_text(m)
+    if not m or (m.progress==nil and m.elapsed_s==nil) then return 'Progress unavailable' end
+    local progress=m.progress~=nil and (tostring(math.floor(m.progress*100+0.5))..'%') or 'Progress unavailable'
+    local elapsed=m.elapsed_s~=nil and (tostring(math.floor(m.elapsed_s/60))..'m elapsed') or 'Elapsed unavailable'
+    return progress..' · '..elapsed
+end
+local function v1_open_wizard()
+    local handle
+    handle=helix.ui.overlay('orcacal__wizard',{on_close=function()
+        if v1_wizard_handle==handle then v1_wizard_handle=nil end
+    end})
+    v1_wizard_handle=handle
+end
+local function v1_context(o)
+    v1_set('printer',o and (o.printer..' · '..tostring(o.nozzle_mm)..' mm') or 'No Orca context')
+    v1_set('profiles',o and (o.filament..' · '..o.process) or 'Open the V1 companion in Orca')
+    v1_set('context_note','Original profiles preserved · results NOT APPLIED')
+end
+local function v1_offer_context(o)
+    v1_set('offer_printer',o and (o.printer..' · '..tostring(o.nozzle_mm)..' mm') or 'No Orca context')
+    v1_set('offer_profiles',o and (o.filament..' · '..o.process) or 'Open the V1 companion in Orca')
+    v1_set('offer_note','Selected Orca profiles · results NOT APPLIED')
+end
+local function v1_render()
+    v1_offer_context(v1_offer)
+    if not v1_session then
+        v1_context(v1_offer);v1_set('message','Choose a calibration and configure its parameters.')
+        return
+    end
+    local s=v1_session
+    v1_context(s.offer)
+    v1_set('resume_on',1);v1_set('calibration',V1_CATALOG[s.request.calibration].name)
+    local labels={requested='Preparation requested',preparing='Preparing print',blocked='Preparation unavailable',review='Review your print',confirmed='Ready to start',starting='Starting print',printing='Printing',verifying='Checking completion',complete='Ready to evaluate',cancelled='Print cancelled',failed='Print did not complete',uncertain='Check printer connection',returning='Returning your result',delivered='Result returned'}
+    local tiles={complete='Pick',printing='Print',blocked='Check',cancelled='Stop',failed='Check'}
+    v1_set('phase',labels[s.phase] or 'Status unavailable');v1_set('tile',s.result and (s.receipt and 'Done' or 'Send') or tiles[s.phase] or 'Active')
+    v1_set('message',s.message or '')
+    local p=s.request.parameters
+    local kind=s.request.calibration
+    local unit=kind=='temperature' and '°C' or kind=='retraction' and 'mm' or kind=='max_volumetric_speed' and 'mm³/s' or 's'
+    local summary=kind=='flow_ratio_yolo' and ((p.pass==2 and 'YOLO Perfectionist · 16 samples' or 'YOLO Recommended · 11 samples')..' · Archimedean surface') or
+        (tostring(p.start)..' to '..tostring(p['end'])..' '..unit..' · '..tostring(p.step)..' '..unit..' increments')
+    if kind=='temperature' then summary=summary..(p.scale and ' · Scaled for nozzle' or ' · Original tower size') end
+    v1_set('parameters',summary)
+    local prepared=s.prepared
+    local artifact=prepared and prepared.artifact
+    v1_set('artifact',artifact and ('Print file ready · '..string.format('%.1f',artifact.size/1000000)..' MB') or 'No prepared file')
+    v1_set('qualification',prepared and prepared.parity.reason or 'Waiting for preparation and comparison with Orca')
+    local qualified=prepared and prepared.parity.qualified==true and artifact~=nil
+    v1_set('confirm_on',s.phase=='review' and qualified and not s.intent and 1 or 0)
+    v1_set('start_on',s.phase=='confirmed' and qualified and s.intent and s.intent.action=='confirm' and 1 or 0)
+    v1_set('cancel_on',(s.phase=='printing' and s.intent and s.intent.action=='start') and 1 or 0)
+    v1_set('evaluate_on',s.phase=='complete' and s.evaluation and not s.result and 1 or 0)
+    v1_set('evaluation_note',s.phase=='complete' and 'Choose the best result from the completed calibration.' or '')
+    v1_set('monitor_on',(s.phase=='starting' or s.phase=='printing' or s.phase=='verifying' or s.phase=='uncertain') and 1 or 0)
+    v1_set('monitor',v1_monitor_text(s.monitor))
+    local units={temperature='°C',flow_ratio_yolo='',pressure_advance_pattern='s',retraction='mm',max_volumetric_speed='mm³/s'}
+    local result_unit=units[s.request.calibration]
+    v1_set('returned',s.result and (tostring(s.result.value)..(result_unit~='' and (' '..result_unit) or '')..' · NOT APPLIED') or '')
+    v1_set('result_heading',s.receipt and 'Returned' or 'Returning result')
+    v1_set('result_note',s.receipt and 'Received by original Orca.' or 'Waiting for original Orca.')
+end
+local function v1_capability(offer,id)
+    if not offer then return nil end
+    for _,c in ipairs(offer.capabilities) do if c.id==id then return c end end
+end
+local function v1_receive_offer(_,o)
+    if not v1_exact(o,'schema origin_id request_id context_sha256 printer process filament nozzle_mm capabilities defaults created_at expires_at extruder_type') or o.schema~='helix-orca-v1-offer/v1'
+        or not v1_hex(o.origin_id,32) or not v1_hex(o.request_id,32) or not v1_hex(o.context_sha256,64)
+        or not v1_text(o.printer,128) or not v1_text(o.process,128) or not v1_text(o.filament,128)
+        or not v1_number(o.nozzle_mm) or o.nozzle_mm<=0 or o.nozzle_mm>2
+        or not v1_number(o.created_at) or not v1_number(o.expires_at) or o.expires_at<=o.created_at
+        or type(o.defaults)~='table' or type(o.capabilities)~='table' or #o.capabilities~=5 then return end
+    local seen={}
+    for _,c in ipairs(o.capabilities) do
+        if type(c)~='table' or not V1_CATALOG[c.id] or seen[c.id] or type(c.available)~='boolean' or not v1_text(c.reason,512) then return end
+        seen[c.id]=true
+    end
+    if o.extruder_type~=nil and o.extruder_type~='direct_drive' and o.extruder_type~='bowden' and o.extruder_type~='unavailable' then return end
+    for id,_ in pairs(V1_CATALOG) do
+        if not v1_valid_parameters(id,o.defaults[id]) then return end
+    end
+    v1_offer=o;v1_offer_context(o)
+    for id,_ in pairs(V1_CATALOG) do
+        local c=v1_capability(o,id)
+        v1_set('availability_'..id,(c.available and 'Preparation available · ' or 'Blocked · ')..c.reason)
+    end
+    if not v1_session then v1_render() end
+end
+helix.ui.on('open',v1_open_wizard)
+helix.ui.on('v1_resume',v1_open_job)
+helix.ui.on('v1_choose',function(id)
+    if not V1_CATALOG[id] then return end
+    if v1_session and not v1_session.receipt and v1_session.phase~='blocked' and v1_session.phase~='failed' and v1_session.phase~='cancelled' then
+        v1_set('message','Finish or return the active calibration before starting another.');v1_open_job();return
+    end
+    v1_prepare_draft(id)
+    local handle
+    handle=helix.ui.overlay('orcacal__v1_'..id,{on_close=function()
+        if v1_detail_handle==handle then v1_detail_handle=nil end
+    end})
+    v1_detail_handle=handle
+end)
+helix.ui.on('v1_generate',function(id)
+    local c=v1_capability(v1_offer,id)
+    if not c then v1_set('message','Waiting for Orca context');return end
+    if v1_session and v1_session.request.request_id==v1_offer.request_id then v1_set('message','This request was already submitted. Open the active calibration.');return end
+    if v1_session and not v1_session.receipt and v1_session.phase~='blocked' and v1_session.phase~='failed' and v1_session.phase~='cancelled' then return end
+    local draft=v1_prepare_draft(id)
+    local parameters={}
+    for key,value in pairs(draft) do parameters[key]=value end
+    if not v1_valid_parameters(id,parameters) then
+        v1_set('message',id=='temperature' and 'Use whole temperatures in steps of 5, with start at least 5 above end.' or 'End must be at least start plus step, with at most 1000 increments.');return
+    end
+    local request={schema='helix-orca-v1-request/v1',request_id=v1_offer.request_id,origin_id=v1_offer.origin_id,
+        context_sha256=v1_offer.context_sha256,calibration=id,parameters=parameters,
+        created_at=v1_offer.created_at,expires_at=v1_offer.expires_at,not_applied=true}
+    v1_completion_presentation.disarm()
+    v1_session={request=request,offer=v1_offer,phase='requested',sequence=0,message='Generation requested · nothing started'}
+    if v1_persist() then v1_render();v1_open_job() end
+end)
+local function v1_prepared(p,digest)
+    local r=v1_session.request
+    return v1_exact(p,'schema request_id origin_id context_sha256 request_sha256 calibration parameters artifact generator parity not_applied') and p.schema=='helix-orca-v1-prepared/v1' and p.request_id==r.request_id and p.origin_id==r.origin_id
+        and p.context_sha256==r.context_sha256 and p.calibration==r.calibration and v1_same(p.parameters,r.parameters)
+        and v1_hex(p.request_sha256,64) and v1_hex(digest,64) and p.not_applied==true
+        and v1_exact(p.generator,'build route') and v1_text(p.generator.build,128) and v1_text(p.generator.route,128)
+        and v1_exact(p.parity,'qualified report_sha256 reason') and type(p.parity.qualified)=='boolean' and v1_text(p.parity.reason,512)
+        and (not p.parity.qualified or v1_hex(p.parity.report_sha256,64))
+        and (p.artifact==nil or (v1_exact(p.artifact,'name size sha256') and v1_text(p.artifact.name,255) and p.artifact.name:match('^[A-Za-z0-9][A-Za-z0-9_.-]*%.gcode$') and not p.artifact.name:find('..',1,true) and v1_number(p.artifact.size)
+            and p.artifact.size>0 and p.artifact.size<=100000000 and p.artifact.size%1==0 and v1_hex(p.artifact.sha256,64)))
+        and (not p.parity.qualified or p.artifact~=nil)
+end
+local v1_phases={requested=true,preparing=true,blocked=true,review=true,confirmed=true,starting=true,printing=true,verifying=true,complete=true,cancelled=true,failed=true,uncertain=true,returning=true,delivered=true}
+local function v1_receive_status(_,d)
+    if not v1_exact(d,'schema request_id origin_id sequence phase message prepared job_id prepared_sha256 completion_sha256 evaluation monitor') or not v1_identity(d) or d.schema~='helix-orca-v1-status/v1' or not v1_phases[d.phase]
+        or not v1_number(d.sequence) or d.sequence%1~=0 or d.sequence<=v1_session.sequence or not v1_text(d.message,768) then return end
+    if d.monitor~=nil then
+        local m=d.monitor
+        if not v1_exact(m,'elapsed_s progress')
+            or (m.elapsed_s~=nil and (not v1_number(m.elapsed_s) or m.elapsed_s<0 or m.elapsed_s>2678400))
+            or (m.progress~=nil and (not v1_number(m.progress) or m.progress<0 or m.progress>1)) then return end
+    end
+    local s=v1_session
+    local transitions={requested={requested=true,preparing=true,blocked=true,review=true,failed=true,uncertain=true},
+        preparing={preparing=true,blocked=true,review=true,failed=true,uncertain=true},
+        review={review=true,confirmed=true,blocked=true,failed=true,uncertain=true},
+        confirmed={confirmed=true,blocked=true,failed=true,uncertain=true},
+        starting={starting=true,blocked=true,printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
+        printing={printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
+        verifying={verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
+        uncertain={blocked=true,review=true,confirmed=true,starting=true,printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
+        blocked={blocked=true}}
+    if not transitions[s.phase] or not transitions[s.phase][d.phase] then return end
+    if s.result or s.phase=='failed' or s.phase=='cancelled' or s.phase=='complete' then return end
+    if d.phase=='returning' or d.phase=='delivered' then return end -- only exact ACK commits delivery
+    if d.prepared~=nil then
+        if not v1_prepared(d.prepared,d.prepared_sha256) then return end
+        if s.prepared_sha256 and s.prepared_sha256~=d.prepared_sha256 then return end
+    elseif d.phase=='review' or d.phase=='confirmed' or d.phase=='starting' or d.phase=='printing' or d.phase=='verifying' or d.phase=='complete' then return end
+    local recovering=s.recovery_required==true and s.phase=='uncertain'
+    -- The coordinator durably republishes after inspecting the retained marker.
+    -- Keep normal strict monotonic sequencing; equal/replayed status never unlocks.
+    if recovering and ((s.prepared and not v1_same(s.prepared,d.prepared))
+        or (s.prepared_sha256 and s.prepared_sha256~=d.prepared_sha256)
+        or (s.job_id and s.job_id~=d.job_id)
+        or (s.completion_sha256 and s.completion_sha256~=d.completion_sha256)) then return end
+    local action=s.intent and s.intent.action
+    if d.phase=='confirmed' and ((s.phase~='review' and not recovering) or action~='confirm') then return end
+    if (d.phase=='starting' or d.phase=='printing' or d.phase=='verifying' or d.phase=='complete') and action~='start' then return end
+    if d.phase=='review' and (action~=nil or not d.prepared.parity.qualified) then return end
+    if (d.phase=='printing' or d.phase=='verifying' or d.phase=='complete') and not v1_text(d.job_id,128) then return end
+    if s.job_id and d.job_id~=s.job_id and (d.phase=='printing' or d.phase=='verifying' or d.phase=='complete') then return end
+    if d.phase=='complete' then
+        local e=d.evaluation
+        if not v1_hex(d.completion_sha256,64) or type(e)~='table' or not v1_text(e.setting,128)
+            or e.setting~=v1_settings[s.request.calibration]
+            or type(e.options)~='table' or #e.options<1 or #e.options>128 or type(e.unit)~='string' or #e.unit>16 or e.unit:find('%c') or utf8.len(e.unit)==nil then return end
+        for _,v in ipairs(e.options) do if not v1_number(v) then return end end
+        s.completion_sha256=d.completion_sha256;s.evaluation=e
+    end
+    if d.phase=='failed' or d.phase=='cancelled' or d.phase=='uncertain' or d.phase=='blocked' then
+        v1_completion_presentation.disarm()
+    elseif d.phase=='printing' then v1_completion_presentation.arm(s) end
+    s.sequence=d.sequence;s.phase=d.phase;s.message=d.message;s.recovery_required=nil;s.monitor=d.monitor
+    if d.prepared then s.prepared=d.prepared;s.prepared_sha256=d.prepared_sha256 end
+    if d.job_id then s.job_id=d.job_id end
+    local present=d.phase=='complete' and v1_completion_presentation.claim(s)
+    if not v1_persist() then return end
+    v1_render()
+    if present and v1_completion_presentation.open(v1_options()) then v1_retire_preparation_views()
+    elseif d.phase=='complete' and v1_job_handle then v1_open_job() end
+end
+local function v1_intent(action)
+    local s=v1_session
+    if not s or not s.prepared or not s.prepared.parity.qualified or not v1_hex(s.prepared_sha256,64) then return end
+    if action=='confirm' and (s.phase~='review' or s.intent) then return end
+    if action=='start' and (s.phase~='confirmed' or not s.intent or s.intent.action~='confirm') then return end
+    if action=='cancel' and (s.phase~='printing' or not s.intent or s.intent.action~='start') then return end
+    local serial=action=='confirm' and 1 or action=='start' and 2 or 3
+    s.intent={schema='helix-orca-v1-intent/v1',request_id=s.request.request_id,origin_id=s.request.origin_id,
+        prepared_sha256=s.prepared_sha256,action=action,intent_id=s.request.request_id:sub(1,24)..string.format('%08x',serial)}
+    if action=='start' then s.phase='starting';s.message='Start requested · waiting for coordinator'
+    elseif action=='cancel' then s.message='Cancellation requested · waiting for verified status'
+    else s.message='Confirmation sent · waiting for coordinator' end
+    if v1_persist() then
+        if action=='start' then v1_completion_presentation.arm(s) end
+        v1_render()
+    end
+end
+for _,action in ipairs({'confirm','start'}) do helix.ui.on('v1_'..action,function() v1_intent(action) end) end
+helix.ui.on('v1_cancel',function()
+    if not v1_session or v1_session.phase~='printing' or v1_cancel_handle then return end
+    v1_cancel_request=v1_session.request.request_id
+    v1_cancel_handle=helix.ui.overlay('orcacal__v1_cancel_confirm',{on_close=function() v1_cancel_handle=nil;v1_cancel_request=nil end})
+end)
+helix.ui.on('v1_cancel_keep',function()
+    if v1_cancel_handle then local h=v1_cancel_handle;v1_cancel_handle=nil;v1_cancel_request=nil;pcall(h.close) end
+end)
+helix.ui.on('v1_cancel_confirm',function()
+    local request=v1_cancel_request
+    if v1_cancel_handle then local h=v1_cancel_handle;v1_cancel_handle=nil;v1_cancel_request=nil;pcall(h.close) end
+    if v1_session and v1_session.request.request_id==request then v1_intent('cancel') end
+end)
+helix.ui.on('v1_return',function()
+    local s=v1_session
+    if not s or s.phase~='complete' or s.result or not s.evaluation then return end
+    local value=s.evaluation.options[v1_subjects.evaluation_idx:get()+1]
+    if value==nil then return end
+    s.result={schema='helix-orca-v1-result/v1',request_id=s.request.request_id,origin_id=s.request.origin_id,
+        context_sha256=s.request.context_sha256,prepared_sha256=s.prepared_sha256,job_id=s.job_id,
+        completion_sha256=s.completion_sha256,setting=s.evaluation.setting,value=value,not_applied=true}
+    s.phase='returning';s.message='Result committed locally · waiting for original Orca receipt'
+    if v1_persist() then
+        v1_render();v1_open_result()
+        v1_completion_presentation.close();v1_retire_preparation_views()
+    end
+end)
+local function v1_receive_ack(_,d)
+    if not v1_exact(d,'schema request_id origin_id result_sha256 result not_applied') or not v1_identity(d) or d.schema~='helix-orca-v1-ack/v1' or d.not_applied~=true
+        or not v1_hex(d.result_sha256,64) or not v1_session.result or not v1_same(d.result,v1_session.result) then return end
+    if v1_session.receipt then return end
+    v1_session.receipt=d;v1_session.phase='delivered';v1_session.message='Returned to original Orca · NOT APPLIED'
+    if v1_persist() then v1_render() end
+end
+helix.moonraker.on_agent_event('helix_orca_v1.context.v1',v1_receive_offer)
+helix.moonraker.on_agent_event('helix_orca_v1.status.v1',v1_receive_status)
+helix.moonraker.on_agent_event('helix_orca_v1.ack.v1',v1_receive_ack)
+-- Recover retained state without replaying any request/intent or restoring an action.
+local v1_ok,v1_saved=pcall(helix.storage.get,'v1_session')
+local function v1_restore(s)
+    if type(s)~='table' or type(s.request)~='table' or not V1_CATALOG[s.request.calibration]
+        or type(s.offer)~='table' or not v1_hex(s.request.request_id,32) or not v1_hex(s.request.origin_id,32)
+        or not v1_hex(s.request.context_sha256,64) or s.request.schema~='helix-orca-v1-request/v1' or s.request.not_applied~=true
+        or type(s.request.parameters)~='table' or not v1_valid_parameters(s.request.calibration,s.request.parameters)
+        or not v1_text(s.offer.printer,128) or not v1_text(s.offer.process,128) or not v1_text(s.offer.filament,128)
+        or not v1_number(s.offer.nozzle_mm) or not v1_number(s.sequence) or s.sequence<0 or s.sequence%1~=0
+        or not v1_phases[s.phase] or (s.message~=nil and not v1_text(s.message,768)) then return false end
+    v1_session=s
+    if s.prepared and not v1_prepared(s.prepared,s.prepared_sha256) then v1_session=nil;return false end
+    if s.intent and (not v1_exact(s.intent,'schema request_id origin_id prepared_sha256 action intent_id')
+        or s.intent.schema~='helix-orca-v1-intent/v1' or not v1_identity(s.intent)
+        or s.intent.prepared_sha256~=s.prepared_sha256 or not v1_hex(s.intent.intent_id,32)
+        or (s.intent.action~='confirm' and s.intent.action~='start' and s.intent.action~='cancel')) then v1_session=nil;return false end
+    v1_completion_presentation.recover(s)
+    s.monitor=nil -- retained telemetry is not a fresh read of the owned job
+    if s.result then
+        local r=s.result
+        if not v1_exact(r,'schema request_id origin_id context_sha256 prepared_sha256 job_id completion_sha256 setting value not_applied')
+            or r.schema~='helix-orca-v1-result/v1' or not v1_identity(r) or r.context_sha256~=s.request.context_sha256
+            or r.prepared_sha256~=s.prepared_sha256 or not v1_hex(r.prepared_sha256,64)
+            or not v1_text(r.job_id,128) or not v1_hex(r.completion_sha256,64) or not v1_text(r.setting,128)
+            or not v1_number(r.value) or r.not_applied~=true then v1_session=nil;return false end
+        s.evaluation=nil -- retained result needs no mutable evaluation options
+        if s.receipt and (s.receipt.schema~='helix-orca-v1-ack/v1' or not v1_same(s.receipt.result,r)
+            or not v1_hex(s.receipt.result_sha256,64) or s.receipt.not_applied~=true
+            or not v1_identity(s.receipt)) then s.receipt=nil end
+        s.phase=s.receipt and 'delivered' or 'returning';s.recovery_required=nil
+    elseif s.phase=='blocked' or s.phase=='failed' or s.phase=='cancelled' then
+        -- These terminal outcomes authorize no action and must remain dismissible
+        -- even if the runtime has already archived them for the next calibration.
+        s.evaluation=nil;s.recovery_required=nil
+    else
+        s.phase='uncertain';s.evaluation=nil;s.recovery_required=true
+        s.message='Reconnecting · actions locked until verified coordinator status'
+    end
+    return true
+end
+if v1_ok and v1_restore(v1_saved) then v1_persist() end
+v1_render()

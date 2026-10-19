@@ -1,0 +1,201 @@
+{
+  "browser": {
+    "browser_closed": true,
+    "browser_version": "140.0.7339.186",
+    "captures_await_fresh_native_frame": true,
+    "driver_sha256": "66ac96c82e4874fa774225abb8238118906e72dc8e2ab9b7ac6e53f818733283",
+    "errors": [],
+    "native_result_heading": "Returned",
+    "owned_profile_browser_processes": 1,
+    "page_errors": 0,
+    "passed": true,
+    "physical_actions": false,
+    "remaining_owned_profile_browser_processes": 0,
+    "result_not_applied": true,
+    "result_receipted": true,
+    "run_id": "d7c80433b4a74a44aede3ae9567ef7e8",
+    "schema": "helix-orca-v1-native-browser-qualification/v1",
+    "screenshots": [
+      {
+        "name": "01-home.png",
+        "sha256": "913aceac9c667bf0d4758ee0f75f909be1811c41811f7dfe98a4ba4137edd720"
+      },
+      {
+        "name": "02-chooser.png",
+        "sha256": "48c61f3d6886c3fbfc216f4cfe788f2a7890993c17ed6b72e3407d8caecac8f9"
+      },
+      {
+        "name": "03-configure.png",
+        "sha256": "73385a566068f42482ce24bd741ba9857fdff73dfd0d8140a56bb6b6687faeb8"
+      },
+      {
+        "name": "04-review.png",
+        "sha256": "289d171c682ab20175944254230642a899876cdc0068f3f916fa2f14def7d055"
+      },
+      {
+        "name": "05-confirmed.png",
+        "sha256": "3498192364d85a724b838bb701b6ecd7b9d9b998f1ee0babab74fa28faa00be0"
+      },
+      {
+        "name": "06-monitor.png",
+        "sha256": "3f6fb8ff54ed17978060d923ca8955c96c2e92186e497d2d35775624ad2508b7"
+      },
+      {
+        "name": "07-evaluate.png",
+        "sha256": "80009c30ee53ad2ee9de78cd1731c8aca5417bd46fe7d119afe0e3961d9cc9b0"
+      },
+      {
+        "name": "08-returned.png",
+        "sha256": "64d251377eb87e11a7e599ac7c31901c66ccec7c3aef32b3489f19a2c4b15a8e"
+      },
+      {
+        "name": "09-done.png",
+        "sha256": "81e25cb8562aff327258fb1228cb6e6855b0fbc3657ed94e500647ab9a5da6e9"
+      }
+    ],
+    "source_sha256": "247f3b462d34b70c18be3647f2e1e2a72fcf6727167cc14c9e3978eb24666119",
+    "steps": [
+      "real-browser-native-frame-and-headers",
+      "browser-pointer:orcacal__tile",
+      "browser-pointer:orcacal__v1_choose_flow_ratio_yolo",
+      "browser-pointer:orcacal__v1_generate_flow_ratio_yolo",
+      "browser-pointer:orcacal__v1_confirm",
+      "browser-pointer:orcacal__v1_start",
+      "finish-simulation-after-native-start-only",
+      "browser-pointer:orcacal__v1_return",
+      "browser-pointer:orcacal__v1_result_done",
+      "browser-native-home",
+      "browser-pointer:orcacal__tile",
+      "browser-native-back",
+      "tokenless-mutation-refused"
+    ],
+    "synthetic_only": true
+  },
+  "browser_binary_sha256": "003728e0b77eb9d52e4d258594bd55ce22ecd245eb6d3b6858fbd844c901ad7d",
+  "browser_library_manifest_sha256": "917c7404197bd4b3549a88615934094e06691d0c164ad9ed492cb747095578cd",
+  "fixture_files": {
+    ".helix-orca-v1-generated.json": "4364c05ea60cb328b92adc1067d10a3a1fc10e288dd6f750ab7af20069e924f9",
+    "main.lua": "0e901b5cc819a580198f86abd431d2df21fb517ed26386896c4a3febd97e34aa",
+    "manifest.json": "9b52a261592463376581cd814ff1baa196b2ced4856ea41ff1b61e129a25a453",
+    "ui/orcacal__temperature.xml": "b221855d6defcf42914e2663a8ec3b30199a287b4abacf44c07330761caf00c0",
+    "ui/orcacal__tile.xml": "9b9a420b323ce86472f55f68002c1a974eb489f6da6655e10936e40010bc8d43",
+    "ui/orcacal__v1_auto_result.xml": "0f7bdb4ad9cdf4bc0c24c65be49a1f64cee8c856acde95a997b76205829d3504",
+    "ui/orcacal__v1_cancel_confirm.xml": "2865886c24ee3b209ef0f1aaf019a0e0119de6812b21e7bd15de9aaf30e9b6b1",
+    "ui/orcacal__v1_flow_ratio_yolo.xml": "bfc1b6b978efae5b6de387a554e118b3d27d50399e6cd5ab7be32a3f01a80ec2",
+    "ui/orcacal__v1_job.xml": "a161cfbe4103ab6f9dd42a29abd814498ca98c32432e139c4628a0cfcf236009",
+    "ui/orcacal__v1_max_volumetric_speed.xml": "d1ff908163bd05f9ce4aede1d6a1ab87e1c5912935bb304ccf225be6dd1f0ad7",
+    "ui/orcacal__v1_pressure_advance_pattern.xml": "7085faeead6bc1706f8468528f797582d004c671aab7b366186dc419cfa93ddd",
+    "ui/orcacal__v1_result.xml": "6c3107ec2e03fc86f33475bd7488060c99977eb8e86d5ee00eee6aebf4000853",
+    "ui/orcacal__v1_retraction.xml": "f3e235b44e353ace1b8604a2622fe3836af5b94984f66ce3befd556c8d6cbc83",
+    "ui/orcacal__v1_temperature.xml": "54459ec7a26d6f9bcc9999452f44870a5f0d8521480c1d1648e999e83bce012b",
+    "ui/orcacal__wizard.xml": "53944ff7297c21dd1e9f928fac261a5666ac2424b46d842b09e30ebce87972eb"
+  },
+  "http": {
+    "checks": [
+      {
+        "case": "bad-host",
+        "framing_protection": true,
+        "status": 400
+      },
+      {
+        "case": "foreign-origin",
+        "framing_protection": true,
+        "status": 400
+      },
+      {
+        "case": "missing-token",
+        "framing_protection": true,
+        "status": 400
+      },
+      {
+        "case": "untyped-command",
+        "framing_protection": true,
+        "status": 400
+      },
+      {
+        "case": "out-of-bounds-pointer",
+        "framing_protection": true,
+        "status": 400
+      }
+    ],
+    "driver_sha256": "ff7692ad0f1a81439f43ca3dbfa5749779d85ce9a90e765843db2d8c23a02ba2",
+    "passed": true,
+    "physical_actions": false,
+    "run_id": "d7c80433b4a74a44aede3ae9567ef7e8",
+    "schema": "helix-orca-v1-native-review-http-qualification/v1",
+    "source_sha256": "247f3b462d34b70c18be3647f2e1e2a72fcf6727167cc14c9e3978eb24666119",
+    "synthetic_only": true
+  },
+  "lifecycle": {
+    "errors": [],
+    "exit_code": 0,
+    "limits": {
+      "grace": 1,
+      "log_bytes": 1048576,
+      "margin": 536870912,
+      "peak": 536870912,
+      "reserve": 5368709120,
+      "timeout": 300
+    },
+    "listener_clear": true,
+    "manifest_sha256": "e7a7ec2277320ee2fb6a691d650799483671479943dfdcd372ebfe99bc9b6dd9",
+    "run_id": "d7c80433b4a74a44aede3ae9567ef7e8",
+    "runtime_clear": true,
+    "state": "complete",
+    "verification_errors": []
+  },
+  "physical_actions": false,
+  "runtime_pins": {
+    "artifact_archive_sha256": "494826250f5b38020a8a06673bc58cad3da9370f607523babf4163499b8c1ba1",
+    "artifact_id": 11955517186,
+    "artifact_name": "helix-screen-ubuntu-22.04",
+    "binary_sha256": "e21a5a8ce2c3a7dfcc21f56d3c19b2ba31528be00313929f671b66197e3e4704",
+    "build_run": 38685014257,
+    "release_sha256": "32303ccbad05bf1073cfafd6280fe08e264d838b28f03ca649425d54d7c59f97",
+    "source_commit": "e5cdc5dc523280bc3ead681a4f229bf84dfa726a",
+    "tag": "v1.1.0-beta.9",
+    "tag_object": "cd9734ccd884784ac7f1aa07e2046b72de2d59e9",
+    "upstream": {
+      "build_run": 38685014257,
+      "digest": "sha256:494826250f5b38020a8a06673bc58cad3da9370f607523babf4163499b8c1ba1",
+      "expired": false,
+      "id": 11955517186,
+      "name": "helix-screen-ubuntu-22.04",
+      "size_in_bytes": 66705493,
+      "source_commit": "e5cdc5dc523280bc3ead681a4f229bf84dfa726a"
+    }
+  },
+  "schema": "helix-orca-v1-native-interactive-evidence/v1",
+  "scope": "Actual native UI and browser only; all external context, preparation, parity, job completion and receipts are fixed synthetic fixtures. No generator, printer or physical adapter is connected.",
+  "source_files": {
+    "integration/temperature-print/ui/orcacal__tile.xml": "821b112f6ba3e3fe334caf8bbe83ac41a76c731b1f4f19fa8e07f510a9c10b61",
+    "integration/v1-native/README.md": "372191ba7a50413b8dd8f68e0fbf2df52af68c91f1fa76ae67aec887b2e1762a",
+    "integration/v1-native/catalog.json": "b620398a30aba6ceeafcfbd6182b44d00cd866d27b1f121c3729ab7ad1b3a6e4",
+    "integration/v1-native/main.lua": "83052c9dd1a13a911e2d56a5897a600dd53489aceea84d962de787a713b5e0ff",
+    "integration/v1-native/presentation.lua": "7ec90f134e08065c79f8e81921e3ab9b8ef27b4054b5e787b5d51c417b0a9c2a",
+    "integration/v1-native/ui/orcacal__tile.xml": "9b9a420b323ce86472f55f68002c1a974eb489f6da6655e10936e40010bc8d43",
+    "integration/v1-native/ui/orcacal__v1_cancel_confirm.xml": "2865886c24ee3b209ef0f1aaf019a0e0119de6812b21e7bd15de9aaf30e9b6b1",
+    "integration/v1-native/ui/orcacal__v1_flow_ratio_yolo.xml": "bfc1b6b978efae5b6de387a554e118b3d27d50399e6cd5ab7be32a3f01a80ec2",
+    "integration/v1-native/ui/orcacal__v1_job.xml": "a161cfbe4103ab6f9dd42a29abd814498ca98c32432e139c4628a0cfcf236009",
+    "integration/v1-native/ui/orcacal__v1_max_volumetric_speed.xml": "d1ff908163bd05f9ce4aede1d6a1ab87e1c5912935bb304ccf225be6dd1f0ad7",
+    "integration/v1-native/ui/orcacal__v1_pressure_advance_pattern.xml": "7085faeead6bc1706f8468528f797582d004c671aab7b366186dc419cfa93ddd",
+    "integration/v1-native/ui/orcacal__v1_result.xml": "6c3107ec2e03fc86f33475bd7488060c99977eb8e86d5ee00eee6aebf4000853",
+    "integration/v1-native/ui/orcacal__v1_retraction.xml": "f3e235b44e353ace1b8604a2622fe3836af5b94984f66ce3befd556c8d6cbc83",
+    "integration/v1-native/ui/orcacal__v1_temperature.xml": "54459ec7a26d6f9bcc9999452f44870a5f0d8521480c1d1648e999e83bce012b",
+    "integration/v1-native/ui/orcacal__wizard.xml": "53944ff7297c21dd1e9f928fac261a5666ac2424b46d842b09e30ebce87972eb",
+    "integration/v1_contract.py": "27fab88b4b501777fc4a8a8282802538f986584582ec86acecabab8e7034d75d",
+    "integration/v1_private_file.py": "c16f2eb6af4b18d3bb400cb3e2b074e4bb7a5b94dd85ed43a20943cfa94a6308",
+    "integration/v1_runtime.py": "c768c9965d7dfc3aed0b7c2cc28aea09a5f12eae07a04995f12fcd334e72268e",
+    "scripts/helix-beta9-qualify.py": "4b04f9506ef73807cd677e1534e79aa89d7fc5fc354ac6196b5977e03c589651",
+    "scripts/helix_dev.py": "3c9eb5a1c5d97986146922bca1b12941688103d78846189bf8c1ceb0f2da8f8b",
+    "scripts/temperature-communication-plugin.py": "fd7e758cd01ae135fd15958324751abb99d586119a44ec9f3017c4337102355b",
+    "scripts/temperature-communication-qualify.py": "5020e13ce0277e30c19f0046068c7832a1c2eea9b859bfd1c42f3b8e34c22b8c",
+    "scripts/temperature-viewer.html": "38bcafedb53859a0f4863048b8a68e06b342ae1381fbc889b9de9220df0ee2bb",
+    "scripts/v1-native-plugin.py": "42a9cc2746283d41b17157f17230d4a50139a26d4f542d9f095cff73f91a614c",
+    "scripts/v1-native-qualify.py": "815019b8b28339b2164aade766891ab643b22877686a2ea07fc07a3f4add6b48",
+    "scripts/v1-native-review.py": "739023fa0863aedce402e632037cf34c73ff3029abba5c608c97d56fead470bb",
+    "shared/resource_lifecycle.py": "8a2cb48220f14c8f4ca5c2cc9f6fcdcdf28fa436fe4b7dd50cf6489178ba6fcc"
+  },
+  "source_sha256": "247f3b462d34b70c18be3647f2e1e2a72fcf6727167cc14c9e3978eb24666119",
+  "synthetic_only": true
+}

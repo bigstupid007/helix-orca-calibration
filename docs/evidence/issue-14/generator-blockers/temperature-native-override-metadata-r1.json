@@ -1,0 +1,935 @@
+{
+  "diagnostic_source_sha256": "53c9e5ff0cd4e4f9af961e130835a70a4defe2ad358d799a4c6c4105f82060c3",
+  "exact_native_input_equivalence_claimed": false,
+  "layer_config_ranges_present": false,
+  "layer_height_profile_present": false,
+  "mutation": false,
+  "native_project_sha256": "f6ac5e0a1bf46f7caeb826c0059dd0044a451be253a707fa81a51689fc6fbdbd",
+  "object_count": 1,
+  "object_extruder_assignment_present": true,
+  "object_extruder_matches_source_single_filament_assignment": true,
+  "object_metadata_count": 10,
+  "object_rows": [
+    {
+      "context_present": true,
+      "equal_serialized_context": true,
+      "equality_checked": true,
+      "key": "alternate_extra_wall",
+      "matches_transient_temperature_setup": true,
+      "override_present": true,
+      "transient_temperature_comparison_checked": true,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "bridge_flow",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "bridge_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": true,
+      "key": "brim_object_gap",
+      "matches_transient_temperature_setup": true,
+      "override_present": true,
+      "transient_temperature_comparison_checked": true,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": true,
+      "key": "brim_type",
+      "matches_transient_temperature_setup": true,
+      "override_present": true,
+      "transient_temperature_comparison_checked": true,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": true,
+      "equality_checked": true,
+      "key": "brim_width",
+      "matches_transient_temperature_setup": true,
+      "override_present": true,
+      "transient_temperature_comparison_checked": true,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "elefant_foot_compensation",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": false,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "extruder",
+      "matches_transient_temperature_setup": false,
+      "override_present": true,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "gap_infill_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "infill_direction",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "infill_wall_overlap",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "initial_layer_line_width",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "initial_layer_print_height",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "inner_wall_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "internal_solid_infill_pattern",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "internal_solid_infill_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": true,
+      "equality_checked": true,
+      "key": "layer_height",
+      "matches_transient_temperature_setup": true,
+      "override_present": true,
+      "transient_temperature_comparison_checked": true,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "line_width",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "outer_wall_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": true,
+      "equality_checked": true,
+      "key": "overhang_reverse",
+      "matches_transient_temperature_setup": true,
+      "override_present": true,
+      "transient_temperature_comparison_checked": true,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": true,
+      "equality_checked": true,
+      "key": "precise_z_height",
+      "matches_transient_temperature_setup": true,
+      "override_present": true,
+      "transient_temperature_comparison_checked": true,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "resolution",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "seam_position",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": true,
+      "equality_checked": true,
+      "key": "seam_slope_type",
+      "matches_transient_temperature_setup": true,
+      "override_present": true,
+      "transient_temperature_comparison_checked": true,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "slice_closing_radius",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "slicing_mode",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "solid_infill_direction",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "solid_infill_rotate_template",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "sparse_infill_density",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "sparse_infill_pattern",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_shell_layers",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_shell_thickness",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_solid_infill_flow_ratio",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_surface_density",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_surface_line_width",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_surface_pattern",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_surface_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "wall_loops",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "wall_sequence",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    }
+  ],
+  "object_unlisted_metadata_count": 0,
+  "physical_actions": false,
+  "physical_readiness": false,
+  "plate_count": 1,
+  "plate_metadata_count": 10,
+  "plate_rows": [
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "curr_bed_type",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": true,
+      "equality_checked": true,
+      "key": "filament_map_mode",
+      "matches_transient_temperature_setup": false,
+      "override_present": true,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": true,
+      "equality_checked": true,
+      "key": "filament_map",
+      "matches_transient_temperature_setup": false,
+      "override_present": true,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": true,
+      "equality_checked": true,
+      "key": "filament_volume_map",
+      "matches_transient_temperature_setup": false,
+      "override_present": true,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "first_layer_print_sequence",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "imex_head_filament_map",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "imex_parallel_mode",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "other_layers_print_sequence",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "other_layers_print_sequence_nums",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "print_sequence",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "spiral_mode",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    }
+  ],
+  "plate_unlisted_metadata_count": 0,
+  "prepared": false,
+  "qualified": false,
+  "reference_contexts_are_distinct": true,
+  "reference_source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+  "retained_context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+  "reviewed_reference_source_sha256": {
+    "src/libslic3r/Format/bbs_3mf.cpp": "1d93985c071f4a9799edc6c9f4ff7f8dd8357de105f4148f80c5526c9e5a8227",
+    "src/libslic3r/PrintConfig.cpp": "0ad44d73579ac762c446bd603e8c507dd79b20953787cf7cf67869992090e23a",
+    "src/slic3r/GUI/BackgroundSlicingProcess.cpp": "dd4f3a00f41b4b3e06a0f4a953ec8832cc73157b3bd5985a64c5ac2c43476d80",
+    "src/slic3r/GUI/Plater.cpp": "8290003e06b12b06a5c239e4d66269dfbc081895c5deb304f3a9b6dbddc8621a",
+    "src/slic3r/plugin/host/PluginHostPresets.cpp": "3d75db5ee13635e0385d91cec26856a8ea9f99458361056eb8244402c33a8b44"
+  },
+  "reviewed_source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5",
+  "schema": "helix-orca-v1-temperature-native-override-metadata-diagnostic/v1",
+  "volume_count": 1,
+  "volume_extruder_assignment_present": false,
+  "volume_extruder_matches_source_single_filament_assignment": false,
+  "volume_metadata_count": 2,
+  "volume_rows": [
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "alternate_extra_wall",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "bridge_flow",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "bridge_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "brim_object_gap",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "brim_type",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "brim_width",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "elefant_foot_compensation",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": false,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "extruder",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "gap_infill_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "infill_direction",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "infill_wall_overlap",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "initial_layer_line_width",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "initial_layer_print_height",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "inner_wall_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "internal_solid_infill_pattern",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "internal_solid_infill_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "layer_height",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "line_width",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "outer_wall_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "overhang_reverse",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "precise_z_height",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "resolution",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "seam_position",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "seam_slope_type",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": true
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "slice_closing_radius",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "slicing_mode",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "solid_infill_direction",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "solid_infill_rotate_template",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "sparse_infill_density",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "sparse_infill_pattern",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_shell_layers",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_shell_thickness",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_solid_infill_flow_ratio",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_surface_density",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_surface_line_width",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_surface_pattern",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "top_surface_speed",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "wall_loops",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    },
+    {
+      "context_present": true,
+      "equal_serialized_context": false,
+      "equality_checked": false,
+      "key": "wall_sequence",
+      "matches_transient_temperature_setup": false,
+      "override_present": false,
+      "transient_temperature_comparison_checked": false,
+      "transient_temperature_expectation_defined": false
+    }
+  ],
+  "volume_unlisted_metadata_count": 0,
+  "xml_element_count": 33,
+  "zip_entry_count": 15
+}

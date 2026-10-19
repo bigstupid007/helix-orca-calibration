@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='utf-8'?>
+<component>
+  <api>
+    <prop name="evaluation_options" type="string" default="Unavailable" />
+  </api>
+  <view name="orcacal__v1_job" extends="overlay_panel" title="Calibration job" bg_color="#screen_bg">
+    <lv_obj name="orcacal__v1_v1_job_content" width="100%" flex_grow="1" flex_flow="column" scrollable="true" style_pad_all="#space_md" style_pad_gap="#space_sm" style_bg_opa="0" style_border_width="0">
+      <ui_card width="100%" height="content" flex_flow="column" scrollable="false" style_pad_all="#space_sm" style_pad_gap="#space_xs">
+        <text_small width="100%" text="ORIGINAL PROFILES" long_mode="wrap" />
+        <text_body width="100%" bind_text="orcacal__v1_printer" long_mode="wrap" />
+        <text_small width="100%" bind_text="orcacal__v1_profiles" long_mode="wrap" />
+        <text_xs width="100%" bind_text="orcacal__v1_context_note" long_mode="wrap" />
+      </ui_card>
+      <text_heading width="100%" bind_text="orcacal__v1_calibration" long_mode="wrap" />
+      <text_body width="100%" bind_text="orcacal__v1_phase" long_mode="wrap" />
+      <text_small width="100%" bind_text="orcacal__v1_message" long_mode="wrap" name="orcacal__v1_job_message" />
+      <ui_card width="100%" height="content" flex_flow="column" scrollable="false" style_pad_all="#space_sm" style_pad_gap="#space_xs">
+        <text_small width="100%" text="PREPARED JOB" long_mode="wrap" />
+        <text_small width="100%" bind_text="orcacal__v1_parameters" long_mode="wrap" />
+        <text_small width="100%" bind_text="orcacal__v1_artifact" long_mode="wrap" />
+        <text_small width="100%" bind_text="orcacal__v1_qualification" long_mode="wrap" />
+      </ui_card>
+      <lv_button name="orcacal__v1_confirm" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <bind_flag_if_eq subject="orcacal__v1_confirm_on" flag="hidden" ref_value="0" />
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_confirm" />
+        <lv_label width="100%" text="Confirm prepared job" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+      </lv_button>
+      <lv_button name="orcacal__v1_start" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <bind_flag_if_eq subject="orcacal__v1_start_on" flag="hidden" ref_value="0" />
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_start" />
+        <lv_label width="100%" text="Start" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+      </lv_button>
+      <text_body name="orcacal__v1_job_monitor" width="100%" bind_text="orcacal__v1_monitor" long_mode="wrap">
+        <bind_flag_if_eq subject="orcacal__v1_monitor_on" flag="hidden" ref_value="0" />
+      </text_body>
+      <lv_button name="orcacal__v1_cancel" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <bind_flag_if_eq subject="orcacal__v1_cancel_on" flag="hidden" ref_value="0" />
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_cancel" />
+        <lv_label width="100%" text="Cancel print…" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+      </lv_button>
+      <text_small name="orcacal__v1_evaluation_heading" width="100%" text="EVALUATION" long_mode="wrap">
+        <bind_flag_if_eq subject="orcacal__v1_evaluate_on" flag="hidden" ref_value="0" />
+      </text_small>
+      <text_small name="orcacal__v1_evaluation_note" width="100%" bind_text="orcacal__v1_evaluation_note" long_mode="wrap">
+        <bind_flag_if_eq subject="orcacal__v1_evaluate_on" flag="hidden" ref_value="0" />
+      </text_small>
+      <lv_dropdown name="orcacal__v1_evaluation" width="100%" options="$evaluation_options" bind_value="orcacal__v1_evaluation_idx">
+        <bind_flag_if_eq subject="orcacal__v1_evaluate_on" flag="hidden" ref_value="0" />
+      </lv_dropdown>
+      <lv_button name="orcacal__v1_return" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <bind_flag_if_eq subject="orcacal__v1_evaluate_on" flag="hidden" ref_value="0" />
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_return" />
+        <lv_label width="100%" text="Return result to Orca" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+      </lv_button>
+      <text_small width="100%" bind_text="orcacal__v1_returned" long_mode="wrap" name="orcacal__v1_returned_status" />
+    </lv_obj>
+  </view>
+</component>

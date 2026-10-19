@@ -1,0 +1,99 @@
+{
+  "summary": {
+    "candidate": {
+      "sha256": "498abcbdb71e35ebb14f58e2aca2e0ddca79d917e1add0a8ac054a81ad7f084a",
+      "size": 2293171
+    },
+    "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+    "disposition": "exact_executable_and_invariants_match",
+    "emitted_setting_difference_count": 5,
+    "executable_sha256": "e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759",
+    "generation_provenance_sha256": "0a90b73f1d856d6376b96b0ae06bdb76076045071846e22df9eb7040b7857927",
+    "hardware_abi_qualified": false,
+    "inputs_sha256": "cc209eb48084d1b5a8b6764fd3d627653142fa13e28e9495cade0b6891f48056",
+    "invariants": {
+      "candidate": {
+        "accepted_abi_signature": false,
+        "deposition_temperatures": [
+          220.0
+        ],
+        "executable_commands": 82060,
+        "layers": 10,
+        "macro_semantics_present": true,
+        "model_moves": 63357,
+        "passed": true
+      },
+      "native": {
+        "accepted_abi_signature": false,
+        "deposition_temperatures": [
+          220.0
+        ],
+        "executable_commands": 82060,
+        "layers": 10,
+        "macro_semantics_present": true,
+        "model_moves": 63357,
+        "passed": true
+      }
+    },
+    "macro_internals_observed": false,
+    "native": {
+      "sha256": "3eb1cf130f4795195bb0c8d824f50262374f698e28f22805fd461f0c4293d128",
+      "size": 2311850
+    },
+    "native_evidence": [
+      {
+        "sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "size": 75490
+      },
+      {
+        "sha256": "c07ff183007744ab4e3e3215baa32173389e19fa7e7ed1f0513e9723b8137b80",
+        "size": 124743
+      },
+      {
+        "sha256": "b425d462467cae333876fac9c3124603edc83e07e658fc07cc6a01eba66ec986",
+        "size": 260290
+      }
+    ],
+    "native_manifest_sha256": "8b84b1ba81934c2a7b5110119d1e410782673847bec574cad0ac916466140848",
+    "observations": {
+      "candidate_dynamic_acceleration_commands": 4838,
+      "candidate_model_extrusion_mm": 7034.20406,
+      "candidate_model_moves": 63357,
+      "dynamic_acceleration_stream_equal": true,
+      "dynamic_acceleration_unique_values_equal": true,
+      "heater_stream_equal": true,
+      "machine_limits_equal": true,
+      "motion_extrusion_equal": true,
+      "native_dynamic_acceleration_commands": 4838,
+      "native_model_extrusion_mm": 7034.20406,
+      "native_model_moves": 63357,
+      "printed_xy_bounds_equal": true,
+      "progress_estimates_equal": true,
+      "static_machine_limit_commands_present": false
+    },
+    "parameters": {
+      "pass": 2
+    },
+    "physical_actions": false,
+    "physical_readiness": false,
+    "policy": "exact-executable-v1",
+    "prepared_sha256": "16590128b9970879da2bc8dd449c576a35b757150b78b64a20a5047ad9a5515e",
+    "production_generator": "integration.v1_generation.generate",
+    "public_asset_sha256": "15f3e750122e466389932c0c4242299ef26d8a416dc4ac0673b8864960c151dd",
+    "qualified": true,
+    "report_sha256": "b12fb0114f4366c81c90696b5af4615884d0b30b4f97c1629515f306320632a5",
+    "schema": "helix-orca-v1-windows-yolo-perfectionist-summary/v1",
+    "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+    "source_files": {
+      "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+      "integration/v1_generation.py": "0b420ed14d9e3956809d4bd7f6eae0a6bde3bb2a40c1266d3369c45c1c935bad",
+      "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+      "scripts/v1-windows-parity.py": "d820b3cb1e452763cc73199a5f825e741a2fd509250fc1a94fa1e088a034b9a9",
+      "scripts/v1-windows-yolo-perfectionist.py": "c4e7c29faf08de833bfaae7c178652fce0f649e078d21aba173b2190b9e3b991"
+    },
+    "success": true,
+    "timeout_seconds": 45,
+    "unclassified_setting_difference_count": 0
+  },
+  "process_exit": 0
+}

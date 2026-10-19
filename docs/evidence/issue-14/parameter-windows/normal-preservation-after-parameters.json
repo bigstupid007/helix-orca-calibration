@@ -1,0 +1,8 @@
+{
+  "physical_actions": false,
+  "schema": "helix-orca-v1-normal-preservation/v1",
+  "unchanged": true,
+  "baseline_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+  "file_count": 1429,
+  "aggregate_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19"
+}

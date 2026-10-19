@@ -1,0 +1,66 @@
+{
+  "actual_native_commit_readback": {
+    "committed_before_receipt": true,
+    "current_context_sha256": "15c19222a0ee9cf47ba20334bc252f71e1b2a916811c9504f59cafb8801762af",
+    "not_applied": true,
+    "origin_bound": true,
+    "original_context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+    "physical_actions": false,
+    "physical_readiness": false,
+    "result_sha256": "e26b10496ebe5d6042d7f7f518c7432f367aaa2f76039e67839e28cf2b14b78d",
+    "schema": "helix-orca-v1-windows-companion-readback/v1",
+    "synthetic_completion": true
+  },
+  "actual_preparation": {
+    "actual_offline_coordinator": true,
+    "artifact_sha256": "d16f991f4d92eef7d500840bff487c0843ee5686988f0ba7d87b2f9a9ea951d1",
+    "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+    "parity_report_sha256": "2f8cdcf6d64746411739c5775d2739c89e51940f8ed3c97e6b72cf612f75d320",
+    "phase": "review",
+    "physical_actions": false,
+    "physical_readiness": false,
+    "prepared_sha256": "f18fdf1c33c5997278a373c37e5e442d3b13d3ea2659ae74672427dbdec90421",
+    "qualified": true,
+    "request_sha256": "7f2c13f342147953043f90a34e5b5e7a973cd4cdf04247dbc3b2550cc41f7fe1",
+    "schema": "helix-orca-v1-windows-companion-preparation/v1"
+  },
+  "companion_sha256": "3c03e972706431469700d801ba3177d588d3e0e094bde73f8d04ed10f6bcda6a",
+  "hardened_optimized_readback": {
+    "new_synthetic_completion_written": false,
+    "optimized_native_readback": {
+      "committed_before_receipt": true,
+      "current_context_sha256": "6383f960de4f2b044899ff75ff566fa3f6ac5114245f24f9201aa1da45072280",
+      "not_applied": true,
+      "origin_bound": true,
+      "original_context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+      "physical_actions": false,
+      "physical_readiness": false,
+      "result_sha256": "e26b10496ebe5d6042d7f7f518c7432f367aaa2f76039e67839e28cf2b14b78d",
+      "schema": "helix-orca-v1-windows-companion-readback/v1",
+      "synthetic_completion": true
+    },
+    "optimized_wrong_root_refused": true,
+    "physical_actions": false,
+    "source_sha256": "8d829f66990701a503e575f041b35ba1701abe1a5a773558d1efdc7da2c4736b"
+  },
+  "isolated_selection_and_values_restored": true,
+  "physical_actions": false,
+  "physical_readiness": false,
+  "qualification_driver_historical_sha256": "ceb422fd0b9d273698f030982605084e95a35bbeef76bd852211bde70a9ee621",
+  "schema": "helix-orca-v1-windows-companion-workflow/v1",
+  "screenshots": {
+    "actual-preparation": "7948806d17999b7ab97d42b4b8dd86e17a22c8acfc992d8564ddb3f60f3d8f6b",
+    "current-versus-original": "d27912cd0db9b38037213b5cbdd433c381cb3418f71cb843d7f23b73ad522a26",
+    "synthetic-result-return": "d49155b0d902b04ab26e3c507f3e5997e38995637dcb380a76c2f01d1778f843"
+  },
+  "synthetic_result_fixture": {
+    "current_context_sha256": "15c19222a0ee9cf47ba20334bc252f71e1b2a916811c9504f59cafb8801762af",
+    "expected_result_sha256": "e26b10496ebe5d6042d7f7f518c7432f367aaa2f76039e67839e28cf2b14b78d",
+    "not_applied": true,
+    "original_context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+    "physical_actions": false,
+    "physical_readiness": false,
+    "schema": "helix-orca-v1-windows-companion-result-simulation/v1",
+    "synthetic_completion": true
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "candidate": {
+    "lower_mm": [
+      -22.249534606933594,
+      -5.0000152587890625,
+      0.0
+    ],
+    "oriented_triangle_sha256": "a9938a4cc1d8a46e852eb55e1e16c253b3acf0cd8b4ee056d0da700abfd313e7",
+    "signed_volume_mm3": 20517.682371296683,
+    "triangles": 27238,
+    "unique_vertex_sha256": "72eb893384d8446e5348099350c54c4bb5c279ff976b52db2b361b79d1dad47d",
+    "unique_vertices": 13585,
+    "upper_mm": [
+      22.249542236328125,
+      5.0000152587890625,
+      90.0
+    ]
+  },
+  "candidate_matches_retained_linux_oriented_triangles": true,
+  "candidate_matches_retained_linux_stl_bytes": true,
+  "candidate_native_saved_baked_oriented_triangles_equal": false,
+  "candidate_native_saved_baked_xy_projection_equal": true,
+  "candidate_stl_sha256": "e7ee12fd387eae6d0ee5f3ca6500fe9376cca8e0dbf229d8394fee2b15b309a6",
+  "candidate_xy_projection_sha256": "f27512505bda51cabbdbb223591a6f49b945eb7144cd3a524daade81752f2219",
+  "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+  "exact_executable_policy_unchanged": true,
+  "executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+  "gcode_generated": false,
+  "native_project_sha256": "f6ac5e0a1bf46f7caeb826c0059dd0044a451be253a707fa81a51689fc6fbdbd",
+  "native_saved_baked": {
+    "lower_mm": [
+      -22.249534606933594,
+      -5.0000152587890625,
+      3.515626190164767e-08
+    ],
+    "oriented_triangle_sha256": "0f7663eff3989d51be57905bc0081ffdfc0be370de8a44ffb3f2135e32cc259c",
+    "signed_volume_mm3": 20517.682361463314,
+    "triangles": 27238,
+    "unique_vertex_sha256": "4659e350832127801f721127e87ab5f8a359a9575fb3cfa42b9dedc4f1ec4ec3",
+    "unique_vertices": 13585,
+    "upper_mm": [
+      22.249542236328125,
+      5.0000152587890625,
+      90.0
+    ]
+  },
+  "native_saved_baked_xy_projection_sha256": "f27512505bda51cabbdbb223591a6f49b945eb7144cd3a524daade81752f2219",
+  "native_saved_raw": {
+    "lower_mm": [
+      -22.24953842163086,
+      -5.0000152587890625,
+      -45.0
+    ],
+    "oriented_triangle_sha256": "54f5c31a19317aad044a8e59116cd892a6feed9b6422ee46fe101ed91ef2cdba",
+    "signed_volume_mm3": 20517.68237129668,
+    "triangles": 27238,
+    "unique_vertex_sha256": "bf4ba9a4a459408e8f9322e2ac16a624e612d3b46466684b90328c1aab3927e7",
+    "unique_vertices": 13585,
+    "upper_mm": [
+      22.24953842163086,
+      5.0000152587890625,
+      45.0
+    ]
+  },
+  "physical_actions": false,
+  "physical_readiness": false,
+  "prepared": false,
+  "private_geometry_transferred": false,
+  "probe_sha256": "c5c1c45047036c035a17154b464ef747c1d8ea848f2327fde29d22d3ef98a83c",
+  "qualified": false,
+  "request_sha256": "3f7e6658ec7b63b952fbbd8d4786110c3b467a6f6b2cc383fed3981cff3c8f4f",
+  "schema": "helix-orca-v1-windows-temperature-geometry-diagnostic/v1",
+  "serialized_native_transforms_are_diagnostic_only": true,
+  "source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5"
+}

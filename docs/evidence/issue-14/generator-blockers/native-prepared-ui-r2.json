@@ -1,0 +1,242 @@
+{
+  "application_commit": "c0fa61d2217fb36d1b64c0f515b70beff327399e",
+  "build_inputs_sha256": "5b586ec76ef7509e670522d8819927d7e1030aac0087f4c1341d705083d2ed64",
+  "build_receipt_sha256": "ae314910a11c0394e108c67f2929fc42b272c1a17863ea5593e9f45d5d9b986a",
+  "builder_run_id": "39255585408",
+  "cases": {
+    "mvs": {
+      "actual_generation_metadata_sha256": "5f09a62601a82c6826df5c58c7a856eaa7098feee057ca2ad34ac3840e97b527",
+      "artifact": {
+        "sha256": "6cdb0af9b592f2987dcbd8be8cf5572f030ee1ec1856d405b1093da52cf755a0",
+        "size": 1285310
+      },
+      "calibration": "max_volumetric_speed",
+      "confirm_start_cancel_actions": 0,
+      "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+      "coordinator_request_sha256": "41a932b9cb0198a564b96d46623d979616171b329e263aa8258e0f8abdbbcc11",
+      "image": {
+        "changed_after_status": true,
+        "height": 480,
+        "private_artifact_basename": "operator-mvs-prepared.png",
+        "public_image": false,
+        "settled_two_identical_frames": true,
+        "sha256": "6ac7f67c1c687efc283a3a39777e398d0b6fcc1c3838012dea0283077e8bbde4",
+        "width": 800
+      },
+      "invocation_sha256": "2540083af76e09cf4a96fe41603446d4ac8fa8ea565725fa86fe7205385a9595",
+      "native_request_sha256": "41a932b9cb0198a564b96d46623d979616171b329e263aa8258e0f8abdbbcc11",
+      "native_review_source_sha256": "2239b760333e875a0637a4b5d65d51175ec3f766911ecb072cd2a1fb45574b3a",
+      "native_run": {
+        "exit_code": 0,
+        "manifest_sha256": "2c3c883620c2954ac1be3e210cd3b5a3e5f49424ae13a5544a41e9abf887a306",
+        "run_id": "76d82f9429ba477bb0a370d6f2911e64",
+        "runtime_clear": true,
+        "session_sha256": "190aa1ee1f8d86ae7f46a35dccc1b491f067091e57591f784e3626a5e98378da",
+        "state": "complete"
+      },
+      "native_status_readback_sha256": "85b4053bfb11fd80336a04bc6d9f176e749a619a174470fbf0c7cfe17f4a89fe",
+      "operator_actions_sha256": "50313ed4ee61f8a7f2f75f9f9587e161b9354b6ee00a9f02c05d79fe569777b7",
+      "parameters": {
+        "end": 20,
+        "start": 5,
+        "step": 0.5
+      },
+      "phase": "review",
+      "physical_actions": false,
+      "physical_adapter_present": false,
+      "prepared_sha256": "f46df375a23be8e769cba518df07b2b23321cd1a0482698b6a69d3c6c82c7f5a",
+      "qualified": true,
+      "relay_provenance_sha256": "ae724bd3c05474177b72131c45ae1293d6a2ab1cc062552d69ec31a3676882b5",
+      "relay_result_sha256": "bea1d4eb774705a95a485085220fcd041fe750211102fa49b4f6aeb9ede993c2",
+      "report_sha256": "d1c140f50269088ff8eacfaac86eb54013244ef872ee8f39f666aef580586651",
+      "request_id": "5f269a76cfca8c940f9973596edc897c",
+      "request_sha256": "41a932b9cb0198a564b96d46623d979616171b329e263aa8258e0f8abdbbcc11",
+      "trace_sha256": "3ad4a1ed381df5e5dd56ce6f4b6e9e845cfdce366aa0bc09852a3253d7be8ca5",
+      "transport_request_sha256": "41a932b9cb0198a564b96d46623d979616171b329e263aa8258e0f8abdbbcc11",
+      "windows_consume_receipt_sha256": "96b4f493e0814478560786ae93bb2f586eca67e33b11a485205371ab2ffac143"
+    },
+    "pa": {
+      "actual_generation_metadata_sha256": "0244d715f9eafcc807e062f92e0b1baac59b5f9da008cceac4426dc5fd5b9604",
+      "artifact": {
+        "sha256": "062c96b3817a0a155b49ea5d4a139159fa850659f579753af99e174e0da0853d",
+        "size": 122119
+      },
+      "calibration": "pressure_advance_pattern",
+      "confirm_start_cancel_actions": 0,
+      "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+      "coordinator_request_sha256": "22746a3fa2e7b571b8b071b0dc5f0f7660c333c16d05050853274a51f39a405f",
+      "image": {
+        "changed_after_status": true,
+        "height": 480,
+        "private_artifact_basename": "operator-pa-prepared.png",
+        "public_image": false,
+        "settled_two_identical_frames": true,
+        "sha256": "da358ee7cf7699184ec5b9131676351678eb462dd79c3fa0aef000632ee40078",
+        "width": 800
+      },
+      "invocation_sha256": "28f08fa3466ba516837dc7ba3b8a463d8748ba8e25864a121fc1f8ef00603550",
+      "native_request_sha256": "22746a3fa2e7b571b8b071b0dc5f0f7660c333c16d05050853274a51f39a405f",
+      "native_review_source_sha256": "2239b760333e875a0637a4b5d65d51175ec3f766911ecb072cd2a1fb45574b3a",
+      "native_run": {
+        "exit_code": 0,
+        "manifest_sha256": "df89957d807c9046b02c2fca44d6f0fe10329f63eb009c586f599803c88163db",
+        "run_id": "fccb70345f8c44199f460f704043d4a9",
+        "runtime_clear": true,
+        "session_sha256": "9d50d63a2469a3be71337fa8a7b0cf8c15de06ec7cf13eb598c7d53d3f57c383",
+        "state": "complete"
+      },
+      "native_status_readback_sha256": "413555a80fd27f5feba6bfab4efcd3f614967da36676bba35d9942862c0d425a",
+      "operator_actions_sha256": "2dc7299df3f7aea25e01edab32ba24ed8e4bef33a26f065a21ba8240735c86e9",
+      "parameters": {
+        "end": 0.08,
+        "start": 0,
+        "step": 0.005
+      },
+      "phase": "review",
+      "physical_actions": false,
+      "physical_adapter_present": false,
+      "prepared_sha256": "4e95c9d06e3e0d8117d406de2789dd42835acc54c3a3d719a27e47cc9846268e",
+      "qualified": true,
+      "relay_provenance_sha256": "1ab05ac3426244edf5ebae9b67d2efb3500b65a0eaebf0d623bd3525c04443b5",
+      "relay_result_sha256": "1bcc31d71a97918ac296fa70d61fce74ecd8c9d78a2f3db599d528b2a2d59012",
+      "report_sha256": "9419473c507749a50d01d9231042ebebe7da0577e953d839d86c3e95807fe31c",
+      "request_id": "07af920bb4ba7cc627c90cb365db40db",
+      "request_sha256": "22746a3fa2e7b571b8b071b0dc5f0f7660c333c16d05050853274a51f39a405f",
+      "trace_sha256": "0f2a4729d5310b4b37817ea3349bb601985ca026929ed295829acfbe7a317030",
+      "transport_request_sha256": "22746a3fa2e7b571b8b071b0dc5f0f7660c333c16d05050853274a51f39a405f",
+      "windows_consume_receipt_sha256": "2d8fd6fc5c95291f3b2d5fcfafa304189df3d135daa6c217ec7fa15de476eb67"
+    },
+    "retraction": {
+      "actual_generation_metadata_sha256": "0d4b445b6b60d825fd371623ba340b10ba7498b06d7d0dcab2197901ca5d06a4",
+      "artifact": {
+        "sha256": "f64f952089ffa34b1688706473072a751b77cb5475a9ece0f6b37045e1c05914",
+        "size": 517142
+      },
+      "calibration": "retraction",
+      "confirm_start_cancel_actions": 0,
+      "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+      "coordinator_request_sha256": "d2b2b8f4d9acb766fac2847bdea2e7c620c57ce8082ae28a383f50def88b031b",
+      "image": {
+        "changed_after_status": true,
+        "height": 480,
+        "private_artifact_basename": "operator-retraction-prepared.png",
+        "public_image": false,
+        "settled_two_identical_frames": true,
+        "sha256": "7de2ec6fb8c5cb6d0edf697ecbbffc40dc6c08f5b2f747466364e9c53ec734ce",
+        "width": 800
+      },
+      "invocation_sha256": "fae42a64eb6a1a31b932607ca0696bc4d9b534c67dd56109a61dc93aa2b69f69",
+      "native_request_sha256": "d2b2b8f4d9acb766fac2847bdea2e7c620c57ce8082ae28a383f50def88b031b",
+      "native_review_source_sha256": "2239b760333e875a0637a4b5d65d51175ec3f766911ecb072cd2a1fb45574b3a",
+      "native_run": {
+        "exit_code": 0,
+        "manifest_sha256": "b1c3e13c433e8c029e42240db7dedc8959ece13d85f277d89168303e4dfa636e",
+        "run_id": "11bd332c8b694fefa62d8f4b37078a3c",
+        "runtime_clear": true,
+        "session_sha256": "a9148c0e5574af8ff8851b583a8e53ce9696f4aa11ce669ccbbf2599c6799afb",
+        "state": "complete"
+      },
+      "native_status_readback_sha256": "be39f7c8b5f2365dcc72f659fc9551426578c5ac467b7557169a54cb9af6a539",
+      "operator_actions_sha256": "82e22adceb95e42a4aefd54f447b3f0e0978e1979200bc29ca18eea8631f7984",
+      "parameters": {
+        "end": 2,
+        "start": 0,
+        "step": 0.1
+      },
+      "phase": "review",
+      "physical_actions": false,
+      "physical_adapter_present": false,
+      "prepared_sha256": "a27887107bd45e45545d92d029689901802cea23f01b84d53befd66ac6b50f4a",
+      "qualified": true,
+      "relay_provenance_sha256": "f901a560e37d2eae10df153646dfadb895ebc77eb66194490606cadc19f54120",
+      "relay_result_sha256": "45c1548fb78d7e5461110af2392c66d52cb5a33b67ed32a440146d8b97179679",
+      "report_sha256": "9da5baa17dccf50541b26ebeeb3769f5ea302ae219c17212db8317baa70659d5",
+      "request_id": "e839aad290bcd3c3392395d8427e0961",
+      "request_sha256": "d2b2b8f4d9acb766fac2847bdea2e7c620c57ce8082ae28a383f50def88b031b",
+      "trace_sha256": "8c268f93539564fb1509eb6a1dfb68550a298800ca286b430f07461b680e769d",
+      "transport_request_sha256": "d2b2b8f4d9acb766fac2847bdea2e7c620c57ce8082ae28a383f50def88b031b",
+      "windows_consume_receipt_sha256": "c7d35873f305a804e7c58c8a267006f955f6f906e856c9b99cce27220974a3d2"
+    },
+    "temperature": {
+      "actual_generation_metadata_sha256": "17e729c93954f2bf79069f12be70d82b2cc60e882733dcd2d18c1fca12c69762",
+      "artifact": {
+        "sha256": "f6e18d91b7376e153068b24cb0c421d190e10ee8305f37c22f77bb966a052dd1",
+        "size": 3004095
+      },
+      "calibration": "temperature",
+      "confirm_start_cancel_actions": 0,
+      "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+      "coordinator_request_sha256": "49bf0417f57bc31ec3ec848db7e6a654eec7a6d743793639be766d7dc89c1a70",
+      "image": {
+        "changed_after_status": true,
+        "height": 480,
+        "private_artifact_basename": "operator-temperature-prepared.png",
+        "public_image": false,
+        "settled_two_identical_frames": true,
+        "sha256": "82bcdb7490ce789c4c1889793941e27366623b5ff42b6fbd880678d5a2ac6646",
+        "width": 800
+      },
+      "invocation_sha256": "fc29e5822607a2f9532587ef2990bfc846c6e9ad8c05dce98a199ae707c001dd",
+      "native_request_sha256": "49bf0417f57bc31ec3ec848db7e6a654eec7a6d743793639be766d7dc89c1a70",
+      "native_review_source_sha256": "2239b760333e875a0637a4b5d65d51175ec3f766911ecb072cd2a1fb45574b3a",
+      "native_run": {
+        "exit_code": 0,
+        "manifest_sha256": "472ff5d54445708980f8ddc66830d346cc7a60ce933ee6ed7098a57a8da21b36",
+        "run_id": "f0558b4da68549f5a626c619b9e32da0",
+        "runtime_clear": true,
+        "session_sha256": "1514c95e3657dcd1092854846660ddaec7c13962c87502bb8a9bb77d6c7de9ce",
+        "state": "complete"
+      },
+      "native_status_readback_sha256": "4e34815f86d95c8631fa6ed7448afa3c5cfee0a22e7046f7a1f26c7642bed638",
+      "operator_actions_sha256": "0ccf11d7102b17ba53235aeed5b264b7999ad6b0c0c57809b7ad272c3a389153",
+      "parameters": {
+        "end": 190,
+        "scale": true,
+        "start": 230,
+        "step": 5
+      },
+      "phase": "review",
+      "physical_actions": false,
+      "physical_adapter_present": false,
+      "prepared_sha256": "450853ad67b2a7299a6c9da112f90183ac02d1ba7b9eb5d71d2fcf2a35bd3325",
+      "qualified": true,
+      "relay_provenance_sha256": "392cd01ab0c36dcd98a21c1ea768510422824e7c1a28607596bc97116be35540",
+      "relay_result_sha256": "9fc1d6647e60bdc2f5b8e1a061f34d63d171aec39ece0910e52e84b44e942010",
+      "report_sha256": "165e3435480699dda600e46b39ec94b8122c4217d048cd99da0d4ea3b0a40ef2",
+      "request_id": "29c0dc32c810e54c9a3f130719683f1d",
+      "request_sha256": "49bf0417f57bc31ec3ec848db7e6a654eec7a6d743793639be766d7dc89c1a70",
+      "trace_sha256": "80aa2df1773bab25e13b56759e86a04ed6f569826f73783a71cbc2d289a09855",
+      "transport_request_sha256": "49bf0417f57bc31ec3ec848db7e6a654eec7a6d743793639be766d7dc89c1a70",
+      "windows_consume_receipt_sha256": "a2a0c0f20f1d35ac854169356aed10f48b7f5270a05ea97a89b6f58a30291972"
+    }
+  },
+  "helper_closure_sha256": "2d657902157b168798c810e17bee83a964f5d7bbeb2eea9902f560103db7551b",
+  "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+  "native_executable_sha256": "c64ef7473c5575d0fc6d35a03b54c607cd160e54b1d5332bad2dd362cf98ff5a",
+  "native_ui_size": {
+    "height": 480,
+    "width": 800
+  },
+  "operator_sha256": "ea720edde2d7010319e677e0fe54c8dd57d167e9dd294f2c9e790cd2ff8be963",
+  "package_sha256": "5f258c15cf4c4949071491c132e0e643f04e8eeaa52e94ef8b361e1c890d1588",
+  "physical_actions": false,
+  "preservation": {
+    "aggregate_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+    "file_count": 1429,
+    "receipt_sha256": "6268b5f5bc718d792795065aae60016a23f4100b7c101726db7423f2d839322f",
+    "unchanged": true
+  },
+  "printer_deployment": false,
+  "prior_interrupted_test": {
+    "excluded_from_final_acceptance": true,
+    "physical_actions": false,
+    "reason": "The first multi-case infrastructure sequence assumed Cancel at Prepared Review. The native UI provides no preprint Cancel. Its genuine Temperature Prepared evidence is retained; all final cases use fresh clean one-case sessions.",
+    "run_id": "2f16f250497547fbad0fff358e2a2553"
+  },
+  "production_generator": "integration.v1_engine.generate",
+  "profile_writeback": false,
+  "schema": "helix-orca-v1-native-prepared-ui-proof/v1",
+  "scope": "Exact retained native50 context and four matching default parameter combinations; no edited-range, hardware, or physical print qualification",
+  "source_manifest_sha256": "34172fa78f72d3ba28327e28500dfb92462c1eb39bea242249acac7f30723f24",
+  "workflow": "Native choose, configure defaults, Generate, actual Windows preparation, native Prepared Review; stop infrastructure without Confirm or Start"
+}

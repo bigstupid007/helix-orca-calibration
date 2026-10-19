@@ -1,0 +1,34 @@
+{
+  "actual_failure": {
+    "all_dependency_exit_codes_zero": true,
+    "application_commit": "8abe5075a2d4013f9189418151ab85845fff9d75",
+    "blocker": "exact_initialized_submodules_required",
+    "completed_dependency_targets": 25,
+    "dependency_checkpoint_created": false,
+    "native_configure_reached": false,
+    "run_url": "https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39215986939",
+    "submodules": []
+  },
+  "empty_inventory_roundtrip_tested": true,
+  "errors": [],
+  "excluded": [
+    "test_symlink_and_case_collision_sources_refused"
+  ],
+  "exclusion_reason": "Case-sensitive collisions and symlink creation need separate filesystem/privilege capability; Linux checks remain retained.",
+  "failures": [],
+  "helper_sha256": "4578c01a8214d4132d6e9a6fc2cd7ad33741c880d37973f2e670c3ee4b1d1d34",
+  "method": "synthetic-filesystem-unit-tests-on-Windows",
+  "native_build_tested": false,
+  "passed": true,
+  "physical_actions": false,
+  "prepared": false,
+  "public_source_archive_sha256": "37fd70eaa20a078f68a4fcef50c8c60ebd0fdf1fb75bef0f208432638c92568f",
+  "qualified": false,
+  "schema": "helix-orca-v1-checkpoint-windows-preflight/v1",
+  "skipped": 0,
+  "source_files": {
+    "integration/v1_windows_dependencies.py": "8fa06d79b9ef4d7f1c99066ae6b386d084f03de9f8ee6fa0bb0a7e786fe580f8",
+    "tests/test_v1_windows_dependencies.py": "419719e28040a228a742eefbe28200cc4542650830ab1e418e2a9e01d89d922e"
+  },
+  "tests_run": 15
+}

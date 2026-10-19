@@ -1,0 +1,59 @@
+{
+  "calibration": "flow_ratio_yolo",
+  "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+  "hardware_abi_qualified": false,
+  "inputs_sha256": "cc209eb48084d1b5a8b6764fd3d627653142fa13e28e9495cade0b6891f48056",
+  "invariants": {
+    "accepted_abi_signature": false,
+    "deposition_temperatures": [
+      220.0
+    ],
+    "executable_commands": 82060,
+    "hardware_abi_qualified": false,
+    "layers": 10,
+    "macro_semantics_present": true,
+    "model_moves": 63357,
+    "passed": true,
+    "physical_readiness": false
+  },
+  "invariants_passed": true,
+  "native": {
+    "sha256": "3eb1cf130f4795195bb0c8d824f50262374f698e28f22805fd461f0c4293d128",
+    "size": 2311850
+  },
+  "native_evidence": [
+    {
+      "sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+      "size": 75490
+    },
+    {
+      "sha256": "c07ff183007744ab4e3e3215baa32173389e19fa7e7ed1f0513e9723b8137b80",
+      "size": 124743
+    },
+    {
+      "sha256": "b425d462467cae333876fac9c3124603edc83e07e658fc07cc6a01eba66ec986",
+      "size": 260290
+    }
+  ],
+  "native_manifest_sha256": "8b84b1ba81934c2a7b5110119d1e410782673847bec574cad0ac916466140848",
+  "parameters": {
+    "pass": 2
+  },
+  "physical_actions": false,
+  "physical_readiness": false,
+  "qualified": false,
+  "reference_registered": true,
+  "report_sha256": "b8504a49e885fc0a7dec6abc3ddae9a63352ffa99b59de7229fe2a63db11bae8",
+  "runtime": {
+    "build": "6a7763f0",
+    "version": "2.5.0-dev"
+  },
+  "schema": "helix-orca-v1-native-reference-summary/v1",
+  "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+  "source_files": {
+    "contract": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+    "inspector": "53143ab43d793fabec59de90f809a8a746234c95b8db60964c61ada6d7210778",
+    "parity": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb"
+  },
+  "success": true
+}

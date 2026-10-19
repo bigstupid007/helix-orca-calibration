@@ -432,3 +432,20 @@ to make a pre-print snapshot identical. See `docs/ISSUE_12_ACCEPTANCE.md`.
 After governed closeout, **stop implementation**. The next activity is a fresh
 Founder-led review of the overall Helix–Orca product goal, not another build.
 Deferred work remains unapproved; do not launch a new feature or calibration.
+
+## Issue #14 — approved integrated V1 program
+
+The Founder's 2026-10-18 launch and GitHub Issue #14 supersede earlier stop/new
+build restrictions only for the integrated V1 candidate in
+`docs/BUILD_PROGRAM_V1.md`. Five named calibrations, Helix-first and Orca UX
+redesign, verified programmatic Orca preparation/slicing, production-oriented
+coordination and mandatory independent native-UI G-code parity are approved.
+Lead owns shared contracts before bounded parallel writers, one combined
+integration/review and unmerged PR(s). Preserve all accepted Temperature product,
+physical evidence, installation, rollback material, original profiles/settings
+and canonical dirty work. No new physical test, upload/queue/heat/motion,
+autonomous physical Start, firmware/printer configuration change, public exposure,
+automatic profile writeback, physical deployment, merge or release is authorized.
+Reference checkouts and independent lab remain immutable. Specific unavailable
+generators must remain visibly blocked; fixture proof is never qualification.
+See `docs/V1_CONTRACT.md` for worker ownership and wire contracts.

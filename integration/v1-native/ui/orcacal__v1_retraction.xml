@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<component>
+  <view name="orcacal__v1_retraction" extends="overlay_panel" title="Retraction" bg_color="#screen_bg">
+    <lv_obj name="orcacal__v1_v1_retraction_content" width="100%" flex_grow="1" flex_flow="column" scrollable="true" style_pad_all="#space_md" style_pad_gap="#space_sm" style_bg_opa="0" style_border_width="0">
+      <ui_card width="100%" height="content" flex_flow="column" scrollable="false" style_pad_all="#space_sm" style_pad_gap="#space_xs">
+        <text_small width="100%" text="CURRENT CONTEXT" long_mode="wrap" />
+        <text_body width="100%" bind_text="orcacal__v1_offer_printer" long_mode="wrap" />
+        <text_small width="100%" bind_text="orcacal__v1_offer_profiles" long_mode="wrap" />
+        <text_xs width="100%" bind_text="orcacal__v1_offer_note" long_mode="wrap" />
+      </ui_card>
+      <text_heading width="100%" long_mode="wrap" text="Tower" />
+      <text_small width="100%" long_mode="wrap" text="Compare stringing between tower levels after successful completion." />
+      <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_availability_retraction" />
+      <text_small width="100%" long_mode="wrap" text="Starting retraction (mm)" />
+      <lv_button name="orcacal__v1_retraction_start" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:retraction:start" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_retraction_start_value" />
+      </lv_button>
+      <text_small width="100%" long_mode="wrap" text="Ending retraction (mm)" />
+      <lv_button name="orcacal__v1_retraction_end" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:retraction:end" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_retraction_end_value" />
+      </lv_button>
+      <text_small width="100%" long_mode="wrap" text="Retraction increment (mm)" />
+      <lv_button name="orcacal__v1_retraction_step" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:retraction:step" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_retraction_step_value" />
+      </lv_button>
+      <text_small width="100%" text="Preparation does not start a print. Review the prepared job before confirming." long_mode="wrap" />
+      <lv_button name="orcacal__v1_generate_retraction" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_generate:retraction" />
+        <lv_label width="100%" text="Request generation" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+      </lv_button>
+      <text_small width="100%" bind_text="orcacal__v1_message" long_mode="wrap" />
+    </lv_obj>
+  </view>
+</component>

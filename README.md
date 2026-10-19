@@ -1,5 +1,82 @@
 # Helix-Orca Calibration
 
+<!-- v1-generator-current -->
+Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
+completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`
+harness qualifies Temperature, PA Pattern, Retraction and Max Volumetric Speed for
+the retained explicit unsaved 50°C context and exact parameters. Their executable
+streams match native UI references: **106,508 / 2,904 / 16,585 / 35,672 commands**,
+with zero mismatches and both invariant sets passing. Both qualified YOLO modes
+retain their separate original-context qualification.
+
+Four fresh native 800×480 Helix sessions independently reach actual Windows
+Coordinator Prepared with exact request/readback values, real generation and parity;
+no Cancel, Confirm or Start is sent. Normal Orca's **1,429-file fingerprint is unchanged**.
+All verified controls, ordinary coordination and the accepted physical Temperature
+baseline remain intact. [Exact results and limits](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate),
+[parity receipts](docs/evidence/issue-14/generator-blockers/native-four-windows-parity-r2.json),
+[native Prepared capture bindings](docs/evidence/issue-14/generator-blockers/native-prepared-ui-r2.json).
+
+Qualification covers these exact contexts/origins/profiles/parameters only. The
+original 60°C bed / 55°C filament threshold remains unsupported; the actual PA
+negative still reports `native_warning` / `1000C001` before reference selection.
+No warning suppression, profile writeback, new physical test, printer deployment
+or merge occurred. Hardware, production security and complete corresponding-source
+acceptance remain separate limitations; PR #15 stays draft and unmerged.
+<!-- /v1-generator-current -->
+
+
+The functional parameter correction is implemented: editable native numeric
+controls, both fixed YOLO modes, explicit PA defaults and retained request values.
+Independent native800×480 input verified all five edited requests unchanged at
+the actual Windows coordinator. All14 fresh captures and complete managed cleanup
+pass; Perfectionist reaches genuine parity-qualified Review. Full Product Design
+work remains deferred.
+The historical 396-frame matrix and synthetic browser workflow do not qualify the
+changed controls. [Current correction and acceptance gate](docs/V1_PARAMETER_CORRECTION.md).
+
+## Active: integrated V1 Build Program #14
+
+The Founder launched [V1 Build Program #14](https://github.com/bigstupid007/helix-orca-calibration/issues/14)
+on 2026-10-18. It approves five calibrations, a Helix-first workflow, supporting
+Orca companion, programmatic preparation, mandatory independent native-UI
+G-code parity and a coordinator without Codex test-worker dependencies.
+This supersedes the earlier stop-after-Temperature instruction for this program.
+The accepted physical Temperature installation and evidence below remain intact.
+
+V1 is an **integrated Founder Review candidate with verified functional controls
+and five-calibration generation for the exact supported input combinations**.
+Flow Ratio YOLO Recommended and Perfectionist retain their separate original-context
+Windows parity. The new Clang Windows package independently qualifies Temperature,
+PA Pattern, Retraction and MVS against the retained native UI references for the
+explicit unsaved 50°C context. Each also reaches Prepared through native Helix and
+the real Windows coordinator. Other contexts and edited ranges require matching
+independent native evidence; requests are preserved and actual blockers are shown.
+
+The [current generation and Prepared evidence](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate)
+records executable stream digests, the 29-DLL package closure, independent review,
+normal-settings preservation and the actual original-context warning negative.
+The accepted physical Temperature milestone, both YOLO modes and all verified
+parameter controls remain unchanged. No new physical test or deployment occurred.
+
+The earlier native matrix passed all eleven sizes and 396 frames; its synthetic
+browser workflow and exact browser/listener/container cleanup are retained as
+historical evidence. They do not establish the new parameter controls. Earlier
+combined source review and Windows runtime lifecycle evidence retain their exact
+source scope. The current focused [parameter evidence](docs/evidence/issue-14/parameters/README.md)
+and independent correction review pass separately.
+The ordinary coordinator runs without a Codex test worker and keeps physical
+actions disabled; no operational deployment grant exists. Normal Orca's 1429
+settings/profile files retain their pre-V1 fingerprint. No new physical test or
+merge occurred.
+
+The [candidate status and future Founder review guide](docs/V1_FOUNDER_REVIEW.md),
+[program scope](docs/BUILD_PROGRAM_V1.md), [shared contracts](docs/V1_CONTRACT.md),
+[generation/parity](docs/V1_GENERATION_PARITY.md), [grouped engine status](docs/V1_ENGINE_REUSE.md),
+and [runtime operations](docs/V1_RUNTIME.md) record the implementation and limits.
+PR #15 remains draft and unmerged pending Founder acceptance;
+this is not a qualified five-calibration release.
+
 ## Issue #12 — accepted physical Temperature calibration
 
 Founder accepted [Issue #12](https://github.com/bigstupid007/helix-orca-calibration/issues/12)
@@ -24,9 +101,10 @@ manual recovery after fresh verification. No queued API, delay workaround,
 notification change, upstream patch or profile writeback is introduced.
 October 15 nightly remains preferred; Alpha has no physical adoption.
 
-**Implementation stops after closeout.** The next activity is a fresh
-Founder-led review of the overall Helix–Orca goal. No further print, firmware/
-printer configuration change, profile writeback or new build is authorized.
+The Issue #12 closeout stopped implementation pending a new Founder launch.
+The V1 program above supersedes that stop for approved development only. New
+physical tests, firmware/printer configuration changes and profile writeback
+remain outside this approval.
 
 ## Issue #1 — native Helix calibration foundation
 
@@ -236,3 +314,9 @@ secondary target. Alpha physical integration and production adoption remain
 unauthorized. [Founder acceptance and closeout](docs/ISSUE_10_ACCEPTANCE.md)
 authorize PR #11 merge, main verification and Issue #10 closure only; GitHub
 records the final outcome. See the [qualification report](docs/ORCA_ALPHA_QUALIFICATION.md).
+
+V1 runtime lifecycle and recovery details are maintained in
+[the coordinator guide](docs/V1_RUNTIME.md) and
+[the Windows lifecycle package](docs/V1_WINDOWS_RUNTIME.md). These are development
+candidate instructions; physical activation and generator qualification remain
+separate gates.

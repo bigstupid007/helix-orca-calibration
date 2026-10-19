@@ -1,0 +1,60 @@
+{
+  "application_commit": "c0fa61d2217fb36d1b64c0f515b70beff327399e",
+  "before_reference_selection_verified": true,
+  "blocker": "native_warning",
+  "blocker_reason": "V1 preparation blocked by Orca warning 1000C001. The commanded bed temperature meets or exceeds the retained filament's vitrification temperature. This profile/input combination is unsupported by V1; the original profile has not been changed.",
+  "build_inputs_sha256": "5b586ec76ef7509e670522d8819927d7e1030aac0087f4c1341d705083d2ed64",
+  "build_receipt_sha256": "ae314910a11c0394e108c67f2929fc42b272c1a17863ea5593e9f45d5d9b986a",
+  "calibration": "pressure_advance_pattern",
+  "candidate": {
+    "sha256": "caef50f531e4295e8eaf1cbd2439900ab1e020d5a077a8a1e44c7e2a84cd82d2",
+    "size": 122119
+  },
+  "catalog_has_matching_input": false,
+  "context_file_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+  "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+  "expected_original_input_rejection_verified": true,
+  "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+  "native_executable_sha256": "c64ef7473c5575d0fc6d35a03b54c607cd160e54b1d5332bad2dd362cf98ff5a",
+  "not_applied": true,
+  "parameters": {
+    "end": 0.08,
+    "start": 0,
+    "step": 0.005
+  },
+  "physical_actions": false,
+  "physical_readiness": false,
+  "prepared": false,
+  "processing_sha256": "dcab88f6649a8d162d3e31fa762d3f43d68721ee4291cb43614c9337ce08394d",
+  "processor_error_mask": 0,
+  "product_blocker": "native_warning",
+  "qualified": false,
+  "request_id": "cf2882fd73ec88e3ba575dd395aa18b3",
+  "request_sha256": "1b98f2713c7268f0960f67895c81c1899d2bfe7cf95c6ab527b23af0bb67274b",
+  "reviewed_source_manifest_sha256": "9072582c4c9f28c84da10fd4491a52300984d23f3fcf8801ca9a79bf76585344",
+  "schema": "helix-orca-v1-windows-native-warning-proof/v1",
+  "source_files": {
+    ".github/workflows/v1-windows-engine.yml": "e13efb814a7712d95b26e9824f93ca53d7ad09ef4407697c888525f1cab79408",
+    "integration/v1-native-build-tools.py": "6a1cb112a9b091715907c17af06d769af1947b15dd6927a4ae0b2dbd27897b30",
+    "integration/v1-native-dependencies.json": "14fca0b1f471a4ced824d98523e8bb21a1038e02bd4d368e50e0383b67a3dc0b",
+    "integration/v1-native-engine/add-target.cmake": "8f0dc9cf18b0ddd400f284dc8d06acec32d78615a78ca426f68d453657feb09d",
+    "integration/v1-native-engine/main.cpp": "8c9d717b93ddf3b904c1e12b17d54af68dd0b18b59de4afc7ee2158961f2f5ed",
+    "integration/v1-native-engine/temperature_prepare.hpp": "2fe971e83f7feab78fcb4816ee3b44d62d28084c2d2dd6c0a5c8ac482cca325e",
+    "integration/v1-native-engine/windows-cmake/FindEXPAT.cmake": "5a8327cc3885d937bd59b033047ae22cbb6828d78396488e971bc717afb9acf8",
+    "integration/v1-native-engine/windows-target.cmake": "8bda06dabd3e73e4629966ee33e18cf8f8cc3b61f330dcf2d561311c449b3b76",
+    "integration/v1-native-windows-dependencies.json": "0db1eaa1561f8d63aace3773bca2d3ced19f8b36b2c9b3af5771e543172e64e2",
+    "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+    "integration/v1_engine.py": "e03bca0872306749051a9a519bf269ac7697d26c3d0435d8fe437c44a7c6d9bc",
+    "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+    "integration/v1_pe.py": "688f547d1944a0f4eb2c3ea4b91d9a25f1746ce53fb10f5fb1e89e297ccf4d23",
+    "integration/v1_windows_dependencies.py": "8de7c7670319fcc0da09778c59cbbb4206b90baa1bba091815570b291259c8cb",
+    "scripts/v1-engine-native.py": "1dbca10ce774c9aaf0f15bbe60cd4901c053e0255a215607587badc881a6e653",
+    "scripts/v1-engine-windows.py": "b7f56f448653c95a92340c46c0376e414c43568821be3704fa0b5a540642f6b2",
+    "scripts/v1-windows-native-qualify.py": "c65d56736fb4735a8638f4fe973622de58127ffd356a86791bae96e56f937415",
+    "scripts/v1-windows-parity.py": "d820b3cb1e452763cc73199a5f825e741a2fd509250fc1a94fa1e088a034b9a9"
+  },
+  "success": false,
+  "warning_codes": [
+    "1000C001"
+  ]
+}

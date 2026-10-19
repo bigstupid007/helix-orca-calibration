@@ -1,0 +1,77 @@
+<?xml version='1.0' encoding='utf-8'?>
+<component>
+  <view name="orcacal__v1_keypad" extends="overlay_panel" title="Edit value" bg_color="#screen_bg">
+    <lv_obj name="orcacal__v1_keypad_content" width="100%" flex_grow="1" flex_flow="column" scrollable="true" style_pad_all="#space_md" style_pad_gap="#space_xs" style_bg_opa="0" style_border_width="0">
+      <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_keypad_title" />
+      <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_keypad_limits" />
+      <text_heading width="100%" long_mode="wrap" bind_text="orcacal__v1_keypad_value" />
+      <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_keypad_error" />
+      <lv_obj width="100%" height="content" flex_flow="row" scrollable="false" style_pad_all="0" style_pad_gap="#space_xs" style_bg_opa="0" style_border_width="0">
+        <lv_button name="orcacal__v1_key_clear" width="49%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:clear" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Clear" />
+        </lv_button>
+        <lv_button name="orcacal__v1_key_back" width="49%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:back" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Backspace" />
+        </lv_button>
+      </lv_obj>
+      <lv_obj width="100%" height="content" flex_flow="row" scrollable="false" style_pad_all="0" style_pad_gap="#space_xs" style_bg_opa="0" style_border_width="0">
+        <lv_button name="orcacal__v1_key_7" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:7" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="7" />
+        </lv_button>
+        <lv_button name="orcacal__v1_key_8" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:8" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="8" />
+        </lv_button>
+        <lv_button name="orcacal__v1_key_9" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:9" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="9" />
+        </lv_button>
+      </lv_obj>
+      <lv_obj width="100%" height="content" flex_flow="row" scrollable="false" style_pad_all="0" style_pad_gap="#space_xs" style_bg_opa="0" style_border_width="0">
+        <lv_button name="orcacal__v1_key_4" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:4" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="4" />
+        </lv_button>
+        <lv_button name="orcacal__v1_key_5" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:5" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="5" />
+        </lv_button>
+        <lv_button name="orcacal__v1_key_6" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:6" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="6" />
+        </lv_button>
+      </lv_obj>
+      <lv_obj width="100%" height="content" flex_flow="row" scrollable="false" style_pad_all="0" style_pad_gap="#space_xs" style_bg_opa="0" style_border_width="0">
+        <lv_button name="orcacal__v1_key_1" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:1" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="1" />
+        </lv_button>
+        <lv_button name="orcacal__v1_key_2" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:2" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="2" />
+        </lv_button>
+        <lv_button name="orcacal__v1_key_3" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:3" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="3" />
+        </lv_button>
+      </lv_obj>
+      <lv_obj width="100%" height="content" flex_flow="row" scrollable="false" style_pad_all="0" style_pad_gap="#space_xs" style_bg_opa="0" style_border_width="0">
+        <lv_button name="orcacal__v1_key_dot" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:." />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="." />
+        </lv_button>
+        <lv_button name="orcacal__v1_key_0" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key:0" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="0" />
+        </lv_button>
+        <lv_button name="orcacal__v1_key_set" width="32%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+          <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_key_set" />
+          <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Set" />
+        </lv_button>
+      </lv_obj>
+    </lv_obj>
+  </view>
+</component>

@@ -1,0 +1,278 @@
+{
+  "builder_commit": "4473567d089a2c7084b4006f28138b07fca292fb",
+  "builder_run_id": "39244022330",
+  "cache_checkpoint_produced": false,
+  "compiler": {
+    "configuration": "Release",
+    "family": "Clang",
+    "frontend_variant": "MSVC",
+    "generator": "Ninja Multi-Config",
+    "linker_family": "LLD",
+    "linker_version": "22.1.3",
+    "msvc_toolset_version": "14.51.36231",
+    "probe_sha256": "d76ec698581cd76d5653fb54db59d8c04b37be0f0e4d50e5055272543945b01a",
+    "release_flags_sha256": "d4a0862161a7b287c43752221b5a3bbcf15cbeee48fa1ce8096b2fe0210b5bad",
+    "runtime_library": "MD",
+    "version": "22.1.3",
+    "visual_studio_major": "18",
+    "windows_sdk_version": "10.0.26100.0"
+  },
+  "compiler_toolchain": {
+    "cl": {
+      "sha256": "b0a1818ebae6da7f18230a84e76ce839212584ac4c2ab55b97a0d5268085da57",
+      "size": 893288
+    },
+    "clang-cl": {
+      "sha256": "ec094d5f8f37c106eefcfc47c9997c261a06e3bd8eaaa7255835983a58524156",
+      "size": 104747608
+    },
+    "cmake": {
+      "sha256": "3a329667300846abc8dffccbdcb1c8c2d4a6cebe342d499181825205ea8c766c",
+      "size": 13465160
+    },
+    "link": {
+      "sha256": "a8c42e25c91ca2453e1110540ac08f0fc12d7539454a11b9af8baeecb469837d",
+      "size": 3701088
+    },
+    "msbuild": {
+      "sha256": "3b6653078e066a29358e7b81e0da45a22bf8f6e782899e5f79ead399aa5097df",
+      "size": 376112
+    },
+    "ninja": {
+      "sha256": "b3fb16eba499ef06b197d3c68872bae94b0737e41c2403c7fab48165f564b756",
+      "size": 392704
+    },
+    "perl": {
+      "sha256": "e4ca550f97aa608f8632c41c67a21e20933964932138bb175b6be65d9cfe3c28",
+      "size": 46592
+    },
+    "selected-linker": {
+      "sha256": "631a02cecb87f9f7f2270713d6c7f84e54a0fabce6c6638d21d3a0caea78204d",
+      "size": 71454768
+    }
+  },
+  "dependency_stages": {
+    "dep_Assimp": {
+      "elapsed_seconds": 86.14,
+      "exit_code": 0,
+      "log_bytes": 89635,
+      "output_bytes": 89635
+    },
+    "dep_Blosc": {
+      "elapsed_seconds": 23.594,
+      "exit_code": 0,
+      "log_bytes": 1048576,
+      "output_bytes": 2583944
+    },
+    "dep_Boost": {
+      "elapsed_seconds": 241.515,
+      "exit_code": 0,
+      "log_bytes": 1048576,
+      "output_bytes": 2371980
+    },
+    "dep_CGAL": {
+      "elapsed_seconds": 8.969,
+      "exit_code": 0,
+      "log_bytes": 494114,
+      "output_bytes": 494114
+    },
+    "dep_CURL": {
+      "elapsed_seconds": 93.562,
+      "exit_code": 0,
+      "log_bytes": 79693,
+      "output_bytes": 79693
+    },
+    "dep_Cereal": {
+      "elapsed_seconds": 3.578,
+      "exit_code": 0,
+      "log_bytes": 13007,
+      "output_bytes": 13007
+    },
+    "dep_Draco": {
+      "elapsed_seconds": 77.89,
+      "exit_code": 0,
+      "log_bytes": 137661,
+      "output_bytes": 137661
+    },
+    "dep_Eigen": {
+      "elapsed_seconds": 7.156,
+      "exit_code": 0,
+      "log_bytes": 91428,
+      "output_bytes": 91428
+    },
+    "dep_FREETYPE": {
+      "elapsed_seconds": 9.125,
+      "exit_code": 0,
+      "log_bytes": 15397,
+      "output_bytes": 15397
+    },
+    "dep_GLFW": {
+      "elapsed_seconds": 9.235,
+      "exit_code": 0,
+      "log_bytes": 4591,
+      "output_bytes": 4591
+    },
+    "dep_GMP": {
+      "elapsed_seconds": 0.156,
+      "exit_code": 0,
+      "log_bytes": 232,
+      "output_bytes": 232
+    },
+    "dep_JPEG": {
+      "elapsed_seconds": 38.406,
+      "exit_code": 0,
+      "log_bytes": 27004,
+      "output_bytes": 27004
+    },
+    "dep_MPFR": {
+      "elapsed_seconds": 0.157,
+      "exit_code": 0,
+      "log_bytes": 307,
+      "output_bytes": 307
+    },
+    "dep_NLopt": {
+      "elapsed_seconds": 21.234,
+      "exit_code": 0,
+      "log_bytes": 23103,
+      "output_bytes": 23103
+    },
+    "dep_OCCT": {
+      "elapsed_seconds": 2307.266,
+      "exit_code": 0,
+      "log_bytes": 1048576,
+      "output_bytes": 1996655
+    },
+    "dep_OpenCV": {
+      "elapsed_seconds": 321.719,
+      "exit_code": 0,
+      "log_bytes": 397091,
+      "output_bytes": 397091
+    },
+    "dep_OpenEXR": {
+      "elapsed_seconds": 61.766,
+      "exit_code": 0,
+      "log_bytes": 184835,
+      "output_bytes": 184835
+    },
+    "dep_OpenSSL": {
+      "elapsed_seconds": 327.86,
+      "exit_code": 0,
+      "log_bytes": 1048576,
+      "output_bytes": 1052815
+    },
+    "dep_OpenVDB": {
+      "elapsed_seconds": 4.547,
+      "exit_code": 1,
+      "log_bytes": 12633,
+      "output_bytes": 12633
+    },
+    "dep_PNG": {
+      "elapsed_seconds": 8.891,
+      "exit_code": 0,
+      "log_bytes": 6256,
+      "output_bytes": 6256
+    },
+    "dep_Qhull": {
+      "elapsed_seconds": 30.359,
+      "exit_code": 0,
+      "log_bytes": 24206,
+      "output_bytes": 24206
+    },
+    "dep_TBB": {
+      "elapsed_seconds": 24.687,
+      "exit_code": 0,
+      "log_bytes": 22013,
+      "output_bytes": 22013
+    },
+    "dep_libnoise": {
+      "elapsed_seconds": 4.469,
+      "exit_code": 0,
+      "log_bytes": 11674,
+      "output_bytes": 11674
+    },
+    "dep_python3": {
+      "elapsed_seconds": 228.797,
+      "exit_code": 0,
+      "log_bytes": 56290,
+      "output_bytes": 56290
+    }
+  },
+  "dependency_targets": [
+    "dep_Boost",
+    "dep_Cereal",
+    "dep_Qhull",
+    "dep_GLFW",
+    "dep_TBB",
+    "dep_GMP",
+    "dep_MPFR",
+    "dep_Eigen",
+    "dep_CGAL",
+    "dep_NLopt",
+    "dep_libnoise",
+    "dep_Draco",
+    "dep_OpenSSL",
+    "dep_CURL",
+    "dep_FREETYPE",
+    "dep_PNG",
+    "dep_JPEG",
+    "dep_OCCT",
+    "dep_OpenCV",
+    "dep_Assimp",
+    "dep_python3",
+    "dep_Blosc",
+    "dep_OpenEXR",
+    "dep_OpenVDB",
+    "dep_FFMPEG"
+  ],
+  "evidence_digests": {
+    "build-lifecycle.json": "23728158e92b93b228bd5c858fb6f5c46787c1337b23034cda7047c89733d6e7",
+    "compiler-probe-identity.json": "35472fb85118ef44942f8b78b9fbf1b6c4dafd4935efde98f7a8c1fdb751aba0",
+    "dep_OpenVDB.json": "b6ad23cd79e414a596d212a9a5ed8be8c143e71bb3667fac369603bdb2c4c10d",
+    "dep_OpenVDB.log": "1c894b4997ae81c6bd884bed28342c32c04d2e324960dc4ceeee6cb5ebb4d2e2"
+  },
+  "failed_stage": "dep_OpenVDB",
+  "failure": "Optional bare ccache launcher reported compile steps without verified object production; llvm-lib archive failed with missing Grid.cc.obj.",
+  "lifecycle": {
+    "elapsed_seconds": 3967.782,
+    "owned_runner_vm": true,
+    "peak_filesystem_loss_bytes": 6835007488,
+    "physical_actions": false,
+    "runtime_cleanup": "GitHub-hosted disposable job teardown",
+    "schema": "helix-orca-v1-windows-build-lifecycle/v1",
+    "stage_processes_exited": true,
+    "state": "failed"
+  },
+  "managed_fetch_lifecycle": {
+    "exit_code": 0,
+    "run_id": "b1c24ad27c8d40aaa42c8c55bc8e581b",
+    "state": "complete",
+    "verification": {
+      "errors": [],
+      "runtime_clear": true
+    }
+  },
+  "native_compilation_attempted": false,
+  "native_inputs_sha256": "74aee1fa189e63d1aa48bd4849ce943ef1cc4af9564690b943a4bbf5dc0f4fda",
+  "owned_inputs": {
+    ".github/workflows/v1-windows-engine.yml": "7fa9b3a79ec1f73ab49ad36b1b6c20a03ddade03f874bfdf117db35ac94119c4",
+    "integration/v1-native-build-tools.py": "6a1cb112a9b091715907c17af06d769af1947b15dd6927a4ae0b2dbd27897b30",
+    "integration/v1-native-dependencies.json": "14fca0b1f471a4ced824d98523e8bb21a1038e02bd4d368e50e0383b67a3dc0b",
+    "integration/v1-native-engine/add-target.cmake": "8f0dc9cf18b0ddd400f284dc8d06acec32d78615a78ca426f68d453657feb09d",
+    "integration/v1-native-engine/main.cpp": "8c9d717b93ddf3b904c1e12b17d54af68dd0b18b59de4afc7ee2158961f2f5ed",
+    "integration/v1-native-engine/temperature_prepare.hpp": "2fe971e83f7feab78fcb4816ee3b44d62d28084c2d2dd6c0a5c8ac482cca325e",
+    "integration/v1-native-engine/windows-cmake/FindEXPAT.cmake": "5a8327cc3885d937bd59b033047ae22cbb6828d78396488e971bc717afb9acf8",
+    "integration/v1-native-engine/windows-target.cmake": "8bda06dabd3e73e4629966ee33e18cf8f8cc3b61f330dcf2d561311c449b3b76",
+    "integration/v1-native-windows-dependencies.json": "0db1eaa1561f8d63aace3773bca2d3ced19f8b36b2c9b3af5771e543172e64e2",
+    "integration/v1_pe.py": "688f547d1944a0f4eb2c3ea4b91d9a25f1746ce53fb10f5fb1e89e297ccf4d23",
+    "integration/v1_windows_dependencies.py": "86f99184f9fb74a34c30219a43cca35908f14743cb062e249452dbcdd0ff4d3d",
+    "scripts/v1-engine-native.py": "1dbca10ce774c9aaf0f15bbe60cd4901c053e0255a215607587badc881a6e653",
+    "scripts/v1-engine-windows.py": "c868c26c1cae15351a229cd1ba9e94bf1bffac8842cbb463ece7b3cf1b4c2b25"
+  },
+  "package_produced": false,
+  "physical_actions": false,
+  "qualified": false,
+  "schema": "helix-orca-v1-clang-build-failure/v1",
+  "unattempted_targets": [
+    "dep_FFMPEG"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "bundle_sha256": "4859087009be381122f3a877856cfb224367d776831eaf4c30d98ee0b822b222",
+  "excluded_metadata_fields": [
+    "request_id"
+  ],
+  "excluded_receipt_fields": [
+    "request_id",
+    "request_sha256",
+    "native_metadata_sha256",
+    "model.path"
+  ],
+  "excluded_request_fields": [
+    "request_id",
+    "created_at",
+    "expires_at"
+  ],
+  "execution_inputs_sha256": "e62bed4ad632555db6e041d4262cca77bb5d1a0ba7729f630f81a68a903b487b",
+  "gcode_generated": false,
+  "metadata_digest_independently_checked": true,
+  "model_sha256": "e7ee12fd387eae6d0ee5f3ca6500fe9376cca8e0dbf229d8394fee2b15b309a6",
+  "native_metadata_sha256": [
+    "83c5415917652d3416dff862a35cdf1a7fa1ead35e4d9b0b1f089155cc975154",
+    "d7eafd1f2d957ba847aab3f18eb9895c406896d6200f01b85eebf8af42e6a336"
+  ],
+  "new_python_closure_bound": true,
+  "new_receipt_sha256": "a697ac8d7fc22a55baea559c8299a92858eac832a219bd8d5b6a56c4fde9205e",
+  "new_run": "bd4fad7e9bde4790b804dee73dec62e3",
+  "note": "Fresh run independently reproduces old model and semantic receipts; it does not retroactively supply the old run with full Python provenance.",
+  "old_python_closure_label_complete": false,
+  "old_receipt_sha256": "7c402ca0f573e21c9cc0261314c49be41df4a07a5186972207638c9508c9b6f1",
+  "old_run": "19334cd6e41b4cbc9830868dccdcd722",
+  "physical_actions": false,
+  "qualified": false,
+  "request_digest_independently_checked": true,
+  "schema": "helix-orca-v1-temperature-geometry-reproduction/v1",
+  "semantic_receipt_metadata_request_equal": true,
+  "transfer_status": "Awaiting payload-specific approval; not transferred",
+  "triangles": 27238
+}
