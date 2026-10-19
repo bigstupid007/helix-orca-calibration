@@ -610,3 +610,69 @@ hashes and the historical failed Retraction inspection are retained in the
 [Windows observations](V1_WINDOWS_ORCA.md) distinguish actual native references,
 actual CLI outputs, parity failures, normal-profile preservation and packaging
 limits. Full private G-code/projects/configuration stay separate from that export.
+
+## Actual Windows YOLO layout diagnosis and corrected stock recipe
+
+The historical fixed input archive `d2296b…` produced a genuine Windows CLI
+candidate with SHA-256
+`ce05e8bd2acc16ceea51781745357bc90b87cb72800634eff60bc99061f358cb`
+(1,559,700 bytes), compared against independently prepared native G-code
+`0fb149a6a1624cdf64cb03a8c0dcb0fc6a21d9d3f43a4fb0f3389e4e48485daa`
+(1,576,258 bytes). Both pass the calibration invariants: ten layers, 43,241
+model moves and 4,854.673 mm model E. This does **not** qualify the candidate:
+executable counts are 55,268 versus 55,273, motion/extrusion sequences and
+dynamic acceleration order differ, and XY bounds differ. The strict gate
+remains closed; identical totals are not path equivalence.
+
+Bounded Windows-local per-label diagnostics establish eleven identical patch
+move counts, E totals and XY extents, but differing patch translations and layer
+order. Candidate-minus-native patch translations range from −63.5 to +94.5 mm
+in X and −64 to +64 mm in Y. Seven of eleven diagnostic relative-path hashes
+match after per-object translation and decimal normalization; four differ.
+Those diagnostic hashes neither compare the complete executable stream nor
+waive the four remaining relative-path differences.
+
+The source identifies the recipe error. `Plater::calib_flowrate` 17273–17299
+imports the public native 3MF and changes object settings without arranging it.
+`Plater::add_model` 16608–16610 uses `LoadModel`; the non-project 3MF import at
+10004–10006 centers the entire model around the bed center.
+`Model::center_instances_around_point` 846–864 applies one uniform translation
+to all existing instances. `BuildVolume.hpp` 87 defines that bed center as the
+printable-area bounding-box center. The original public YOLO model bounds are
+X[−37,86], Y[34,128] mm; its fixed relative patch layout is intentional.
+
+The old stock route instead forced `--arrange 1`, repacking individual patches.
+The corrected YOLO route uses `--center <effective printable-area bbox center>
+--arrange 0`; pinned `OrcaSlicer.cpp` 4919–4937 invokes the **same** native Model
+centering helper and 4945–4950 disables subsequent arrangement. Temperature's
+single-model route is unchanged. Missing/malformed/degenerate effective bed
+geometry blocks preparation rather than using a CLI/profile default.
+`prepare_inputs` now exposes its exact `layout_arguments` so another caller
+does not recreate stale shared CLI arguments. Tests verify those arguments,
+asymmetric/triangular bed-center math, unchanged model/build transforms and
+unavailable-layout failure before execution. No tolerance or parity policy was
+changed to address the layout error.
+
+`scripts/v1-windows-stock-yolo.py` calls the real production
+`integration.v1_generation.generate` locally with no injected runner. It reads
+the existing immutable original context and independent native reference
+manifest/G-code on Windows, the exact pinned executable and original public
+asset `c998359c…`, and creates a fresh request nonce with current time and a
+one-hour deadline. Native comparison inputs intentionally exclude nonce/time,
+so the historical independent reference still matches identical immutable
+profiles, parameters, source and runtime. The generation subprocess has a fixed
+45-second timeout and isolated job paths; all request/configuration, prepared
+inputs, invocation, G-code, full parity report and source-fingerprinted
+provenance stay in a new Windows-only directory.
+
+Its source-only transfer contains the driver, production generation/parity/
+contract code, approved sanitized-summary helper and an exact code manifest.
+It contains no private context, profile, model or generation-input bundle. The
+already approved historical archive remains unchanged. Existing local original
+public calibration assets are preferred; a separately verified public asset
+copy can be used if needed. The driver accepts only fixed bounded path arguments
+and returns ≤64 KiB fixed-key hashes, scalar observations and flags, with no raw
+commands, full coordinates, names, hooks or profile payload. A successful slice
+still needs exact executable parity; physical/hardware readiness remains false.
+The corrected actual Windows run is pending and must receive its own artifact,
+request, source and report fingerprints rather than replacing historical proof.

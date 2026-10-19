@@ -10,6 +10,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import struct
@@ -249,6 +250,35 @@ def _flow(request, snapshot, destination, config, profiles):
     return output
 
 
+def _flow_layout_arguments(snapshot):
+    """Match native GUI 3MF import: preserve layout, center the whole group.
+
+    Plater.cpp10004–10006 and OrcaSlicer.cpp4919–4937 call the same Model
+    helper. BuildVolume::bed_center is the printable-area bounding-box center.
+    Forced auto-arrangement changes labeled patch placement and print ordering.
+    """
+    raw = snapshot['effective'].get('printable_area')
+    if not isinstance(raw, str):
+        _blocked('flow_layout', 'YOLO needs explicit effective printable_area for native group centering.')
+    points = []
+    for token in raw.split(','):
+        match = re.fullmatch(r'(-?(?:\d+(?:\.\d*)?|\.\d+))x(-?(?:\d+(?:\.\d*)?|\.\d+))', token.strip())
+        if match is None:
+            _blocked('flow_layout', 'YOLO effective printable_area is malformed; no placement default is permitted.')
+        point = tuple(float(value) for value in match.groups())
+        if any(not math.isfinite(value) or abs(value) > 10000 for value in point):
+            _blocked('flow_layout', 'YOLO effective printable_area exceeds the bounded native layout.')
+        points.append(point)
+    if not 3 <= len(points) <= 128:
+        _blocked('flow_layout', 'YOLO needs a bounded explicit effective printable-area polygon.')
+    low = [min(p[i] for p in points) for i in range(2)]
+    high = [max(p[i] for p in points) for i in range(2)]
+    if any(low[i] >= high[i] for i in range(2)):
+        _blocked('flow_layout', 'YOLO printable-area extent is degenerate.')
+    center = ','.join(format((low[i] + high[i]) / 2, '.17g') for i in range(2))
+    return ['--center', center, '--arrange', '0']
+
+
 def prepare_inputs(request, snapshot, output_dir, config):
     """Stage the shared stock recipe bundle without invoking a slicer."""
     request = contract.validate_request(request, now=config.get('now'))
@@ -274,6 +304,7 @@ def prepare_inputs(request, snapshot, output_dir, config):
         _blocked('output_exists', 'Generation requires a new empty job directory.')
     destination.mkdir(parents=True, exist_ok=True)
     profiles = _configs(snapshot)
+    layout_arguments = _flow_layout_arguments(snapshot) if kind == 'flow_ratio_yolo' else ['--arrange', '1']
     model = (_temperature if kind == 'temperature' else _flow)(request, snapshot, destination, config, profiles)
     for role, value in profiles.items():
         (destination / (role + '.json')).write_bytes(contract.canonical(value))
@@ -289,7 +320,8 @@ def prepare_inputs(request, snapshot, output_dir, config):
     inputs = parity.generation_inputs(request, snapshot, source)
     (destination / 'inputs.json').write_bytes(contract.canonical(inputs))
     return {'request': request, 'snapshot': snapshot, 'destination': destination,
-            'model': model, 'profiles': profiles, 'native_effective': merged, 'inputs': inputs}
+            'model': model, 'profiles': profiles, 'native_effective': merged, 'inputs': inputs,
+            'layout_arguments': layout_arguments}
 
 
 def generate(request, snapshot, output_dir, config):
@@ -301,7 +333,7 @@ def generate(request, snapshot, output_dir, config):
     data.mkdir()
     argv = [str(executable), '--datadir', str(data), '--load-settings', str(destination / 'machine.json') + ';' + str(destination / 'process.json'),
             '--load-filaments', str(destination / 'filament.json'), '--curr-bed-type', bed,
-            '--arrange', '1', '--orient', '0', '--strict', '--outputdir', str(destination),
+            *staged['layout_arguments'], '--orient', '0', '--strict', '--outputdir', str(destination),
             '--export-settings', str(destination / 'effective.json'), '--slice', '0', str(model)]
     (destination / 'invocation.json').write_bytes(contract.canonical({'argv': argv, 'source_commit': source, 'executable_sha256': config['executable_sha256']}))
     runner = config.get('runner')

@@ -26,7 +26,8 @@ class StockGeneration(unittest.TestCase):
                      'gcode_flavor': 'marlin', 'layer_change_gcode': ';existing\\n;[layer_z]',
                      'post_process': '', 'layer_height': '0.2', 'initial_layer_print_height': '0.2',
                      'line_width': '0.45', 'filament_flow_ratio': '1', 'filament_max_volumetric_speed': '12',
-                     'top_surface_speed': '30', 'internal_solid_infill_speed': '40'}
+                     'top_surface_speed': '30', 'internal_solid_infill_speed': '40',
+                     'printable_area': '0x0,300x0,300x300,0x300'}
         self.snapshot = {'schema': 'helix-orca-v1-context/v1', 'origin_id': '1' * 32,
                          'runtime': parity.PINS[self.pin], 'nozzle_mm': .4, 'effective': effective}
         for role in ('printer', 'process', 'filament'):
@@ -67,6 +68,8 @@ class StockGeneration(unittest.TestCase):
         invocation = json.loads((self.root / 'job/invocation.json').read_text())['argv']
         self.assertIn('High Temp Plate', invocation)
         self.assertIn('--strict', invocation)
+        self.assertEqual(invocation[invocation.index('--arrange')+1], '1')
+        self.assertNotIn('--center', invocation)
 
     def test_effective_unavailable_never_falls_back_to_edited_or_saved(self):
         del self.snapshot['effective']['curr_bed_type']
@@ -159,14 +162,20 @@ class StockGeneration(unittest.TestCase):
         names = ['flowrate_0'] + [f'flowrate_{sign}0.0{i}' for sign in ('', 'm') for i in range(1, 6)]
         for index, name in enumerate(names):
             ET.SubElement(resources, '{' + ns + '}object', {'id': str(index+1), 'name': name})
+        build = ET.SubElement(model, '{' + ns + '}build')
+        for index in range(len(names)):
+            ET.SubElement(build, '{' + ns + '}item', {'objectid':str(index+1),
+                         'transform':f'1 0 0 0 1 0 0 0 1 {index*31} {index%3*32} 0'})
+        original_model = ET.tostring(model)
         with zipfile.ZipFile(asset, 'w') as archive:
-            archive.writestr('3D/3dmodel.model', ET.tostring(model))
+            archive.writestr('3D/3dmodel.model', original_model)
         self.request.update(calibration='flow_ratio_yolo', parameters={'pass': 1})
         self.config['flow_asset'] = {'path': str(asset), 'sha256': hashlib.sha256(asset.read_bytes()).hexdigest(), 'source_commit': self.pin}
         result = self.run_generation()
         self.assertFalse(result['parity']['qualified'])
         with zipfile.ZipFile(self.root / 'job/model.3mf') as archive:
             config = ET.fromstring(archive.read('Metadata/model_settings.config'))
+            self.assertEqual(archive.read('3D/3dmodel.model'), original_model)
         objects = [{m.attrib['key']: m.attrib['value'] for m in obj.findall('metadata')} for obj in config.findall('object')]
         self.assertEqual({x['name'] for x in objects}, set(names))
         self.assertEqual(len({x['print_flow_ratio'] for x in objects}), 11)
@@ -176,6 +185,27 @@ class StockGeneration(unittest.TestCase):
         self.assertEqual(float(by_name['flowrate_0']['top_surface_line_width']), 0.48000001907348633)
         process = json.loads((self.root / 'job/process.json').read_text())
         self.assertEqual(float(process['layer_height']), 0.20000000298023224)
+        invocation = json.loads((self.root/'job/invocation.json').read_text())['argv']
+        self.assertEqual(invocation[invocation.index('--arrange')+1], '0')
+        self.assertEqual(invocation[invocation.index('--center')+1], '150,150')
+
+    def test_yolo_group_center_uses_explicit_native_bounding_box_center(self):
+        self.snapshot['effective']['printable_area'] = '-20x10,280x10,280x210,-20x210'
+        self.assertEqual(generation._flow_layout_arguments(self.snapshot), ['--center','130,110','--arrange','0'])
+        # Native get_extents uses bounds, not the polygon vertex average.
+        self.snapshot['effective']['printable_area'] = '0x0,300x0,0x200'
+        self.assertEqual(generation._flow_layout_arguments(self.snapshot), ['--center','150,100','--arrange','0'])
+
+    def test_yolo_missing_or_malformed_layout_never_uses_profile_or_cli_default(self):
+        self.request.update(calibration='flow_ratio_yolo', parameters={'pass':1})
+        for raw in (None, '', '0x0,300x0', '0x0,0x100,0x300', '0x0,300xnan,300x300', '0x0,10001x0,0x300'):
+            if raw is None: self.snapshot['effective'].pop('printable_area',None)
+            else: self.snapshot['effective']['printable_area'] = raw
+            self.request['context_sha256'] = contract.digest(self.snapshot)
+            with self.subTest(raw=raw), self.assertRaises(generation.GenerationBlocked) as error:
+                self.run_generation()
+            self.assertIn(error.exception.code, ('flow_layout', 'effective_unavailable'))
+            self.assertFalse((self.root/'job/invocation.json').exists())
 
 
 if __name__ == '__main__':
