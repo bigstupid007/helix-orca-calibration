@@ -97,6 +97,13 @@ def native_bound(saved,request,status):
             and saved.get('prepared_sha256')==status.get('prepared_sha256'))
 
 
+def trial_completion(status,qualified,count,trials):
+    if status['phase'] in TERMINAL:return 'terminal'
+    if trials>0 and count+1==trials and qualified is True and status['phase']=='review':
+        return 'final-qualified-review-no-start'
+    return None
+
+
 def run(args):
     require(30<=args.seconds<=900,'relay_deadline_must_be_30_to_900_seconds')
     require(re.fullmatch('[a-f0-9]{64}',args.bridge_sha256) is not None,'exact_bridge_digest_required')
@@ -154,7 +161,7 @@ def run(args):
         atomic_json(evidence/('offered-'+offer['request_id']+'.json'),result)
         return offer
 
-    offer=new_offer();last_input=None;pending=None;completed=set();count=0;last_readback=None
+    offer=new_offer();last_input=None;pending=None;completed=set();count=0;last_readback=None;completion='bounded-stop'
     while active():
         current=saved()
         if pending and native_bound(current,pending['request'],pending['status']):
@@ -163,20 +170,23 @@ def run(args):
                 path=work/'parameter-traces'/(request['request_id']+'.json')
                 trace=read_json(path);trace.update(native_status_readback=current,native_status_readback_sha256=digest(current))
                 atomic_json(path,trace);last_readback=digest(current)
-            if status['phase'] in TERMINAL:
+            mode=trial_completion(status,pending['qualified'],count,args.trials)
+            if mode:
                 try:
                     geometry=r.q.ctl(container,'geom','orcacal__v1_job','0')
                     r.q.a._visible_widget_geometry(geometry,'orcacal__v1_job',800,480)
                 except (ValueError,RuntimeError,KeyError):
                     time.sleep(.5);continue
-                filename='windows-terminal-'+request['request_id']+'.png'
+                filename='windows-parameter-'+request['request_id']+'.png'
                 r.q.ctl(container,'screenshot','/state/'+filename)
                 trace=read_json(work/'parameter-traces'/(request['request_id']+'.json'))
-                trace.update(native_status_readback=current,terminal_visible_geometry=geometry,
-                             terminal_frame_sha256=sha(work/filename))
+                trace.update(native_status_readback=current,native_visible_geometry=geometry,
+                             native_frame_sha256=sha(work/filename),parameter_trial_completion=mode)
                 atomic_json(work/'parameter-traces'/(request['request_id']+'.json'),trace)
                 completed.add(request['request_id']);count+=1;pending=None
-                if args.trials and count>=args.trials:break
+                if args.trials and count>=args.trials:
+                    completion=mode if mode=='final-qualified-review-no-start' else 'completed-terminal-trials'
+                    break
                 if deadline-time.monotonic()<=65:break
                 offer=new_offer();last_input=None
         if isinstance(current,dict) and isinstance(current.get('request'),dict) and current['request']['request_id']==offer['request_id']:
@@ -204,7 +214,7 @@ def run(args):
                 pending=result;last_input=fingerprint
         time.sleep(.5)
     result=dict(schema=SCHEMA,completed_trials=count,run_id=record['run_id'],physical_actions=False,
-                new_listener=False,relay_stopped=True,retained_metadata=str(evidence))
+                new_listener=False,relay_stopped=True,result_completion=completion,retained_metadata=str(evidence))
     atomic_json(evidence/'result.json',result)
     return result
 

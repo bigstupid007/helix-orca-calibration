@@ -64,3 +64,12 @@ class ParameterRelay(unittest.TestCase):
         self.assertTrue(relay.native_bound(saved,self.request,status))
         for key,value in (('phase','requested'),('sequence',1),('prepared',{'forged':True})):
             with self.subTest(key=key):self.assertFalse(relay.native_bound(dict(saved,**{key:value}),self.request,status))
+
+    def test_only_final_qualified_review_can_complete_without_terminal_or_cancel(self):
+        self.assertEqual(relay.trial_completion({'phase':'review'},True,4,5),
+                         'final-qualified-review-no-start')
+        for qualified,count,trials in ((False,4,5),(True,3,5),(True,4,0),(1,4,5)):
+            with self.subTest(qualified=qualified,count=count,trials=trials):
+                self.assertIsNone(relay.trial_completion({'phase':'review'},qualified,count,trials))
+        self.assertIsNone(relay.trial_completion({'phase':'confirmed'},True,4,5))
+        self.assertEqual(relay.trial_completion({'phase':'blocked'},False,0,5),'terminal')

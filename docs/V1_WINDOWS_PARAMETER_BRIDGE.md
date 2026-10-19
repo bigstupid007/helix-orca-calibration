@@ -126,7 +126,14 @@ to match the original native request and verifies the event including any actual
 Cancel intent. The exact real status is delivered back through the approved
 transport hook. It requires saved native phase/sequence/prepared readback and a
 visible native job overlay plus captured terminal frame before the next offer.
-A qualified Flow review waits for actual native Cancel rather than advancing.
+Use Windows trial order Temperature, PA Pattern, Retraction, MVS, then Flow.
+The final qualified Flow `review` completes the parameter trial only after exact
+native status readback, visible job overlay and real frame capture. The relay
+then exits with `result_completion:"final-qualified-review-no-start"`, retaining
+both coordinators' real states and issuing no Cancel, Start or next offer.
+A nonfinal qualified Review never advances automatically. The current native
+product has no pre-start Cancel; adding one solely for this test is outside this
+correction's scope. This exception completes parameter proof, not a print or job.
 
 Private bounded invocation/result metadata is retained under the managed
 review's XDG-state `view/windows-parameter-relay/`; independent request/event/
