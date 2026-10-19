@@ -28,3 +28,27 @@ review corrections, the stock YOLO recipe correction and actual native-engine
 build/generation. Their bounded final recheck and evidence disposition remain
 pending. This document does not claim the entire current head has received that
 final recheck.
+
+## Bounded final source rechecks
+
+The same independent reviewer rechecked the integrated monitoring, compact
+native result/Start states, companion readiness and corrected YOLO transform
+through `f28187a`. No new material code defect was found. The actual R8 strict
+parity pass independently supports the transform convention; hardware and
+physical readiness remain false. Unsupported reviewer-model attribution was
+removed and historical pre-R8 pending language was corrected.
+
+A second bounded correction recheck through `f6198a7` covered actual NanoSVG
+linkage, definition-created enum-aware retained config, private managed smoke
+diagnostics, native auto-placement and direct-scroll evaluation controls. No
+new material source defect was found. The reviewer ran 15 native UI checks and
+nine engine/dependency checks successfully. Runtime configuration uses defaults
+only to inventory required keys, never to supply a missing retained value.
+Diagnostics expose phase/key names, not configuration values. Evaluation controls
+retain the same completion-dependent visibility binding.
+
+These are corrections within the one combined review. Actual engine runtime
+outcomes, complete final native captures and any new interactive-review wrapper
+remain separately identified qualification gates. The lead's combined suite
+then passed 418 tests, with two Windows-only skips on Linux. Accepted Issue #2,
+#8 and #12 source-bound offline evidence checks also passed unchanged.

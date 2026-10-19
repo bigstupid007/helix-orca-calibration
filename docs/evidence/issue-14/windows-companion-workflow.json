@@ -25,6 +25,7 @@
     "schema": "helix-orca-v1-windows-companion-preparation/v1"
   },
   "companion_sha256": "3c03e972706431469700d801ba3177d588d3e0e094bde73f8d04ed10f6bcda6a",
+  "isolated_selection_and_values_restored": true,
   "physical_actions": false,
   "physical_readiness": false,
   "qualification_driver_sha256": "ceb422fd0b9d273698f030982605084e95a35bbeef76bd852211bde70a9ee621",

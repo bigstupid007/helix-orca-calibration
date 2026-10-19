@@ -171,7 +171,9 @@ changed the current captured context to `15c19222…`; the dock updated Current
 Orca selection while keeping Original calibration context and the prepared job
 unchanged. A misplaced click had first opened a delete-preset confirmation;
 **No** dismissed it, and no preset was deleted. The original copied Process
-selection was restored after the test.
+selection was restored after the test. A final private comparison confirmed all
+saved, edited and effective values exactly equal the initial snapshot (excluding
+the deliberately fresh origin ID).
 
 A separate, explicitly labeled **synthetic completion UI fixture** then exercised
 the real companion's result inbox, durable original-context commit and receipt.
