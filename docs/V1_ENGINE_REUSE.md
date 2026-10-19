@@ -339,3 +339,15 @@ therefore also retains the exact upstream `deps/FFMPEG/FFMPEG.cmake` n7.0.3
 source URL and SHA-256. No placeholder shared libraries or configure bypass
 are used. The failed configure run retained its logs, peaked at 1,257,209,856
 bytes/31 PIDs with no OOM, and removed its exact container with runtime clear.
+
+The exact FFmpeg configure additionally needs executable compiler probes and
+defaults to the driver name `gcc` instead of honoring `CC`. The owned wrapper
+keeps `/tmp` noexec, uses `/build/configure-tmp` for probes, and supplies local
+`gcc`/`g++` driver aliases to the real pinned Clang-backed compilers through the
+same four-slot gate. FFmpeg still sees the actual compiler version and selects
+Clang semantics. Its real NASM assembler is bootstrapped into the owned prefix
+from the [official 2.16.03 source release](https://www.nasm.us/pub/nasm/releasebuilds/2.16.03/),
+with SHA-256 independently retained by the
+[FreeBSD ports update](https://cgit.freebsd.org/ports/commit/?id=264dd71e3875a9c9dfdc3c25231cc0829cb8c8b2).
+No compiler or assembler is installed on the host, and no assembly is replaced
+with placeholders or disabled to manufacture a passing native build.

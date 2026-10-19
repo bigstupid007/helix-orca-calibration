@@ -75,7 +75,7 @@ def compile_offline():
         dependency_top_level_jobs=1, qualified=False),indent=2)+'\n')
     tools = Path('/build/tools')
     tools.mkdir(mode=0o700,exist_ok=True)
-    for tool in ('make','cc','c++'):
+    for tool in ('make','cc','c++','gcc','g++'):
         link = tools / tool
         expected = '/app/integration/v1-native-build-tools.py'
         if not link.exists(): link.symlink_to(expected)
@@ -93,7 +93,7 @@ def compile_offline():
     os.environ['PATH'] = '/build/bootstrap-prefix/bin:' + os.environ['PATH']
     for item in lock.get('bootstrap_sources', []):
         name = item['target'].removeprefix('dep_')
-        binary = {'m4':'m4','autoconf':'autoreconf','automake':'automake','libtool':'libtoolize','texinfo':'makeinfo'}[name]
+        binary = {'m4':'m4','autoconf':'autoreconf','automake':'automake','libtool':'libtoolize','texinfo':'makeinfo','nasm':'nasm'}[name]
         installed = Path('/build/bootstrap-prefix/bin')/binary
         if installed.exists(): continue
         work = Path('/build/bootstrap')

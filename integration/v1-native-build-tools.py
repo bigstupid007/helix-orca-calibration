@@ -33,6 +33,10 @@ def make_arguments(arguments):
 
 def main():
     tool = Path(sys.argv[0]).name
+    # FFmpeg's unmodified configure defaults to the name gcc, ignoring CC.
+    # Forward that driver alias to the actual pinned Clang-backed compiler;
+    # FFmpeg still detects its real version and selects Clang semantics.
+    tool = {'gcc':'cc','g++':'c++'}.get(tool,tool)
     if tool == 'make':
         os.execv('/usr/bin/make', ['make', *make_arguments(sys.argv[1:])])
     if tool not in ('cc','c++'):
