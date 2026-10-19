@@ -101,7 +101,7 @@ _WINDOWS_TARGET = {"system": "Windows", "architecture": "x86_64", "format": "PE3
 _WINDOWS_OWNED_INPUTS = _OWNED_INPUTS + (
     "integration/v1-native-engine/windows-target.cmake",
     "integration/v1-native-engine/windows-cmake/FindEXPAT.cmake",
-    "integration/v1_pe.py", "integration/v1-native-windows-dependencies.json",
+    "integration/v1_pe.py", "integration/v1_windows_dependencies.py", "integration/v1-native-windows-dependencies.json",
     "scripts/v1-engine-windows.py", ".github/workflows/v1-windows-engine.yml")
 
 

@@ -31,6 +31,7 @@ SOURCE_NAMES = (
     'integration/v1-native-engine/windows-target.cmake',
     'integration/v1-native-engine/windows-cmake/FindEXPAT.cmake',
     'integration/v1_contract.py','integration/v1_parity.py','integration/v1_engine.py','integration/v1_pe.py',
+    'integration/v1_windows_dependencies.py',
     'integration/v1-native-dependencies.json','integration/v1-native-engine/main.cpp',
     'integration/v1-native-engine/add-target.cmake','integration/v1-native-engine/temperature_prepare.hpp',
     'integration/v1-native-build-tools.py','scripts/v1-engine-native.py',

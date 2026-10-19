@@ -160,3 +160,31 @@ At the integrated catalog/provenance candidate `fe9d415`, the required local sui
 passes **533 tests** with two Windows-only skips. The unchanged native-control
 preservation gate and whitespace check pass. This broad local boundary check
 does not replace the pending Windows target checks.
+
+
+## Windows build repair after actual dependency completion
+
+Run 39206549132 failed at engine configuration after all 25 dependencies passed.
+The failure was a duplicate upstream `expat` target following failed system
+Expat discovery. The Windows-only module now selects the genuine bundled
+headers and later-created target. A separate deferred-target wrapper ensures
+the native target inherits the upstream root's final MSVC compiler options.
+Four real CMake fixture checks passed in the pinned, network-disabled tool
+container (managed run `76598c80a1164d00ad954abd7b67717c`, four passed,
+zero skipped). This proves CMake behavior, not MSVC compilation or G-code parity.
+
+An explicit dependency checkpoint retains progress before native configuration;
+its provenance, integrity and restore gates are documented in
+[V1_WINDOWS_NATIVE_PACKAGE.md](V1_WINDOWS_NATIVE_PACKAGE.md#explicit-dependency-checkpoint).
+The measured 8,434,524,160-byte dependency growth justified a declared 16 GiB
+peak bound while retaining the 3 GiB reserve, 512 MiB margin and 120-minute
+watchdog. No early intermediate deletion, warning suppression, C++ generation
+change, profile change or parity relaxation is included. Actual successful
+Windows compilation and local full parity against the retained UI references
+remain outstanding; no additional generator is qualified by this repair.
+
+The integrated boundary passes **557 tests**, with six host skips (four CMake
+checks separately passed in the pinned offline tool container and two Windows-only
+checks). Accepted parameter-control preservation and `git diff --check` pass.
+The final independent re-review confirms the environment-contract finding is
+resolved; twenty affected wiring/Windows guard tests passed independently.

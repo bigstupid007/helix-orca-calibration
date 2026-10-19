@@ -52,7 +52,7 @@ on the four-CPU runner, with two for ordinary CMake builds. Microsoft documents
 [MSBuild processor behavior](https://learn.microsoft.com/visualstudio/msbuild/building-multiple-projects-in-parallel-with-msbuild)
 and [the appended compiler environment option](https://learn.microsoft.com/cpp/build/reference/cl-environment-variables).
 
-The builder has a 120-minute watchdog, a 3 GiB disk reserve, an 8 GiB peak growth
+The builder has a 120-minute watchdog, a 3 GiB disk reserve, a 16 GiB peak growth
 limit and a 512 MiB reaction margin. It checks headroom during each running
 stage and source packaging. Stage logs retain at most 1 MiB plus a 64 KiB tail.
 Failure stops only the current owned child process tree. The disposable CI job
@@ -109,3 +109,34 @@ static component whose vendor build/source provenance remains unverified. This
 is an explicit production source-acceptance limitation, alongside the historic
 GMP/MPFR vendor-build limits; matching source archives do not erase it. Native
 compilation and G-code parity can progress while this gate remains explicit.
+
+
+## Explicit dependency checkpoint
+
+Actual Windows run [39206549132](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39206549132)
+built all 25 dependencies in about 65 minutes, then failed during engine CMake
+configuration at the duplicate Expat target. Its measured dependency growth was
+8,434,524,160 bytes, almost the former 8 GiB limit. The new 16 GiB bound includes
+retained intermediates, the native build and archive packaging; initial free
+space and the rationale are recorded in `disk-budget.json`. Insufficient actual
+headroom still stops the build.
+
+After complete dependencies, an optional bounded ZIP preserves the installed
+prefix and exact downloaded inputs before native configuration. Intermediates
+remain until disposable VM teardown. A normal native failure uploads the
+checkpoint with `always()`; cancellation or job timeout can prevent upload.
+Count/size capacity failures record an unavailable checkpoint without relaxing
+any native build or package gate. Resource, provenance and other failures remain
+fatal.
+
+Reuse requires an explicitly selected owned workflow run, producer commit,
+attempt and externally pinned inner ZIP SHA. The workflow checks the producer's
+repository, head repository, workflow and completed state. The builder verifies
+exact source/submodules, recipe, module, builder/workflow bytes, six tool hashes,
+fixed paths and named compiler flags, include/library/PATH and SDK environment
+inputs. Environment names use Windows case-insensitive semantics and reject
+collisions. Changed flags or paths reject restore before dependency commands;
+there is no automatic cache selection or fallback. ZIP entries, closed file and
+empty-directory inventories, byte hashes, bounds and atomic destination ownership
+are checked independently. Restored receipts retain the original publisher and
+remain `qualified:false`; a checkpoint never qualifies a generator.

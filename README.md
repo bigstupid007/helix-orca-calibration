@@ -24,8 +24,8 @@ Stock Flow Ratio YOLO Recommended and Perfectionist pass strict executable and
 calibration-invariant parity against separate independent October 15 Windows
 references for their exact retained profiles and mode-specific parameters.
 Temperature native geometry has a reproducible source-bound repair; direct
-native generation still has a nine-command executable discrepancy under
-investigation. The old stock candidate retains material differences.
+native generation still has material motion differences (net nine executable
+commands) under investigation. The old stock candidate retains material differences.
 The [grouped actual-generation diagnostic](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md#grouped-actual-generation-diagnostic)
 uses four fresh independent Windows native UI references for a separately
 captured, deliberately selected unsaved 50°C bed context. All four native and
@@ -35,7 +35,10 @@ Actual Windows package execution and the complete unchanged parity harness
 remain mandatory. The original bed 60°C / filament threshold 55°C combination
 still produces legitimate warning `1000C001` and remains unsupported without
 changing its profiles. The actual Windows package CI build is the next shared
-infrastructure gate. No new native generator is yet qualified.
+infrastructure gate. The first actual Windows build completed all 25 dependencies
+then exposed an Expat configuration conflict; the Windows-only repair and strict
+explicit dependency checkpoint have independent source review and focused
+checks. No new native generator is yet qualified.
 
 The earlier native matrix passed all eleven sizes and 396 frames; its synthetic
 browser workflow and exact browser/listener/container cleanup are retained as

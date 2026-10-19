@@ -246,3 +246,38 @@ small volume difference does not prove compiler causation. The actual MSVC
 Windows run remains the next discriminating test. All three installed native
 GUI calibration DRC assets were independently hash-checked against the pinned
 source; each matches exactly. No speculative C++ change was made.
+
+
+## Windows configuration and dependency progress follow-up
+
+Two bounded independent source reviews covered the Windows Expat/deferred-target
+repair and checkpoint integration, excluding review of each worker's own code.
+The Expat module references the real bundled implementation; deferred injection
+inherits final upstream compiler options. Linux's six owned build inputs and
+shared native C++ generation remain unchanged. Windows owns thirteen build
+inputs; qualification captures eighteen source files. Four real CMake fixture
+checks passed without skips in the pinned offline tool container, managed run
+`76598c80a1164d00ad954abd7b67717c`.
+
+The checkpoint review found one material gap: compiler flags and search paths
+were missing from the environment contract. The lead added case-insensitive
+capture with collision rejection, compiler/link flags, include/library/PATH and
+SDK identity, and regression checks that changed CL/INCLUDE reject warm restore
+before any dependency command. The complete cmd environment snapshot also
+avoids mixed-case inherited aliases. Completed intermediate trees now remain
+through native compilation and disposable VM teardown.
+
+The reviewers found no other material source issue. Explicit producer pins,
+closed bounded inventories, externally pinned ZIP bytes, same-byte verified
+extraction, atomic no-replace promotion, identity-bound rollback, fatal resource
+and provenance failures and original publisher retention remain enforced.
+The checkpoint remains unqualified. `always()` preserves a normal native-stage
+failure, but global job cancellation/timeout may prevent upload. Source review
+and fixture tests do not replace actual Windows compilation, package execution
+or mandatory complete native G-code parity.
+
+The integrated boundary passes **557 tests**, with six host skips (four CMake
+checks separately passed in the pinned offline tool container and two Windows-only
+checks). Accepted parameter-control preservation and `git diff --check` pass.
+The final independent re-review confirms the environment-contract finding is
+resolved; twenty affected wiring/Windows guard tests passed independently.

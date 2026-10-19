@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import queue
+import re
 import shutil
 import subprocess
 import sys
@@ -20,9 +21,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from integration import v1_engine as engine
 from integration import v1_pe as pe
+from integration import v1_windows_dependencies as dependencies
 
 GIB = 1024**3
-RESERVE, PEAK, MARGIN = 3*GIB, 8*GIB, 512*1024**2
+RESERVE, PEAK, MARGIN = 3*GIB, 16*GIB, 512*1024**2
 
 
 def sha(path):
@@ -155,6 +157,44 @@ def audit_source(source, evidence):
     return engine.verify_source_bytes(sources)
 
 
+def dependency_input(args):
+    values=(args.dependency_bundle,args.dependency_bundle_sha256,args.dependency_run_id,
+            args.dependency_application_commit)
+    if all(value is None for value in values):
+        if args.dependency_run_attempt is not None:
+            raise ValueError('Dependency producer attempt requires all checkpoint pins')
+        return None
+    if any(value is None for value in values):
+        raise ValueError('Dependency reuse requires bundle, SHA, producer run and producer commit')
+    if (re.fullmatch('[a-f0-9]{64}',args.dependency_bundle_sha256) is None
+            or re.fullmatch('[a-f0-9]{40}',args.dependency_application_commit) is None
+            or re.fullmatch('[1-9][0-9]{0,31}',args.dependency_run_id) is None
+            or re.fullmatch('[1-9][0-9]{0,31}',args.dependency_run_attempt or '1') is None):
+        raise ValueError('Exact dependency checkpoint pins required')
+    return dict(path=args.dependency_bundle,sha256=args.dependency_bundle_sha256,
+        run_id=args.dependency_run_id,application_commit=args.dependency_application_commit,
+        run_attempt=args.dependency_run_attempt or '1')
+
+
+def dependency_environment(environment):
+    """Bind named compiler inputs with Windows case-insensitive semantics."""
+    names = ('CMAKE_BUILD_PARALLEL_LEVEL', 'CL_MPCOUNT', 'CL', '_CL_',
+        'MSBUILDDISABLENODEREUSE', 'DEP_PYTHON_HOST', 'CFLAGS', 'CXXFLAGS',
+        'CPPFLAGS', 'LDFLAGS', 'INCLUDE', 'LIB', 'LIBPATH', 'PATH',
+        'VCTOOLSVERSION', 'WINDOWSSDKVERSION', 'VCTOOLSINSTALLDIR',
+        'WINDOWSSDKDIR', 'WINDOWSSDKBINPATH', 'WINDOWSSDKVERBINPATH',
+        'UNIVERSALCRTSDKDIR', 'UCRTVERSION', 'VSINSTALLDIR', 'VCINSTALLDIR',
+        'VSCMD_ARG_TGT_ARCH', 'VSCMD_ARG_HOST_ARCH')
+    selected = {}
+    for key, value in environment.items():
+        folded = key.upper()
+        if folded in names:
+            if folded in selected:
+                raise ValueError('Ambiguous case-insensitive dependency environment: '+folded)
+            selected[folded] = value
+    return {name: selected.get(name, '') for name in names}
+
+
 class Build:
     def __init__(self, source, work):
         if (sys.platform != 'win32' or os.environ.get('GITHUB_ACTIONS') != 'true'
@@ -168,11 +208,15 @@ class Build:
         self.evidence = work/'evidence'
         self.evidence.mkdir()
         self.start, self.free = time.monotonic(), shutil.disk_usage(work).free
+        save(self.evidence/'disk-budget.json', dict(reserve_bytes=RESERVE,peak_bytes=PEAK,
+            margin_bytes=MARGIN,initial_free_bytes=self.free,
+            measured_previous_dependency_peak_bytes=8434524160,
+            rationale='Completed dependencies nearly filled the former 8 GiB bound; allow native build and checkpoint/source archives.'))
         if self.free < RESERVE + PEAK + MARGIN:
             raise ValueError('Windows build lacks declared disk headroom')
         self.guard()
         self.environment = self.msvc_environment()
-        self.environment.update(CMAKE_BUILD_PARALLEL_LEVEL='2', CL_MPCount='1', _CL_='/MP1',
+        self.environment.update(CMAKE_BUILD_PARALLEL_LEVEL='2', CL_MPCOUNT='1', _CL_='/MP1',
                                 MSBUILDDISABLENODEREUSE='1', DEP_PYTHON_HOST=sys.executable)
         self.children = []
         self.tools = {name: record(shutil.which(name, path=self.environment['PATH']))
@@ -186,6 +230,57 @@ class Build:
             raise RuntimeError('Windows build disk reserve/peak guard reached')
         if time.monotonic() - self.start > 7200:
             raise RuntimeError('Windows build 120-minute watchdog reached')
+
+    def prepare_dependencies(self,lock,submodules,builder):
+        deps,prefix,downloads=(self.work/name for name in ('deps','prefix','downloads'))
+        configure=['cmake','-S',self.source/'deps','-B',deps,'-G','Ninja',
+            '-DCMAKE_BUILD_TYPE=Release','-DSLIC3R_CAD=OFF','-DDEP_DEBUG=OFF',
+            cmake_path('DESTDIR',prefix),cmake_path('DEP_DOWNLOAD_DIR',downloads),
+            cmake_path('DEP_PYTHON_HOST',Path(sys.executable)),
+            '-DCMAKE_C_COMPILER=cl','-DCMAKE_CXX_COMPILER=cl']
+        targets=[item['target']for item in lock['sources']]
+        targets[5:5]=lock['in_tree_targets']
+        environment=dependency_environment(self.environment)
+        environment.update(HOST_PYTHON_SHA256=sha(Path(sys.executable)),
+            DEPENDENCY_CONFIGURE_ARGV=json.dumps([str(arg)for arg in configure],separators=(',',':')),
+            DEPENDENCY_TARGETS=json.dumps(targets,separators=(',',':')))
+        contract=dict(schema=dependencies.CONTRACT_SCHEMA,source_commit=engine.ORCA_SOURCE,
+            submodules=submodules,dependencies_lock_sha256=sha(ROOT/'integration/v1-native-windows-dependencies.json'),
+            builder_sha256=sha(Path(__file__)),workflow_sha256=sha(ROOT/'.github/workflows/v1-windows-engine.yml'),
+            module_sha256=sha(ROOT/'integration/v1_windows_dependencies.py'),toolchain=self.tools,
+            environment=environment,prefix=str(prefix.absolute()),downloads=str(downloads.absolute()))
+        save(self.evidence/'dependency-contract.json',contract)
+        supplied=getattr(self,'dependency_input',None)
+        if supplied is not None:
+            expected=dict(builder,application_commit=supplied['application_commit'],
+                run_id=supplied['run_id'],run_attempt=supplied['run_attempt'],
+                run_url='https://github.com/'+builder['repository']+'/actions/runs/'+supplied['run_id'])
+            receipt=dependencies.restore_bundle(supplied['path'],supplied['sha256'],prefix,downloads,
+                contract,expected,self.guard)
+            save(self.evidence/'dependency-checkpoint.json',receipt)
+            return receipt
+        self.run('deps-configure',configure)
+        for target in targets:
+            self.run(target,['cmake','--build',deps,'--target',target,'--parallel','1'])
+        # Optional retained progress cannot qualify or replace an engine build.
+        # Resource guards and provenance failures propagate; optional checkpoint
+        # size/count limits stay explicit without qualifying a partial archive.
+        try:
+            receipt=dependencies.create_bundle(self.work/'native-windows-dependencies.zip',
+                prefix,downloads,contract,builder,self.guard)
+        except dependencies.BundleError as error:
+            if str(error) not in {'dependency_inventory_bound_exceeded','directory_count_bound_exceeded',
+                    'archive_size_bound_exceeded','manifest_size_bound_exceeded','file_size_bound_exceeded'}:
+                raise
+            self.guard()
+            save(self.evidence/'dependency-checkpoint-failure.json',dict(
+                available=False,qualified=False,reason=str(error)))
+            return None
+        save(self.evidence/'dependency-checkpoint.json',receipt)
+        # Retain the completed dependency tree through native compilation for
+        # installed-prefix compatibility and diagnosis; the disposable VM owns
+        # final cleanup. The same declared disk guard covers this retained tree.
+        return receipt
 
     def msvc_environment(self):
         vswhere = Path(os.environ['ProgramFiles(x86)'])/'Microsoft Visual Studio/Installer/vswhere.exe'
@@ -203,10 +298,12 @@ class Build:
                          'if errorlevel 1 exit /b %errorlevel%\nset\n')
         output = subprocess.check_output([os.environ['COMSPEC'], '/d', '/c', str(batch)],
                                          text=True, timeout=30)
-        environment = dict(os.environ)
+        environment = {}
         for line in output.splitlines():
             if '=' in line and not line.startswith('='):
                 key, value = line.split('=', 1)
+                if key.upper() in environment:
+                    raise ValueError('Ambiguous case-insensitive MSVC environment')
                 environment[key.upper()] = value
         environment['MSBUILD'] = str(vs/'MSBuild/Current/Bin/amd64/MSBuild.exe')
         if environment.get('VSCMD_ARG_TGT_ARCH') != 'x64' or not Path(environment['MSBUILD']).is_file():
@@ -290,15 +387,10 @@ class Build:
             'reserve_bytes': RESERVE, 'peak_bytes': PEAK, 'margin_bytes': MARGIN,
             'timeout_seconds': 7200, 'qualified': False}
         save(self.evidence/'native-inputs.json', inputs)
-        deps, prefix, build = (self.work/name for name in ('deps', 'prefix', 'engine'))
-        self.run('deps-configure', ['cmake', '-S', source/'deps', '-B', deps, '-G', 'Ninja',
-            '-DCMAKE_BUILD_TYPE=Release', '-DSLIC3R_CAD=OFF', '-DDEP_DEBUG=OFF',
-            cmake_path('DESTDIR', prefix), cmake_path('DEP_DOWNLOAD_DIR', self.work/'downloads'),
-            cmake_path('DEP_PYTHON_HOST', Path(sys.executable)), '-DCMAKE_C_COMPILER=cl', '-DCMAKE_CXX_COMPILER=cl'])
-        targets = [item['target'] for item in lock['sources']]
-        targets[5:5] = lock['in_tree_targets']
-        for target in targets:
-            self.run(target, ['cmake', '--build', deps, '--target', target, '--parallel', '1'])
+        checkpoint=self.prepare_dependencies(lock,modules.splitlines(),builder)
+        inputs['dependency_checkpoint']=checkpoint
+        save(self.evidence/'native-inputs.json',inputs)
+        prefix,build=self.work/'prefix',self.work/'engine'
         actual_prefix = prefix/'usr/local'
         self.run('engine-configure', ['cmake', '-S', source, '-B', build, '-G', 'Ninja',
             '-DCMAKE_BUILD_TYPE=Release', cmake_path('CMAKE_PREFIX_PATH', actual_prefix),
@@ -439,10 +531,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source', required=True, type=Path)
     parser.add_argument('--work', required=True, type=Path)
+    parser.add_argument('--dependency-bundle',type=Path)
+    parser.add_argument('--dependency-bundle-sha256')
+    parser.add_argument('--dependency-run-id')
+    parser.add_argument('--dependency-application-commit')
+    parser.add_argument('--dependency-run-attempt')
     args = parser.parse_args()
+    supplied=dependency_input(args)
     run = None
     try:
         run = Build(args.source, args.work)
+        run.dependency_input=supplied
         run.package()
     finally:
         if run is None and (args.work/'evidence').is_dir():
