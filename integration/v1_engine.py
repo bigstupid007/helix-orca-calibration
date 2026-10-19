@@ -196,13 +196,13 @@ def _processing_failure(value):
                 + str(value["error_code"]) + "; see retained native-processing.json.", "native_processing")
     if warnings:
         codes = ", ".join(dict.fromkeys(warning["error_code"] for warning in warnings))
-        reason = "Orca rejected generated G-code with warning " + codes + ". "
+        reason = "V1 preparation blocked by Orca warning " + codes + ". "
         if any(warning["error_code"] == "1000C001" for warning in warnings):
             reason += ("The commanded bed temperature meets or exceeds the retained filament's "
-                       "vitrification temperature. This profile/input combination is unsupported; "
+                       "vitrification temperature. This profile/input combination is unsupported by V1; "
                        "the original profile has not been changed.")
         else:
-            reason += "This profile/input combination is unsupported; see retained native-processing.json."
+            reason += "This profile/input combination is unsupported by V1; see retained native-processing.json."
         return reason, "native_warning"
     return None
 

@@ -148,12 +148,21 @@ static void cut(Model &model, double z, ModelObjectCutAttribute keep)
     model.objects[0]->ensure_on_bed();
 }
 
-static void model_asset(Model &model, const fs::path &resources, const char *asset)
+static void model_asset(Model &model, const DynamicPrintConfig &config,
+                        const fs::path &resources, const char *asset)
 {
-    model = Model::read_from_file((resources / asset).string());
-    if (model.objects.size() != 1) throw std::runtime_error("Expected single native tower asset");
-    model.add_default_instances();
-    model.objects[0]->ensure_on_bed();
+    // Plater load_files loads mesh assets without default instances, then
+    // load_model_objects sorts/centers their volumes before adding and placing
+    // the instance. Cut must see those same volume/instance transforms.
+    model = Model::read_from_file((resources / asset).string(),nullptr,nullptr,LoadStrategy::LoadModel);
+    if (model.objects.size() != 1 || !model.objects[0]->instances.empty())
+        throw std::runtime_error("Expected one unplaced native tower asset");
+    auto *object=model.objects[0];
+    object->sort_volumes(true);
+    object->center_around_origin();
+    const auto bed=get_extents(config.option<ConfigOptionPoints>("printable_area")->values);
+    object->add_instance()->set_offset(Vec3d(bed.center().x(),bed.center().y(),-object->origin_translation(2)));
+    object->ensure_on_bed();
 }
 
 static void temperature(Model &model, DynamicPrintConfig &config, Calib_Params &params,
@@ -166,7 +175,7 @@ static void temperature(Model &model, DynamicPrintConfig &config, Calib_Params &
     if (std::fmod(params.start,5) || std::fmod(params.end,5) || params.start < params.end+5)
         throw std::runtime_error("Native temperature needs descending multiples of five");
     params.mode = CalibMode::Calib_Temp_Tower;
-    model_asset(model, resources, "calib/temperature_tower/temperature_tower.drc");
+    model_asset(model, config, resources, "calib/temperature_tower/temperature_tower.drc");
     const double top = std::lround((500-params.end)/5+1)*10-EPSILON;
     if (top < model.objects[0]->bounding_box_exact().size().z()) cut(model,top,ModelObjectCutAttribute::KeepLower);
     const double bottom = std::lround((500-params.start)/5)*10+EPSILON;
@@ -193,6 +202,8 @@ static void temperature(Model &model, DynamicPrintConfig &config, Calib_Params &
     object->config.set_key_value("precise_z_height",new ConfigOptionBool(false));
 }
 
+#include "temperature_prepare.hpp"
+
 static void tower_range(Calib_Params &params,const json &parameters,bool volumetric)
 {
     params.start=number(parameters.at("start"),volumetric?0.01:0,volumetric?200:20);
@@ -207,7 +218,7 @@ static void retraction(Model &model,DynamicPrintConfig &config,Calib_Params &par
 {
     tower_range(params,parameters,false);
     params.mode=CalibMode::Calib_Retraction_tower;
-    model_asset(model,resources,"calib/retraction/retraction_tower.drc");
+    model_asset(model,config,resources,"calib/retraction/retraction_tower.drc");
     const double nozzle=config.option<ConfigOptionFloats>("nozzle_diameter")->get_at(0);
     const float native_nozzle=float(nozzle);
     const double height=native_nozzle<=0.1f?0.05f:(native_nozzle<=0.2f?0.1f:0.2f);
@@ -241,7 +252,7 @@ static void volumetric(Model &model,DynamicPrintConfig &config,Calib_Params &par
 {
     tower_range(params,parameters,true);
     params.mode=CalibMode::Calib_Vol_speed_Tower;
-    model_asset(model,resources,"calib/volumetric_speed/SpeedTestStructure.drc");
+    model_asset(model,config,resources,"calib/volumetric_speed/SpeedTestStructure.drc");
     auto *object=model.objects[0];
     const auto bed=get_extents(config.option<ConfigOptionPoints>("printable_area")->values);
     const double fit=(bed.size().x()-10)/object->bounding_box_exact().size().x();
@@ -384,17 +395,22 @@ int main(int argc,char **argv)
             std::cout<<json{{"schema","helix-orca-v1-native-capabilities/v1"},
                 {"source_commit",source_commit},{"required_effective_keys",keys},
                 {"target",registered_target()},
-                {"max_parallelism",2},
+                {"max_parallelism",2},{"temperature_geometry","native-cut-stl-v1"},
                 {"routes",{"temperature","pressure_advance_pattern","retraction","max_volumetric_speed"}}}.dump()<<'\n';
             return 0;
         }
-        if(argc!=5) throw std::runtime_error("Usage: native REQUEST_JSON CONTEXT_JSON RESOURCES OUTPUT_DIRECTORY");
-        const auto request=read_json(argv[1]),snapshot=read_json(argv[2]);
+        const bool prepare_temperature=argc==6 && std::string(argv[1])=="--prepare-temperature";
+        if(argc!=5 && !prepare_temperature)
+            throw std::runtime_error("Usage: native [--prepare-temperature] REQUEST_JSON CONTEXT_JSON RESOURCES OUTPUT_DIRECTORY");
+        const int first=prepare_temperature?2:1;
+        const auto request=read_json(argv[first]),snapshot=read_json(argv[first+1]);
         if(request.at("schema")!="helix-orca-v1-request/v1" || request.at("not_applied")!=true ||
            request.at("origin_id")!=snapshot.at("origin_id"))
             throw std::runtime_error("Correlated V1 request required");
         const std::string calibration=request.at("calibration").get<std::string>();
-        const fs::path resources=fs::canonical(argv[3]),output=fs::canonical(argv[4]);
+        if(prepare_temperature && calibration!="temperature")
+            throw std::runtime_error("Geometry-only preparation requires a Temperature request");
+        const fs::path resources=fs::canonical(argv[first+2]),output=fs::canonical(argv[first+3]);
         const auto gcode=output/"native-calibration.gcode";
         if(fs::exists(gcode)) throw std::runtime_error("Refusing to overwrite native artifact");
         const auto data=output/"native-data";
@@ -416,13 +432,18 @@ int main(int argc,char **argv)
         const auto area=config.option<ConfigOptionPoints>("printable_area")->values;
         const double height=config.opt_float("printable_height");
         diagnostic("bed-inputs-ready");
-        if(calibration!="pressure_advance_pattern") model.center_instances_around_point(get_extents(area).center());
+        // Tower import and PA arrangement already perform native placement.
+        // Re-centering a cut result would move it independently of native GUI.
         diagnostic("placement-ready");
         BuildVolume bed(area,height,{area},{height});
         diagnostic("bed-ready");
         if(model.update_print_volume_state(bed)!=model.objects.size())
             throw std::runtime_error("Native model exceeds build volume");
         diagnostic("volume-ready");
+        if(prepare_temperature) {
+            emit_temperature_geometry(model,request,snapshot,output);
+            return 0;
+        }
         model.curr_plate_index=0;
         diagnostic("print-constructor-start");
         Print print;
