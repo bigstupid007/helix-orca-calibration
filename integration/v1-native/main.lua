@@ -238,8 +238,15 @@ local function v1_receive_status(_,d)
         if not v1_prepared(d.prepared,d.prepared_sha256) then return end
         if s.prepared_sha256 and s.prepared_sha256~=d.prepared_sha256 then return end
     elseif d.phase=='review' or d.phase=='confirmed' or d.phase=='starting' or d.phase=='printing' or d.phase=='verifying' or d.phase=='complete' then return end
+    local recovering=s.recovery_required==true and s.phase=='uncertain'
+    -- The coordinator durably republishes after inspecting the retained marker.
+    -- Keep normal strict monotonic sequencing; equal/replayed status never unlocks.
+    if recovering and ((s.prepared and not v1_same(s.prepared,d.prepared))
+        or (s.prepared_sha256 and s.prepared_sha256~=d.prepared_sha256)
+        or (s.job_id and s.job_id~=d.job_id)
+        or (s.completion_sha256 and s.completion_sha256~=d.completion_sha256)) then return end
     local action=s.intent and s.intent.action
-    if d.phase=='confirmed' and (s.phase~='review' or action~='confirm') then return end
+    if d.phase=='confirmed' and ((s.phase~='review' and not recovering) or action~='confirm') then return end
     if (d.phase=='starting' or d.phase=='printing' or d.phase=='verifying' or d.phase=='complete') and action~='start' then return end
     if d.phase=='review' and (action~=nil or not d.prepared.parity.qualified) then return end
     if (d.phase=='printing' or d.phase=='verifying' or d.phase=='complete') and not v1_text(d.job_id,128) then return end
@@ -255,7 +262,7 @@ local function v1_receive_status(_,d)
     if d.phase=='failed' or d.phase=='cancelled' or d.phase=='uncertain' or d.phase=='blocked' then
         v1_completion_presentation.disarm()
     elseif d.phase=='printing' then v1_completion_presentation.arm(s) end
-    s.sequence=d.sequence;s.phase=d.phase;s.message=d.message
+    s.sequence=d.sequence;s.phase=d.phase;s.message=d.message;s.recovery_required=nil
     if d.prepared then s.prepared=d.prepared;s.prepared_sha256=d.prepared_sha256 end
     if d.job_id then s.job_id=d.job_id end
     local present=d.phase=='complete' and v1_completion_presentation.claim(s)
@@ -344,9 +351,13 @@ local function v1_restore(s)
         if s.receipt and (s.receipt.schema~='helix-orca-v1-ack/v1' or not v1_same(s.receipt.result,r)
             or not v1_hex(s.receipt.result_sha256,64) or s.receipt.not_applied~=true
             or not v1_identity(s.receipt)) then s.receipt=nil end
-        s.phase=s.receipt and 'delivered' or 'returning'
+        s.phase=s.receipt and 'delivered' or 'returning';s.recovery_required=nil
+    elseif s.phase=='blocked' or s.phase=='failed' or s.phase=='cancelled' then
+        -- These terminal outcomes authorize no action and must remain dismissible
+        -- even if the runtime has already archived them for the next calibration.
+        s.evaluation=nil;s.recovery_required=nil
     else
-        s.phase='uncertain';s.evaluation=nil
+        s.phase='uncertain';s.evaluation=nil;s.recovery_required=true
         s.message='Reconnecting · actions locked until verified coordinator status'
     end
     return true

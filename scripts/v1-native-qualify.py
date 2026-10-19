@@ -2,6 +2,7 @@
 """Source-bound synthetic V1 beta.9 matrix. No hardware or generator parity claims."""
 from __future__ import annotations
 import argparse
+import copy
 import hashlib
 import importlib.util
 import json
@@ -11,28 +12,106 @@ import shutil
 import socket
 import sys
 import time
+import tempfile
+from unittest.mock import patch
 import uuid
 ROOT=Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
+from integration.v1_runtime import Coordinator
 def load(name,path):
     s=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(s);sys.modules[name]=m;s.loader.exec_module(m);return m
 q=load('v1_native_q',ROOT/'scripts/temperature-communication-qualify.py')
 a=q.accepted
 builder=load('v1_native_builder',ROOT/'scripts/v1-native-plugin.py')
 contract=load('v1_native_contract',ROOT/'integration/v1_contract.py')
-ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block','native-two-step-owned-job-cancellation','logical-one-cell-home-tile-child-bounds-and-nonoverlap','verified-result-automatic-home-print-status-controls','automatic-dismiss-preserves-native-page-and-does-not-repeat','automatic-result-uses-original-return-handler','conservative-restart-and-lost-claim-manual-recovery']
+ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block','native-two-step-owned-job-cancellation','logical-one-cell-home-tile-child-bounds-and-nonoverlap','verified-result-automatic-home-print-status-controls','automatic-dismiss-preserves-native-page-and-does-not-repeat','automatic-result-uses-original-return-handler','conservative-restart-and-lost-claim-manual-recovery','actual-coordinator-republishes-review-confirmed-complete-after-native-restart']
 def hashes():
-    paths=[ROOT/'scripts/v1-native-plugin.py',ROOT/'scripts/v1-native-qualify.py',ROOT/'integration/v1_contract.py',ROOT/'scripts/temperature-communication-plugin.py',ROOT/'scripts/temperature-communication-qualify.py',ROOT/'scripts/helix-beta9-qualify.py',ROOT/'scripts/helix_dev.py',builder.ACCEPTED_TILE]+list((ROOT/'integration/v1-native').rglob('*'))
+    paths=[ROOT/'scripts/v1-native-plugin.py',ROOT/'scripts/v1-native-qualify.py',ROOT/'integration/v1_contract.py',ROOT/'integration/v1_runtime.py',ROOT/'scripts/temperature-communication-plugin.py',ROOT/'scripts/temperature-communication-qualify.py',ROOT/'scripts/helix-beta9-qualify.py',ROOT/'scripts/helix_dev.py',builder.ACCEPTED_TILE]+list((ROOT/'integration/v1-native').rglob('*'))
     return {str(p.relative_to(ROOT)):q.sha256(p) for p in sorted(paths) if p.is_file()}
 def require(value,message):
     if not value:raise ValueError(message)
+def recovery_fixtures():
+    """Actual coordinator transitions with an explicitly synthetic parity/job boundary.
+
+    Fixture generation and readback remain real; only parity qualification and the
+    physical adapter are replaced. No physical adapter/network/engine is invoked.
+    Fixed nonce and time make regenerated native fixture bytes source-verifiable.
+    """
+    result={}
+    class SyntheticJobs:
+        done=False
+        def confirm(self,*_):pass
+        def start(self,request,prepared,*_):
+            return dict(job_id='synthetic-recovery-job',file_sha256=prepared['artifact']['sha256'],
+                        request_id=request['request_id'],origin_id=request['origin_id'])
+        def observe(self,job):
+            return dict(job_id=job['job_id'],file_sha256=job['file_sha256'],
+                        print_state='complete' if self.done else 'printing',history_state='completed' if self.done else None,
+                        history_job_id=job['job_id'] if self.done else None,history_file_sha256=job['file_sha256'] if self.done else None)
+    context=dict(schema='helix-orca-v1-context/v1',origin_id='a'*32,
+                 runtime=dict(version='2.5.0-dev',build='synthetic-ui-only'),
+                 effective=dict(nozzle_temperature='217'),nozzle_mm=0.4)
+    for role in ('printer','process','filament'):
+        context[role]=dict(saved=dict(name='Synthetic '+role,config=dict(value='saved')),
+                           edited=dict(name='Synthetic edited '+role,config=dict(value='edited')))
+    def generate(request,context,directory,config):
+        data=b'; SYNTHETIC UI RECOVERY FIXTURE ONLY\n'
+        (directory/'synthetic-recovery.gcode').write_bytes(data)
+        prepared={key:copy.deepcopy(request[key]) for key in ('request_id','origin_id','context_sha256','calibration','parameters')}
+        prepared.update(schema='helix-orca-v1-prepared/v1',request_sha256=contract.digest(request),
+            artifact=dict(name='synthetic-recovery.gcode',size=len(data),sha256=hashlib.sha256(data).hexdigest()),
+            generator=dict(build='synthetic-only',route='synthetic-ui-recovery'),
+            parity=dict(qualified=True,report_sha256='e'*64,reason='SYNTHETIC UI parity boundary only; not qualification'),not_applied=True)
+        return prepared
+    for serial,phase in enumerate(('review','confirmed','complete'),4097):
+        jobs=SyntheticJobs()
+        with tempfile.TemporaryDirectory() as root,patch('integration.v1_runtime.secrets.token_hex',return_value=f'{serial:032x}'),patch.object(Coordinator,'verify_parity'):
+            runtime=Coordinator(root,generate,{},[dict(id=k,available=True,reason='Synthetic UI fixture only') for k in contract.CALIBRATIONS],now=lambda:1000,job_adapter=jobs)
+            offer=runtime.offer(copy.deepcopy(context))
+            request={key:offer[key] for key in ('request_id','origin_id','context_sha256','created_at','expires_at')}
+            request.update(schema='helix-orca-v1-request/v1',calibration='temperature',parameters=copy.deepcopy(contract.DEFAULTS['temperature']),not_applied=True)
+            runtime.request(request)
+            intent=None
+            for action in (() if phase=='review' else ('confirm',) if phase=='confirmed' else ('confirm','start')):
+                intent=dict(schema='helix-orca-v1-intent/v1',request_id=request['request_id'],origin_id=request['origin_id'],
+                            prepared_sha256=contract.digest(runtime.state['prepared']),action=action,
+                            intent_id=request['request_id'][:24]+f'{1 if action=="confirm" else 2:08x}')
+                runtime.intent(intent)
+            if phase=='complete':
+                runtime.poll_job();jobs.done=True;runtime.poll_job()
+            before=runtime.status();require(before['phase']==phase,'Coordinator fixture did not reach '+phase)
+            retained=dict(request=request,offer=offer,phase=phase,sequence=before['sequence'],message=before['message'],
+                          prepared=before['prepared'],prepared_sha256=before['prepared_sha256'])
+            if intent:retained['intent']=intent
+            for key in ('job_id','completion_sha256','evaluation'):
+                if before[key] is not None:retained[key]=before[key]
+            marker=dict(copy.deepcopy(retained),phase='uncertain',recovery_required=True)
+            marker.pop('evaluation',None)
+            # Negative cases use the real reconciler, not a copied implementation.
+            for key,value in (('request',dict(request,origin_id='9'*32)),('sequence',True),('sequence',before['sequence']+1),
+                              ('prepared_sha256','9'*64),('job_id','unrelated'),('completion_sha256','9'*64),('recovery_required',False)):
+                require(not runtime.reconcile_native(dict(copy.deepcopy(marker),**{key:value})),'Coordinator accepted unrelated recovery marker')
+                require(runtime.status()==before,'Rejected marker changed authoritative status')
+            require(runtime.reconcile_native(marker),'Coordinator rejected exact retained marker')
+            fresh=runtime.status()
+            require(fresh['sequence']==before['sequence']+1 and fresh['phase']==phase,'Coordinator failed durable republish')
+            require(runtime.reconcile_native(marker) and runtime.status()==fresh,'Repeated marker advanced status again')
+            require(runtime.reconcile_native(dict(marker,sequence=fresh['sequence'])),'Coordinator refused second actual restart')
+            again=runtime.status()
+            require(again['sequence']==fresh['sequence']+1,'Second restart was not durably republished')
+            result[phase]=dict(retained=retained,same_sequence=before,fresh=fresh,again=again)
+    return result
+
 def fixture(root):
     target=root/'orcacal';builder.generate(target)
     defaults=json.dumps(contract.DEFAULTS,separators=(',',':'))
+    recovery=json.dumps(recovery_fixtures(),separators=(',',':'),ensure_ascii=False)
     hook='''
 -- SYNTHETIC UI TEST FIXTURE ONLY; never included by the product builder.
 local fixture_serial=v1_session and tonumber(v1_session.request.request_id:sub(-8),16) or 0
 local fixture_signal=helix.subject.int('v1_fixture_signal',0)
 local fixture_defaults=helix.json.decode([==[DEFAULTS]==])
+local fixture_recovery=helix.json.decode([==[RECOVERY]==])
 local function fixture_offer()
  fixture_serial=fixture_serial+1
  local capabilities={}
@@ -82,6 +161,30 @@ fixture_signal:observe(function(value)
   local before=v1_session.sequence
   local d=fixture_status('preparing');d.sequence=0;v1_receive_status('fixture',d)
   if v1_session.sequence~=before then error('Stale status changed sequence') end
+ elseif code==21 or code==22 then
+  local case=nil
+  for _,candidate in pairs(fixture_recovery) do
+   if candidate.retained.request.request_id==v1_session.request.request_id then case=candidate end
+  end
+  if not case then error('No actual coordinator recovery case') end
+  local second=v1_session.recovery_required==true and v1_session.sequence==case.fresh.sequence
+  if code==21 then v1_receive_status('fixture',second and case.fresh or case.same_sequence)
+  else
+   local sequence=v1_session.sequence
+   local fresh=second and case.again or case.fresh
+   -- Fresh sequence with unrelated retained proof must remain locked too.
+   for _,key in ipairs({'prepared_sha256','job_id','completion_sha256'}) do
+    if v1_session[key] then
+     local wrong=helix.json.decode(helix.json.encode(fresh));wrong[key]='unrelated'
+     v1_receive_status('fixture',wrong)
+     if v1_session.sequence~=sequence then error('Mismatched recovery token accepted') end
+    end
+   end
+   local changed=helix.json.decode(helix.json.encode(fresh));changed.prepared.generator.build='unrelated-build'
+   v1_receive_status('fixture',changed)
+   if v1_session.sequence~=sequence then error('Changed retained preparation accepted during recovery') end
+   v1_receive_status('fixture',fresh)
+  end
  elseif code==12 then v1_receive_status('fixture',fixture_status('complete'))
  elseif code==11 then v1_receive_status('fixture',fixture_status('cancelled'))
  elseif code==10 then
@@ -89,7 +192,7 @@ fixture_signal:observe(function(value)
  end
 end)
 fixture_offer()
-'''.replace('DEFAULTS',defaults)
+'''.replace('DEFAULTS',defaults).replace('RECOVERY',recovery)
     with (target/'main.lua').open('a') as f:f.write(hook)
     return root
 
@@ -188,32 +291,37 @@ def temperature_native_page_proof(name,w,h,work,page):
     ctl(name,'set_value','orcacal__v1_evaluation','1');tap(name,'orcacal__v1_return',w,h,work);signal(name,7)
     return dict(page=page,before=before,presented=after,dismissed=dismissed,manual_return=True)
 def pending_temperature_recovery(name,w,h,work):
-    q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
-    tap(name,'orcacal__v1_choose_temperature',w,h,work);tap(name,'orcacal__v1_generate_temperature',w,h,work)
-    signal(name,2);signal(name,3);tap(name,'orcacal__v1_confirm',w,h,work);signal(name,4)
-    tap(name,'orcacal__v1_start',w,h,work);signal(name,5);q.back_to_home(name);signal(name,6)
-    a._assert_overlay(navigation(name),['orcacal__v1_auto_result'])
-    pending=stored_when(work,lambda s:s.get('phase')=='complete' and s.get('auto_presentation_claim'),'Automatic claim was not retained');claim=pending['auto_presentation_claim']
-    require(claim['reason']=='automatic-attempt','Pending completion was not presented once')
-    ctl(name,'go_back');ctl(name,'wait_idle');before=navigation(name);signal(name,12)
-    require(navigation(name)==before,'Dismissed pending result automatically repeated')
-    restart_owned(name,work)
-    require(not navigation(name)['overlays'] and value(name,'evaluate_on')==0 and value(name,'start_on')==0,'Restart restored an action or popup')
-    signal(name,12)
-    require(not navigation(name)['overlays'] and value(name,'evaluate_on')==1,'Fresh recovery did not remain manually reachable')
-    require(stored_when(work,lambda s:s.get('phase')=='complete','Fresh recovery was not retained')['auto_presentation_claim']==claim,'Restart changed the retained automatic claim')
-    # A crash may lose a deferred claim write. A restored completion without it
-    # must still suppress automatic presentation, then accept only fresh proof.
-    lost=json.loads(json.dumps(pending));lost.pop('auto_presentation_claim')
-    restart_owned(name,work,lost)
-    require(not navigation(name)['overlays'] and value(name,'evaluate_on')==0,'Lost claim reopened or trusted stored completion')
-    signal(name,12)
-    require(not navigation(name)['overlays'] and value(name,'evaluate_on')==1,'Lost-claim recovery did not require fresh proof/manual reopen')
-    require(stored_when(work,lambda s:s.get('phase')=='complete' and s.get('auto_presentation_claim'),'Lost-claim recovery not retained')['auto_presentation_claim']['reason']=='recovery-suppressed','Lost claim was resurrected as a new attempt')
+    cases=recovery_fixtures();evidence={}
+    for phase,case in cases.items():
+        restart_owned(name,work,case['retained'])
+        require(not navigation(name)['overlays'] and value(name,'confirm_on')==0 and value(name,'start_on')==0
+                and value(name,'evaluate_on')==0,'Restart restored an action or popup')
+        marker=stored_when(work,lambda s:s.get('recovery_required') is True,'Restart recovery marker not retained')
+        require(marker['phase']=='uncertain' and marker['sequence']==case['same_sequence']['sequence'],'Restart reset authoritative sequence')
+        signal(name,21)
+        require(storage(work)['phase']=='uncertain' and value(name,'confirm_on')==0 and value(name,'start_on')==0
+                and value(name,'evaluate_on')==0,'Unchanged coordinator retransmission unlocked recovery')
+        signal(name,22)
+        saved=stored_when(work,lambda s:s.get('phase')==phase and not s.get('recovery_required'),'Fresh real coordinator status did not recover '+phase)
+        expected={'review':'confirm_on','confirmed':'start_on','complete':'evaluate_on'}[phase]
+        require(value(name,expected)==1 and not navigation(name)['overlays'],'Recovery controls or automatic suppression invalid')
+        signal(name,21);signal(name,22)
+        require(storage(work)['sequence']==saved['sequence'] and not navigation(name)['overlays'],'Recovery replay changed sequence/navigation')
+        evidence[phase]=dict(before_sequence=case['same_sequence']['sequence'],after_sequence=saved['sequence'],
+                             unchanged_rejected=True,exact_republish_accepted=True,replay_rejected=True)
+    # A deferred automatic claim can be lost. The actual complete coordinator
+    # case has no claim: native must add recovery-suppressed, then manual-only.
+    complete=cases['complete'];saved=storage(work)
+    require(saved['auto_presentation_claim']['reason']=='recovery-suppressed','Lost claim rearmed automatic presentation')
+    claim=copy.deepcopy(saved['auto_presentation_claim'])
+    restart_owned(name,work,saved);signal(name,21);signal(name,22)
+    require(value(name,'evaluate_on')==1 and not navigation(name)['overlays'],'Retained claim failed manual-only recovery')
+    require(storage(work)['auto_presentation_claim']==claim,'Restart replaced retained automatic claim')
     reopen_job(name,w,h,work);ctl(name,'set_value','orcacal__v1_evaluation','1');tap(name,'orcacal__v1_return',w,h,work);signal(name,7)
     returned=stored_when(work,lambda s:s.get('result') and s.get('receipt'),'Manual recovery return was not retained')
-    require(returned['result']['context_sha256']=='b'*64,'Manual recovery changed original context')
-    return dict(dismissed_once=True,restart_suppressed=True,lost_claim_suppressed=True,manual_original_return=True)
+    require(returned['result']['context_sha256']==complete['retained']['request']['context_sha256'],'Manual recovery changed original context')
+    evidence['manual_original_return']=True;evidence['lost_claim_suppressed']=True;evidence['retained_claim_suppressed']=True
+    return evidence
 def drive(entry,name,work):
     label,w,h,layout,dpi=entry
     q.wait_ready(name)

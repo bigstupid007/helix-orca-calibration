@@ -93,3 +93,41 @@ class V1NativeTests(unittest.TestCase):
             auto_names={n.attrib['name'] for n in automatic.iter() if 'name' in n.attrib}
             self.assertIn('orcacal__v1_auto_evaluation',auto_names)
             self.assertIn('orcacal__v1_auto_return',auto_names)
+
+    def test_recovery_fixtures_use_real_coordinator_transitions_and_durable_republish(self):
+        cases=qualifier.recovery_fixtures()
+        self.assertEqual(cases,qualifier.recovery_fixtures())
+        for phase,case in cases.items():
+            with self.subTest(phase=phase):
+                retained,old,fresh,again=(case[k] for k in ('retained','same_sequence','fresh','again'))
+                self.assertEqual(retained['phase'],phase)
+                self.assertEqual(old['phase'],phase)
+                self.assertEqual(fresh,dict(old,sequence=old['sequence']+1))
+                self.assertEqual(again,dict(old,sequence=old['sequence']+2))
+                self.assertEqual(fresh['prepared_sha256'],contract.digest(retained['prepared']))
+                self.assertEqual(retained['prepared']['request_sha256'],contract.digest(retained['request']))
+                self.assertEqual(phase!='review','intent' in retained)
+                if phase=='complete':
+                    self.assertEqual(retained['intent']['action'],'start')
+                    self.assertTrue(fresh['completion_sha256'])
+                    self.assertTrue(fresh['evaluation']['options'])
+                elif phase=='confirmed':self.assertEqual(retained['intent']['action'],'confirm')
+        with tempfile.TemporaryDirectory() as name:
+            root=Path(name);qualifier.fixture(root)
+            lua=(root/'orcacal/main.lua').read_text()
+            self.assertIn('local fixture_recovery=',lua)
+            self.assertIn("v1_receive_status('fixture',second and case.fresh or case.same_sequence)",lua)
+            self.assertIn("v1_receive_status('fixture',fresh)",lua)
+        self.assertIn('integration/v1_runtime.py',qualifier.hashes())
+    def test_native_recovery_keeps_monotonic_proof_and_terminal_outcomes(self):
+        # Actual Lua behavior is additionally exercised by the managed native
+        # matrix; these source guards prevent silently weakening replay policy.
+        source=(ROOT/'integration/v1-native/main.lua').read_text()
+        self.assertIn('d.sequence<=v1_session.sequence',source)
+        self.assertIn("s.phase='uncertain';s.evaluation=nil;s.recovery_required=true",source)
+        self.assertIn("local recovering=s.recovery_required==true and s.phase=='uncertain'",source)
+        self.assertIn("(s.phase~='review' and not recovering) or action~='confirm'",source)
+        self.assertIn('s.recovery_required=nil',source)
+        for token in ('v1_same(s.prepared,d.prepared)','s.job_id~=d.job_id','s.completion_sha256~=d.completion_sha256'):
+            self.assertIn(token,source)
+        self.assertIn("elseif s.phase=='blocked' or s.phase=='failed' or s.phase=='cancelled' then",source)

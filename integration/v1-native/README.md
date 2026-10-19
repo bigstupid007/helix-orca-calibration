@@ -88,3 +88,38 @@ These source changes require a new complete eleven-size capture before promotion
 the prior 341-frame checkpoint remains evidence of its exact earlier source.
 No capture, build, physical action or deployment was performed for this source
 correction while the shared heavy-work slot was owned elsewhere.
+
+## Restart status reconciliation
+
+A retained session without a committed result restores as `uncertain`, with its
+sequence and exact original request/prepared/job/completion bindings retained and
+`recovery_required: true` persisted. All actions and evaluation remain locked.
+Lua continues to reject every status whose sequence is equal to or older than
+its retained sequence. The coordinator's `reconcile_native()` checks that marker,
+request and retained bindings, then durably republishes the authoritative phase
+with a newer sequence when the reader is exactly current. An already older
+reader receives current status without another bump. Repeated markers cannot
+advance the journal repeatedly and reconciliation dispatches no action.
+
+Only a fully validated newer status clears the native marker. A recovered
+Confirmed status additionally requires the retained exact Confirm intent; it
+never invents confirmation or repeats Start. A recovered Complete status requires
+the same prepared job and independent completion digest, and restores evaluation
+manually without another automatic Temperature popup. Committed results and
+receipts stay immutable. Blocked, Failed and Cancelled are safe terminal states
+and remain terminal on restore, so a runtime that has archived them does not
+strand the chooser in an unnecessary recovery wait.
+
+The qualifier now generates deterministic Review, Confirmed and Complete restart
+cases by driving actual `Coordinator.request()`, Confirm/Start intents and
+independently matched job observations, then calls the actual reconciler. A real
+small synthetic artifact is written and reverified; parity verification and the
+physical job adapter are explicitly synthetic UI boundaries. Each native case
+first receives the real unchanged status and must stay locked, then receives the
+real durable republish and must recover. Mismatched retained tokens, duplicate
+and older status must not alter it. A second actual Complete restart checks a
+retained suppression claim; the first checks a lost claim. These recovery cases
+never derive freshness from the native session's sequence or the ordinary mock
+status helper. The fixture inventory includes the exact coordinator source hash.
+Python tests check these real transitions and deterministic fixture bytes; native
+Lua execution still requires the new complete managed capture before promotion.
