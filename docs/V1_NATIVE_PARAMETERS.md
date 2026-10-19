@@ -44,6 +44,24 @@ acceptance is independent actual800×480 pointer/drag/keypad input through the L
 viewer, preserving unchanged requests through the offline transport into the real
 coordinator. No `ctl.set_value`, direct subject assignments or seeded requests count
 as operator proof. Generation/parity remains real or reports a genuine blocker.
-That current proof is pending integration; no new native runtime was launched for
-these source changes yet. The complete historical396-frame fixture capture remains
-bound to its earlier sources and does not qualify these changed controls.
+The independent LAN/real-generation acceptance remains pending. A separate bounded
+800×480 operability smoke passed using actual private pointer/keypad input and
+transport-only fragmented offer/status delivery into an actual Coordinator. All
+five edited requests remained exact after reopen: Temperature240/200/5/true,
+Perfectionist2, PA.1/.5/.02, Retraction.2/1.4/.2 and MVS3/18/1. Direct Drive/Bowden
+default actions and the keypad's bottom Set control also worked. The coordinator
+truthfully blocked because this smoke supplied no generator configuration; it
+created no prepared or qualified object. Confirm/Start remained locked.
+
+ManagedRun`c9b2471c36394e24ba406e4921d6951a` completed exit0 with runtime-clear and
+empty error lists, after exact owned-container/process teardown. The private smoke
+report SHA-256 is
+`ac49ba686c7246b8e3a0a8c029c43fd7edaf0dc4ceac762c130cee70ffca8021`.
+Earlier failed probe records remain preserved: they exposed a1023-byte test-subject
+transport limit and stale geometry before native deferred layout settled. Bounded
+fragment transport and a fresh native frame before geometry corrected the probe;
+no product source change was needed after7344f04. This is not the independent
+browser/real-generation acceptance or a physical/runtime deployment claim.
+
+The complete historical396-frame fixture capture remains bound to its earlier
+sources and does not qualify these changed controls.
