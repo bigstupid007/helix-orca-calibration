@@ -558,6 +558,16 @@
     "baseline_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
     "file_count": 1429,
     "physical_actions": false,
+    "recorded_at_utc": "2026-10-19T01:03:59.6447255Z",
+    "schema": "helix-orca-v1-normal-preservation/v1",
+    "unchanged": true
+  },
+  "normal_preservation_after_r6": {
+    "aggregate_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+    "baseline_file_count": 1429,
+    "baseline_sha256": "41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19",
+    "file_count": 1429,
+    "physical_actions": false,
     "recorded_at_utc": "2026-10-19T00:11:30.7493391Z",
     "schema": "helix-orca-v1-normal-preservation/v1",
     "unchanged": true

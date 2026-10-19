@@ -8,7 +8,7 @@ A dedicated marked `v1-qualification` data directory and separate WebView storag
 reuse only copied test profiles. Accepted/normal installations, printer config,
 physical grants and rollback material are not runtime inputs for this candidate.
 
-## Actual companion
+## Historical companion observations
 
 R5 generated self-contained source SHA-256
 `9d02d75abe03d0614e2e5313caa489c838cedc1778a2109b8b2d5a15137dc61e`
@@ -54,7 +54,7 @@ The private reports retain exact commands, inputs, screenshots, helper/ZIP hashe
 stdout/stderr and artifact bytes. Public documentation exports only bounded
 metrics and digests.
 
-## Other calibration references and limits
+## Native references and historical first YOLO comparison
 
 Native YOLO Recommended/Archimedean surface was independently prepared and sliced
 through the native Flow Ratio dialog, with local G-code and 3MF references retained.
@@ -69,7 +69,7 @@ Both pass the ten-layer YOLO invariants, with identical 4854.673 mm extrusion
 and 43241 deposition moves. Executable commands differ (55268 versus 55273),
 as do the dynamic acceleration stream, motion stream and printed XY bounds.
 There are five classified emitted-setting differences and no unclassified
-setting differences. Strict parity remains **false**, report SHA-256
+setting differences. That historical R6 candidate had strict parity **false**, report SHA-256
 `5c5fb10764918deba29573a1ac5465b108ffdf659ad92418ed79152e287b27d3`.
 No numerical or geometry difference has been waived.
 
@@ -152,3 +152,46 @@ This supersedes the failed R6 candidate and unsupported-option R7 attempt only
 for this new exact combination. It does not qualify Temperature, other routes,
 physical hardware or deployment. The waiting screenshot does not prove active
 job/result/profile-switch behavior; those target observations remain separate.
+
+## Integrated native companion workflow — R8
+
+The current complete runtime source was staged as public code only. Its actual
+offline coordinator read the originating companion's unchanged original context,
+issued a fresh request and invoked the production stock generator. It reached
+Review with exact native-reference parity qualified: report
+`2f8cdcf6d64746411739c5775d2739c89e51940f8ed3c97e6b72cf612f75d320`,
+prepared job `f18fdf1c33c5997278a373c37e5e442d3b13d3ea2659ae74672427dbdec90421`.
+This distinct fresh generation retained G-code
+`d16f991f4d92eef7d500840bff487c0843ee5686988f0ba7d87b2f9a9ea951d1`.
+The actual dock displayed Ready to review on Helix, the qualified calibration
+and original profiles. No job adapter, Confirm or Start was supplied.
+
+Selecting another existing copied Process through the isolated native selector
+changed the current captured context to `15c19222…`; the dock updated Current
+Orca selection while keeping Original calibration context and the prepared job
+unchanged. A misplaced click had first opened a delete-preset confirmation;
+**No** dismissed it, and no preset was deleted. The original copied Process
+selection was restored after the test.
+
+A separate, explicitly labeled **synthetic completion UI fixture** then exercised
+the real companion's result inbox, durable original-context commit and receipt.
+This was not a print or independent physical completion. The actual dock showed
+Result returned, the original-context value and NOT APPLIED, while the changed
+current selection remained separate. Readback verified the exact returned result
+and receipt SHA-256 `e26b10496ebe5d6042d7f7f518c7432f367aaa2f76039e67839e28cf2b14b78d`,
+and original context `3bf24bab…`. The review message states that no printer was
+contacted. The coordinator's actual job journal remains at Review; the synthetic
+result fixture does not manufacture a real completed job.
+
+[The bounded workflow inventory](evidence/issue-14/windows-companion-workflow.json)
+retains source, preparation, screenshot and result digests without profile names,
+G-code or screenshots. Independent cold visual review found these three states
+healthy and coherent. Changed rows could benefit from an explicit difference
+notice; current users compare the separately named profile lists. The synthetic
+message sits lower in the result view, so complete un-cropped evidence must be
+used. Runtime accessibility remains unqualified.
+
+The final post-R8 normal-settings fingerprint again passed: **1429 files**,
+SHA-256 `41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`,
+matching the immutable pre-V1 baseline. Accepted printer behavior/configuration,
+physical Temperature evidence, normal profiles and rollback were untouched.

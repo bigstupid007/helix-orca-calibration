@@ -37,3 +37,28 @@ compliance. The waiting-only Windows frame proves neither active-job/result
 behavior nor lifecycle startup. Those need separately identified evidence. All
 native mock job states are explicit synthetic fixtures with physical execution
 disabled; they are not real print or parity evidence.
+
+## Bounded fresh Windows correction recheck
+
+The same cold reviewer inspected the fresh R7 waiting frame at original
+resolution. All three earlier waiting concerns were resolved: consistent Waiting
+for Helix heading/status, amber treatment with explicit state text, and Refresh
+selection wording. The waiting state was judged healthy within the still-image
+evidence boundary.
+
+The reviewer then inspected three fresh R8 native frames: actual production
+preparation, a real isolated current-process switch with the original job context
+retained, and explicitly synthetic NOT APPLIED result return. The visible state
+model was judged healthy and coherent. The next action is clear, current and
+original profiles are separately named, and result origin/NOT APPLIED remain
+prominent. No physical completion or Confirm/Start claim was inferred.
+
+Remaining medium opportunities: flag changed current rows explicitly rather
+than requiring manual comparison of similar names; keep the synthetic fixture
+qualification visible when presenting result evidence (use full frames). Narrow
+dock content needs vertical scrolling. Exact contrast, keyboard/screen-reader
+behavior, Windows scaling/high contrast and focus/scroll order remain unverified.
+Screenshots and profile identifiers remain private; their hashes and bounded
+workflow observations are recorded in the Windows inventory. Final Helix review
+still requires fresh complete native evidence after the actual smallest-layout
+scrolling correction.
