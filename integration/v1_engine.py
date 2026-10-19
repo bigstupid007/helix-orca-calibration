@@ -15,6 +15,7 @@ import re
 import subprocess
 from pathlib import Path
 from types import MappingProxyType
+from integration import v1_contract as _contract
 
 ORCA_SOURCE = "6a7763f08d1a175a464a00ce13f0b5a815662fc4"
 SOURCE_HASHES = MappingProxyType({
@@ -115,25 +116,51 @@ def _compatible_host():
     return _host_target() is not None
 
 
+def _windows_compiler_valid(value):
+    expected = dict(family="Clang", version="22.1.3", frontend_variant="MSVC",
+        visual_studio_major="18", generator="Ninja Multi-Config", configuration="Release",
+        runtime_library="MD", msvc_toolset_version="14.51.36231", windows_sdk_version="10.0.26100.0")
+    if (not isinstance(value, dict) or set(value) != {*expected, "linker_family", "linker_version",
+            "probe_sha256", "release_flags_sha256"} or any(value[key] != item for key, item in expected.items())):
+        return False
+    if value["linker_family"] == "LLD":
+        version = value["linker_version"] == "22.1.3"
+    elif value["linker_family"] == "MSVC":
+        version = isinstance(value["linker_version"], str) and re.fullmatch(r"14\.51\.[0-9.]{1,32}", value["linker_version"]) is not None
+    else:
+        return False
+    return version and all(isinstance(value[key], str) and re.fullmatch("[a-f0-9]{64}", value[key])
+                           for key in ("probe_sha256", "release_flags_sha256"))
+
+
 def _windows_builder_valid(builder, receipt):
     if not isinstance(builder, dict):
         return False
     run_id, attempt = builder.get("run_id"), builder.get("run_attempt")
     commit, tools = builder.get("application_commit"), builder.get("toolchain")
-    return (builder.get("schema") == "helix-orca-v1-windows-builder/v1"
-        and builder.get("repository") == "bigstupid007/helix-orca-calibration"
+    base_keys = {"schema", "repository", "workflow", "application_commit", "run_id", "run_attempt",
+                 "runner_image", "image_version", "toolchain", "run_url"}
+    ordinary_tools = {"cl", "link", "cmake", "ninja", "perl", "msbuild"}
+    if not (builder.get("repository") == "bigstupid007/helix-orca-calibration"
         and builder.get("workflow") == ".github/workflows/v1-windows-engine.yml"
-        and builder.get("runner_image") == "windows-2022"
         and isinstance(builder.get("image_version"), str) and 0 < len(builder["image_version"]) <= 128
         and isinstance(run_id, str) and run_id.isdecimal() and int(run_id) > 0
         and isinstance(attempt, str) and attempt.isdecimal() and int(attempt) > 0
         and builder.get("run_url") == "https://github.com/bigstupid007/helix-orca-calibration/actions/runs/" + run_id
         and isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None
         and receipt.get("application_commit") == commit and isinstance(tools, dict)
-        and set(tools) == {"cl", "link", "cmake", "ninja", "perl", "msbuild"}
-        and all(isinstance(row, dict) and type(row.get("size")) is int and row["size"] > 0
+        and all(isinstance(row, dict) and set(row) == {"size", "sha256"}
+                and type(row.get("size")) is int and 0 < row["size"] <= 2 * 1024**3
                 and isinstance(row.get("sha256"), str) and re.fullmatch(r"[0-9a-f]{64}", row["sha256"])
-                for row in tools.values()))
+                for row in tools.values())):
+        return False
+    if builder.get("schema") == "helix-orca-v1-windows-builder/v1":
+        return (set(builder) == base_keys and builder.get("runner_image") == "windows-2022"
+                and set(tools) == ordinary_tools)
+    return (builder.get("schema") == "helix-orca-v1-windows-builder/v2"
+        and set(builder) == base_keys | {"compiler"} and builder.get("runner_image") == "windows-2025-vs2026"
+        and set(tools) == ordinary_tools | {"clang-cl", "selected-linker"}
+        and _windows_compiler_valid(builder.get("compiler")))
 
 
 def _windows_closure(executable, receipt):
@@ -215,6 +242,12 @@ def _backend(config):
             or (not windows and inputs.get("builder_image") != "sha256:f67960f55aa1b7cfa8af41bd89943b13730b791ce55e1925bc575d5eef89f6d9")
             or (windows and not _windows_builder_valid(inputs.get("builder"), receipt))):
         raise NativeEngineBlocked("Native source/build provenance differs", "native_source")
+    if windows and inputs['builder'].get('schema') == 'helix-orca-v1-windows-builder/v2':
+        probe = inputs.get('compiler_probe')
+        if (not isinstance(probe, dict) or probe.get('toolchain') != inputs['builder']['toolchain']
+                or _contract.digest(probe)
+                   != inputs['builder']['compiler']['probe_sha256']):
+            raise NativeEngineBlocked("Actual compiler probe receipt differs", "native_compiler")
     owned = _WINDOWS_OWNED_INPUTS if windows else _OWNED_INPUTS
     if set(inputs.get("owned_inputs", {})) != set(owned) or any(
             inputs["owned_inputs"][name] != _sha_file(_ROOT / name) for name in owned):

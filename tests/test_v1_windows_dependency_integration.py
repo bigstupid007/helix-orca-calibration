@@ -21,8 +21,13 @@ class DependencyBuildWiring(unittest.TestCase):
         self.build.work=self.root/'work';self.build.work.mkdir()
         self.build.source=self.root/'source';self.build.source.mkdir()
         self.build.evidence=self.build.work/'evidence';self.build.evidence.mkdir()
-        self.build.environment={'CMAKE_BUILD_PARALLEL_LEVEL':'2','_CL_':'/MP1','CL_MPCOUNT':'1'}
-        self.build.tools={name:dict(size=1,sha256='1'*64)for name in self.module.dependencies.TOOLS}
+        self.build.environment={'CMAKE_BUILD_PARALLEL_LEVEL':'2','_CL_':'','CL_MPCOUNT':'1'}
+        self.build.compiler=Path('C:/VS18/VC/Tools/Llvm/x64/bin/clang-cl.exe')
+        self.build.compiler_identity=dict(family='Clang',version='22.1.3',frontend_variant='MSVC',visual_studio_major='18',
+            generator='Ninja Multi-Config',configuration='Release',runtime_library='MD',msvc_toolset_version='14.51.36231',
+            windows_sdk_version='10.0.26100.0',linker_family='LLD',linker_version='22.1.3',probe_sha256='a'*64,release_flags_sha256='b'*64)
+        self.build.verify_compiler_configuration=lambda path:None
+        self.build.tools={name:dict(size=1,sha256='1'*64)for name in self.module.dependencies.CLANG_TOOLS}
         self.build.children=[]
         self.build.guard=lambda:None
         self.calls=[];self.environments=[]
@@ -37,9 +42,9 @@ class DependencyBuildWiring(unittest.TestCase):
         self.build.run=run
         self.lock={'sources':[dict(target='dep_fixture')],'in_tree_targets':[]}
         self.submodules=[]  # Exact pinned source has no submodules.
-        self.publisher=dict(schema='helix-orca-v1-windows-builder/v1',
+        self.publisher=dict(schema='helix-orca-v1-windows-builder/v2',compiler=self.build.compiler_identity,
             repository='bigstupid007/helix-orca-calibration',workflow='.github/workflows/v1-windows-engine.yml',
-            application_commit='3'*40,run_id='1',run_attempt='1',runner_image='windows-2022',
+            application_commit='3'*40,run_id='1',run_attempt='1',runner_image='windows-2025-vs2026',
             image_version='fixture-only',toolchain=self.build.tools,
             run_url='https://github.com/bigstupid007/helix-orca-calibration/actions/runs/1')
 
@@ -87,12 +92,23 @@ class DependencyBuildWiring(unittest.TestCase):
         self.build.prepare_dependencies(self.lock,self.submodules,self.publisher)
         self.assertEqual(self.environments,[None,dict(self.build.environment,CMAKE_BUILD_PARALLEL_LEVEL='4'),None])
         self.assertEqual(self.build.environment['CMAKE_BUILD_PARALLEL_LEVEL'],'2')
-        self.assertEqual(self.environments[1]['_CL_'],'/MP1')
+        self.assertEqual(self.environments[1]['_CL_'],'')
         self.assertEqual(self.environments[1]['CL_MPCOUNT'],'1')
         self.assertEqual(self.calls[1][1][-2:],['--parallel','1'])
         contract=json.loads((self.build.evidence/'dependency-contract.json').read_text())
         self.assertEqual(json.loads(contract['environment']['DEPENDENCY_TARGET_ENVIRONMENTS']),
-            {'dep_OCCT':{'CMAKE_BUILD_PARALLEL_LEVEL':'4'}})
+            {'dep_OCCT':{'CMAKE_BUILD_PARALLEL_LEVEL':'4'},'dep_python3':{'_CL_':'/MP1'},'dep_OpenSSL':{'_CL_':'/MP1'}})
+
+    def test_only_real_msvc_dependencies_receive_appended_single_compiler_hint(self):
+        self.lock['sources']=[dict(target=name)for name in ('dep_python3','dep_OpenSSL','dep_fixture')]
+        self.build.prepare_dependencies(self.lock,self.submodules,self.publisher)
+        self.assertEqual(self.environments,[None,dict(self.build.environment,_CL_='/MP1'),
+            dict(self.build.environment,_CL_='/MP1'),None])
+        self.assertEqual(self.build.environment['_CL_'],'')
+        contract=json.loads((self.build.evidence/'dependency-contract.json').read_text())
+        overrides=json.loads(contract['environment']['DEPENDENCY_TARGET_ENVIRONMENTS'])
+        self.assertEqual(overrides['dep_python3'],{'_CL_':'/MP1'})
+        self.assertEqual(overrides['dep_OpenSSL'],{'_CL_':'/MP1'})
 
     def test_bad_provenance_rejected_before_any_dependency_command(self):
         with self.assertRaisesRegex(self.module.dependencies.BundleError,'exact_initialized_submodules_required'):

@@ -69,6 +69,37 @@ class WindowsNativeGuards(unittest.TestCase):
         self.assertFalse(result['parity']['qualified'])
         self.assertTrue(self.called)
 
+    def test_clang_probe_receipt_is_bound_and_cannot_substitute_legacy_tool_identity(self):
+        import json
+        from integration import v1_contract as contract
+        tools=dict(self.inputs['builder']['toolchain'])
+        tools.update({'clang-cl':dict(size=2,sha256='a'*64),'selected-linker':dict(size=3,sha256='b'*64)})
+        probe=dict(toolchain=tools,synthetic_fixture=True)
+        probe_sha=contract.digest(probe)
+        compiler=dict(family='Clang',version='22.1.3',frontend_variant='MSVC',visual_studio_major='18',
+            generator='Ninja Multi-Config',configuration='Release',runtime_library='MD',
+            msvc_toolset_version='14.51.36231',windows_sdk_version='10.0.26100.0',
+            linker_family='LLD',linker_version='22.1.3',probe_sha256=probe_sha,release_flags_sha256='c'*64)
+        self.inputs['builder'].update(schema='helix-orca-v1-windows-builder/v2',
+            runner_image='windows-2025-vs2026',compiler=compiler,toolchain=tools)
+        self.inputs['compiler_probe']=probe
+        self.refresh_receipts()
+        inputs_path=self.root/'native-inputs.json'
+        inputs_path.write_bytes((json.dumps(self.inputs,sort_keys=True,indent=2)+'\n').replace('\n','\r\n').encode())
+        self.config['build_inputs']=self.record(inputs_path)
+        self.receipt['native_inputs_sha256']=engine._sha_file(inputs_path)
+        receipt_path=self.root/'native-build.json'
+        receipt_path.write_text(json.dumps(self.receipt))
+        self.config['build_receipt']=self.record(receipt_path)
+        self.assertIn(b'\r\n',inputs_path.read_bytes())
+        self.assertFalse(self.generate()['parity']['qualified'])
+        self.called=False
+        self.inputs['compiler_probe']['synthetic_fixture']='changed'
+        self.refresh_receipts()
+        with self.assertRaises(engine.NativeEngineBlocked)as failure:self.generate()
+        self.assertEqual(failure.exception.code,'native_compiler')
+        self.assertFalse(self.called)
+
     def test_real_warning_semantics_remain_fatal_on_windows_envelope(self):
         fixtures.NativeTransport.test_legitimate_bed_warning_reports_exact_blocker_without_mutating_inputs(self)
 
@@ -269,6 +300,9 @@ class WindowsNativeGuards(unittest.TestCase):
         developer = vs/'Common7/Tools/VsDevCmd.bat'
         developer.parent.mkdir(parents=True)
         developer.write_text('test-only')
+        clang = vs/'VC/Tools/Llvm/x64/bin/clang-cl.exe'
+        clang.parent.mkdir(parents=True)
+        clang.write_bytes(b'test-only compiler path, never executed')
         msbuild = vs/'MSBuild/Current/Bin/amd64/MSBuild.exe'
         msbuild.parent.mkdir(parents=True)
         msbuild.write_bytes(b'test-only')
@@ -282,6 +316,8 @@ class WindowsNativeGuards(unittest.TestCase):
         self.assertIn('if errorlevel 1 exit /b %errorlevel%', batch.read_text())
         self.assertEqual(call.call_args_list[1].args[0], ['cmd.exe','/d','/c',str(batch)])
         self.assertEqual(environment['MSBUILD'], str(msbuild))
+        self.assertEqual(run.compiler, clang)
+        self.assertIn('[18.0,19.0)', call.call_args_list[0].args[0])
 
     def test_constructor_failure_retains_honest_lifecycle_artifact(self):
         import json

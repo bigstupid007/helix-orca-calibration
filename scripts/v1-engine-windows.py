@@ -20,6 +20,7 @@ from urllib.error import URLError
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from integration import v1_engine as engine
+from integration import v1_contract as contract
 from integration import v1_pe as pe
 from integration import v1_windows_dependencies as dependencies
 
@@ -195,12 +196,50 @@ def dependency_environment(environment):
     return {name: selected.get(name, '') for name in names}
 
 
+
+PROBE_SOURCE = "cmake_minimum_required(VERSION 3.13)\nproject(HelixCompilerProbe LANGUAGES C CXX)\n"
+GENERATOR = 'Ninja Multi-Config'
+
+
+def compiler_configuration(build):
+    """Read only CMake's actual configured compiler/linker and Release flags."""
+    cache = {}
+    for line in (build/'CMakeCache.txt').read_text().splitlines():
+        if '=' in line and ':' in line.split('=',1)[0] and not line.startswith(('//','#')):
+            key,value=line.split('=',1);cache[key.split(':',1)[0]]=value
+    runtime=cache.get('CMAKE_MSVC_RUNTIME_LIBRARY','')
+    if runtime not in ('','MultiThreadedDLL','MultiThreaded$<$<CONFIG:Debug>:Debug>DLL'):
+        raise ValueError('Upstream Release dynamic CRT required')
+    result = {}
+    for language in ('C','CXX'):
+        paths=list((build/'CMakeFiles').glob('*/CMake'+language+'Compiler.cmake'))
+        if len(paths)!=1 or paths[0].is_symlink() or paths[0].stat().st_size>1048576:
+            raise ValueError('One real CMake compiler record required')
+        values=dict(re.findall(r'set\(CMAKE_'+language+r'_([A-Z_]+) "([^"\n]*)"\)',paths[0].read_text()))
+        if values.get('COMPILER_ID')!='Clang' or values.get('COMPILER_VERSION')!='22.1.3' or values.get('COMPILER_FRONTEND_VARIANT')!='MSVC':
+            raise ValueError('Exact upstream Clang 22.1.3 MSVC frontend required')
+        result[language.lower()+'_compiler']=values.get('COMPILER')or cache.get('CMAKE_'+language+'_COMPILER')
+        result[language.lower()+'_linker']=values.get('COMPILER_LINKER')or cache.get('CMAKE_LINKER')
+        result[language.lower()+'_release_flags']=cache.get('CMAKE_'+language+'_FLAGS_RELEASE','')
+        result[language.lower()+'_flags']=cache.get('CMAKE_'+language+'_FLAGS','')
+        flags=result[language.lower()+'_flags']+' '+result[language.lower()+'_release_flags']
+        tokens=flags.split()
+        if (any(value in flags.lower() for value in ('/mt','/fp:fast','-ffast-math','-ffp-model=fast'))
+                or '/MDd' in tokens or not all(token in tokens for token in ('/O2','/DNDEBUG'))
+                or (not runtime and '/MD' not in tokens)):
+            raise ValueError('Observed upstream Release optimization, dynamic CRT and default floating-point policy required')
+    if cache.get('CMAKE_GENERATOR')!=GENERATOR or cache.get('CMAKE_BUILD_TYPE')!='Release':
+        raise ValueError('Exact upstream multi-config Release recipe required')
+    result['runtime_library']='MD'
+    return result
+
+
 class Build:
     def __init__(self, source, work):
         if (sys.platform != 'win32' or os.environ.get('GITHUB_ACTIONS') != 'true'
                 or os.environ.get('RUNNER_OS') != 'Windows' or os.environ.get('RUNNER_ARCH') != 'X64'
-                or os.environ.get('ImageOS') != 'win22' or not 1 <= (os.cpu_count() or 0) <= 4):
-            raise ValueError('Registered Windows 2022 AMD64 four-CPU-or-smaller CI runner required')
+                or os.environ.get('ImageOS') not in ('win25','win25-vs2026') or not 1 <= (os.cpu_count() or 0) <= 4):
+            raise ValueError('Registered Windows 2025 VS2026 AMD64 four-CPU-or-smaller CI runner required')
         if work.exists() or work.is_symlink() or source.is_symlink():
             raise ValueError('Fresh owned work directory and plain source directory required')
         work.mkdir()
@@ -216,12 +255,15 @@ class Build:
             raise ValueError('Windows build lacks declared disk headroom')
         self.guard()
         self.environment = self.msvc_environment()
-        self.environment.update(CMAKE_BUILD_PARALLEL_LEVEL='2', CL_MPCOUNT='1', _CL_='/MP1',
+        if self.environment.get('CL') or self.environment.get('_CL_'):
+            raise ValueError('Clean upstream compiler flag environment required')
+        self.environment.update(CMAKE_BUILD_PARALLEL_LEVEL='2', CL_MPCOUNT='1', CL='', _CL_='',
                                 MSBUILDDISABLENODEREUSE='1', DEP_PYTHON_HOST=sys.executable)
         self.children = []
         self.tools = {name: record(shutil.which(name, path=self.environment['PATH']))
                       for name in ('cl', 'link', 'cmake', 'ninja', 'perl')}
         self.tools['msbuild'] = record(self.environment['MSBUILD'])
+        self.probe_compiler()
 
     def guard(self):
         free = shutil.disk_usage(self.work).free
@@ -233,16 +275,17 @@ class Build:
 
     def prepare_dependencies(self,lock,submodules,builder):
         deps,prefix,downloads=(self.work/name for name in ('deps','prefix','downloads'))
-        configure=['cmake','-S',self.source/'deps','-B',deps,'-G','Ninja',
+        configure=['cmake','-S',self.source/'deps','-B',deps,'-G',GENERATOR,
             '-DCMAKE_BUILD_TYPE=Release','-DSLIC3R_CAD=OFF','-DDEP_DEBUG=OFF',
             cmake_path('DESTDIR',prefix),cmake_path('DEP_DOWNLOAD_DIR',downloads),
             cmake_path('DEP_PYTHON_HOST',Path(sys.executable)),
-            '-DCMAKE_C_COMPILER=cl','-DCMAKE_CXX_COMPILER=cl']
+            cmake_path('CMAKE_C_COMPILER',self.compiler),cmake_path('CMAKE_CXX_COMPILER',self.compiler)]
         targets=[item['target']for item in lock['sources']]
         targets[5:5]=lock['in_tree_targets']
         environment=dependency_environment(self.environment)
-        target_environments={'dep_OCCT':{'CMAKE_BUILD_PARALLEL_LEVEL':'4'}}
-        environment.update(DEPENDENCY_TARGET_ENVIRONMENTS=json.dumps(target_environments,sort_keys=True,separators=(',',':')),
+        target_environments={'dep_OCCT':{'CMAKE_BUILD_PARALLEL_LEVEL':'4'},
+            'dep_python3':{'_CL_':'/MP1'},'dep_OpenSSL':{'_CL_':'/MP1'}}
+        environment.update(COMPILER_IDENTITY=dependencies._canonical(self.compiler_identity).decode(),DEPENDENCY_TARGET_ENVIRONMENTS=json.dumps(target_environments,sort_keys=True,separators=(',',':')),
             HOST_PYTHON_SHA256=sha(Path(sys.executable)),
             DEPENDENCY_CONFIGURE_ARGV=json.dumps([str(arg)for arg in configure],separators=(',',':')),
             DEPENDENCY_TARGETS=json.dumps(targets,separators=(',',':')))
@@ -265,11 +308,12 @@ class Build:
             save(self.evidence/'dependency-checkpoint.json',receipt)
             return receipt
         self.run('deps-configure',configure)
+        self.verify_compiler_configuration(deps)
         for target in targets:
             # OCCT alone uses the already declared four-compiler upper bound;
-            # the outer build stays serial and each compiler keeps /MP1.
+            # the outer build stays serial; MSVC-only tasks explicitly keep /MP1.
             override=target_environments.get(target)
-            self.run(target,['cmake','--build',deps,'--target',target,'--parallel','1'],
+            self.run(target,['cmake','--build',deps,'--config','Release','--target',target,'--parallel','1'],
                 environment=dict(self.environment,**override)if override else None)
         # Optional retained progress cannot qualify or replace an engine build.
         # Resource guards and provenance failures propagate; optional checkpoint
@@ -294,10 +338,13 @@ class Build:
     def msvc_environment(self):
         vswhere = Path(os.environ['ProgramFiles(x86)'])/'Microsoft Visual Studio/Installer/vswhere.exe'
         vs = Path(subprocess.check_output([str(vswhere), '-latest', '-products', '*', '-requires',
-            'Microsoft.VisualStudio.Component.VC.Tools.x86.x64', '-property', 'installationPath'],
+            'Microsoft.VisualStudio.Component.VC.Tools.x86.x64', 'Microsoft.VisualStudio.Component.VC.Llvm.Clang',
+            '-version', '[18.0,19.0)', '-property', 'installationPath'],
             text=True, timeout=30).strip())
+        self.visual_studio = vs
+        self.compiler = vs/'VC/Tools/Llvm/x64/bin/clang-cl.exe'
         developer = vs/'Common7/Tools/VsDevCmd.bat'
-        if not vs.is_dir() or not developer.is_file() or any(char in str(vs) for char in ('"', '\r', '\n')):
+        if not vs.is_dir() or not developer.is_file() or not self.compiler.is_file() or any(char in str(vs) for char in ('"', '\r', '\n')):
             raise ValueError('Preinstalled MSVC environment unavailable')
         # cmd's command-string quoting differs from Windows argv quoting. Keep
         # CALL's quoted path in an owned batch file, never inside list2cmdline.
@@ -319,7 +366,73 @@ class Build:
             raise ValueError('64-bit-hosted MSVC/MSBuild unavailable')
         return environment
 
-    def run(self, label, command, cwd=None, environment=None):
+    def probe_compiler(self):
+        self.guard()
+        if (self.environment.get('VCTOOLSVERSION')!='14.51.36231'
+                or self.environment.get('WINDOWSSDKVERSION','').rstrip('\\/')!='10.0.26100.0'):
+            raise ValueError('Exact native GUI VS18 headers and SDK required')
+        expected_msvc=(self.visual_studio/'VC/Tools/MSVC/14.51.36231').resolve()
+        if Path(self.environment['VCTOOLSINSTALLDIR']).resolve()!=expected_msvc:
+            raise ValueError('VS18 compiler header root differs')
+        for name in ('cl','link'):
+            actual=Path(shutil.which(name,path=self.environment['PATH'])).resolve()
+            if actual!=(expected_msvc/'bin/Hostx64/x64'/(name+'.exe')).resolve():
+                raise ValueError('Real VS18 MSVC side-tool selection differs')
+        text=subprocess.check_output([str(self.compiler),'--version'],env=self.environment,text=True,timeout=10)
+        if len(text)>16384 or re.search(r'clang version 22\.1\.3(?:\s|$)',text) is None:
+            raise ValueError('Preinstalled VS18 Clang 22.1.3 required; no fallback')
+        self.tools['clang-cl']=record(self.compiler)
+        source=self.work/'compiler-probe-source';source.mkdir()
+        (source/'CMakeLists.txt').write_text(PROBE_SOURCE,encoding='utf-8')
+        build=self.work/'compiler-probe'
+        command=['cmake','-S',source,'-B',build,'-G',GENERATOR,'-DCMAKE_BUILD_TYPE=Release',
+            cmake_path('CMAKE_C_COMPILER',self.compiler),cmake_path('CMAKE_CXX_COMPILER',self.compiler)]
+        self.run('compiler-probe',command,timeout_seconds=90)
+        configuration=compiler_configuration(build)
+        for name in ('c_compiler','cxx_compiler'):
+            if Path(configuration[name]).resolve()!=self.compiler.resolve():
+                raise ValueError('CMake selected a different compiler')
+        selected=Path(configuration['cxx_linker']).resolve()
+        if Path(configuration['c_linker']).resolve()!=selected:
+            raise ValueError('C and CXX linker selection differs')
+        if selected==(self.compiler.parent/'lld-link.exe').resolve():
+            family='LLD';version_output=subprocess.check_output([str(selected),'--version'],env=self.environment,text=True,timeout=10)
+            match=re.search(r'LLD (22\.1\.3)(?:\s|$)',version_output)
+        elif selected==Path(shutil.which('link',path=self.environment['PATH'])).resolve():
+            family='MSVC';version_output=subprocess.check_output([str(selected),'/?'],env=self.environment,text=True,timeout=10)
+            match=re.search(r'Linker Version (14\.51\.[0-9.]+)',version_output)
+        else:
+            raise ValueError('CMake selected an unregistered VS18 linker')
+        if len(version_output)>65536 or not match:
+            raise ValueError('Actual selected linker version differs')
+        self.tools['selected-linker']=record(selected)
+        self.selected_linker=selected
+        self.compiler_configurations={'probe':configuration}
+        self.compiler_probe=dict(source_sha256=hashlib.sha256(PROBE_SOURCE.encode()).hexdigest(),
+            command=[str(item)for item in command],configuration=configuration,toolchain=self.tools,
+            compiler_version_output_sha256=hashlib.sha256(text.encode()).hexdigest(),
+            linker_version_output_sha256=hashlib.sha256(version_output.encode()).hexdigest())
+        save(self.evidence/'compiler-probe-identity.json',self.compiler_probe)
+        self.compiler_identity=dict(family='Clang',version='22.1.3',frontend_variant='MSVC',visual_studio_major='18',
+            generator=GENERATOR,configuration='Release',runtime_library='MD',
+            msvc_toolset_version=self.environment['VCTOOLSVERSION'],windows_sdk_version='10.0.26100.0',
+            linker_family=family,linker_version=match.group(1),probe_sha256=contract.digest(self.compiler_probe),
+            release_flags_sha256=hashlib.sha256(dependencies._canonical({key:value for key,value in configuration.items()if key.endswith('_release_flags')})).hexdigest())
+        if not engine._windows_compiler_valid(self.compiler_identity):
+            raise ValueError('Unregistered upstream compiler identity')
+
+    def verify_compiler_configuration(self,build):
+        actual=compiler_configuration(build)
+        expected=self.compiler_probe['configuration']
+        identity=lambda value:{key:item for key,item in value.items()if key not in ('c_flags','cxx_flags')}
+        if identity(actual)!=identity(expected):
+            raise ValueError('Configured compiler/linker/Release recipe differs from preflight')
+        for name,path in (('clang-cl',self.compiler),('selected-linker',self.selected_linker)):
+            if record(path)!=self.tools[name]:raise ValueError('Selected compiler/linker bytes changed')
+        self.compiler_configurations[build.name]=actual
+        save(self.evidence/(build.name+'-compiler-identity.json'),actual)
+
+    def run(self, label, command, cwd=None, environment=None, timeout_seconds=None):
         self.guard()
         print(json.dumps({'stage': label, 'state': 'started'}), flush=True)
         child = subprocess.Popen([str(arg) for arg in command], cwd=cwd or self.work,
@@ -341,6 +454,8 @@ class Build:
             with (self.evidence/(label+'.log')).open('wb') as log:
                 while True:
                     self.guard()
+                    if timeout_seconds is not None and time.monotonic()-started>timeout_seconds:
+                        raise RuntimeError('Bounded compiler probe deadline reached')
                     try:
                         chunk = output.get(timeout=1)
                     except queue.Empty:
@@ -382,15 +497,15 @@ class Build:
             if sha(source/name) != expected:
                 raise ValueError('Windows in-tree dependency differs')
         commit = subprocess.check_output(['git', '-C', str(ROOT), 'rev-parse', 'HEAD'], text=True).strip()
-        builder = {'schema': 'helix-orca-v1-windows-builder/v1',
+        builder = {'schema': 'helix-orca-v1-windows-builder/v2',
             'repository': os.environ['GITHUB_REPOSITORY'], 'workflow': '.github/workflows/v1-windows-engine.yml',
             'application_commit': commit, 'run_id': os.environ['GITHUB_RUN_ID'],
-            'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'], 'runner_image': 'windows-2022',
+            'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'], 'runner_image': 'windows-2025-vs2026', 'compiler':self.compiler_identity,
             'image_version': os.environ['ImageVersion'], 'toolchain': self.tools,
             'run_url': os.environ['GITHUB_SERVER_URL']+'/'+os.environ['GITHUB_REPOSITORY']+'/actions/runs/'+os.environ['GITHUB_RUN_ID']}
         if not engine._windows_builder_valid(builder, {'application_commit': commit}):
             raise ValueError('Registered Windows CI provenance required')
-        inputs = {'source': source_report, 'builder': builder, 'submodules': modules.splitlines(),
+        inputs = {'compiler_probe':self.compiler_probe,'source': source_report, 'builder': builder, 'submodules': modules.splitlines(),
             'owned_inputs': {name:sha(ROOT/name) for name in engine._WINDOWS_OWNED_INPUTS},
             'compiler_slots': 4, 'cmake_jobs': 2, 'occt_jobs': 4, 'dependency_top_level_jobs': 1,
             'reserve_bytes': RESERVE, 'peak_bytes': PEAK, 'margin_bytes': MARGIN,
@@ -401,19 +516,22 @@ class Build:
         save(self.evidence/'native-inputs.json',inputs)
         prefix,build=self.work/'prefix',self.work/'engine'
         actual_prefix = prefix/'usr/local'
-        self.run('engine-configure', ['cmake', '-S', source, '-B', build, '-G', 'Ninja',
+        self.run('engine-configure', ['cmake', '-S', source, '-B', build, '-G', GENERATOR,
             '-DCMAKE_BUILD_TYPE=Release', cmake_path('CMAKE_PREFIX_PATH', actual_prefix),
             cmake_path('CMAKE_MODULE_PATH', ROOT/'integration/v1-native-engine/windows-cmake'),
             '-DSLIC3R_GUI=OFF', '-DSLIC3R_CAD=OFF', '-DSLIC3R_STATIC=ON',
             '-DSLIC3R_BUILD_TESTS=OFF', '-DORCA_TOOLS=OFF', '-DSLIC3R_PCH=OFF',
             '-DSLIC3R_MSVC_COMPILE_PARALLEL=OFF', '-DSLIC3R_MSVC_PDB=OFF',
-            '-DCMAKE_C_COMPILER=cl', '-DCMAKE_CXX_COMPILER=cl',
+            cmake_path('CMAKE_C_COMPILER',self.compiler), cmake_path('CMAKE_CXX_COMPILER',self.compiler),
             cmake_path('CMAKE_PROJECT_OrcaSlicer_INCLUDE', ROOT/'integration/v1-native-engine/windows-target.cmake')])
-        self.run('native-adapter', ['cmake', '--build', build, '--target', 'helix_orca_native', '--parallel', '2'])
+        self.verify_compiler_configuration(build)
+        inputs['compiler_configurations']=self.compiler_configurations
+        save(self.evidence/'native-inputs.json',inputs)
+        self.run('native-adapter', ['cmake', '--build', build, '--config', 'Release', '--target', 'helix_orca_native', '--parallel', '2'])
         package = self.work/'package'
         package.mkdir()
         executable = package/'helix_orca_native.exe'
-        shutil.copy2(build/executable.name, executable)
+        shutil.copy2(build/'Release'/executable.name, executable)
         search = [actual_prefix, Path(self.environment['VCTOOLSREDISTDIR'])/'x64']
         candidates = {}
         for directory in search:
@@ -520,8 +638,8 @@ class Build:
             'The archive includes source-archive-inventory.json; every locked source archive must match exactly once and is rehashed during ZIP writing.\n'
             'Read source-materials.json: historical GNU vendor builds and Windows OpenCV Intel IPP-ICV provenance remain unverified; complete corresponding source is not claimed.\n'
             'Missing or substituted source materials block production source acceptance while preserving the built code-only candidate.\n'
-            'Microsoft runtime DLLs, if present, are from the preinstalled Visual Studio 2022 redistributable.\n'
-            'https://learn.microsoft.com/visualstudio/releases/2022/redistribution\n'
+            'Microsoft runtime DLLs, if present, are from the selected VS18 redistributable; exact packaged bytes are bound by native-build.json.\n'
+            'Redistribution and production source acceptance remain separate from this code-only calibration candidate.\n'
             'No calibration is qualified by this build; native parity and all processor checks remain mandatory.\n', encoding='utf-8')
         self.guard()
         shutil.make_archive(str(self.work/'native-windows-package'), 'zip', package)

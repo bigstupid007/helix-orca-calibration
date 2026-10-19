@@ -29,6 +29,7 @@ MAX_ZIP_BYTES=3*1024**3
 MAX_MANIFEST_BYTES=16*1024**2
 CHUNK=1024**2
 TOOLS={'cl','link','cmake','ninja','perl','msbuild'}
+CLANG_TOOLS=TOOLS|{'clang-cl','selected-linker'}
 CONTRACT_KEYS={'schema','source_commit','submodules','dependencies_lock_sha256','builder_sha256',
     'workflow_sha256','module_sha256','toolchain','environment','prefix','downloads'}
 PUBLISHER_KEYS={'schema','repository','workflow','application_commit','run_id','run_attempt',
@@ -124,11 +125,28 @@ def _name(name):
 
 
 def _tools(value):
-    if not isinstance(value,dict) or set(value)!=TOOLS:raise BundleError('exact_toolchain_required')
+    if not isinstance(value,dict) or set(value)not in (TOOLS,CLANG_TOOLS):raise BundleError('exact_toolchain_required')
     for record in value.values():
         if not isinstance(record,dict) or set(record)!={'size','sha256'} or type(record['size']) is not int or not 0<record['size']<=2*1024**3:
             raise BundleError('exact_tool_record_required')
         _hex(record['sha256'])
+
+
+def _windows_compiler_valid(value):
+    expected = dict(family="Clang", version="22.1.3", frontend_variant="MSVC",
+        visual_studio_major="18", generator="Ninja Multi-Config", configuration="Release",
+        runtime_library="MD", msvc_toolset_version="14.51.36231", windows_sdk_version="10.0.26100.0")
+    if (not isinstance(value, dict) or set(value) != {*expected, "linker_family", "linker_version",
+            "probe_sha256", "release_flags_sha256"} or any(value[key] != item for key, item in expected.items())):
+        return False
+    if value["linker_family"] == "LLD":
+        version = value["linker_version"] == "22.1.3"
+    elif value["linker_family"] == "MSVC":
+        version = isinstance(value["linker_version"], str) and re.fullmatch(r"14\.51\.[0-9.]{1,32}", value["linker_version"]) is not None
+    else:
+        return False
+    return version and all(isinstance(value[key], str) and re.fullmatch("[a-f0-9]{64}", value[key])
+                           for key in ("probe_sha256", "release_flags_sha256"))
 
 
 def _provenance(contract,publisher,prefix,downloads,guard):
@@ -150,14 +168,21 @@ def _provenance(contract,publisher,prefix,downloads,guard):
         raise BundleError('explicit_build_environment_required')
     if contract['prefix']!=str(prefix) or contract['downloads']!=str(downloads):
         raise BundleError('fixed_dependency_prefix_or_download_path_changed')
-    if not isinstance(publisher,dict) or set(publisher)!=PUBLISHER_KEYS:
+    if not isinstance(publisher,dict) or set(publisher)not in (PUBLISHER_KEYS,PUBLISHER_KEYS|{'compiler'}):
         raise BundleError('exact_publisher_required')
-    if (publisher['schema']!='helix-orca-v1-windows-builder/v1'
-            or publisher['repository']!='bigstupid007/helix-orca-calibration'
+    legacy=publisher['schema']=='helix-orca-v1-windows-builder/v1'
+    modern=publisher['schema']=='helix-orca-v1-windows-builder/v2'
+    if (publisher['repository']!='bigstupid007/helix-orca-calibration'
             or publisher['workflow']!='.github/workflows/v1-windows-engine.yml'
-            or publisher['runner_image']!='windows-2022'
-            or not isinstance(publisher['image_version'],str) or not 1<=len(publisher['image_version'])<=128):
+            or not isinstance(publisher['image_version'],str) or not 1<=len(publisher['image_version'])<=128
+            or not (legacy and set(publisher)==PUBLISHER_KEYS and publisher['runner_image']=='windows-2022'
+                    and set(publisher['toolchain'])==TOOLS
+                    or modern and set(publisher)==PUBLISHER_KEYS|{'compiler'}
+                    and publisher['runner_image']=='windows-2025-vs2026'
+                    and set(publisher['toolchain'])==CLANG_TOOLS and _windows_compiler_valid(publisher['compiler']))):
         raise BundleError('publisher_identity_mismatch')
+    if modern and environment.get('COMPILER_IDENTITY')!=_canonical(publisher['compiler']).decode():
+        raise BundleError('compiler_recipe_identity_mismatch')
     _hex(publisher['application_commit'],40)
     for key in ('run_id','run_attempt'):
         if not isinstance(publisher[key],str) or re.fullmatch('[1-9][0-9]{0,31}',publisher[key]) is None:

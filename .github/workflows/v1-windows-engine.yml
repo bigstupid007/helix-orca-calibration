@@ -36,7 +36,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   native-windows:
-    runs-on: windows-2022
+    runs-on: windows-2025-vs2026
     timeout-minutes: 130
     steps:
       - name: Preserve exact source line endings in this disposable runner
