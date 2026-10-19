@@ -73,10 +73,16 @@ class Build:
         vs = Path(subprocess.check_output([str(vswhere), '-latest', '-products', '*', '-requires',
             'Microsoft.VisualStudio.Component.VC.Tools.x86.x64', '-property', 'installationPath'],
             text=True, timeout=30).strip())
-        if not vs.is_dir() or '"' in str(vs):
+        developer = vs/'Common7/Tools/VsDevCmd.bat'
+        if not vs.is_dir() or not developer.is_file() or any(char in str(vs) for char in ('"', '\r', '\n')):
             raise ValueError('Preinstalled MSVC environment unavailable')
-        command = 'call "'+str(vs/'Common7/Tools/VsDevCmd.bat')+'" -arch=x64 -host_arch=x64 >nul && set'
-        output = subprocess.check_output([os.environ['COMSPEC'], '/d', '/s', '/c', command],
+        # cmd's command-string quoting differs from Windows argv quoting. Keep
+        # CALL's quoted path in an owned batch file, never inside list2cmdline.
+        batch = self.work/'native-msvc-environment.cmd'
+        with batch.open('x', encoding='utf-8', newline='\r\n') as stream:
+            stream.write('@echo off\ncall "'+str(developer)+'" -arch=x64 -host_arch=x64 >nul\n'
+                         'if errorlevel 1 exit /b %errorlevel%\nset\n')
+        output = subprocess.check_output([os.environ['COMSPEC'], '/d', '/c', str(batch)],
                                          text=True, timeout=30)
         environment = dict(os.environ)
         for line in output.splitlines():
@@ -266,6 +272,12 @@ def main():
         run = Build(args.source, args.work)
         run.package()
     finally:
+        if run is None and (args.work/'evidence').is_dir():
+            save(args.work/'evidence/build-lifecycle.json', {
+                'schema': 'helix-orca-v1-windows-build-lifecycle/v1', 'state': 'failed',
+                'stage': 'constructor', 'stage_processes_exited': None,
+                'runtime_cleanup': 'GitHub-hosted disposable job teardown',
+                'owned_runner_vm': True, 'physical_actions': False})
         if run is not None:
             save(run.evidence/'build-lifecycle.json', {
                 'schema': 'helix-orca-v1-windows-build-lifecycle/v1',

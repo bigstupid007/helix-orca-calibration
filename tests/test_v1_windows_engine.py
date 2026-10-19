@@ -121,6 +121,47 @@ class WindowsNativeGuards(unittest.TestCase):
         with self.assertRaises(ValueError):
             pe.inspect(self.exe)
 
+    def test_msvc_environment_call_uses_owned_batch_without_nested_command_quotes(self):
+        spec = importlib.util.spec_from_file_location('windows_builder_env', engine._ROOT/'scripts/v1-engine-windows.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        vs = self.root/'Program Files'/'Visual Studio'
+        developer = vs/'Common7/Tools/VsDevCmd.bat'
+        developer.parent.mkdir(parents=True)
+        developer.write_text('test-only')
+        msbuild = vs/'MSBuild/Current/Bin/amd64/MSBuild.exe'
+        msbuild.parent.mkdir(parents=True)
+        msbuild.write_bytes(b'test-only')
+        run = module.Build.__new__(module.Build)
+        run.work = self.root
+        with patch.dict(module.os.environ, {'ProgramFiles(x86)':str(self.root), 'COMSPEC':'cmd.exe'}), \
+                patch.object(module.subprocess, 'check_output', side_effect=[str(vs), 'VSCMD_ARG_TGT_ARCH=x64\nPATH=test-only\n']) as call:
+            environment = run.msvc_environment()
+        batch = self.root/'native-msvc-environment.cmd'
+        self.assertIn('call "'+str(developer)+'" -arch=x64 -host_arch=x64', batch.read_text())
+        self.assertIn('if errorlevel 1 exit /b %errorlevel%', batch.read_text())
+        self.assertEqual(call.call_args_list[1].args[0], ['cmd.exe','/d','/c',str(batch)])
+        self.assertEqual(environment['MSBUILD'], str(msbuild))
+
+    def test_constructor_failure_retains_honest_lifecycle_artifact(self):
+        import json
+        spec = importlib.util.spec_from_file_location('windows_builder_failure', engine._ROOT/'scripts/v1-engine-windows.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        work = self.root/'failed-build'
+        def failed_constructor(source, target):
+            (target/'evidence').mkdir(parents=True)
+            raise RuntimeError('Synthetic environment setup failure')
+        with patch.object(module, 'Build', side_effect=failed_constructor), \
+                patch.object(module.sys, 'argv', ['builder','--source',str(self.root),'--work',str(work)]):
+            with self.assertRaises(RuntimeError):
+                module.main()
+        lifecycle = json.loads((work/'evidence/build-lifecycle.json').read_text())
+        self.assertEqual(lifecycle['state'], 'failed')
+        self.assertEqual(lifecycle['stage'], 'constructor')
+        self.assertIsNone(lifecycle['stage_processes_exited'])
+        self.assertNotIn('runtime_clear', lifecycle)
+
     def test_build_guard_stops_at_reserve_peak_and_watchdog(self):
         spec = importlib.util.spec_from_file_location('windows_builder', engine._ROOT/'scripts/v1-engine-windows.py')
         module = importlib.util.module_from_spec(spec)
