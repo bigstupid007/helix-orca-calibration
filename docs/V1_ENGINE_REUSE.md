@@ -374,7 +374,7 @@ subsequently built optional bounded diagnostics. Both successful build runs
 record runtime clear; no Windows execution capability is inferred.
 
 The grouped smoke tool `scripts/v1-engine-smoke.py` uses one private, offline,
-2-CPU/4-GiB/128-PID/300-second managed container per calibration, exact teardown,
+2-CPU/4-GiB/128-PID managed container per calibration, exact teardown,
 immutable retained context, and the same guarded product adapter/parity path.
 Its first four actual native jobs all exited 139 before generating G-code:
 `67342532791f44c58ee67c59dbed8d84` (Temperature),
@@ -404,3 +404,11 @@ cases were not launched to repeat this shared gate. The smoke now stops after
 its first failed generation, and more precise bed/volume/Print/apply/process
 phase diagnostics are prepared. No calibration artifact or parity success is
 claimed from this intermediate progress.
+
+The development smoke watchdog now defaults to 60 seconds and accepts an
+explicit bounded `--timeout-seconds 10..300`; production generator deadlines
+are unchanged. The next shared-wait check uses one PA case with at most
+45 seconds. Diagnostic jobs explicitly enable native phase/key-name logging
+and an optional `SIGUSR1` stack dump for their exact owned process; no debugger
+attachment, elevated container capability or network endpoint is required.
+Ordinary native execution installs no diagnostic signal handler.

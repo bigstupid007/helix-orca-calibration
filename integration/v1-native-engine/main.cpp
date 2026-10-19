@@ -28,6 +28,9 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <csignal>
+#include <execinfo.h>
+#include <unistd.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -42,6 +45,12 @@ static constexpr const char *source_commit = "6a7763f08d1a175a464a00ce13f0b5a815
 static void diagnostic(const std::string &stage)
 {
     if(std::getenv("HELIX_NATIVE_DIAGNOSTICS")) std::cerr<<"native-stage: "<<stage<<std::endl;
+}
+static void diagnostic_stack(int)
+{
+    void *frames[40];
+    const int count=backtrace(frames,40);
+    backtrace_symbols_fd(frames,count,STDERR_FILENO);
 }
 
 static json read_json(const fs::path &path)
@@ -331,6 +340,12 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
 int main(int argc,char **argv)
 {
     try {
+        if(std::getenv("HELIX_NATIVE_DIAGNOSTICS")) {
+            // Load the unwinder before a diagnostic signal can interrupt native
+            // code. Only our explicitly enabled development process handles it.
+            void *frame[1];backtrace(frame,1);
+            std::signal(SIGUSR1,diagnostic_stack);
+        }
         // Keep the guard alive through Print destruction: an environment hint
         // does not bound oneTBB's scheduler.
         tbb::global_control scheduler_limit(tbb::global_control::max_allowed_parallelism,2);

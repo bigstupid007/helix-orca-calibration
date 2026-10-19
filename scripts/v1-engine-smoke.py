@@ -35,8 +35,11 @@ def main():
     parser.add_argument('--build-run',type=Path,required=True)
     parser.add_argument('--context',type=Path,required=True)
     parser.add_argument('--calibration',choices=['all',*PARAMETERS],default='all')
+    parser.add_argument('--timeout-seconds',type=int,default=60,
+                        help='per-case development watchdog, 10 through 300 seconds; product limits unchanged')
     parser.add_argument('--cache',type=Path,default=Path.home()/'.cache/helix-orca-calibration/v1-engine')
     args=parser.parse_args()
+    if not 10<=args.timeout_seconds<=300: raise ValueError('Development watchdog must be 10 through 300 seconds')
     if engine._sha_file(HELPER)!=HELPER_HASH: raise ValueError('Lifecycle helper pin differs')
     spec=importlib.util.spec_from_file_location('native_smoke_resource',HELPER)
     resource=importlib.util.module_from_spec(spec);spec.loader.exec_module(resource)
@@ -75,7 +78,7 @@ def main():
         with resource.ManagedRun(app='helix-orca-v1-native-generation',repo=str(ROOT),
                 issue='https://github.com/bigstupid007/helix-orca-calibration/issues/14',commit=commit,
                 dirty_input=engine._sha_file(Path(__file__)),paths=[str(args.cache),str(ROOT),str(args.context.parent)],
-                reserve=10*1024**3,peak=2*1024**3,margin=2*1024**3,timeout=300,adapter=OfflineDocker()) as run:
+                reserve=10*1024**3,peak=2*1024**3,margin=2*1024**3,timeout=args.timeout_seconds,adapter=OfflineDocker()) as run:
             print('Managed native generation: '+str(run.directory),flush=True)
             def runner(argv,destination):
                 mapped=[]
