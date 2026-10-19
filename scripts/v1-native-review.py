@@ -203,6 +203,7 @@ def serve(record_path,seconds):
 def launch(seconds):
     resource=get_resource()
     seconds=duration(seconds);before=sources()
+    resource.private_dir(CURRENT.parent)
     q.q.beta9.verify_cache();q.q.beta9.configure_accepted_harness();a=q.a
     cache=q.builder.default_output().parent;cache.mkdir(parents=True,exist_ok=True)
     plugins=q.fixture(cache/('review-fixture-'+uuid.uuid4().hex));fixture_files=q.q.file_hashes(plugins/'orcacal')
