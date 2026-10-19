@@ -81,12 +81,23 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
   const actions=[];
   const screenshots=[];
   const proofs=[];
+  const readRetries=[];
 
   async function getJSON(route) {
-    const response = await page.request.get(origin.origin+route);
-    const text = await response.text();
-    requireCondition(response.status() === 200, `${route} returned ${response.status()}: ${text.slice(0,300)}`);
-    return JSON.parse(text);
+    for (let attempt=1;attempt<=4;attempt++) {
+      let response,value;
+      try {
+        response = await page.request.get(origin.origin+route);
+        value = await response.text();
+      } catch (error) {
+        if (attempt===4) throw error;
+        readRetries.push({route,attempt,error:String(error?.message||error).slice(0,300)});
+        await page.waitForTimeout(250);
+        continue;
+      }
+      requireCondition(response.status() === 200, `${route} returned ${response.status()}: ${value.slice(0,300)}`);
+      return JSON.parse(value);
+    }
   }
   async function until(fn, description, milliseconds=12000) {
     const end=Date.now()+milliseconds; let last;
@@ -398,7 +409,8 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
     const report={schema:'helix-orca-v1-windows-parameter-operator/v1',passed:true,viewport:'800x480',
       source:'actual browser pointer/drag/keypad to native Helix; actual Windows-origin offers, Coordinator statuses, Perfectionist generation and native parity',
       health,physical_actions:false,profile_writeback:false,prepared_fixtures:false,
-      values:Object.fromEntries(CASES.map(item=>[item.kind,item.values])),proofs,actions,screenshots,page_errors:pageErrors,
+      values:Object.fromEntries(CASES.map(item=>[item.kind,item.values])),proofs,actions,screenshots,
+      page_errors:pageErrors,read_retries:readRetries,
       driver_sha256:sha256(fs.readFileSync(__filename)),browser_version:browser.version()};
     fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(report,null,2)+'\n',{mode:0o600});
     console.log(`PASS: five Windows-origin native parameter requests retained unchanged; report ${path.join(output,'report.json')}`);
