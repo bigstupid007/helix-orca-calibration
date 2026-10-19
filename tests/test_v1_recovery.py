@@ -92,6 +92,47 @@ class RecoveryTests(unittest.TestCase):
                     self.assertEqual(adapter.cancels,0 if after or action!='cancel' else 1)
                     self.assertLessEqual(len(adapter.confirmed),1)
 
+    def test_restart_adopts_durable_adapter_job_without_start_replay(self):
+        for after in (False,True):
+            with self.subTest(after=after),tempfile.TemporaryDirectory() as root:
+                r=self.make(root,'confirmed')
+                class Adapter:
+                    starts=0
+                    retained=None
+                    def start(self,req,prepared,directory,intent):
+                        self.starts+=1
+                        self.retained=(copy.deepcopy(req),copy.deepcopy(prepared),copy.deepcopy(intent),
+                            dict(job_id='fixture-job',file_sha256='a'*64,request_id=req['request_id'],origin_id=req['origin_id']))
+                        return self.retained[-1]
+                    def recover(self,req,prepared,intent):
+                        if self.retained[:3]!=(req,prepared,intent): raise ContractError('Foreign recovery')
+                        return copy.deepcopy(self.retained[-1])
+                    def observe(self,job):
+                        return dict(job_id=job['job_id'],file_sha256=job['file_sha256'],print_state='complete',history_state='completed',
+                            history_job_id=job['job_id'],history_file_sha256=job['file_sha256'])
+                adapter=Adapter();r.job_adapter=adapter
+                req=r.state['request']
+                intent=dict(schema='helix-orca-v1-intent/v1',request_id=req['request_id'],origin_id=req['origin_id'],
+                    prepared_sha256=digest(r.state['prepared']),action='start',intent_id='4'*32)
+                persist=r._persist;calls=0
+                def crash_after_adapter():
+                    nonlocal calls
+                    calls+=1
+                    if calls==2:
+                        if after:persist()
+                        raise Crash()
+                    persist()
+                with patch.object(Coordinator,'verify_artifact'),patch.object(Coordinator,'verify_parity'),patch.object(r,'_persist',side_effect=crash_after_adapter):
+                    with self.assertRaises(Crash):r.intent(intent)
+                recovered=fixtures.RuntimeTests().make(root);recovered.job_adapter=adapter
+                self.assertEqual(recovered.state['pending_start_intent'],intent)
+                recovered.intent(intent)
+                self.assertEqual(adapter.starts,1)
+                recovered.poll_job()
+                self.assertEqual(recovered.status()['phase'],'complete')
+                self.assertEqual(recovered.status()['job_id'],'fixture-job')
+                self.assertEqual(adapter.starts,1)
+
     def test_invalid_phase_does_not_consume_an_intent(self):
         with tempfile.TemporaryDirectory() as root:
             r=self.make(root,'review')

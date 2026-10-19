@@ -125,7 +125,7 @@ class Coordinator:
             self.state = {"schema": "helix-orca-v1-journal/v1", "context": None, "offer": None,
                           "request": None, "prepared": None, "result": None, "phase": "requested",
                           "sequence": 0, "message": "Waiting for Orca profiles.", "consumed_intents": [],
-                          "job": None, "completion": None, "receipt": None}
+                          "job": None, "completion": None, "receipt": None, "pending_start_intent": None}
             self._persist()
 
     def _persist(self):
@@ -156,7 +156,7 @@ class Coordinator:
             offer[role] = context[role]["saved"]["name"]
         self.state.update(context=context, offer=offer, request=None, prepared=None, result=None,
                           phase="requested", message="Choose a calibration on Helix.", consumed_intents=[],
-                          job=None, completion=None, receipt=None, native_acknowledged=False)
+                          job=None, completion=None, receipt=None, native_acknowledged=False, pending_start_intent=None)
         self._persist()
         return copy.deepcopy(offer)
 
@@ -267,6 +267,9 @@ class Coordinator:
                     self.state["consumed_intents"].append(value["intent_id"])
                     self._status("blocked", "Prepared job cannot start: " + str(exc))
                     return self.status()
+                # Retain exact intent so a read-only recovery can adopt a job
+                # the adapter durably confirmed before a coordinator crash.
+                self.state["pending_start_intent"] = copy.deepcopy(value)
                 # Consume and mark the dispatch phase in the same atomic journal.
                 self.state["consumed_intents"].append(value["intent_id"])
                 # Durable intent before dispatch. A crash cannot authorize replay.
@@ -299,9 +302,25 @@ class Coordinator:
         if self.state["result"] or self.state["phase"] not in ("starting", "printing", "verifying", "uncertain"):
             return self.status()
         job = self.state.get("job")
-        if self.job_adapter is None or not job:
+        if self.job_adapter is None:
             return self.status()
         try:
+            if not job:
+                recover = getattr(self.job_adapter, "recover", None)
+                pending = self.state.get("pending_start_intent")
+                if recover is None or pending is None:
+                    return self.status()
+                job = recover(copy.deepcopy(self.state["request"]), copy.deepcopy(self.state["prepared"]), copy.deepcopy(pending))
+                if job is None:
+                    return self.status()
+                exact(job, "job_id file_sha256 request_id origin_id", "recovered owned job")
+                req, prepared = self.state["request"], self.state["prepared"]
+                if (not isinstance(job["job_id"], str) or not job["job_id"]
+                        or any(job[key] != req[key] for key in ("request_id", "origin_id"))
+                        or job["file_sha256"] != prepared["artifact"]["sha256"]):
+                    raise ContractError("Recovered adapter job identity differs")
+                self.state["job"] = copy.deepcopy(job)
+                self._status("uncertain", "Recovered exact owned job. Verifying independent printer status/history.")
             proof = self.job_adapter.observe(copy.deepcopy(job))
             exact(proof, "job_id file_sha256 print_state history_state history_job_id history_file_sha256", "independent observation")
             if proof["job_id"] != job["job_id"] or proof["file_sha256"] != job["file_sha256"]:
