@@ -464,6 +464,9 @@ class Build:
             for line in (build/'CMakeCache.txt').read_text().splitlines():
                 if '='in line and ':'in line.split('=',1)[0] and not line.startswith(('//','#')):
                     key,value=line.split('=',1);cache_values[key.split(':',1)[0]]=value
+            requested='ON'if enabled else'OFF'
+            if cache_values.get('USE_CCACHE')!=requested:
+                raise ValueError('Archive cache configuration differs from requested mode')
             archiver=Path(cache_values['CMAKE_AR'])
             if archiver.resolve()!=(self.compiler.parent/'llvm-lib.exe').resolve():
                 raise ValueError('Exact VS18 LLVM archiver required')
@@ -484,13 +487,15 @@ class Build:
                 cache=dict(path=detected,**record(path),version=version.stdout.strip())
             code=self.run(label+'-build',['cmake','--build',build,'--config','Release','--target','helix_archive_probe',
                 '--parallel','2'],timeout_seconds=90,allow_failure=enabled)
+            if dict(path=str(archiver),**record(archiver))!=archiver_record:
+                raise ValueError('LLVM archiver bytes changed during static archive production')
             objects=list(build.rglob('probe.cpp.obj'))
             archive=build/'Release/helix_archive_probe.lib'
             objects_valid=(len(objects)==1 and not objects[0].is_symlink() and objects[0].is_file()
                 and 20<=objects[0].stat().st_size<=1048576 and objects[0].read_bytes()[:2]==b'\x64\x86')
             archive_valid=(archive.is_file() and not archive.is_symlink() and 8<=archive.stat().st_size<=1048576
                 and archive.read_bytes()[:8]==b'!<arch>\n')
-            results['on'if enabled else'off']=dict(exit_code=code,ccache=cache,rule_launch_link=launcher,archiver=archiver_record,object_count=len(objects),
+            results['on'if enabled else'off']=dict(exit_code=code,use_ccache=cache_values['USE_CCACHE'],ccache=cache,rule_launch_link=launcher,archiver=archiver_record,object_count=len(objects),
                 objects_valid=objects_valid,archive_valid=archive_valid,
                 objects=[record(path)for path in objects[:4] if path.is_file()and not path.is_symlink()and path.stat().st_size<=1048576],
                 archive=record(archive)if archive_valid else None,configuration=configuration)

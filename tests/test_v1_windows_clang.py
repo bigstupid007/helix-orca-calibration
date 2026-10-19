@@ -104,7 +104,7 @@ class ArchivePreflight(unittest.TestCase):
             enabled='-on-'in label
             if label.endswith('-configure'):
                 build.mkdir();(build/'detected-ccache.txt').write_text(str(tools/'ccache.exe')if enabled else'')
-                (build/'CMakeCache.txt').write_text('CMAKE_AR:FILEPATH='+str(tools/'llvm-lib.exe'))
+                (build/'CMakeCache.txt').write_text('CMAKE_AR:FILEPATH='+str(tools/'llvm-lib.exe')+'\nUSE_CCACHE:BOOL='+('ON'if enabled else'OFF'))
                 (build/'detected-launcher.txt').write_text('ccache'if enabled else'')
                 return 0
             valid=on_valid if enabled else off_valid
@@ -128,6 +128,7 @@ class ArchivePreflight(unittest.TestCase):
         self.assertIn('-DUSE_CCACHE:BOOL=OFF',calls[2][1])
         self.assertEqual(calls[1][1][3:],calls[3][1][3:])
         self.assertEqual(result['results']['off']['rule_launch_link'],'')
+        self.assertEqual(result['results']['off']['use_ccache'],'OFF')
         self.assertEqual(result['results']['on']['archiver'],result['results']['off']['archiver'])
 
     def test_missing_off_outputs_are_fatal_even_if_cache_on_produced_them(self):
@@ -149,6 +150,23 @@ class ArchivePreflight(unittest.TestCase):
         summary=json.loads((evidence/'toolchain-preflight-summary.json').read_text())
         self.assertTrue(summary['completed']);self.assertFalse(summary['built']);self.assertFalse(summary['qualified'])
         self.assertEqual(json.loads((evidence/'build-lifecycle.json').read_text())['state'],'complete')
+
+    def test_wrong_configured_cache_mode_or_changed_archiver_is_fatal(self):
+        for changed in ('cache','archiver'):
+            with self.subTest(changed=changed):
+                # Each mode owns its own fresh source/build/proof closure.
+                self.root=self.root/changed;self.root.mkdir()
+                run,calls,process=self.archive_fixture();execute=run.run
+                def mutate(label,argv,**kwargs):
+                    result=execute(label,argv,**kwargs)
+                    if changed=='cache'and label=='archive-cache-off-configure':
+                        p=run.work/'archive-cache-off/CMakeCache.txt';p.write_text(p.read_text().replace('USE_CCACHE:BOOL=OFF','USE_CCACHE:BOOL=ON'))
+                    if changed=='archiver'and label=='archive-cache-off-build':
+                        (run.compiler.parent/'llvm-lib.exe').write_bytes(b'substituted archive tool')
+                    return result
+                run.run=mutate
+                with patch.object(self.b.subprocess,'run',side_effect=process),patch.object(self.b,'compiler_configuration',return_value=run.compiler_probe['configuration']):
+                    with self.assertRaisesRegex(ValueError,'cache configuration differs|archiver bytes changed'):run.probe_archive()
 
     def test_archive_diagnostic_cannot_change_compiler_recipe(self):
         run,calls,process=self.archive_fixture()
