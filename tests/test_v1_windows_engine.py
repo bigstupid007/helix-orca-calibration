@@ -121,6 +121,64 @@ class WindowsNativeGuards(unittest.TestCase):
         with self.assertRaises(ValueError):
             pe.inspect(self.exe)
 
+    def test_source_inventory_rejects_missing_substituted_and_duplicate_archives(self):
+        import hashlib
+        spec = importlib.util.spec_from_file_location('windows_source_inventory', engine._ROOT/'scripts/v1-engine-windows.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        downloads = self.root/'downloads'
+        downloads.mkdir()
+        source = downloads/'source.tar.gz'
+        payload = b'known source archive bytes'
+        source.write_bytes(payload)
+        lock = {'sources':[{'url':'https://source.example/source.tar.gz',
+                            'sha256':hashlib.sha256(payload).hexdigest()}],
+                'source_supplements':[], 'binary_only_downloads':['excluded.zip']}
+        roots = {'dependency-archives':downloads}
+        inventory = module.inventory_source_archives(lock, roots, lambda:None)
+        self.assertEqual(inventory['archives'][0]['size'], len(payload))
+        source.unlink()
+        with self.assertRaises(module.SourceMaterialsUnavailable):
+            module.inventory_source_archives(lock, roots, lambda:None)
+        source.write_bytes(b'substituted source archive')
+        with self.assertRaises(module.SourceMaterialsUnavailable):
+            module.inventory_source_archives(lock, roots, lambda:None)
+        source.write_bytes(payload)
+        duplicate = downloads/'duplicate.tar.gz'
+        duplicate.write_bytes(payload)
+        with self.assertRaises(module.SourceMaterialsUnavailable):
+            module.inventory_source_archives(lock, roots, lambda:None)
+
+    def test_source_zip_uses_only_verified_archives_and_rechecks_mutation(self):
+        import hashlib
+        import io
+        import zipfile
+        spec = importlib.util.spec_from_file_location('windows_source_zip', engine._ROOT/'scripts/v1-engine-windows.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        downloads = self.root/'archive-inputs'
+        downloads.mkdir()
+        payload = b'original verified source bytes'
+        source = downloads/'source.tar.gz'
+        source.write_bytes(payload)
+        (downloads/'excluded.zip').write_bytes(b'binary-only download')
+        (downloads/'unlocked.zip').write_bytes(b'unrecognized archive must never be copied')
+        lock = {'sources':[{'url':'https://source.example/source.tar.gz',
+                            'sha256':hashlib.sha256(payload).hexdigest()}],
+                'source_supplements':[], 'binary_only_downloads':['excluded.zip']}
+        roots = {'dependency-archives':downloads}
+        inventory = module.inventory_source_archives(lock, roots, lambda:None)
+        output = io.BytesIO()
+        with zipfile.ZipFile(output, 'w') as archive:
+            module.write_verified_archives(archive, inventory, roots, lambda:None)
+        with zipfile.ZipFile(output) as archive:
+            self.assertEqual(archive.namelist(), ['dependency-archives/source.tar.gz'])
+            self.assertEqual(archive.read(archive.namelist()[0]), payload)
+        source.write_bytes(b'X'+payload[1:])
+        with zipfile.ZipFile(io.BytesIO(), 'w') as archive:
+            with self.assertRaises(module.SourceMaterialsUnavailable):
+                module.write_verified_archives(archive, inventory, roots, lambda:None)
+
     def test_source_supplements_are_hash_bound_bounded_and_never_executed(self):
         import hashlib
         import io

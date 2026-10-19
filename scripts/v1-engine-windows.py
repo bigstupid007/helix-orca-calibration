@@ -73,6 +73,61 @@ def retain_source_supplements(lock, directory, guard):
     return rows
 
 
+def inventory_source_archives(lock, roots, guard):
+    """Select only exact locked archive bytes, rejecting missing or duplicates."""
+    excluded = set(lock['binary_only_downloads'])
+    wanted = [row for row in lock['sources']+lock.get('transitive_sources', [])+lock['source_supplements']
+              if row['url'].rsplit('/', 1)[1] not in excluded]
+    expected = {row['sha256']:row for row in wanted}
+    if len(expected) != len(wanted):
+        raise SourceMaterialsUnavailable('duplicate_source_digest_in_lock')
+    selected, ignored, seen = [], [], {}
+    for label, directory in roots.items():
+        for path in sorted(directory.rglob('*')):
+            guard()
+            if path.is_symlink():
+                raise SourceMaterialsUnavailable('linked_source_archive')
+            if not path.is_file():
+                continue
+            if path.stat().st_size > 512*1024**2:
+                raise SourceMaterialsUnavailable('source_archive_exceeds_bound')
+            row = dict(root=label, path=path.relative_to(directory).as_posix(), **record(path))
+            if path.name in excluded or row['sha256'] not in expected:
+                row['reason'] = 'excluded_binary_build_input' if path.name in excluded else 'not_a_locked_source'
+                ignored.append(row)
+                continue
+            selected.append(row)
+            seen[row['sha256']] = seen.get(row['sha256'], 0)+1
+    incorrect = [digest+'='+str(seen.get(digest, 0)) for digest in sorted(expected) if seen.get(digest, 0) != 1]
+    if incorrect:
+        raise SourceMaterialsUnavailable('source_archive_digest_count_must_be_one:'+','.join(incorrect))
+    return {'schema':'helix-orca-v1-windows-source-archive-inventory/v1',
+            'archives':selected, 'ignored':ignored, 'expected_sha256':sorted(expected),
+            'excluded_binary_basenames':sorted(excluded)}
+
+
+def write_verified_archives(archive, inventory, roots, guard):
+    """Rehash the same open file stream copied into the unpromoted ZIP."""
+    for row in inventory['archives']:
+        path = roots[row['root']]/row['path']
+        guard()
+        if path.is_symlink() or not path.is_file() or path.stat().st_size != row['size']:
+            raise SourceMaterialsUnavailable('source_archive_changed_after_inventory')
+        digest, count = hashlib.sha256(), 0
+        with path.open('rb') as source, archive.open(row['root']+'/'+row['path'], 'w', force_zip64=True) as target:
+            while chunk := source.read(65536):
+                guard()
+                count += len(chunk)
+                if count > row['size']:
+                    raise SourceMaterialsUnavailable('source_archive_changed_after_inventory')
+                digest.update(chunk)
+                target.write(chunk)
+        if count != row['size'] or digest.hexdigest() != row['sha256']:
+            raise SourceMaterialsUnavailable('source_archive_changed_after_inventory')
+    if any(Path(name).name in inventory['excluded_binary_basenames'] for name in archive.namelist()):
+        raise SourceMaterialsUnavailable('excluded_binary_archive_was_packaged')
+
+
 def cmake_path(name, path):
     # CMake cache values can later be interpolated into generated CMake code.
     # A native Windows backslash (for example \a) is then an invalid escape.
@@ -316,42 +371,62 @@ class Build:
         unresolved = [name for name in dlls if name.startswith((
             'avcodec-', 'avformat-', 'avutil-', 'swscale-', 'swresample-',
             'libssl-3', 'libcrypto-3', 'libffi-', 'python3'))]
+        roots = {'dependency-archives':self.work/'downloads', 'matching-upstream-versions':source_cache}
+        inventory_sha = None
+        try:
+            inventory = inventory_source_archives(lock, roots, self.guard)
+            save(package/'source-archive-inventory.json', inventory)
+            shutil.copy2(package/'source-archive-inventory.json', self.evidence/'source-archive-inventory.json')
+            inventory_sha = sha(package/'source-archive-inventory.json')
+            if not source_failure:
+                partial = self.work/'native-windows-source.partial.zip'
+                with zipfile.ZipFile(partial, 'x', zipfile.ZIP_DEFLATED, compresslevel=3) as archive:
+                    for path in source.rglob('*'):
+                        self.guard()
+                        relative = path.relative_to(source)
+                        if (not path.is_file() or '.git' in relative.parts or path.name in lock['binary_only_downloads']
+                                or path.suffix.lower() in ('.dll', '.lib', '.exe', '.pdb')
+                                   and relative.as_posix() not in lock['in_tree_files']):
+                            continue
+                        archive.write(path, 'OrcaSlicer/'+relative.as_posix())
+                    for name in engine._WINDOWS_OWNED_INPUTS + ('integration/v1_engine.py', 'integration/v1_contract.py'):
+                        archive.write(ROOT/name, 'helix-orca-calibration/'+name)
+                    archive.write(package/'source-archive-inventory.json', 'source-materials/source-archive-inventory.json')
+                    write_verified_archives(archive, inventory, roots, self.guard)
+                partial.replace(self.work/'native-windows-source.zip')
+        except SourceMaterialsUnavailable as error:
+            source_failure = source_failure or str(error)
         source_status = {'schema': 'helix-orca-v1-windows-source-materials/v1',
             'source_supplements': supplements, 'source_failure': source_failure,
+            'source_archive_inventory_sha256': inventory_sha,
+            'source_archive_created': (self.work/'native-windows-source.zip').is_file(),
             'unresolved_prebuilt_runtime_components': sorted(unresolved),
+            'opaque_static_components': ['OpenCV Intel IPP-ICV enabled by upstream Windows recipe; vendor build/source provenance unverified'],
             'source_materials_state': 'matching-upstream-sources-retained' if not source_failure and not unresolved else 'incomplete',
             'exact_historical_vendor_build_reproduced': False, 'complete_corresponding_source_claim': False,
             'vendor_limitation': 'Pinned GMP/MPFR binaries match upstream versions; historical vendor compiler, flags and patches are unverified.',
             'production_source_acceptance_required': True, 'excluded_binary_build_inputs': lock['binary_only_downloads']}
         save(package/'source-materials.json', source_status)
         save(self.evidence/'source-materials.json', source_status)
-        (package/'SOURCE-OFFER.txt').write_text('Source materials accompany this artifact as native-windows-source.zip.\n'
-            'They include exact recursive Orca sources, compiled dependency source archives, owned build source, and matching upstream-version GNU sources when verified.\n'
-            'Read source-materials.json: historical vendor build provenance is unverified and complete corresponding source is not claimed.\n'
-            'Unlinked binary-only build inputs are excluded; any affected runtime component remains a production source-acceptance blocker.\n'
+        receipt.update(source_archive_inventory_sha256=inventory_sha,
+                       source_materials_sha256=sha(package/'source-materials.json'))
+        save(package/'native-build.json', receipt)
+        save(self.evidence/'native-build.json', receipt)
+        (package/'SOURCE-OFFER.txt').write_text('Source materials, when verified, accompany this artifact as native-windows-source.zip.\n'
+            'The archive includes source-archive-inventory.json; every locked source archive must match exactly once and is rehashed during ZIP writing.\n'
+            'Read source-materials.json: historical GNU vendor builds and Windows OpenCV Intel IPP-ICV provenance remain unverified; complete corresponding source is not claimed.\n'
+            'Missing or substituted source materials block production source acceptance while preserving the built code-only candidate.\n'
             'Microsoft runtime DLLs, if present, are from the preinstalled Visual Studio 2022 redistributable.\n'
             'https://learn.microsoft.com/visualstudio/releases/2022/redistribution\n'
             'No calibration is qualified by this build; native parity and all processor checks remain mandatory.\n', encoding='utf-8')
-        with zipfile.ZipFile(self.work/'native-windows-source.zip', 'w', zipfile.ZIP_DEFLATED, compresslevel=3) as archive:
-            for label, directory in (('OrcaSlicer', source), ('dependency-archives', self.work/'downloads'),
-                                     ('matching-upstream-versions', source_cache)):
-                for path in directory.rglob('*'):
-                    self.guard()
-                    relative = path.relative_to(directory)
-                    if (not path.is_file() or '.git' in relative.parts or path.name in lock['binary_only_downloads']
-                            or label == 'matching-upstream-versions' and not any(row['archive'] == path.name for row in supplements)
-                            or label == 'OrcaSlicer' and path.suffix.lower() in ('.dll', '.lib', '.exe', '.pdb')
-                               and relative.as_posix() not in lock['in_tree_files']):
-                        continue
-                    archive.write(path, label+'/'+relative.as_posix())
-            for name in engine._WINDOWS_OWNED_INPUTS + ('integration/v1_engine.py', 'integration/v1_contract.py'):
-                archive.write(ROOT/name, 'helix-orca-calibration/'+name)
         self.guard()
         shutil.make_archive(str(self.work/'native-windows-package'), 'zip', package)
         save(self.evidence/'package-summary.json', {'schema': 'helix-orca-v1-windows-package/v1',
             'built': True, 'qualified': False, 'physical_actions': False,
             'package': record(self.work/'native-windows-package.zip'),
-            'source_archive': record(self.work/'native-windows-source.zip'),
+            'source_archive': record(self.work/'native-windows-source.zip') if (self.work/'native-windows-source.zip').is_file() else None,
+            'source_archive_inventory_sha256': inventory_sha,
+            'source_materials_sha256': sha(package/'source-materials.json'),
             'elapsed_seconds': round(time.monotonic()-self.start, 3),
             'peak_filesystem_loss_bytes': self.free-self.min_free,
             'stage_processes_exited': all(child.poll() is not None for child in self.children)})

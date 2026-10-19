@@ -154,5 +154,32 @@
     "ffmpeg-n7.0.3-33-g887d4b4919-win64-orca-shared-7.0.zip",
     "cpython-bin-deps-libffi-3.4.4.zip",
     "cpython-bin-deps-openssl-bin-3.0.16.2.zip"
+  ],
+  "transitive_sources": [
+    {
+      "component": "ZLIB",
+      "url": "https://github.com/madler/zlib/archive/refs/tags/v1.2.13.zip",
+      "sha256": "c2856951bbf30e30861ace3765595d86ba13f2cf01279d901f6c62258c57f4ff"
+    },
+    {
+      "component": "CPython bzip2",
+      "url": "https://github.com/python/cpython-source-deps/archive/05301997b2f9590f49c672cf3dfd3d3dfa7ad521.zip",
+      "sha256": "44b15bede52b32f8673a2976621a847258b041243c003e30f4d9a05214785fe5"
+    },
+    {
+      "component": "CPython sqlite",
+      "url": "https://github.com/python/cpython-source-deps/archive/cb7a3997059739fe9c63b2819aeda7c6907510ef.zip",
+      "sha256": "586fe469463f5b27b749f9eef1938baa8e8a12030341e96160a371356c2d6759"
+    },
+    {
+      "component": "CPython xz",
+      "url": "https://github.com/python/cpython-source-deps/archive/c6bc0c612605622aaef101a33a751f9de2ecc193.zip",
+      "sha256": "d99882a8f9fd48be0e605e27e3c077e5eaab370f6f52ebcc8ff754480ffdf0bc"
+    },
+    {
+      "component": "CPython zlib",
+      "url": "https://github.com/python/cpython-source-deps/archive/4dc98e1909830e2bdc2a9cc2236e3c5d5037335b.zip",
+      "sha256": "39d867c083ebc37c77cf03a442f87c0f83db006eb64343bd4a19f1c84c26f50c"
+    }
   ]
 }

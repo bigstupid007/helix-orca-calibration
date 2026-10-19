@@ -76,3 +76,17 @@ remains a separate gate. No saved user profiles or private evidence are present.
 Package acceptance also requires an actual successful CI build, local Windows
 capability execution and calibration-specific parity. Synthetic guard tests are
 checker evidence only.
+
+Every nonexcluded direct and transitive source archive, including the GNU
+supplements, must be retained with its locked SHA exactly once. A size/SHA
+inventory is written before packaging and its digest binds the source-material
+status, native build receipt and package summary. Only inventoried archive
+entries enter the source ZIP; the copied stream is rehashed, and a changed,
+missing or duplicated archive prevents atomic promotion of the partial ZIP.
+Excluded binary-only basenames and unrecognized downloads never enter it.
+
+The unchanged Windows OpenCV recipe enables Intel IPP-ICV, an additional opaque
+static component whose vendor build/source provenance remains unverified. This
+is an explicit production source-acceptance limitation, alongside the historic
+GMP/MPFR vendor-build limits; matching source archives do not erase it. Native
+compilation and G-code parity can progress while this gate remains explicit.
