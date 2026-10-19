@@ -197,3 +197,16 @@ The final post-R8 normal-settings fingerprint again passed: **1429 files**,
 SHA-256 `41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`,
 matching the immutable pre-V1 baseline. Accepted printer behavior/configuration,
 physical Temperature evidence, normal profiles and rollback were untouched.
+
+The source for this bounded qualification is retained as
+`scripts/v1-windows-companion-qualify.py` (SHA-256
+`ceb422fd0b9d273698f030982605084e95a35bbeef76bd852211bde70a9ee621`).
+It is **testing infrastructure**, not the product runtime. `prepare` requires
+the exact retained context, a fresh workflow directory and no existing job/result;
+it calls the real offline CLI twice. `result-simulation` explicitly requires an
+actual changed current context and writes only a labeled synthetic result fixture
+below the marker-verified isolated companion storage. `readback` verifies the
+native plugin's exact origin-bound commit and receipt. It cannot contact a
+printer and supplies no job adapter or physical intent. The helper refuses to
+reuse its original prepare stage; retain the existing run instead of rerunning it
+against an already populated review environment.
