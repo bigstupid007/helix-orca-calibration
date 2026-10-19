@@ -1,22 +1,28 @@
 # Helix-Orca Calibration
 
 <!-- v1-generator-current -->
-Current generator checkpoint: [Clang build39244022330](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39244022330)
-failed before native compilation. Of25 declared dependency targets,23 returned
-success, OpenVDB failed at24, and FFMPEG was not attempted. OpenVDB's optional
-bare `ccache` launcher reported compilation steps without retained object proof;
-`llvm-lib` then found `Grid.cc.obj` missing. No checkpoint or package was produced.
-A source-supported `USE_CCACHE=OFF` correction and an early real object/archive
-preflight are integrated for actual preflight before another cold build; warning and parity
-requirements remain unchanged.
+Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
+completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`
+harness qualifies Temperature, PA Pattern, Retraction and Max Volumetric Speed for
+the retained explicit unsaved 50°C context and exact parameters. Their executable
+streams match native UI references: **106,508 / 2,904 / 16,585 / 35,672 commands**,
+with zero mismatches and both invariant sets passing. Both qualified YOLO modes
+retain their separate original-context qualification.
 
-Both YOLO modes retain qualification. All four current native routes still need
-a successful corrected package and their own full strict target harness. The
-retained227b447 PA pass is historical evidence, not dispatchable by current
-owned-input checks and not inherited by the next package. The consolidated compiler/archive correction passes583 tests (six documented
-host skips),109 focused Windows checks (five skips), and60 independent review
-checks. Actual Windows preflight/build/parity remain pending. All parameter controls, coordination and the accepted physical baseline
-remain preserved. [Actual failed-build evidence](docs/evidence/issue-14/generator-blockers/windows-clang-build-r1.json).
+Four fresh native 800×480 Helix sessions independently reach actual Windows
+Coordinator Prepared with exact request/readback values, real generation and parity;
+no Cancel, Confirm or Start is sent. Normal Orca's **1,429-file fingerprint is unchanged**.
+All verified controls, ordinary coordination and the accepted physical Temperature
+baseline remain intact. [Exact results and limits](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate),
+[parity receipts](docs/evidence/issue-14/generator-blockers/native-four-windows-parity-r2.json),
+[native Prepared capture bindings](docs/evidence/issue-14/generator-blockers/native-prepared-ui-r2.json).
+
+Qualification covers these exact contexts/origins/profiles/parameters only. The
+original 60°C bed / 55°C filament threshold remains unsupported; the actual PA
+negative still reports `native_warning` / `1000C001` before reference selection.
+No warning suppression, profile writeback, new physical test, printer deployment
+or merge occurred. Hardware, production security and complete corresponding-source
+acceptance remain separate limitations; PR #15 stays draft and unmerged.
 <!-- /v1-generator-current -->
 
 
@@ -38,31 +44,20 @@ G-code parity and a coordinator without Codex test-worker dependencies.
 This supersedes the earlier stop-after-Temperature instruction for this program.
 The accepted physical Temperature installation and evidence below remain intact.
 
-V1 is an **integrated Founder Review candidate with verified functional controls**,
-with blocking generator limits.
-Stock Flow Ratio YOLO Recommended and Perfectionist pass strict executable and
-calibration-invariant parity against separate independent October 15 Windows
-references for their exact retained profiles and mode-specific parameters.
-The actual Windows package at `227b447` is verified on SPARE with its full
-17-DLL closure. PA Pattern passes strict native executable/invariant parity for
-the exact retained explicit unsaved 50°C context and 0→0.08 / 0.005 range.
-Temperature remains unqualified with material motion differences. Retraction
-and Max Volumetric Speed have only executable object-name differences (215 and
-203 commands); the shared native import-path normalization is corrected in
-source and awaits real rebuild/parity. The retained GUI's actual public build
-logs identify Clang 22.1.3 / VS2026 for both dependencies and core; the MSVC 19.44
-adapter used a different recipe. The next candidate aligns that recipe without
-changing geometry, warning handling or the mandatory comparator.
+V1 is an **integrated Founder Review candidate with verified functional controls
+and five-calibration generation for the exact supported input combinations**.
+Flow Ratio YOLO Recommended and Perfectionist retain their separate original-context
+Windows parity. The new Clang Windows package independently qualifies Temperature,
+PA Pattern, Retraction and MVS against the retained native UI references for the
+explicit unsaved 50°C context. Each also reaches Prepared through native Helix and
+the real Windows coordinator. Other contexts and edited ranges require matching
+independent native evidence; requests are preserved and actual blockers are shown.
 
-The [actual Windows results and causal checkpoint](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections)
-retain full strict reports, exact stream digests, source/PE/DLL provenance,
-independent package review and bounded diagnostics. The original saved 60°C bed /
-55°C filament threshold is genuinely rejected with `1000C001`, before Prepared
-or reference selection, on actual Windows. No profile or default is substituted.
-Normal Orca's 1,429-file fingerprint remains identical before and after these
-actual tests. Both YOLO modes, all verified parameter controls and the accepted
-physical Temperature milestone are preserved. The new compiler-aligned candidate
-must pass its own complete Windows harness before further qualification.
+The [current generation and Prepared evidence](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate)
+records executable stream digests, the 29-DLL package closure, independent review,
+normal-settings preservation and the actual original-context warning negative.
+The accepted physical Temperature milestone, both YOLO modes and all verified
+parameter controls remain unchanged. No new physical test or deployment occurred.
 
 The earlier native matrix passed all eleven sizes and 396 frames; its synthetic
 browser workflow and exact browser/listener/container cleanup are retained as

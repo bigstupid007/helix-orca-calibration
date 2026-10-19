@@ -1,23 +1,121 @@
 # Generator repair checkpoint
 
 <!-- v1-generator-current -->
-Current generator checkpoint: [Clang build39244022330](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39244022330)
-failed before native compilation. Of25 declared dependency targets,23 returned
-success, OpenVDB failed at24, and FFMPEG was not attempted. OpenVDB's optional
-bare `ccache` launcher reported compilation steps without retained object proof;
-`llvm-lib` then found `Grid.cc.obj` missing. No checkpoint or package was produced.
-A source-supported `USE_CCACHE=OFF` correction and an early real object/archive
-preflight are integrated for actual preflight before another cold build; warning and parity
-requirements remain unchanged.
+Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
+completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`
+harness qualifies Temperature, PA Pattern, Retraction and Max Volumetric Speed for
+the retained explicit unsaved 50°C context and exact parameters. Their executable
+streams match native UI references: **106,508 / 2,904 / 16,585 / 35,672 commands**,
+with zero mismatches and both invariant sets passing. Both qualified YOLO modes
+retain their separate original-context qualification.
 
-Both YOLO modes retain qualification. All four current native routes still need
-a successful corrected package and their own full strict target harness. The
-retained227b447 PA pass is historical evidence, not dispatchable by current
-owned-input checks and not inherited by the next package. The consolidated compiler/archive correction passes583 tests (six documented
-host skips),109 focused Windows checks (five skips), and60 independent review
-checks. Actual Windows preflight/build/parity remain pending. All parameter controls, coordination and the accepted physical baseline
-remain preserved. [Actual failed-build evidence](evidence/issue-14/generator-blockers/windows-clang-build-r1.json).
+Four fresh native 800×480 Helix sessions independently reach actual Windows
+Coordinator Prepared with exact request/readback values, real generation and parity;
+no Cancel, Confirm or Start is sent. Normal Orca's **1,429-file fingerprint is unchanged**.
+All verified controls, ordinary coordination and the accepted physical Temperature
+baseline remain intact. [Exact results and limits](V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate),
+[parity receipts](evidence/issue-14/generator-blockers/native-four-windows-parity-r2.json),
+[native Prepared capture bindings](evidence/issue-14/generator-blockers/native-prepared-ui-r2.json).
+
+Qualification covers these exact contexts/origins/profiles/parameters only. The
+original 60°C bed / 55°C filament threshold remains unsupported; the actual PA
+negative still reports `native_warning` / `1000C001` before reference selection.
+No warning suppression, profile writeback, new physical test, printer deployment
+or merge occurred. Hardware, production security and complete corresponding-source
+acceptance remain separate limitations; PR #15 stays draft and unmerged.
 <!-- /v1-generator-current -->
+
+## Current r2 generation and Prepared candidate
+
+The actual package is built from `c0fa61d2217fb36d1b64c0f515b70beff327399e`,
+using the verified October 15 Orca source `6a7763f08d1a175a464a00ce13f0b5a815662fc4`.
+Package SHA `5f258c15cf4c4949071491c132e0e643f04e8eeaa52e94ef8b361e1c890d1588`;
+PE SHA `c64ef7473c5575d0fc6d35a03b54c607cd160e54b1d5332bad2dd362cf98ff5a`.
+The full cold build completed in 5,932.656 seconds, peaked at 9,244,848,128 bytes
+of filesystem growth, and exited every stage process. Managed download, actual
+SPARE package verification and independent package review pass: 13 owned inputs,
+9 tool records, 29 runtime DLLs, 30 AMD64 PE binaries including the executable,
+exact import/resource closure and 29 retained source archives / 21,915 members.
+
+| Native calibration | Exact parameters | Executable commands | Result |
+| --- | --- | ---: | --- |
+| Temperature | 230→190°C, fixed 5°C, scale on | 106,508 | Exact executable stream and both invariant sets pass |
+| PA Pattern | 0→0.08, step 0.005; direct drive | 2,904 | Exact executable stream and both invariant sets pass |
+| Retraction | 0→2 mm, step 0.1 mm | 16,585 | Exact executable stream and both invariant sets pass |
+| Max Volumetric Speed | 5→20 mm³/s, step 0.5 mm³/s | 35,672 | Exact executable stream and both invariant sets pass |
+
+These four use only the retained context digest
+`bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711`,
+its original origin, profile identities, full effective values and independent
+native catalog. This context explicitly retained saved bed 60°C and unsaved
+edited/effective bed 50°C; no saved profile was changed. The original 60/55 context
+is not qualified or substituted: actual PA still fails with warning `1000C001`,
+processor error mask 0, before native-reference selection and without Prepared.
+Both YOLO modes retain their previously qualified original-context references;
+this does not qualify YOLO under the separate 50°C edit.
+
+The underlying corrections align the actual GUI's Clang 22.1.3 / VS2026 / SDK /
+Release dynamic-CRT recipe, follow native Windows import-path normalization,
+and disable the discovered incidental compiler-cache launcher through supported
+`DEP_CMAKE_OPTS=-DUSE_CCACHE:BOOL=OFF`. A real early ON/OFF object/archive probe
+proves why: ON produced no objects/archive; OFF with identical compiler/linker/
+archiver/configuration produced valid AMD64 object and exact archive member bytes.
+The successful full build uses the same guarded path. No geometry, floating-point,
+calibration algorithm, slicer-warning or parity-rule relaxation was used.
+
+The unchanged full harness rereads actual native and generated artifacts. All
+executable hashes match, including motion, extrusion, acceleration, heaters,
+machine limits and object names. Files are **not byte-identical**: comments and
+non-executable settings metadata differ. Retained display-only bed asset fields
+and inactive Klipper legacy `silent_mode` explain the three footer differences;
+no material executable discrepancy is waived. Native invariants pass separately.
+Generator qualification does not establish macro internals, accepted hardware ABI
+or physical readiness; those flags remain false.
+
+Four fresh native 800×480 review sessions send real UI-selected Generate requests
+through the approved bounded metadata relay to real Windows DirectoryEvents and
+Coordinator/routing/native `generate`, with `job_adapter=None`. All request copies,
+parameters, profile-context digests and native status readbacks match. Each actual
+qualified Prepared response is captured after a changed and stable rendered frame,
+then the relay exits and its managed review stops cleanly. No native intent is sent.
+The private configuration explicitly sets `routes.temperature="native-engine"`;
+stock Temperature/YOLO defaults are preserved, and no automatic fallback occurs.
+See [four private native Prepared capture bindings](evidence/issue-14/generator-blockers/native-prepared-ui-r2.json).
+
+An initial four-case test sequence was deliberately stopped after its successful
+Temperature Prepared capture: it assumed pre-print Cancel, while the current UI
+only offers Cancel during printing. That attempt is retained as incomplete test
+infrastructure evidence. The corrected proof uses one fresh session per case and
+all four complete successfully without Cancel, Confirm or Start. Product UI and
+coordination semantics were not changed to accommodate testing. This focused
+pointer/request/Prepared proof does not replace the preserved 66bfaf6 all-five
+edited-parameter/browser proof or claim another broad UI certification.
+
+Final normal-settings preservation still matches all 1,429 baseline files and
+aggregate `41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`.
+Independent combined review covers the package, actual four parity receipts,
+extractor, focused single-case helper and native Prepared evidence. Local source
+validation passes 583 tests (six host skips), with 109 focused Windows checks
+(five skips) and 60 independent compiler/archive checks retained.
+
+Remaining limits: fresh origins/contexts, changed ranges and other profiles lack
+matching native references and remain unsupported; non-ASCII Windows paths are
+unverified; v2 warm-cache restoration is source-tested but not target-exercised.
+Historical vendored GNU build provenance and opaque OpenCV IPP prevent a complete
+corresponding-source/production-distribution claim. Existing LAN HTTP remains
+unencrypted and is not production-security qualified. The accepted physical
+225/220/215°C → 220°C / NOT APPLIED baseline and rollback material are untouched.
+
+The next meaningful Founder Review is this integrated draft PR's generation and
+Prepared candidate for the stated supported inputs, including clear unsupported
+states. No physical Start, deployment, profile writeback or merge is authorized.
+
+## Historical investigation and earlier blockers
+
+The chronological records below describe earlier source and binary candidates;
+the current r2 results above supersede their pending/blocked dispositions. Raw
+receipts remain immutable.
+
 
 
 The verified native parameter controls and exact request propagation are unchanged.
@@ -45,7 +143,10 @@ reproducibility evidence, not retroactive provenance or executable parity.
 The exact public-source/mesh bundle already proposed for the same SPARE target
 is unchanged. Automatic approval review rejected its transfer because the previous
 YOLO approval did not authorize this new Temperature payload/destination. The
-payload-specific approval is pending; no transfer or Windows comparison occurred.
+payload-specific approval was pending at that checkpoint. The Founder subsequently
+approved the exact bundle SHA `4859087009be381122f3a877856cfb224367d776831eaf4c30d98ee0b822b222`
+for the same SPARE qualification destination. It remains untransferred and unused;
+the successful direct native-engine route does not require it.
 The existing native Temperature reference is retained. No new reference is
 manufactured from candidate geometry. The stock-STL experiment still needs actual Windows slicing and the unchanged
 `exact-executable-v1` harness. The separate direct native-engine route below

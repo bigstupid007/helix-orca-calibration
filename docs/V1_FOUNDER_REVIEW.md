@@ -1,35 +1,35 @@
 # Integrated V1 Founder Review
 
 <!-- v1-generator-current -->
-Current generator checkpoint: [Clang build39244022330](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39244022330)
-failed before native compilation. Of25 declared dependency targets,23 returned
-success, OpenVDB failed at24, and FFMPEG was not attempted. OpenVDB's optional
-bare `ccache` launcher reported compilation steps without retained object proof;
-`llvm-lib` then found `Grid.cc.obj` missing. No checkpoint or package was produced.
-A source-supported `USE_CCACHE=OFF` correction and an early real object/archive
-preflight are integrated for actual preflight before another cold build; warning and parity
-requirements remain unchanged.
+Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
+completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`
+harness qualifies Temperature, PA Pattern, Retraction and Max Volumetric Speed for
+the retained explicit unsaved 50°C context and exact parameters. Their executable
+streams match native UI references: **106,508 / 2,904 / 16,585 / 35,672 commands**,
+with zero mismatches and both invariant sets passing. Both qualified YOLO modes
+retain their separate original-context qualification.
 
-Both YOLO modes retain qualification. All four current native routes still need
-a successful corrected package and their own full strict target harness. The
-retained227b447 PA pass is historical evidence, not dispatchable by current
-owned-input checks and not inherited by the next package. The consolidated compiler/archive correction passes583 tests (six documented
-host skips),109 focused Windows checks (five skips), and60 independent review
-checks. Actual Windows preflight/build/parity remain pending. All parameter controls, coordination and the accepted physical baseline
-remain preserved. [Actual failed-build evidence](evidence/issue-14/generator-blockers/windows-clang-build-r1.json).
+Four fresh native 800×480 Helix sessions independently reach actual Windows
+Coordinator Prepared with exact request/readback values, real generation and parity;
+no Cancel, Confirm or Start is sent. Normal Orca's **1,429-file fingerprint is unchanged**.
+All verified controls, ordinary coordination and the accepted physical Temperature
+baseline remain intact. [Exact results and limits](V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate),
+[parity receipts](evidence/issue-14/generator-blockers/native-four-windows-parity-r2.json),
+[native Prepared capture bindings](evidence/issue-14/generator-blockers/native-prepared-ui-r2.json).
+
+Qualification covers these exact contexts/origins/profiles/parameters only. The
+original 60°C bed / 55°C filament threshold remains unsupported; the actual PA
+negative still reports `native_warning` / `1000C001` before reference selection.
+No warning suppression, profile writeback, new physical test, printer deployment
+or merge occurred. Hardware, production security and complete corresponding-source
+acceptance remain separate limitations; PR #15 stays draft and unmerged.
 <!-- /v1-generator-current -->
 
 
-Actual Windows package `227b447` is verified on SPARE, including all 17 DLLs.
-PA Pattern passes the complete strict harness for the exact retained explicit
-50°C context and 0→0.08 / 0.005 parameters. Temperature remains blocked by real
-motion differences. Retraction and MVS have respectively 215 and 203 executable
-object-name differences; every other executable byte matches. The shared
-Windows import now follows Orca's native path normalization, but a new build
-and unchanged full parity are still required. The actual GUI and dependencies
-used Clang 22.1.3 / VS2026; the retained adapter used MSVC 19.44. The next
-candidate aligns that verified recipe rather than changing geometry or parity.
-[Exact results and causal evidence](V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections).
+The historical MSVC `227b447` package and its PA-only pass remain retained
+alongside the failed Temperature motion and Retraction/MVS object-name comparisons.
+The current Clang package independently passes all four complete harnesses; no old
+qualification flag carries forward. [Causal history and exact current scope](V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate).
 
 Build Program #14 and draft PR #15 are the governing review unit. Founder
 acceptance, merge and physical deployment remain pending. This candidate keeps
@@ -66,13 +66,14 @@ written. [Windows evidence](V1_WINDOWS_ORCA.md) distinguishes those proof levels
 
 | Calibration | Current disposition |
 | --- | --- |
-| Flow Ratio YOLO Recommended and Perfectionist | Actual Windows production generator passes strict executable and calibration-invariant parity for the exact retained context and mode-specific parameters, each against a separate independent native reference. Hardware ABI and physical readiness remain false. |
-| Temperature standard tower | Unqualified. Actual Windows MSVC adapter: 105,929 versus native 106,508 executable commands, real motion/acceleration differences despite passing invariants. Windows and Linux prepared STL bytes are identical; Windows first XYZE difference is top-surface layer 5. The next build aligns the verified native GUI Clang 22.1.3 recipe. Accepted physical baseline is separate and preserved. |
-| PA Pattern | Actual Windows `227b447` passes exact executable and both invariant checks: 2,904 commands for retained explicit 50°C context / 0→0.08 / 0.005. A new compiler-aligned candidate must requalify. Original 60/55 context remains rejected with genuine warning `1000C001`. |
-| Retraction / Max Volumetric Speed | Unqualified in the retained MSVC package: 16,585 / 35,672 commands, with only 215 / 203 executable object-name token differences. Shared import-path correction matches native GUI source; actual corrected build/full parity remains mandatory. |
+| Flow Ratio YOLO Recommended and Perfectionist | Qualified for their retained original context, separate native references and fixed mode-specific samples; unchanged. |
+| Temperature standard tower | Qualified in the actual c0fa Clang package: 106,508 exact executable commands for native50 / 230→190°C / fixed 5°C / scale on. Fresh native Helix → Windows Coordinator → Prepared passes. Accepted physical baseline remains separate and preserved. |
+| PA Pattern | Qualified: 2,904 exact commands for native50 / 0→0.08 / 0.005. Fresh native Prepared proof passes. The original 60/55 PA warning case remains rejected with `1000C001`. |
+| Retraction | Qualified: 16,585 exact commands for native50 / 0→2 / 0.1; fresh native Prepared proof passes. |
+| Max Volumetric Speed | Qualified: 35,672 exact commands for native50 / 5→20 / 0.5; fresh native Prepared proof passes. |
 
-All five independent Windows-native references are retained and pass their
-calibration invariant inspections. A native reference is not its candidate
+The independent Windows-native reference for each supported calibration/mode is
+retained and passes its calibration invariant inspection. A native reference is not its candidate
 qualification. The [exact generation/parity reports](V1_GENERATION_PARITY.md)
 and [engine status](V1_ENGINE_REUSE.md) control these dispositions. Qualification
 is bound to complete exact context/build/parameter inputs; other combinations
@@ -108,4 +109,5 @@ strict parity report; no Confirm, Start or physical completion was exercised.
 The candidate does not qualify hardware, deploy to the printer or authorize a
 new physical test. Confirm and Start remain separate; default review Start
 cannot upload, heat, move, queue or print. Results remain NOT APPLIED. The PR
-stays unmerged pending Founder acceptance, with generator blockers visible.
+stays draft and unmerged pending Founder acceptance, with unsupported combinations
+and production/hardware limitations visible.

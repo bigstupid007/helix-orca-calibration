@@ -1,22 +1,28 @@
 # V1 combined independent review
 
 <!-- v1-generator-current -->
-Current generator checkpoint: [Clang build39244022330](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39244022330)
-failed before native compilation. Of25 declared dependency targets,23 returned
-success, OpenVDB failed at24, and FFMPEG was not attempted. OpenVDB's optional
-bare `ccache` launcher reported compilation steps without retained object proof;
-`llvm-lib` then found `Grid.cc.obj` missing. No checkpoint or package was produced.
-A source-supported `USE_CCACHE=OFF` correction and an early real object/archive
-preflight are integrated for actual preflight before another cold build; warning and parity
-requirements remain unchanged.
+Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
+completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`
+harness qualifies Temperature, PA Pattern, Retraction and Max Volumetric Speed for
+the retained explicit unsaved 50°C context and exact parameters. Their executable
+streams match native UI references: **106,508 / 2,904 / 16,585 / 35,672 commands**,
+with zero mismatches and both invariant sets passing. Both qualified YOLO modes
+retain their separate original-context qualification.
 
-Both YOLO modes retain qualification. All four current native routes still need
-a successful corrected package and their own full strict target harness. The
-retained227b447 PA pass is historical evidence, not dispatchable by current
-owned-input checks and not inherited by the next package. The consolidated compiler/archive correction passes583 tests (six documented
-host skips),109 focused Windows checks (five skips), and60 independent review
-checks. Actual Windows preflight/build/parity remain pending. All parameter controls, coordination and the accepted physical baseline
-remain preserved. [Actual failed-build evidence](evidence/issue-14/generator-blockers/windows-clang-build-r1.json).
+Four fresh native 800×480 Helix sessions independently reach actual Windows
+Coordinator Prepared with exact request/readback values, real generation and parity;
+no Cancel, Confirm or Start is sent. Normal Orca's **1,429-file fingerprint is unchanged**.
+All verified controls, ordinary coordination and the accepted physical Temperature
+baseline remain intact. [Exact results and limits](V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate),
+[parity receipts](evidence/issue-14/generator-blockers/native-four-windows-parity-r2.json),
+[native Prepared evidence](evidence/issue-14/generator-blockers/native-prepared-ui-r2.json).
+
+Qualification covers these exact contexts/origins/profiles/parameters only. The
+original 60°C bed / 55°C filament threshold remains unsupported; the actual PA
+negative still reports `native_warning` / `1000C001` before reference selection.
+No warning suppression, profile writeback, new physical test, printer deployment
+or merge occurred. Hardware, production security and complete corresponding-source
+acceptance remain separate limitations; PR #15 stays draft and unmerged.
 <!-- /v1-generator-current -->
 
 
@@ -395,3 +401,34 @@ physical evidence, profiles and printer safeguards untouched. This is source
 readiness. Actual Windows preflight, corrected package and complete per-route
 strict parity are required before generator qualification or Founder review.
 V2 warm checkpoint restoration remains target-unverified until actually run.
+
+
+## Actual c0fa Windows and single-case Prepared review
+
+Independent combined review found no material remaining defect in the actual
+Clang package and four r2 receipts. It separately checked 44 package files,
+29 runtime DLLs, 30 AMD64 PE binaries, exact imports/resources, 13 owned inputs,
+9 tools, compiler/config/archive proof, 29 source archives / 21,915 members,
+and complete build/download lifecycles. Complete corresponding source remains
+false: historical vendored GNU provenance and opaque OpenCV IPP are not relabeled.
+
+Actual `exact-executable-v1` results have zero executable mismatches for Temperature
+106,508 / PA 2,904 / Retraction 16,585 / MVS 35,672, with both invariant sets passing.
+The independent extractor review confirmed actual artifact rereads, unchanged
+whole-harness re-evaluation, source/context/catalog/package/report/Prepared binding,
+and before/after closure checks. File-byte equality and hardware/physical readiness
+are not claimed. The original-context warning negative is specifically a PA case.
+
+Review caught a test-sequence assumption: native Cancel is available during
+printing, not at Prepared. The initial four-case run was stopped after its valid
+Temperature capture; no product change or intent was used to accommodate it.
+A focused derivative uses one fresh Coordinator/native session per case, refuses
+all intents, and exits only after exact Windows generation, native request/status
+readback and a changed/two-identical settled Prepared frame. The final helper
+closure is `2d657902157b168798c810e17bee83a964f5d7bbeb2eea9902f560103db7551b`,
+operator SHA `ea720edde2d7010319e677e0fe54c8dd57d167e9dd294f2c9e790cd2ff8be963`.
+Eight focused helper checks and source review pass. All four actual one-case runs
+complete with Prepared and complete managed cleanup; no physical adapter is present.
+Public promotion keeps only sanitized scalar/hash evidence. Actual native frames
+and profile display names remain private. No broad UI redesign/certification or
+new physical action was performed.

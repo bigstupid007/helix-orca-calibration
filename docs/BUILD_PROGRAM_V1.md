@@ -6,6 +6,18 @@ Shared Development System main verified at `4a42a944b344427c8f925241191595eb57c6
 
 OSS guard verified from canonical `/home/dev/Projects/personal/helix-orca-calibration`: `bigstupid007`, `monkey.nfm@gmail.com`, `git@github-oss:bigstupid007/helix-orca-calibration.git`, isolated gh-oss active account/profile. Do not alter the business identity. Canonical dirty diagnostic work remains untouched; V1 uses separate worktrees. Execute GitHub mutations via gh-oss from the canonical checkout.
 
+## 2026-10-19 generation candidate
+
+The c0fa Clang Windows package has actual strict executable/native-invariant parity
+for Temperature, PA Pattern, Retraction and MVS in the retained native50 context,
+plus four fresh native Helix → Windows Coordinator → Prepared proofs. Both original
+YOLO mode qualifications and all-five edited-parameter verification are preserved.
+Normal Orca's final 1,429-file fingerprint is unchanged. [Exact current scope,
+evidence and remaining limits](V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate)
+control the review; this does not qualify arbitrary profiles/ranges, hardware,
+production security or release/source distribution. No physical action, deployment,
+profile writeback or merge occurred. PR #15 remains draft pending Founder acceptance.
+
 ## Direct Founder source
 
 The initiating instruction approves: “Five V1 calibrations: Temperature standard tower, Flow Ratio YOLO, Pressure Advance Pattern, Retraction tower, and Max Volumetric Speed tower”; a “complete Helix-first UX redesign”; supporting Orca companion redesign; “Orca-side programmatic calibration preparation, G-code generation and slicing”; a runtime that “no longer requires Codex-operated test workers”; and a mandatory independent native-UI G-code parity harness that must “block qualification on material unexplained differences.” Investigate stock-CLI recipes and grouped native-engine reuse in parallel. Do not assume unsupported Python generator APIs. Prioritize an integrated usable product, preserve blocked work truthfully, and leave PRs unmerged.

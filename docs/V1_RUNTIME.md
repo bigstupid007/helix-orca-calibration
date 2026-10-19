@@ -60,7 +60,13 @@ Retraction and MVS. The private `routes` map can explicitly select `stock-cli` o
 Native configuration is isolated under `native_engine` and must bind actual build
 receipt, inputs, executable and resources. Source presence never makes a route
 available. Native build qualification and exact native-UI parity remain separate
-gates. A caller cannot select a route through its request payload.
+gates. A caller cannot select a route through its request payload. The qualified c0fa Windows
+native Temperature combination is selected explicitly with
+`"routes":{"temperature":"native-engine"}` in the trusted private configuration;
+its nested `native_engine` binds the actual r2 package and native50 catalog. The
+focused native Prepared proof exercises this setting without replacing the original
+stock/YOLO configuration. The 50°C qualification context and original 60°C YOLO
+context remain distinct; missing matching native evidence blocks preparation.
 
 Optional `--moonraker-events` uses only existing exact trusted-LAN HTTP origin,
 version pin, V1 event namespace and approved single-file native storage bridge.

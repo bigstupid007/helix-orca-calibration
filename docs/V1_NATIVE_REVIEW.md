@@ -141,3 +141,16 @@ allowance and safely stopped incomplete runs. The new explicit preflight needs
 7.5 GiB available (5 GiB reserve + 2 GiB limit + 512 MiB reaction margin); growth
 above 2 GiB still refuses. No guard, shared helper, lock, protected-resource
 verification, container limit or ownership rule is disabled.
+
+
+## Subsequent generation-only qualification
+
+The c0fa native Windows generator correction changes none of these verified
+parameter controls. Four separate fresh native 800×480 sessions additionally bind
+Temperature, PA, Retraction and MVS default requests to real Windows generation,
+full native parity and Prepared, without any Cancel/Confirm/Start intent. Public
+[proof metadata](evidence/issue-14/generator-blockers/native-prepared-ui-r2.json)
+retains frame hashes; actual frames and profile display labels stay private.
+This focused path does not replace the all-five edited-parameter/browser evidence
+or claim another broad UI certification. [Supported exact inputs and limits](V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate)
+remain separate from control functionality.

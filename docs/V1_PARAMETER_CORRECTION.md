@@ -122,3 +122,16 @@ run stops at Review and makes no execution/completion claim. Seven deliberate
 record tamper cases are rejected, including changed selected/transport values,
 false blocked qualification, failed parity, incomplete lifecycle, historical
 relabeling and wrong run identity. No broad certification repeat was needed.
+
+
+## Subsequent generation-only qualification
+
+The c0fa native Windows generator correction changes none of these verified
+parameter controls. Four separate fresh native 800×480 sessions additionally bind
+Temperature, PA, Retraction and MVS default requests to real Windows generation,
+full native parity and Prepared, without any Cancel/Confirm/Start intent. Public
+[proof metadata](evidence/issue-14/generator-blockers/native-prepared-ui-r2.json)
+retains frame hashes; actual frames and profile display labels stay private.
+This focused path does not replace the all-five edited-parameter/browser evidence
+or claim another broad UI certification. [Supported exact inputs and limits](V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate)
+remain separate from control functionality.
