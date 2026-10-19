@@ -30,6 +30,19 @@ def record(path):
     return {'path':str(path),'sha256':engine._sha_file(path)}
 
 
+def execution_closure():
+    paths = sorted((ROOT/'integration').glob('v1_*.py')) + [
+        ROOT/'integration/__init__.py', Path(__file__).resolve(), ROOT/'scripts/v1-engine-native.py',
+        HELPER, Path(sys.executable).resolve()]
+    return {str(path):record(path) for path in paths if path.is_file()}
+
+
+def unchanged(manifest):
+    if (execution_closure()!=manifest['python_closure'] or
+            any(record(Path(row['path']))!=row for row in manifest['inputs'])):
+        raise ValueError('Native checkpoint source closure or immutable input changed')
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build-run',type=Path,required=True)
@@ -55,6 +68,11 @@ def main():
     snapshot=contract.validate_context(json.loads(args.context.read_text()))
     # Verify actual source-bound receipt/host/resources before creating a job.
     engine.require_native_generation('pressure_advance_pattern',config)
+    provenance=dict(schema='helix-orca-v1-native-execution-inputs/v1',python_closure=execution_closure(),
+        inputs=[before,config['build_receipt'],config['build_inputs'],config['native_executable']],
+        parameters=PARAMETERS,lifecycle_helper_sha256=HELPER_HASH,container_image=IMAGE)
+    unchanged(provenance)
+    provenance_sha=contract.digest(provenance)
     class OfflineDocker(resource.DockerCLI):
         def create(self,run_id,image,command,memory,cpus,pids):
             if image!=IMAGE or json.loads(self.call('image','inspect','--format','{{json .Config.Volumes}}',image)):
@@ -77,10 +95,13 @@ def main():
     for name in PARAMETERS if args.calibration=='all' else [args.calibration]:
         with resource.ManagedRun(app='helix-orca-v1-native-generation',repo=str(ROOT),
                 issue='https://github.com/bigstupid007/helix-orca-calibration/issues/14',commit=commit,
-                dirty_input=engine._sha_file(Path(__file__)),paths=[str(args.cache),str(ROOT),str(args.context.parent)],
+                dirty_input=provenance_sha,paths=[str(args.cache),str(ROOT),str(args.context.parent)],
                 reserve=10*1024**3,peak=2*1024**3,margin=2*1024**3,timeout=args.timeout_seconds,adapter=OfflineDocker()) as run:
+            (run.artifacts/'native-execution-inputs.json').write_bytes(contract.canonical(provenance))
+            unchanged(provenance)
             print('Managed native generation: '+str(run.directory),flush=True)
             def runner(argv,destination):
+                unchanged(provenance)
                 mapped=[]
                 for argument in argv:
                     path=Path(argument)
@@ -107,11 +128,11 @@ def main():
             except (engine.NativeEngineBlocked,OSError,ValueError,KeyError,TypeError) as exc:
                 rows.append({'calibration':name,'run_id':run.data['run_id'],'generated':False,'qualified':False,'reason':str(exc)})
             print(json.dumps(rows[-1]),flush=True)
-            if record(args.context)!=before: raise ValueError('Retained context changed during smoke')
+            unchanged(provenance)
             (run.artifacts/'native-grouped-checkpoint.json').write_text(json.dumps({
                 'source_commit':engine.ORCA_SOURCE,'context_sha256':contract.digest(snapshot),
                 'context_file_sha256':before['sha256'],'smoke_source_sha256':engine._sha_file(Path(__file__)),
-                'build_receipt_sha256':config['build_receipt']['sha256'],'not_applied':True,
+                'build_receipt_sha256':config['build_receipt']['sha256'],'execution_inputs_sha256':provenance_sha,'not_applied':True,
                 'physical_test':False,'results':rows},indent=2)+'\n')
         print('CHECKPOINT '+str(run.directory),flush=True)
         if not rows[-1]['generated']:

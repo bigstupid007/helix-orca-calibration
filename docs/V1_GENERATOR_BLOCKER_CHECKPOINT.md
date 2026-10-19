@@ -27,8 +27,9 @@ is unchanged. Automatic approval review rejected its transfer because the previo
 YOLO approval did not authorize this new Temperature payload/destination. The
 payload-specific approval is pending; no transfer or Windows comparison occurred.
 The existing native Temperature reference is retained. No new reference is
-manufactured from candidate geometry. Actual Windows stock slicing and the
-unchanged `exact-executable-v1` harness remain the next Temperature gate.
+manufactured from candidate geometry. The stock-STL experiment still needs actual Windows slicing and the unchanged
+`exact-executable-v1` harness. The separate direct native-engine route below
+does not consume or transfer this protected mesh.
 
 The rebuilt PA run `3e5d7650c29346328059b05e81edbb0e` exits 2 and retains
 `native-blocker.json` for genuine `1000C001`: original bed 60°C meets/exceeds
@@ -48,7 +49,8 @@ qualify no Windows route. The SPARE machine has no native compiler toolchain;
 none is installed there. Supported warning-free combinations require an honest
 matching native UI reference, without changing original profiles silently.
 
-A substantial combined review is in progress. The next meaningful Founder review
+The substantial combined source review through `02b9676` found no remaining
+material source defect; target execution/parity remains pending. The next meaningful Founder review
 is a candidate with actual Windows package evidence and exact generation/parity
 results, or an explicit residual blocker that prevents that product milestone.
 No physical action, deployment, profile writeback or merge is authorized.
@@ -104,3 +106,51 @@ Combined local validation at `32f3a68` passes 522 tests (two Windows-only skips)
 and the unchanged-control preservation gate. The subsequent closed-inventory
 classifier correction passes all 14 focused Windows guard tests. Actual Windows
 build/target/parity evidence remains required; no new generator is yet qualified.
+
+
+## Grouped actual generation diagnostic
+
+The four independent native UI references for the explicit unsaved 50°C context
+are retained separately on Windows. Each registration passed the unchanged
+native invariant harness and remains `qualified:false`. Independent review of
+the twelve native parameter/sliced/exported frames and four settings/restoration
+frames found no reference-readiness blocker. It did not operate the UI or qualify
+a generator. The original settings were restored; the 1,429-file normal profile
+inventory remains byte-identical.
+
+The [grouped diagnostic receipt](evidence/issue-14/generator-blockers/native-four-linux-diagnostic-r1.json)
+binds four completed managed Linux generation runs to the exact native-captured
+context, native build, complete Python execution closure and immutable inputs.
+All four have zero processor errors/warnings, passing candidate calibration
+invariants, exit zero and cleared owned runtimes. A hash-verified Windows probe
+calls the unchanged executable parser against the separate native UI exports.
+Only fixed counts/digests returned; no new raw G-code or profiles transferred.
+
+| Calibration | Candidate executable commands | Native executable commands | Executable digest |
+| --- | ---: | ---: | --- |
+| Temperature | 106,517 | 106,508 | Material motion differences; under causal investigation |
+| PA Pattern | 2,904 | 2,904 | Exact match |
+| Retraction | 16,585 | 16,585 | Exact match |
+| Max Volumetric Speed | 35,672 | 35,672 | Exact match |
+
+The Temperature difference is material: a first-layer brim move and later
+motion/acceleration streams differ, despite matching extents and passing
+calibration invariants. Nine is the net command-count difference, not nine
+isolated harmless commands. A second fixed-scalar Windows probe confirms that
+the retained original 60°C and new 50°C native motion/acceleration/progress
+streams match exactly; the discrepancy belongs to the candidate generation path.
+
+These are diagnostics, **not Windows or whole-harness qualification**. The
+source-pinned actual Windows build at `b64656d` is
+[run 39206549132](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39206549132);
+its three preservation/policy checks passed independently. The actual Windows
+package must run against the retained references through the mandatory complete
+parity harness before any newly supported generator is described as qualified.
+The original 60/55 warning-bearing combination remains blocked.
+
+The native-only [exact-input catalog](V1_WINDOWS_NATIVE_QUALIFICATION.md#native-only-exact-input-reference-catalog)
+selects among independently registered exact input pairs without worker
+reconfiguration. Its strict context key includes the capture origin; a fresh
+origin remains unsupported until independently registered. No reference
+rebinding or profile-only equivalence is claimed. The YOLO route and its
+previously qualified modes are unchanged.

@@ -1,0 +1,187 @@
+{
+  "candidate_app_commit": "28dda0daf799d95008e24416f49c0fda460d32ba",
+  "context_description": "Explicit native UI unsaved 50C bed setting; original saved 60C fields retained",
+  "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+  "limitation": "Fixed executable digests and native invariants are diagnostics. Actual Windows package execution and unchanged full parity harness remain mandatory.",
+  "native_probe_source_manifest_sha256": "0aa71800903fb54256e4ed8c52498d74addb71db49675f533be8df3a1766d438",
+  "native_probe_source_sha256": "e54cda18b9b11c897066ee746c9886ee51e41b7f43370e9b7d8526ed1cf67e79",
+  "parity_source_sha256": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+  "physical_actions": false,
+  "qualified": false,
+  "reference_readiness_review_sha256": "ac227377d77ca10d38af4d01aba60b7859fd75fe17707bbce1b74b58f871c2cd",
+  "rows": [
+    {
+      "calibration": "temperature",
+      "candidate_gcode_sha256": "471aa687f21508584a37bf01804cb690d46e695615b16b8e4a361f5af9ea3536",
+      "exact_executable_digest_match": false,
+      "executable_count": 106517,
+      "executable_sha256": "7a3252d3e6f6af55d86507523dd3742d14175c25cadeec89dd0de82768bd38a5",
+      "execution_closure_sha256": "61707d6342a6da315b4328f62d070425bc246f54001abc87a393bbd90b92fd62",
+      "exit_code": 0,
+      "generated": true,
+      "inputs_sha256": "3f78083ec3c740df148ae07d66375b332c3c26944e82556fb72bdd0ece9b44bb",
+      "invariant_failure": null,
+      "lifecycle_manifest_sha256": "9a5c0826f7358d11da8980582547595ceffd6cd8c22689854cffa0dcba0e1b01",
+      "lifecycle_state": "complete",
+      "native_executable_count": 106508,
+      "native_executable_sha256": "e20fe60aeacd9feb39ddeaf07f1777ac7a440db2cf20ccc9afe7c3f57d2887c0",
+      "native_gcode_sha256": "9a8b245a507229d8652656d7c173e316f31b61b7e55fbfa6db031660f961dd0d",
+      "native_invariants_passed": true,
+      "native_manifest_sha256": "1d675631a4ac4f49875ddeb6f2a9da4cfef7da88a2655337261dccf4992a3113",
+      "native_processing_sha256": "205a0116ff2392535b9c1abcad1d1cb91547dde6f9fa5fea112d22bb8420888b",
+      "native_registration_summary_sha256": "01b6755fb50da246df80b69841c4f166adeee8fdb95c32dd1354fde5e8f5e8cd",
+      "native_ui_frames": [
+        {
+          "sha256": "e90bef9a3fa6e0337b688c54613db0f43033814b05751d31f12faf0dc59e385a"
+        },
+        {
+          "sha256": "f5442071c0b82b7e2612b6da9453e83e87017c0af4e9077bebd38b75e54a6fcc"
+        },
+        {
+          "sha256": "ffb94b028c58146dcce125c40081beaf6e0249395a17454f7100efacedb4ef79"
+        }
+      ],
+      "parameters": {
+        "end": 190,
+        "scale": true,
+        "start": 230,
+        "step": 5
+      },
+      "physical_actions": false,
+      "qualified": false,
+      "run_id": "c4aa04211aee4de2af76196910b6a4ad",
+      "runtime_clear": true,
+      "windows_qualified": false
+    },
+    {
+      "calibration": "pressure_advance_pattern",
+      "candidate_gcode_sha256": "9dbd4dea8c9c54259d54cab175a6b2c42f49105b3d996b704db434c266e0fe27",
+      "exact_executable_digest_match": true,
+      "executable_count": 2904,
+      "executable_sha256": "5e8e5478a1f5b312e7ff3d21a547948f648a4c5c9c65e61745c7fece3f273173",
+      "execution_closure_sha256": "61707d6342a6da315b4328f62d070425bc246f54001abc87a393bbd90b92fd62",
+      "exit_code": 0,
+      "generated": true,
+      "inputs_sha256": "50ea6878428f9bde94d8faf1d366ae9107b77a7eaee3d0764840d7254d3ec949",
+      "invariant_failure": null,
+      "lifecycle_manifest_sha256": "9f41c91ca8c355f54f924284f566de5dcb92dc5c0e0f3adc6f086684cd0ea174",
+      "lifecycle_state": "complete",
+      "native_executable_count": 2904,
+      "native_executable_sha256": "5e8e5478a1f5b312e7ff3d21a547948f648a4c5c9c65e61745c7fece3f273173",
+      "native_gcode_sha256": "a664ad23b7c905d70a30dfbad42111e4afbaff261604c1e2ae34c7546962efe8",
+      "native_invariants_passed": true,
+      "native_manifest_sha256": "7aeada5d98960f4949c68f6dea919ce057a784225fcc32f031e7a305df17a86b",
+      "native_processing_sha256": "205a0116ff2392535b9c1abcad1d1cb91547dde6f9fa5fea112d22bb8420888b",
+      "native_registration_summary_sha256": "1b862a8aa6ba49bf2f9a91105528cfb20cd0fbfcb7b749d502dedd502617dfb7",
+      "native_ui_frames": [
+        {
+          "sha256": "780a2ed5492ae4a2f30b1cfbc3da2463f8ad57ff7877a79a4a930cd28696b743"
+        },
+        {
+          "sha256": "19bfab6a97946b6f29d24934853bb710e9e6acc2e88eb87dc7c5e43751a2e0f7"
+        },
+        {
+          "sha256": "3d2c913e8bfc8854aa904cf7342d193a6b2791437a904935873b74a6f7d17e3d"
+        }
+      ],
+      "parameters": {
+        "end": 0.08,
+        "start": 0,
+        "step": 0.005
+      },
+      "physical_actions": false,
+      "qualified": false,
+      "run_id": "0d2141fd43a34fdfa5b319432d96affb",
+      "runtime_clear": true,
+      "windows_qualified": false
+    },
+    {
+      "calibration": "retraction",
+      "candidate_gcode_sha256": "f347c78c8778e7b66c0d2c53d16d51cf8637e2cc275228c2d5fe48bda9795eff",
+      "exact_executable_digest_match": true,
+      "executable_count": 16585,
+      "executable_sha256": "00bc2203f8c8fd15b8f05dba51391c9c922dd85a846c7af320e76f7ef112ea78",
+      "execution_closure_sha256": "61707d6342a6da315b4328f62d070425bc246f54001abc87a393bbd90b92fd62",
+      "exit_code": 0,
+      "generated": true,
+      "inputs_sha256": "d8652d61e3fc82a74ac43d4e6f1a3b1afb9a0efca4949756843d346292f9b168",
+      "invariant_failure": null,
+      "lifecycle_manifest_sha256": "59a0234d56edff5fb138a26375b4e993011748e81e2d5e4bffc349051642aef4",
+      "lifecycle_state": "complete",
+      "native_executable_count": 16585,
+      "native_executable_sha256": "00bc2203f8c8fd15b8f05dba51391c9c922dd85a846c7af320e76f7ef112ea78",
+      "native_gcode_sha256": "e2de2e49764c8bb9dd018cde61a98488dec989ddd1c3c42de7daf9080d56e23a",
+      "native_invariants_passed": true,
+      "native_manifest_sha256": "65522568fb12b4116dc18ffcc178bf04adf691565393b1beb7f7dcca4878619a",
+      "native_processing_sha256": "205a0116ff2392535b9c1abcad1d1cb91547dde6f9fa5fea112d22bb8420888b",
+      "native_registration_summary_sha256": "1b4b085f95080e30711a019ca0a77ccad6d7d796c07bc7ed17f07c51c90c65f7",
+      "native_ui_frames": [
+        {
+          "sha256": "b63eda982bda0049cf64eebe4b93ffcce43adb6986973ec74878e531d72dab1d"
+        },
+        {
+          "sha256": "d8f44f64cca5606edefb009e12dffe618bd0d418c7222097bb0c8d942f0d5f83"
+        },
+        {
+          "sha256": "f068e006ac68e7c8614331e9003d6a66e44bca0c2a083b8e050db32a49bdbf1e"
+        }
+      ],
+      "parameters": {
+        "end": 2,
+        "start": 0,
+        "step": 0.1
+      },
+      "physical_actions": false,
+      "qualified": false,
+      "run_id": "a669a08aea514df580cf2647b184a966",
+      "runtime_clear": true,
+      "windows_qualified": false
+    },
+    {
+      "calibration": "max_volumetric_speed",
+      "candidate_gcode_sha256": "cefe7d16211f37bf44777ef6e6678c9deeeb016abb896caa1b7881ccdd2582e7",
+      "exact_executable_digest_match": true,
+      "executable_count": 35672,
+      "executable_sha256": "ccaa2987d08f22d6164a036bbad6e3d3c5602bdd7c012cf427c7f1433ba1faf6",
+      "execution_closure_sha256": "61707d6342a6da315b4328f62d070425bc246f54001abc87a393bbd90b92fd62",
+      "exit_code": 0,
+      "generated": true,
+      "inputs_sha256": "113fd3047703d15ed337da6f087fbfead27e41e84f27a36ba8a97d236571555e",
+      "invariant_failure": null,
+      "lifecycle_manifest_sha256": "49c8788a84b1caa7b10f9960442435f9a6745be039ecc392b84830b250e64c7b",
+      "lifecycle_state": "complete",
+      "native_executable_count": 35672,
+      "native_executable_sha256": "ccaa2987d08f22d6164a036bbad6e3d3c5602bdd7c012cf427c7f1433ba1faf6",
+      "native_gcode_sha256": "12ee569f713d1d070598127de9212b65204dae5250d35e6fc6dc885ea9ab2efb",
+      "native_invariants_passed": true,
+      "native_manifest_sha256": "fe1b9908e95f1c3616705c3acae8dfd908511d52e202c7c97940e21678dad621",
+      "native_processing_sha256": "205a0116ff2392535b9c1abcad1d1cb91547dde6f9fa5fea112d22bb8420888b",
+      "native_registration_summary_sha256": "da2bbc63980ed1ee4c9fdc3cd3b3bc6d815f0d2bad0f1be44f10c98f852df4e7",
+      "native_ui_frames": [
+        {
+          "sha256": "d4d147608e071d068c9a01db832ecdddee8be989d2f78c4172d4c423d4cb7882"
+        },
+        {
+          "sha256": "532376180f9f77613ad4db198eeb86b4ecc27d5bafef693f42b4bec93898a2cb"
+        },
+        {
+          "sha256": "56508f1740a8f8ee4d984bdce665f8b71f34b71da299b97c9a928445a9d11c96"
+        }
+      ],
+      "parameters": {
+        "end": 20,
+        "start": 5,
+        "step": 0.5
+      },
+      "physical_actions": false,
+      "qualified": false,
+      "run_id": "e261b161d7ab4a9696ebaf8ae5c0c69a",
+      "runtime_clear": true,
+      "windows_qualified": false
+    }
+  ],
+  "schema": "helix-orca-v1-native-generation-diagnostic-checkpoint/v1",
+  "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+  "whole_harness_qualification": false,
+  "windows_qualified": false
+}

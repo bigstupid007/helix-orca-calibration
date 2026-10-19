@@ -209,3 +209,29 @@ profile writeback or public-network operation is included in this source verdict
 The reviewer did not run a Windows build, target executable or heavy native job.
 An actual successful Windows package receipt and calibration-specific target
 results remain mandatory before this generator correction can be accepted.
+
+
+## Exact native reference selection and diagnostic provenance follow-up
+
+An independent worker reviewed the complete diff from `b64656d` to `28dda0d`
+and the lead's subsequent smoke execution-closure change. No actionable defect
+was found. Six catalog regressions also passed independently. The lead's focused
+checks passed six catalog, sixteen Windows qualification-driver and five native
+engine boundary tests.
+
+The catalog selects only a complete unchanged generation-input digest. It has
+no nearest-match fallback, profile-only match or origin rebinding. Selection
+does not establish qualification: the selected pinned native bytes still pass
+the original strict executable/invariant evaluator. Actual processor warnings
+take priority. The Windows driver authenticates all catalog entries, enforces
+that the selected pair equals its independently pinned CLI reference, and
+rechecks source, input and reference bytes after generation and sanitization.
+The smoke helper binds and rechecks its full Python/module/interpreter/helper
+closure and immutable context/build/executable inputs; it changes no product
+qualification rule.
+
+This verdict is read-only source review and focused tests. It includes no
+Windows build or target run. The new four-case Linux receipts remain
+diagnostic-only, with false qualification. Temperature has material motion
+differences despite the net count difference of nine. Windows package execution,
+complete strict parity and explicit fresh-origin limitations remain gates.
