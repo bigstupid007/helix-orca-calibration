@@ -1,5 +1,25 @@
 # Generator repair checkpoint
 
+<!-- v1-generator-current -->
+Current generator checkpoint: [Clang build39244022330](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39244022330)
+failed before native compilation. Of25 declared dependency targets,23 returned
+success, OpenVDB failed at24, and FFMPEG was not attempted. OpenVDB's optional
+bare `ccache` launcher reported compilation steps without retained object proof;
+`llvm-lib` then found `Grid.cc.obj` missing. No checkpoint or package was produced.
+A source-supported `USE_CCACHE=OFF` correction and an early real object/archive
+preflight are integrated for actual preflight before another cold build; warning and parity
+requirements remain unchanged.
+
+Both YOLO modes retain qualification. All four current native routes still need
+a successful corrected package and their own full strict target harness. The
+retained227b447 PA pass is historical evidence, not dispatchable by current
+owned-input checks and not inherited by the next package. The consolidated compiler/archive correction passes583 tests (six documented
+host skips),109 focused Windows checks (five skips), and60 independent review
+checks. Actual Windows preflight/build/parity remain pending. All parameter controls, coordination and the accepted physical baseline
+remain preserved. [Actual failed-build evidence](evidence/issue-14/generator-blockers/windows-clang-build-r1.json).
+<!-- /v1-generator-current -->
+
+
 The verified native parameter controls and exact request propagation are unchanged.
 Both previously qualified YOLO modes retain their exact stock generation sources
 and native references. The accepted physical Temperature baseline is untouched.
@@ -291,3 +311,44 @@ positive checks. Independent review passes; the integrated suite passes 568
 tests with six host skips, control preservation and whitespace checks pass.
 Actual Clang build/package and complete four-route parity remain pending. No
 old cache publisher or old generator qualification is relabeled for this recipe.
+
+
+## Clang dependency-cache correction and early proof
+
+Actual run39244022330 uses the verified VS18 Clang22.1.3/LLD22.1.3 recipe and
+passes the real compiler probe. It stops at dependency24of25, OpenVDB;23 prior
+stages returned0 and FFMPEG was unattempted. Lifecycle is honestly failed,
+3,967.782 seconds with6,835,007,488 bytes peak filesystem growth; all stage
+processes exited. No dependency checkpoint, native compilation or package exists.
+The bounded metadata-only evidence fetch completed with runtime clear.
+
+Pinned OpenVDB's `USE_CCACHE` option auto-discovers an incidental cache and adds
+bare `ccache` as both global compile and link launcher. The archive command then
+reports `Grid.cc.obj` missing. Ninja's reported compile steps are not proof that
+objects existed: the whole OpenVDB stage took4.547 seconds. Root-cause proof must
+check real output files rather than infer them from the log. Orca's pinned
+superbuild forwards `DEP_CMAKE_OPTS` to each child; explicitly configuring
+`-DUSE_CCACHE:BOOL=OFF` removes that optional wrapper without editing upstream
+source, compiler flags, profiles, warnings or parity. Assimp already disables its
+own optional cache. The bounded source audit found no further core auto-launcher.
+
+An early ON/OFF static archive preflight will record actual bare-cache resolution,
+discovered cache bytes/version and identical compiler/archiver/flags. The OFF
+case must produce an AMD64 COFF object and valid archive with no link launcher.
+A dispatch-only preflight skips all dependencies and cannot qualify a generator.
+Its actual result is required before the next expensive cold build.
+
+Independent combined review also corrected runtime compiler-proof validation:
+actual probe/dependency/engine records, compiler/linker/Release identity, flags,
+release digest and toolchain/command/source binding are checked before dispatch.
+Legitimate dynamic CRT normalization remains supported; static/debug CRT and
+fast math remain rejected. Final runtime-only boundary passes573 tests withsix
+host skips and preserves the66bfaf6 control/request proof. Historical v1 schema
+recognition does not make227b447 dispatchable under current owned-source hashes.
+
+The [actual read-only native-project metadata check](evidence/issue-14/generator-blockers/temperature-native-override-metadata-r1.json)
+finds only eight expected Temperature object overrides and extruder1, structural
+volume metadata, and three plate mappings matching the retained context. No
+unlisted settings or layer overrides occur. The old saved60 project and explicit
+bed50 context remain distinct; this is diagnostic evidence, not provenance
+rebinding or qualification. It supplies no hidden top-fill configuration cause.

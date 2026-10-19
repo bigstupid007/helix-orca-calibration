@@ -1,5 +1,25 @@
 # Bounded Windows native-engine package
 
+<!-- v1-generator-current -->
+Current generator checkpoint: [Clang build39244022330](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39244022330)
+failed before native compilation. Of25 declared dependency targets,23 returned
+success, OpenVDB failed at24, and FFMPEG was not attempted. OpenVDB's optional
+bare `ccache` launcher reported compilation steps without retained object proof;
+`llvm-lib` then found `Grid.cc.obj` missing. No checkpoint or package was produced.
+A source-supported `USE_CCACHE=OFF` correction and an early real object/archive
+preflight are integrated for actual preflight before another cold build; warning and parity
+requirements remain unchanged.
+
+Both YOLO modes retain qualification. All four current native routes still need
+a successful corrected package and their own full strict target harness. The
+retained227b447 PA pass is historical evidence, not dispatchable by current
+owned-input checks and not inherited by the next package. The consolidated compiler/archive correction passes583 tests (six documented
+host skips),109 focused Windows checks (five skips), and60 independent review
+checks. Actual Windows preflight/build/parity remain pending. All parameter controls, coordination and the accepted physical baseline
+remain preserved. [Actual failed-build evidence](evidence/issue-14/generator-blockers/windows-clang-build-r1.json).
+<!-- /v1-generator-current -->
+
+
 Actual Windows package `227b447` is verified on SPARE, including all 17 DLLs.
 PA Pattern passes the complete strict harness for the exact retained explicit
 50°C context and 0→0.08 / 0.005 parameters. Temperature remains blocked by real
@@ -27,21 +47,38 @@ checks. Upstream floating-point settings remain unchanged; static/debug CRT or
 added fast-math flags are rejected.
 
 The strict `helix-orca-v1-windows-builder/v2` receipt records compiler recipe and
-eight actual tool identities: clang-cl, CMake-selected linker, separately named
-MSVC cl/link, CMake, Ninja, Perl and MSBuild. The selected linker may be the actual
+nine actual tool identities: clang-cl, CMake-selected linker, LLVM static
+archiver, separately named MSVC cl/link, CMake, Ninja, Perl and MSBuild. The selected linker may be the actual
 VS18 LLD 22.1.3 or MSVC 14.51 linker; its path/version/hash must agree with the real
 CMake probe and configure results. The probe digest uses shared canonical JSON,
 independent of CRLF file encoding. Runtime validation rebinds that probe and
-all eight identities. Legacy MSVC v1 evidence is validated separately and never
+all nine identities and the bound successful uncached archive proof. Legacy MSVC v1 evidence is validated separately and never
 relabeled as the Clang recipe.
+
+A separate early archive preflight reproduces OpenVDB's optional bare-cache
+launchers ON and OFF under the same actual compiler, archiver and Release flags.
+It checks the configured cache value and both global launchers, real AMD64 COFF
+object production and a byte-matched object member inside the archive. The OFF
+case must succeed before dependency work. Its proof is bound into native inputs
+and revalidated by the runtime; the tiny public-source object/archive are retained
+for independent inspection. Ambient compiler launchers are rejected or cleared
+explicitly, and configured launcher emptiness is recorded at each boundary.
+
+The pinned superbuild forwards `DEP_CMAKE_OPTS=-DUSE_CCACHE:BOOL=OFF` to child
+projects. This disables any child honoring that optional cache setting; no
+compiler, floating-point or warning policy changes. Preflight-only workflow input
+`toolchain_preflight_only: true` runs compiler/archive diagnostics and publishes
+evidence without dependencies or a package. It can never qualify a generator.
+A restored dependency bundle still receives a bounded local configure/verification
+so actual probe/deps/engine records all exist before dispatch.
 
 Clang's global `CL`/`_CL_` inputs are explicitly empty. Only the upstream
 MSVC-based CPython/OpenSSL tasks append `/MP1`; the per-target environments,
 OCCT-four-job override and all other two-job scheduling are recorded in the
 exact dependency contract. New builder/workflow/module bytes invalidate the old
 MSVC checkpoint, so this compiler change starts a fresh dependency build. The
-same disk/deadline guards apply. No actual Clang build/parity is claimed before
-its complete receipts and retained-reference comparisons pass.
+same disk/deadline guards apply. A successful Clang package and parity remain pending until
+complete receipts and retained-reference comparisons pass.
 
 Focused source review corrected a Windows CRLF probe-digest mismatch and required
 positive runtime evidence before launch. The meaningful CRLF roundtrip preserves
@@ -49,6 +86,12 @@ valid dispatch and rejects a modified probe. Independent final review passed
 29 compiler/backend/cache checks. The integrated boundary passes 568 tests with
 six host skips; accepted control preservation and whitespace checks pass. This
 is source/checker evidence, not Windows generator qualification.
+
+The consolidated archive/compiler correction subsequently passes583 integrated
+tests (six host skips),109 focused Windows checks (five skips) and60 independent
+checks. Actual preflight and the corrected full build remain mandatory; source
+readiness is not package or generator qualification. V2 warm checkpoint restore
+has source/test coverage but is not yet verified on the actual target.
 
 ## Retained MSVC v1 packaging and repairs
 

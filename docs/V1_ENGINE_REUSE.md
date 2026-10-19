@@ -1,5 +1,25 @@
 # V1 grouped native-engine reuse
 
+<!-- v1-generator-current -->
+Current generator checkpoint: [Clang build39244022330](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39244022330)
+failed before native compilation. Of25 declared dependency targets,23 returned
+success, OpenVDB failed at24, and FFMPEG was not attempted. OpenVDB's optional
+bare `ccache` launcher reported compilation steps without retained object proof;
+`llvm-lib` then found `Grid.cc.obj` missing. No checkpoint or package was produced.
+A source-supported `USE_CCACHE=OFF` correction and an early real object/archive
+preflight are integrated for actual preflight before another cold build; warning and parity
+requirements remain unchanged.
+
+Both YOLO modes retain qualification. All four current native routes still need
+a successful corrected package and their own full strict target harness. The
+retained227b447 PA pass is historical evidence, not dispatchable by current
+owned-input checks and not inherited by the next package. The consolidated compiler/archive correction passes583 tests (six documented
+host skips),109 focused Windows checks (five skips), and60 independent review
+checks. Actual Windows preflight/build/parity remain pending. All parameter controls, coordination and the accepted physical baseline
+remain preserved. [Actual failed-build evidence](evidence/issue-14/generator-blockers/windows-clang-build-r1.json).
+<!-- /v1-generator-current -->
+
+
 Actual Windows package `227b447` is verified on SPARE, including all 17 DLLs.
 PA Pattern passes the complete strict harness for the exact retained explicit
 50°C context and 0→0.08 / 0.005 parameters. Temperature remains blocked by real

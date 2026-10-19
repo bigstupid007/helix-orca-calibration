@@ -1,5 +1,25 @@
 # V1 combined independent review
 
+<!-- v1-generator-current -->
+Current generator checkpoint: [Clang build39244022330](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39244022330)
+failed before native compilation. Of25 declared dependency targets,23 returned
+success, OpenVDB failed at24, and FFMPEG was not attempted. OpenVDB's optional
+bare `ccache` launcher reported compilation steps without retained object proof;
+`llvm-lib` then found `Grid.cc.obj` missing. No checkpoint or package was produced.
+A source-supported `USE_CCACHE=OFF` correction and an early real object/archive
+preflight are integrated for actual preflight before another cold build; warning and parity
+requirements remain unchanged.
+
+Both YOLO modes retain qualification. All four current native routes still need
+a successful corrected package and their own full strict target harness. The
+retained227b447 PA pass is historical evidence, not dispatchable by current
+owned-input checks and not inherited by the next package. The consolidated compiler/archive correction passes583 tests (six documented
+host skips),109 focused Windows checks (five skips), and60 independent review
+checks. Actual Windows preflight/build/parity remain pending. All parameter controls, coordination and the accepted physical baseline
+remain preserved. [Actual failed-build evidence](evidence/issue-14/generator-blockers/windows-clang-build-r1.json).
+<!-- /v1-generator-current -->
+
+
 The program uses one combined substantial review, with bounded correction
 rechecks. A fresh-context independent Codex reviewer reviewed the
 integrated change from accepted main `523bc5d` through `d7634bf`. The reviewer
@@ -350,3 +370,28 @@ Actual compiler probe, full package and all-four strict parity remain required.
 The combined integrated boundary passes 568 tests with six documented host skips.
 The accepted control/request preservation gate and `git diff --check` pass. No
 broad native UI recapture is repeated for these causal generator/build changes.
+
+
+## Consolidated archive and compiler correction review
+
+Independent review of the final correction finds no remaining material source
+finding. The failed447 Clang run did not produce a checkpoint, executable,
+package or qualification. The source-supported optional-cache correction is
+forwarded through the pinned superbuild and included in its exact contract.
+The tightened v2 schema records nine tool identities, including the LLVM static
+archiver; historical v1 remains separate. Actual probe/deps/engine records,
+Release/dynamic-runtime flags, empty compiler launchers, archive provenance and
+tool byte stability are checked by builder and runtime. The OFF archive proof
+requires the exact COFF object once inside the archive, and retains the tiny
+public-source object/archive for independent inspection. A restored dependency
+checkpoint receives configure-only verification so the strict three-record
+runtime contract remains satisfied.
+
+The reviewer independently passes60 focused checks; worker Windows checks pass
+109 tests withfive host skips. The integrated boundary passes583 tests withsix
+host skips in27.215seconds, plus accepted66bfaf6 control/request preservation
+and whitespace checks. Scope leaves UI, contracts, coordinator, transport, YOLO,
+physical evidence, profiles and printer safeguards untouched. This is source
+readiness. Actual Windows preflight, corrected package and complete per-route
+strict parity are required before generator qualification or Founder review.
+V2 warm checkpoint restoration remains target-unverified until actually run.
