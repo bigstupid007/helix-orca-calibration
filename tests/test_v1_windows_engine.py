@@ -121,6 +121,35 @@ class WindowsNativeGuards(unittest.TestCase):
         with self.assertRaises(ValueError):
             pe.inspect(self.exe)
 
+    def test_source_supplements_are_hash_bound_bounded_and_never_executed(self):
+        import hashlib
+        import io
+        spec = importlib.util.spec_from_file_location('windows_builder_supplements', engine._ROOT/'scripts/v1-engine-windows.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        payload = b'checker-only archive bytes; never extracted or executed'
+        row = {'component':'fixture','version':'0','url':'https://source.example/fixture.tar.bz2',
+               'size':len(payload),'sha256':hashlib.sha256(payload).hexdigest()}
+        class Response(io.BytesIO):
+            def geturl(self):
+                return row['url']
+        guards = []
+        with patch.object(module, 'urlopen', return_value=Response(payload)):
+            result = module.retain_source_supplements({'source_supplements':[row]}, self.root/'source-materials', lambda:guards.append(True))
+        self.assertTrue(result[0]['verified'])
+        self.assertFalse(result[0]['executed'])
+        self.assertTrue(guards)
+        self.assertEqual((self.root/'source-materials/fixture.tar.bz2').read_bytes(), payload)
+        for name, modified in [('digest',dict(row,sha256='0'*64)), ('oversize',dict(row,size=1))]:
+            with patch.object(module, 'urlopen', return_value=Response(payload)):
+                with self.assertRaises(module.SourceMaterialsUnavailable):
+                    module.retain_source_supplements({'source_supplements':[modified]}, self.root/name, lambda:None)
+        def refused():
+            raise RuntimeError('actual resource guard')
+        with patch.object(module, 'urlopen', return_value=Response(payload)):
+            with self.assertRaisesRegex(RuntimeError, 'actual resource guard'):
+                module.retain_source_supplements({'source_supplements':[row]}, self.root/'guarded', refused)
+
     def test_cmake_cache_path_values_do_not_contain_windows_escape_sequences(self):
         from pathlib import PureWindowsPath
         spec = importlib.util.spec_from_file_location('windows_builder_paths', engine._ROOT/'scripts/v1-engine-windows.py')

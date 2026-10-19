@@ -13,6 +13,8 @@ import sys
 import threading
 import time
 import zipfile
+from urllib.request import urlopen
+from urllib.error import URLError
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -34,6 +36,41 @@ def record(path):
 
 def save(path, value):
     path.write_text(json.dumps(value, sort_keys=True, indent=2)+'\n', encoding='utf-8')
+
+
+class SourceMaterialsUnavailable(ValueError):
+    pass
+
+
+def retain_source_supplements(lock, directory, guard):
+    """Retain at most 8 MiB of hash-bound public sources; execute/extract none."""
+    directory.mkdir()
+    rows, total = [], 0
+    for item in lock['source_supplements']:
+        if not item['url'].startswith('https://') or not 0 < item['size'] <= 4*1024**2:
+            raise SourceMaterialsUnavailable('invalid_source_supplement_lock')
+        path = directory/item['url'].rsplit('/', 1)[1]
+        try:
+            with urlopen(item['url'], timeout=20) as response, path.open('xb') as stream:
+                if not response.geturl().startswith('https://'):
+                    raise SourceMaterialsUnavailable('source_redirect_is_not_https')
+                digest, count = hashlib.sha256(), 0
+                while True:
+                    guard()
+                    chunk = response.read(65536)
+                    if not chunk:
+                        break
+                    count, total = count+len(chunk), total+len(chunk)
+                    if count > item['size'] or total > 8*1024**2:
+                        raise SourceMaterialsUnavailable('source_supplement_exceeds_bound')
+                    stream.write(chunk)
+                    digest.update(chunk)
+        except (OSError, URLError) as exc:
+            raise SourceMaterialsUnavailable('source_supplement_download_failed') from exc
+        if count != item['size'] or digest.hexdigest() != item['sha256']:
+            raise SourceMaterialsUnavailable('source_supplement_digest_differs')
+        rows.append(dict(item, archive=path.name, verified=True, executed=False))
+    return rows
 
 
 def cmake_path(name, path):
@@ -264,17 +301,49 @@ class Build:
         save(package/'native-build.json', receipt)
         save(self.evidence/'native-build.json', receipt)
         shutil.copy2(source/'LICENSE.txt', package/'LICENSE-OrcaSlicer-AGPL-3.0.txt')
-        (package/'SOURCE-OFFER.txt').write_text('Corresponding source accompanies this artifact as native-windows-source.zip.\n'
-            'It includes exact recursive Orca source, downloaded dependency archives and owned build source.\n'
+        licenses = package/'licenses'
+        licenses.mkdir()
+        for name in ('deps/GMP/gmp/gmp.COPYING', 'deps/GMP/gmp/gmp.README',
+                     'deps/MPFR/mpfr/mpfr.COPYING', 'deps/MPFR/mpfr/mpfr.COPYING.LESSER',
+                     'deps/MPFR/mpfr/mpfr.README'):
+            shutil.copy2(source/name, licenses/Path(name).name)
+        source_cache = self.work/'corresponding-sources'
+        supplements, source_failure = [], None
+        try:
+            supplements = retain_source_supplements(lock, source_cache, self.guard)
+        except SourceMaterialsUnavailable as error:
+            source_failure = str(error)
+        unresolved = [name for name in dlls if name.startswith((
+            'avcodec-', 'avformat-', 'avutil-', 'swscale-', 'swresample-',
+            'libssl-3', 'libcrypto-3', 'libffi-', 'python3'))]
+        source_status = {'schema': 'helix-orca-v1-windows-source-materials/v1',
+            'source_supplements': supplements, 'source_failure': source_failure,
+            'unresolved_prebuilt_runtime_components': sorted(unresolved),
+            'source_materials_state': 'matching-upstream-sources-retained' if not source_failure and not unresolved else 'incomplete',
+            'exact_historical_vendor_build_reproduced': False, 'complete_corresponding_source_claim': False,
+            'vendor_limitation': 'Pinned GMP/MPFR binaries match upstream versions; historical vendor compiler, flags and patches are unverified.',
+            'production_source_acceptance_required': True, 'excluded_binary_build_inputs': lock['binary_only_downloads']}
+        save(package/'source-materials.json', source_status)
+        save(self.evidence/'source-materials.json', source_status)
+        (package/'SOURCE-OFFER.txt').write_text('Source materials accompany this artifact as native-windows-source.zip.\n'
+            'They include exact recursive Orca sources, compiled dependency source archives, owned build source, and matching upstream-version GNU sources when verified.\n'
+            'Read source-materials.json: historical vendor build provenance is unverified and complete corresponding source is not claimed.\n'
+            'Unlinked binary-only build inputs are excluded; any affected runtime component remains a production source-acceptance blocker.\n'
             'Microsoft runtime DLLs, if present, are from the preinstalled Visual Studio 2022 redistributable.\n'
             'https://learn.microsoft.com/visualstudio/releases/2022/redistribution\n'
             'No calibration is qualified by this build; native parity and all processor checks remain mandatory.\n', encoding='utf-8')
         with zipfile.ZipFile(self.work/'native-windows-source.zip', 'w', zipfile.ZIP_DEFLATED, compresslevel=3) as archive:
-            for label, directory in (('OrcaSlicer', source), ('dependency-archives', self.work/'downloads')):
+            for label, directory in (('OrcaSlicer', source), ('dependency-archives', self.work/'downloads'),
+                                     ('matching-upstream-versions', source_cache)):
                 for path in directory.rglob('*'):
                     self.guard()
-                    if path.is_file() and '.git' not in path.relative_to(directory).parts:
-                        archive.write(path, label+'/'+path.relative_to(directory).as_posix())
+                    relative = path.relative_to(directory)
+                    if (not path.is_file() or '.git' in relative.parts or path.name in lock['binary_only_downloads']
+                            or label == 'matching-upstream-versions' and not any(row['archive'] == path.name for row in supplements)
+                            or label == 'OrcaSlicer' and path.suffix.lower() in ('.dll', '.lib', '.exe', '.pdb')
+                               and relative.as_posix() not in lock['in_tree_files']):
+                        continue
+                    archive.write(path, label+'/'+relative.as_posix())
             for name in engine._WINDOWS_OWNED_INPUTS + ('integration/v1_engine.py', 'integration/v1_contract.py'):
                 archive.write(ROOT/name, 'helix-orca-calibration/'+name)
         self.guard()

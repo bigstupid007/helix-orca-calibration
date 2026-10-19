@@ -133,5 +133,26 @@
     "deps/MPFR/mpfr/include/mpf2mpfr.h": "656ee5c68af6e0b76ed08c5c919ab0f51b8670207f4499c30a55fcf04266dacf",
     "deps/MPFR/mpfr/lib/win-x64/libmpfr-4.lib": "db89bd46fcbbd99b56197284e5593b3f9ce744ccb8ead9aebee9b714bd2547dc",
     "deps/MPFR/mpfr/lib/win-x64/libmpfr-4.dll": "09b3b868b96433991fc15c9c5ae6f9a44c62d2e21194110442607917391ed927"
-  }
+  },
+  "source_supplements": [
+    {
+      "component": "GMP",
+      "version": "5.0.1",
+      "url": "https://ftp.gnu.org/gnu/gmp/gmp-5.0.1.tar.bz2",
+      "sha256": "a2a610f01fd3298dc08c87bf30498c2402590e1bcb227fc40b15ee6d280939fb",
+      "size": 2006109
+    },
+    {
+      "component": "MPFR",
+      "version": "3.0.0",
+      "url": "https://www.mpfr.org/mpfr-3.0.0/mpfr-3.0.0.tar.bz2",
+      "sha256": "8f4e5f9c53536cb798a30455ac429b1f9fc75a0f8af32d6e0ac31ebf1024821f",
+      "size": 1138685
+    }
+  ],
+  "binary_only_downloads": [
+    "ffmpeg-n7.0.3-33-g887d4b4919-win64-orca-shared-7.0.zip",
+    "cpython-bin-deps-libffi-3.4.4.zip",
+    "cpython-bin-deps-openssl-bin-3.0.16.2.zip"
+  ]
 }
