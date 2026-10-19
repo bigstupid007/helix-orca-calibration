@@ -96,3 +96,58 @@ verification. `qualified` additionally revalidates the independent parity report
 No call spy or bare true flag establishes execution/qualification. Source-only
 unit fixtures exercise real offline capability-blocked paths and are not native
 operator or Windows generation evidence.
+
+## Approved bounded native metadata relay
+
+The Founder explicitly approved a bounded test relay in the program chat.
+`scripts/v1-windows-parameter-relay.py` is a separate foreground qualification
+wrapper; it leaves the live `v1-native-review.py` source unchanged and starts no
+listener/service. The lead schedules it only after the native review's serial
+release. It imports that review's exact owned-session verifier and transport-only
+fragment delivery hook, checks the frozen source/fixture hashes and active exact
+ManagedRun container, and requires the local review coordinator to remain idle
+with its same fresh offer and no retained request. Windows owns the actual
+trial offers; the local review coordinator cannot consume their different nonces.
+
+The relay sends only actual saved native `v1_session` metadata through the
+existing approved Windows test bridge. Its PowerShell command is bounded to8192
+characters, base64-encodes at most5000 bytes, creates a new owned Windows session
+file and invokes the pinned public bridge in the foreground. The existing
+worker deadline and at-most45-second generator deadline remain in force.
+The relay itself runs at most900 seconds and ends before the active native
+review's lifecycle deadline. It never rewrites native storage, queues a print,
+creates a Windows service or relays Confirm/Start. Actual pre-start Cancel may
+be relayed to its real coordinator.
+
+Windows stdout now includes independently read actual DirectoryEvents request
+and event digest, a separately reread coordinator-journal request/digest, and
+actual source-file hashes. The relay requires all three request objects/digests
+to match the original native request and verifies the event including any actual
+Cancel intent. The exact real status is delivered back through the approved
+transport hook. It requires saved native phase/sequence/prepared readback and a
+visible native job overlay plus captured terminal frame before the next offer.
+A qualified Flow review waits for actual native Cancel rather than advancing.
+
+Private bounded invocation/result metadata is retained under the managed
+review's XDG-state `view/windows-parameter-relay/`; independent request/event/
+journal/status/source traces are written to `view/parameter-traces/<request_id>.json`
+for the existing viewer's read-only proof endpoint. Full profiles, configuration,
+G-code, projects and raw parity reports never move from Windows.
+
+Lead-only invocation after staging the final bridge bytes **before any offer**:
+
+```bash
+python3 scripts/v1-windows-parameter-relay.py \
+  --windows-python 'C:\existing\python.exe' \
+  --windows-source 'C:\existing\qualification\parameter-source' \
+  --windows-root 'C:\existing\qualification\new-parameter-bridge' \
+  --windows-context 'C:\existing\qualification\original-context.json' \
+  --windows-config 'C:\existing\qualification\private-generator-config.json' \
+  --bridge-sha256 '<exact staged bridge SHA-256>' --seconds 600 --trials 5
+```
+
+All paths are explicit existing approved local Windows paths. `--trials 0` means
+wait within the same hard deadline; at most10 completed trials may be requested.
+A new native review run is needed if frozen sources change. Implementing this
+wrapper is not evidence that it ran; source-only tests exercise no Windows or
+native target and establish no qualification.

@@ -131,7 +131,8 @@ def trace(coordinator, root, event=None):
     request = coordinator.state['request']
     result = dict(schema=SCHEMA, actual_offline_coordinator=True, test_transport=True,
                   physical_actions=False, physical_readiness=False, actions_adapter_present=False,
-                  context_sha256=c.digest(coordinator.state['context']), offer=coordinator.state['offer'])
+                  context_sha256=c.digest(coordinator.state['context']), offer=coordinator.state['offer'],
+                  source_files=read_json(root/'source-files.json'))
     if request is None:
         result.update(op='offer', offer_sha256=c.digest(result['offer']))
         return result
@@ -160,6 +161,13 @@ def trace(coordinator, root, event=None):
                                     'artifact_unqualified' if artifact_verified else 'blocked_before_artifact'))
     if event:
         result['native_event_sha256'] = c.digest(event)
+        transport = read_json(root/'offline/native.json')
+        journal = read_json(coordinator.path)
+        result.update(transport_request=transport.get('request'),
+                      coordinator_request=journal.get('request'),
+                      transport_request_sha256=c.digest(transport.get('request')),
+                      coordinator_request_sha256=c.digest(journal.get('request')),
+                      transport_event_sha256=c.digest(transport))
     return result
 
 
