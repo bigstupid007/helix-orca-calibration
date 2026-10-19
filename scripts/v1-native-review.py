@@ -43,6 +43,8 @@ def get_resource():
 LAN='192.168.1.114'
 PORT=8540
 DEFAULT_SECONDS=900
+# Shared helper measures aggregate filesystem loss, including unrelated writers.
+REVIEW_DISK_PEAK=2*1024**3
 APP='helix-orca-v1-native-review'
 SCHEMA='helix-orca-v1-native-review-session/v1'
 STOP_SCHEMA='helix-orca-v1-native-review-stop/v1'
@@ -344,7 +346,7 @@ def launch(seconds,context=None):
             args[2:2]=['--label',resource.LABEL+'='+run_id,'--restart=no','--memory',str(memory),'--memory-swap',str(memory),'--cpus',str(cpus),'--pids-limit',str(pids),'--log-driver','local','--log-opt','max-size=1m','--log-opt','max-file=2']
             return self.call(*args[1:])
     image=a.image_metadata()['id'];commit=a.run(['git','rev-parse','HEAD'],capture=True,cwd=ROOT).stdout.strip()
-    with resource.ManagedRun(app=APP,repo=str(ROOT),issue='https://github.com/bigstupid007/helix-orca-calibration/issues/14',commit=commit,dirty_input=digest(before),paths=[str(CURRENT.parent),str(cache),str(ROOT)],reserve=5*1024**3,peak=512*1024**2,margin=512*1024**2,timeout=seconds,adapter=NativeDocker()) as run:
+    with resource.ManagedRun(app=APP,repo=str(ROOT),issue='https://github.com/bigstupid007/helix-orca-calibration/issues/14',commit=commit,dirty_input=digest(before),paths=[str(CURRENT.parent),str(cache),str(ROOT)],reserve=5*1024**3,peak=REVIEW_DISK_PEAK,margin=512*1024**2,timeout=seconds,adapter=NativeDocker()) as run:
         work=run.artifacts/'view';work.mkdir();(work/'home').mkdir();q.settings(work/'config')
         if context is not None:
             from integration.v1_contract import validate_context
