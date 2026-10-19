@@ -61,17 +61,24 @@ class NativeReviewTests(unittest.TestCase):
             self.assertIsNone(module.resource)
             self.assertEqual(module.duration(60),60)
             self.assertEqual(module.payload('/api/back',{}),{})
-            self.assertIn('SYNTHETIC ONLY',module.html('local-token'))
+            self.assertIn('NO PRINTER · OFFLINE CONTEXT',module.html('local-token'))
             with self.assertRaises(FileNotFoundError):module.get_resource()
     def test_shared_helper_is_verified_before_import(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'helper.py';path.write_text("raise AssertionError('must not execute')")
             with self.assertRaisesRegex(r.ContractError,'Shared ManagedRun helper differs'):r.load_helper(path)
         self.assertEqual(r.sources()['shared/resource_lifecycle.py'],r.HELPER_SHA256)
-    def test_fixture_emits_initial_offer_at_native_initialization(self):
+    def test_review_fixture_delivers_only_actual_events(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root=r.q.fixture(Path(tmp)/'plugins')
-            self.assertTrue((root/'orcacal/main.lua').read_text().rstrip().endswith('fixture_offer()'))
+            root=r.transport_fixture(Path(tmp)/'plugins')
+            source=(root/'orcacal/main.lua').read_text()
+            self.assertIn("v1_review_delivery",source)
+            self.assertNotIn('fixture_offer()',source)
+            self.assertNotIn('fixture_status',source)
+            self.assertNotIn('qualified=true',source)
+        self.assertNotIn('data-action="finish-mock"',r.html('token'))
+        with self.assertRaises(r.ContractError):r.payload('/api/finish-mock',{})
+
     def test_native_input_is_bounded_and_typed(self):
         for body in ({'x':0,'y':0},{'x':799,'y':479}):self.assertEqual(r.payload('/api/tap',body),body)
         for body in ({'x':True,'y':1},{'x':800,'y':1},{'x':1,'y':480},{'x':1,'y':1,'rpc':'start'},{'x':'1','y':1}):
@@ -87,34 +94,35 @@ class NativeReviewTests(unittest.TestCase):
         for headers in ({'Host':'evil:8540'},{**good,'Origin':'http://evil'},good):
             with self.assertRaises(r.ContractError):r.authorized_http(headers,True,'owner-secret')
         r.authorized_http({**good,'X-Helix-Review':'owner-secret'},True,'owner-secret')
-        self.assertIn('SYNTHETIC ONLY',r.html('test-token'))
+        self.assertIn('NO PRINTER · OFFLINE CONTEXT',r.html('test-token'))
         self.assertIn("'X-Helix-Review':\"test-token\"",r.html('test-token'))
     def test_duration_cannot_escape_bound(self):
         self.assertEqual(r.duration(60),60);self.assertEqual(r.duration(900),900)
         for value in (0,59,901):
             with self.assertRaises(Exception):r.duration(value)
-    def test_simulation_follows_native_intent_and_never_finishes_early(self):
-        fixture=r.Fixture('owned-cid',Path('/not-used'))
-        states=[('requested',None,2),('preparing',None,3),('review','confirm',4),('starting','start',5),('printing','cancel',11),('returning',None,7)]
-        with patch.object(r.q,'signal') as signal:
-            for phase,action,code in states:
-                saved=dict(phase=phase,request=dict(request_id='a'*32),intent=dict(action=action))
-                with patch.object(fixture,'saved',return_value=saved):fixture.pump()
-                self.assertEqual(signal.call_args.args,('owned-cid',code))
-            signal.reset_mock()
-            for phase in ('review','confirmed','complete'):
-                with patch.object(fixture,'saved',return_value=dict(phase=phase,intent=None)):
-                    fixture.pump()
-                    with self.assertRaises(r.ContractError):fixture.finish()
-            signal.assert_not_called()
-            with patch.object(fixture,'saved',return_value=dict(phase='printing')):fixture.finish()
-            signal.assert_called_once_with('owned-cid',6)
-    def test_terminal_offer_exactly_once_without_replacing_retained_context(self):
-        fixture=r.Fixture('owned-cid',Path('/not-used'))
-        saved=dict(phase='delivered',request=dict(request_id='a'*32),intent=None)
-        with patch.object(fixture,'saved',return_value=saved),patch.object(r.q,'signal') as signal:
-            fixture.pump();fixture.pump();signal.assert_called_once_with('owned-cid',1)
-        self.assertEqual(saved['request']['request_id'],'a'*32)
+    def test_actual_coordinator_retains_unavailable_request_and_archives_trace(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work=Path(tmp)/'view';work.mkdir()
+            fixture=r.CoordinatorReview('owned-cid',work)
+            with patch.object(r.q,'ctl'):
+                fixture.pump()
+                offer=fixture.runtime.state['offer']
+                request={key:offer[key] for key in ('request_id','origin_id','context_sha256','created_at','expires_at')}
+                request.update(schema='helix-orca-v1-request/v1',calibration='retraction',parameters=dict(start=.2,end=2.2,step=.2),not_applied=True)
+                r.atomic_json(work/'config/plugin-data/orcacal.json',dict(v1_session=dict(request=request,phase='requested')))
+                fixture.pump()
+                trace=r.read_json(work/'parameter-traces'/(request['request_id']+'.json'))
+                self.assertEqual(trace['native_request'],request)
+                self.assertEqual(trace['transport_request'],request)
+                self.assertEqual(trace['coordinator_request'],request)
+                self.assertEqual(trace['phase'],'blocked')
+                self.assertFalse(trace['generator_dispatched'])
+                self.assertIsNone(trace['prepared'])
+                self.assertFalse(trace['physical_adapter_enabled'])
+                fixture.pump()
+                self.assertEqual(trace,r.read_json(work/'parameter-traces'/(request['request_id']+'.json')))
+                self.assertEqual(r.read_json(fixture.runtime.root/'history'/(request['request_id']+'.json'))['request'],request)
+
     def test_stop_only_writes_exact_owned_record(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'stop.json';record=dict(run_id='a'*32,stop_file=str(path))

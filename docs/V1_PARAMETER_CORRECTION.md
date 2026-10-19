@@ -26,7 +26,7 @@ with missing configuration functionality restored, not a new workflow approval g
 
 | Kind | Request parameters and defaults |
 | --- | --- |
-| Temperature | `{start:230,end:190,step:5,scale:true}`. Start/End editable whole 5°C increments. Step fixed at5, shown read-only. |
+| Temperature | `{start:230,end:190,step:5,scale:true}`. Start/End editable whole 5°C increments. Step fixed at5, shown read-only. Scale tower remains editable; proof changes true to false. |
 | Flow Ratio YOLO | `{pass:1}` Recommended or `{pass:2}` Perfectionist. Fixed additive offsets from original flow: Recommended −.05…+.05 by .01 (11); Perfectionist −.04…+.035 by .005 (16, asymmetric). Archimedean Chords remains fixed. |
 | PA Pattern | Editable `{start,end,step}`. Direct Drive0/.08/.005; Bowden0/1/.05. Extruder type selects defaults only, not a generation parameter or profile change. |
 | Retraction | Editable `{start:0,end:2,step:.1}` in mm. |
@@ -50,7 +50,7 @@ validation retains exact values. A backend receives a defensive copy of the requ
 
 ## Verified source basis
 
-Exact Orca `6a7763f0`, `src/slic3r/GUI/Calibration/calib_dlg.cpp`: Temperature defaults
+Exact Orca `6a7763f0`, `src/slic3r/GUI/calib_dlg.cpp`: Temperature defaults at lines
 480/488, fixed step496, floor-to5 UI behavior544–560 and predicates581–598; PA Pattern
 reset defaults289–333 and validation337–344; Retraction defaults1070–1095 and
 predicates1130–1143; MVS defaults695–720 and predicates753–766; YOLO choices1790–1791
@@ -63,7 +63,7 @@ supported APIs; no upstream patch or speculative host API is needed.
 ## Independent acceptance and proof boundaries
 
 Use one focused actual800×480 native managed run, with browser pointer/drag/keypad
-input. Change all required numeric fields from defaults and change YOLO to Perfectionist.
+input. Change all required numeric fields from defaults, toggle Temperature Scale true→false, and change YOLO to Perfectionist.
 Read-only native geometry is allowed; `ctl.set_value`, subject assignments and seeded
 requests do not prove operator selection. Retain exact native request, unchanged offline
 transport input, real Coordinator journal/dispatch and preparation/status/result bindings.

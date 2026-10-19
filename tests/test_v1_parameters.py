@@ -62,7 +62,7 @@ class ParameterTests(unittest.TestCase):
 
     def test_changed_values_reach_generator_and_survive_its_real_blocker(self):
         selections = {
-            'temperature': dict(start=235, end=200, step=5, scale=True),
+            'temperature': dict(start=235, end=200, step=5, scale=False),
             'flow_ratio_yolo': {'pass': 2},
             'pressure_advance_pattern': dict(start=.02, end=.12, step=.01),
             'retraction': dict(start=.2, end=2.2, step=.2),

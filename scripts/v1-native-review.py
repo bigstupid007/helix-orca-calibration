@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded, LAN-only native V1 synthetic review; never an ordinary print runtime."""
+"""Bounded native parameter review using the actual offline V1 coordinator."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -10,6 +10,8 @@ import json
 import os
 from pathlib import Path
 import secrets
+import re
+from urllib.parse import urlparse, parse_qs
 import socket
 import sys
 import time
@@ -18,7 +20,9 @@ import uuid
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from integration.v1_contract import ContractError, digest
-from integration.v1_runtime import atomic_json, read_json
+from integration.v1_runtime import Coordinator, atomic_json, read_json
+from integration.v1_transport import DirectoryEvents
+from integration.v1_routing import generate, capabilities
 from integration.v1_private_file import private_file
 
 def load(name,path):
@@ -48,7 +52,7 @@ def require(value,message):
     if not value:raise ContractError(message)
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def sources():
-    return dict(q.hashes(),**{'scripts/v1-native-review.py':sha(__file__),'scripts/temperature-viewer.html':sha(ROOT/'scripts/temperature-viewer.html'),'shared/resource_lifecycle.py':HELPER_SHA256,'integration/v1_private_file.py':sha(ROOT/'integration/v1_private_file.py')})
+    return {**q.hashes(),**{str(p.relative_to(ROOT)):sha(p) for p in (ROOT/'integration').glob('v1_*.py')},'scripts/v1-native-review.py':sha(__file__),'scripts/v1-runtime.py':sha(ROOT/'scripts/v1-runtime.py'),'scripts/temperature-viewer.html':sha(ROOT/'scripts/temperature-viewer.html'),'shared/resource_lifecycle.py':HELPER_SHA256,'integration/v1_private_file.py':sha(ROOT/'integration/v1_private_file.py')}
 def session(path=CURRENT):
     resource=get_resource()
     record=read_json(private_file(Path(path).absolute()))
@@ -71,7 +75,7 @@ def stop(path=CURRENT):
     return {'state':'stopping','run_id':record['run_id']}
 
 def payload(route,body):
-    allowed={'/api/tap':('x','y'),'/api/drag':('x0','y0','x1','y1'),'/api/home':(),'/api/back':(),'/api/capture':(),'/api/finish-mock':()}
+    allowed={'/api/tap':('x','y'),'/api/drag':('x0','y0','x1','y1'),'/api/home':(),'/api/back':(),'/api/capture':()}
     require(route in allowed and isinstance(body,dict) and set(body)==set(allowed[route]),'Unsupported review action')
     if route in ('/api/tap','/api/drag'):
         for key in allowed[route]:
@@ -113,34 +117,88 @@ def points(body):
     x0,y0,x1,y1=(body[k] for k in ('x0','y0','x1','y1'))
     return [('pointer_press',x0,y0)]+[('pointer_move',round(x0+(x1-x0)*i/8),round(y0+(y1-y0)*i/8)) for i in range(1,9)]+[('pointer_release',x1,y1)]
 
-class Fixture:
-    """Fixed mock statuses only; no generator, job adapter, RPC or print API."""
-    def __init__(self,container,work):self.container=container;self.work=Path(work);self.offered=None
+def transport_fixture(root):
+    """Only delivers real coordinator events; contains no request or job fixtures."""
+    target=root/'orcacal';q.builder.generate(target)
+    with (target/'main.lua').open('a') as stream:
+        stream.write("""
+-- OFFLINE REVIEW TRANSPORT ONLY; omitted by the installable product builder.
+-- Values are the actual DirectoryEvents payloads; no business action is seeded.
+helix.subject.string('v1_review_delivery',''):observe(function(raw)
+ local ok,value=pcall(helix.json.decode,raw)
+ if not ok or type(value)~='table' then return end
+ if value.event=='helix_orca_v1.context.v1' then v1_receive_offer('offline-review',value.data)
+ elseif value.event=='helix_orca_v1.status.v1' then v1_receive_status('offline-review',value.data)
+ elseif value.event=='helix_orca_v1.ack.v1' then v1_receive_ack('offline-review',value.data) end
+end)
+""")
+    return root
+
+
+def review_context():
+    value=dict(schema='helix-orca-v1-context/v1',origin_id='a'*32,
+        runtime=dict(version='2.5.0-dev',build='PUBLIC SYNTHETIC PROFILE CONTEXT'),nozzle_mm=.4,
+        effective=dict(filament_flow_ratio='1',extruder_type='Direct Drive',nozzle_temperature='217'))
+    for role in ('printer','process','filament'):
+        value[role]={kind:dict(name='Review '+role,config=dict(identity=kind)) for kind in ('saved','edited')}
+    return value
+
+
+class CoordinatorReview:
+    """Real routing/journal, no job adapter. The container's network stays disabled."""
+    def __init__(self,container,work):
+        self.container=container;self.work=Path(work);self.delivered={}
+        self.storage=self.work.parent/'coordinator-storage'
+        self.channel=DirectoryEvents(self.work.parent/'offline-events')
+        self.runtime=Coordinator(self.work.parent/'coordinator',generate,{},capabilities({}))
+        self.tick=load('v1_parameter_review_tick',ROOT/'scripts/v1-runtime.py').tick
+        if not (self.storage/'context.json').exists():atomic_json(self.storage/'context.json',review_context())
+        self.last_trace=None
     def saved(self):
         path=self.work/'config/plugin-data/orcacal.json'
-        if not path.exists():return None
-        return read_json(path).get('v1_session')
+        return read_json(path).get('v1_session') if path.exists() else None
     def pump(self):
-        saved=self.saved()
-        if not saved:return None
-        phase=saved['phase'];action=(saved.get('intent') or {}).get('action')
-        code=2 if phase=='requested' else 3 if phase=='preparing' else 4 if phase=='review' and action=='confirm' else 5 if phase=='starting' and action=='start' else 11 if phase=='printing' and action=='cancel' else 7 if phase=='returning' else None
-        if code:q.signal(self.container,code)
-        if phase in ('delivered','blocked','cancelled','failed') and self.offered!=saved['request']['request_id']:
-            q.signal(self.container,1);self.offered=saved['request']['request_id']
+        saved=self.saved() or {}
+        # Preserve native event bytes semantically; never synthesize a request.
+        atomic_json(self.channel.directory/'native.json',saved)
+        self.tick(self.runtime,self.storage,self.channel)
+        for event in ('context','status','ack'):
+            path=self.channel.directory/(event+'.json')
+            if not path.exists():continue
+            data=read_json(path);fingerprint=digest(data)
+            if self.delivered.get(event)==fingerprint:continue
+            q.ctl(self.container,'set','orcacal__v1_review_delivery',json.dumps(dict(event='helix_orca_v1.'+event+'.v1',data=data),separators=(',',':')))
+            self.delivered[event]=fingerprint
+        state=self.runtime.state;request=state.get('request')
+        # tick archives terminal requests before offering a fresh nonce. Bind the
+        # independent trace to its archived real coordinator journal as well.
+        request=(saved.get('request') if saved else None)
+        if request:
+            journal=self.runtime.path
+            if state.get('request')!=request:journal=self.runtime.root/'history'/(request['request_id']+'.json')
+            if journal.exists():
+                retained=read_json(journal)
+                trace=dict(schema='helix-orca-v1-parameter-trace/v1',native_request=request,
+                    transport_request=saved.get('request'),coordinator_request=retained.get('request'),
+                    native_sha256=digest(request),coordinator_sha256=digest(retained.get('request')),
+                    phase=retained['phase'],message=retained['message'],prepared=retained['prepared'],
+                    generator_dispatched=(self.runtime.root/'jobs'/request['request_id']).exists(),
+                    physical_adapter_enabled=False)
+                atomic_json(self.work/'parameter-traces'/(request['request_id']+'.json'),trace)
         return self.saved()
-    def finish(self):
-        saved=self.saved();require(saved and saved['phase']=='printing','Use native deliberate Start before finishing the simulation')
-        q.signal(self.container,6)
 
 def html(token):
     text=(ROOT/'scripts/temperature-viewer.html').read_text()
     text=text.replace('__REVIEW_VERSION__',digest(sources()))
-    text=text.replace('Mock Temperature review','V1 native synthetic review')
+    text=text.replace('Mock Temperature review','V1 native parameter review')
     text=text.replace('Choose a temperature in native Helix, then Next.','Evaluate the simulated calibration in native Helix, then Return result.')
-    text=text.replace('Mock Temperature · no printer connected','V1 native UI review · SYNTHETIC ONLY')
+    text=text.replace('Mock Temperature · no printer connected','V1 parameter review · NO PRINTER · OFFLINE CONTEXT')
     text=text.replace('tap <b>Mock Temperature</b>','tap <b>Orca Calibration</b>')
     text=text.replace("'Content-Type':'application/json'", "'Content-Type':'application/json','X-Helix-Review':"+json.dumps(token))
+    text=text.replace('<button id="finish" data-action="finish-mock" disabled>Finish simulated print</button>', '<button id="finish" hidden disabled>No printer connected</button>')
+    text=text.replace("finish.disabled=v.state!==2;", "finish.disabled=true;")
+    text=text.replace("'Use native Start, then finish the simulation here.'", "'Edit native parameters and request preparation. The actual coordinator reports unavailable generators.'")
+    text=text.replace('Use native Start, then finish the simulation here.', 'Native controls → actual offline coordinator. Physical execution disabled.')
     return text
 
 def authorized_http(headers,post=False,token=None):
@@ -175,7 +233,7 @@ def serve(record_path,seconds):
     a.CONTAINER=container;a.state_root=lambda:work
     q.q.wait_ready(container)
     version=digest(record['sources']);token=secrets.token_hex(32);document=html(token)
-    fixture=Fixture(container,work);captures=0
+    fixture=CoordinatorReview(container,work);captures=0
     class Handler(a.ViewerHandler):
         def _headers(self,status,content_type,length):review_headers(self,status,content_type,length)
         def setup(self):
@@ -189,6 +247,21 @@ def serve(record_path,seconds):
                 elif route=='/api/review-state':
                     saved=fixture.saved() or {};phase=saved.get('phase','idle')
                     self._json(dict(version=version,state={'printing':2,'complete':3,'delivered':4}.get(phase,0),phase=phase,synthetic_only=True))
+                elif route=='/api/geometry':
+                    query=parse_qs(urlparse(self.path).query)
+                    name=query.get('name',[''])[0]
+                    require(set(query)=={'name'} and len(query['name'])==1 and len(name)<=128 and re.fullmatch(r'orcacal__[a-zA-Z0-9_]+',name),'Native calibration widget required')
+                    self._json(q.ctl(container,'geom',name,'0'))
+                elif route=='/api/parameter-state':
+                    saved=fixture.saved() or {};request=saved.get('request');trace=None
+                    if request:
+                        path=work/'parameter-traces'/(request['request_id']+'.json')
+                        if path.exists():trace=read_json(path)
+                    self._json(dict(native=saved,trace=trace))
+                elif route=='/api/subject':
+                    query=parse_qs(urlparse(self.path).query);name=query.get('name',[''])[0]
+                    require(set(query)=={'name'} and len(query['name'])==1 and len(name)<=128 and re.fullmatch(r'orcacal__v1_[a-zA-Z0-9_]+',name),'Native calibration subject required')
+                    self._json(q.ctl(container,'get',name))
                 elif route=='/frame.png':
                     q.ctl(container,'screenshot','/state/viewer-frame.png')
                     self._send((work/'viewer-frame.png').read_bytes(),'image/png')
@@ -205,13 +278,12 @@ def serve(record_path,seconds):
                 if route in ('/api/tap','/api/drag'):pointer(work,points(body))
                 elif route=='/api/home':q.ctl(container,'navigate','home')
                 elif route=='/api/back':q.ctl(container,'go_back')
-                elif route=='/api/finish-mock':fixture.finish()
                 elif route=='/api/capture':
                     require(captures<32,'Capture limit reached (32)');captures+=1
                     target=work/'manual-captures';target.mkdir(exist_ok=True)
                     q.ctl(container,'screenshot',f'/state/manual-captures/manual-{captures:02d}.png')
                 q.ctl(container,'wait_idle')
-                self._json(dict(message='Synthetic native review action complete; no printer connected'))
+                self._json(dict(message='Native review action complete; actual coordinator; no printer connected'))
             except Exception as exc:self._json(dict(error=str(exc)),400)
     require(ipaddress.ip_address(LAN).is_private and LAN!='0.0.0.0' and PORT==8540,'Reserved LAN viewer only')
     server=http.server.HTTPServer((LAN,PORT),Handler);server.timeout=.2
@@ -226,13 +298,13 @@ def serve(record_path,seconds):
             fixture.pump();server.handle_request()
     finally:server.server_close()
 
-def launch(seconds):
+def launch(seconds,context=None):
     resource=get_resource()
     seconds=duration(seconds);before=sources()
     resource.private_dir(CURRENT.parent)
     q.q.beta9.verify_cache();q.q.beta9.configure_accepted_harness();a=q.a
     cache=q.builder.default_output().parent;cache.mkdir(parents=True,exist_ok=True)
-    plugins=q.fixture(cache/('review-fixture-'+uuid.uuid4().hex));fixture_files=q.q.file_hashes(plugins/'orcacal')
+    plugins=transport_fixture(cache/('review-fixture-'+uuid.uuid4().hex));fixture_files=q.q.file_hashes(plugins/'orcacal')
     a.PLUGIN_ROOT=plugins
     class NativeDocker(resource.DockerCLI):
         def create(self,run_id,image,command,memory,cpus,pids):
@@ -245,6 +317,9 @@ def launch(seconds):
     image=a.image_metadata()['id'];commit=a.run(['git','rev-parse','HEAD'],capture=True,cwd=ROOT).stdout.strip()
     with resource.ManagedRun(app=APP,repo=str(ROOT),issue='https://github.com/bigstupid007/helix-orca-calibration/issues/14',commit=commit,dirty_input=digest(before),paths=[str(CURRENT.parent),str(cache),str(ROOT)],reserve=5*1024**3,peak=512*1024**2,margin=512*1024**2,timeout=seconds,adapter=NativeDocker()) as run:
         work=run.artifacts/'view';work.mkdir();(work/'home').mkdir();q.settings(work/'config')
+        if context is not None:
+            from integration.v1_contract import validate_context
+            atomic_json(run.artifacts/'coordinator-storage/context.json',validate_context(read_json(private_file(Path(context).absolute()))))
         cid=run.container(image,[],memory=512*1024**2,cpus=2,pids=128)
         require(sources()==before,'Sources changed while preparing review')
         record=dict(schema=SCHEMA,app=APP,run_id=run.data['run_id'],container=cid,work=str(work),stop_file=str(run.artifacts/'review-stop.json'),sources=before,source_sha256=digest(before),fixture_root=str(plugins),fixture_files=fixture_files,url=f'http://{LAN}:{PORT}',synthetic_only=True)
@@ -257,11 +332,11 @@ def launch(seconds):
 
 def main():
     p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='op',required=True)
-    start=sub.add_parser('launch');start.add_argument('--seconds',type=duration,default=DEFAULT_SECONDS)
+    start=sub.add_parser('launch');start.add_argument('--seconds',type=duration,default=DEFAULT_SECONDS);start.add_argument('--context',type=Path,help='Existing private local captured Orca context; absent uses explicit synthetic profiles')
     sub.add_parser('status');sub.add_parser('stop')
     internal=sub.add_parser('_serve');internal.add_argument('record',type=Path);internal.add_argument('--seconds',type=int,required=True)
     x=p.parse_args()
-    if x.op=='launch':launch(x.seconds)
+    if x.op=='launch':launch(x.seconds,x.context)
     elif x.op=='stop':print(json.dumps(stop()))
     elif x.op=='status':
         record,manifest=session();print(json.dumps(dict(run_id=record['run_id'],state=manifest['state'],runtime_clear=manifest.get('verification',{}).get('runtime_clear',False),url=record['url'],synthetic_only=True)))

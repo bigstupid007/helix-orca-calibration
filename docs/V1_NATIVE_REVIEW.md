@@ -1,11 +1,18 @@
 # Bounded V1 native interactive review
 
-This derivative viewer presents actual pinned beta.9 Helix pixels and forwards
-native pointer/Home/Back input. Its external preparation, parity, print and
-receipt statuses are fixed synthetic qualification fixtures. The conspicuous
-`SYNTHETIC ONLY` viewer heading remains visible above the native frame. No real
-printer, generator, runtime job adapter or physical action is connected. This
-viewer does not qualify generator parity or physical readiness.
+The viewer presents actual pinned beta.9 Helix pixels and forwards native
+pointer/Home/Back input. Its default now uses the real V1 Coordinator, routing,
+and DirectoryEvents journal, with no configured generator or printer adapter.
+Choose and edit every calibration, request preparation, and inspect the genuine
+unavailable-generator message. Exact native requests are retained unchanged in
+transport and coordinator traces. The viewer cannot manufacture a Prepared job,
+completion or qualification. The former synthetic full-workflow capture below
+is historical evidence only.
+
+The default profile context is explicitly synthetic. To use an existing captured
+Orca context, pass `--context /absolute/private/context.json`; it stays outside the
+container mount and normal profile storage is never read or changed. This is
+an offline transport review, not production deployment or physical readiness.
 
 From this checkout, after every capture/build has released the shared resource
 gate, launch one foreground review:
@@ -22,15 +29,17 @@ the interactive window reserves 20 seconds within that budget. A shorter
 this foreground command owns the shared lifecycle gate.
 
 Tap the compact Orca Calibration tile. Choose any of the five calibrations,
-configure its supported native parameters, and request preparation. Fixed mock
-preparation reaches Review. Confirm the job in native Helix, then deliberately
-press native Start separately. Only now is the browser's **Finish simulated
-print** control enabled. Finish the simulation, choose the result in native
-Helix, Return result, inspect Returned / NOT APPLIED, and dismiss with Done.
-Temperature preserves its accepted automatic presentation; the other kinds
-refresh their owned job view and support manual reopen. Home/Back remain native
-navigation; drag the native frame to scroll. Save capture retains at most 32
-manual frames in the private managed artifacts.
+edit the native numeric fields through their keypad, select either YOLO mode,
+and request preparation. Drag the native frame to scroll; numeric entry and
+Set use the same native pointer path. The real coordinator retains the selected
+values and reports its actual capability blocker. Confirm and Start remain
+inaccessible without a genuinely parity-qualified prepared job. No simulated
+finish control exists. Home/Back use native navigation. Save capture retains
+at most32 manual frames in the private managed artifacts.
+
+Read-only `/api/geometry`, `/api/subject`, and `/api/parameter-state` expose
+calibration geometry, displayed subjects, and exact request/coordination traces
+for independent operator proof. They cannot edit parameters or issue actions.
 
 From another terminal in the same checkout:
 
@@ -69,7 +78,10 @@ RPC failure, the wrapper makes one bounded release attempt on a fresh private
 socket and preserves the original error. Deployment authorization and the ordinary Windows
 coordinator remain separate, default-off product/runtime work.
 
-Thirteen focused dependency-free checks pass. Actual qualification run
+Twelve focused dependency-free review checks pass, including actual coordinator
+request retention and archive tracing.
+
+Historical synthetic qualification run
 `d7c80433b4a74a44aede3ae9567ef7e8` passed after the full 396-frame matrix and
 engine cleanup released the resource gate. Chromium 140.0.7339.186 with
 Playwright 1.64.1 used a fresh isolated profile and actual native browser pointer
