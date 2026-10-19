@@ -102,7 +102,7 @@ A fresh isolated Chromium 140 browser (Playwright 1.64.1) exercised actual nativ
 pointer controls through Generate, Confirm, distinct Start, simulated completion,
 Return result, NOT APPLIED receipt, Done, Home and Back. Native Returned was
 asserted and each saved image awaited a fresh frame; all nine full browser frames
-retain the SYNTHETIC ONLY heading. There were no page errors or owned browser
+retain explicit synthetic/no-printer labeling. There were no page errors or owned browser
 processes left. Live Host/Origin/token/command/coordinate refusals passed, followed
 by nonce-bound graceful stop, listener closure and exact ManagedRun cleanup.
 This lead-operated interaction check is separate from the independent cold
