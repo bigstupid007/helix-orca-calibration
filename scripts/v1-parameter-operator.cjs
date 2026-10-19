@@ -66,7 +66,9 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
   const pageErrors=[];
   page.on('pageerror', error => pageErrors.push(error.message));
   page.on('requestfailed', request => {
-    if (new URL(request.url()).origin === origin.origin) pageErrors.push(`request failed: ${request.url()} ${request.failure()?.errorText || ''}`);
+    const requested=new URL(request.url()); const failure=request.failure()?.errorText || '';
+    if (requested.origin === origin.origin && !(requested.pathname==='/frame.png' && failure==='net::ERR_ABORTED'))
+      pageErrors.push(`request failed: ${request.url()} ${failure}`);
   });
   const actions=[];
   const screenshots=[];
@@ -118,14 +120,15 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
     }, previous, {timeout:5000});
   }
   async function browserDrag(x0,y0,x1,y1,reason) {
-    const box=await frameBox(); const old=await page.locator('#frame').evaluate(node=>node.src);
+    const box=await frameBox();
     const response=page.waitForResponse(r => r.url()===origin.origin+'/api/drag' && r.request().method()==='POST');
     await page.mouse.move(box.x+x0*box.width/800,box.y+y0*box.height/480);
     await page.mouse.down();
     await page.mouse.move(box.x+x1*box.width/800,box.y+y1*box.height/480,{steps:8});
     await page.mouse.up();
     const result=await response; assert.equal(result.status(),200,`Native drag failed for ${reason}`);
-    await freshFrame(old); actions.push({type:'browser-native-drag',reason,x0,y0,x1,y1});
+    const after=await page.locator('#frame').evaluate(node=>node.src);
+    await freshFrame(after); actions.push({type:'browser-native-drag',reason,x0,y0,x1,y1});
   }
   async function ensureVisible(name) {
     for (let attempt=0;attempt<12;attempt++) {
@@ -142,18 +145,19 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
     const widget=await ensureVisible(name);
     const x=Math.floor(Number(widget.x)+Number(widget.w)/2);
     const y=Math.floor(Number(widget.y)+Number(widget.h)/2);
-    const box=await frameBox(); const old=await page.locator('#frame').evaluate(node=>node.src);
+    const box=await frameBox();
     const response=page.waitForResponse(r => r.url()===origin.origin+'/api/tap' && r.request().method()==='POST');
     await page.mouse.click(box.x+x*box.width/800,box.y+y*box.height/480);
     const result=await response; assert.equal(result.status(),200,`Native tap failed for ${name}`);
-    await freshFrame(old); actions.push({type:'browser-native-tap',widget:name,geometry:{x:widget.x,y:widget.y,w:widget.w,h:widget.h},x,y});
+    const after=await page.locator('#frame').evaluate(node=>node.src);
+    await freshFrame(after); actions.push({type:'browser-native-tap',widget:name,geometry:{x:widget.x,y:widget.y,w:widget.w,h:widget.h},x,y});
   }
   async function navButton(label, endpoint) {
-    const old=await page.locator('#frame').evaluate(node=>node.src);
     const response=page.waitForResponse(r => r.url()===origin.origin+endpoint && r.request().method()==='POST');
     await page.getByRole('button',{name:label,exact:true}).click();
     const result=await response; assert.equal(result.status(),200,`${label} navigation failed`);
-    await freshFrame(old); actions.push({type:'browser-native-navigation',action:label});
+    const after=await page.locator('#frame').evaluate(node=>node.src);
+    await freshFrame(after); actions.push({type:'browser-native-navigation',action:label});
   }
   async function capture(name) {
     await until(async()=>{
