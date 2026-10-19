@@ -1,6 +1,13 @@
 {
   "executable_sha256": "e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759",
   "generator_qualification": false,
+  "generator_qualification_by_calibration": {
+    "flow_ratio_yolo": true,
+    "max_volumetric_speed": false,
+    "pressure_advance_pattern": false,
+    "retraction": false,
+    "temperature": false
+  },
   "historical_retraction_failed_inspection": {
     "invariant_failure_code": "retraction_episode_length",
     "invariants_passed": false,
@@ -10,6 +17,91 @@
       "inspector": "53143ab43d793fabec59de90f809a8a746234c95b8db60964c61ada6d7210778",
       "parity": "e8709c26687c318fe9455c472b96b5ec078d524f4723ff08d67b9160958213d0"
     }
+  },
+  "historical_yolo_actual_windows_parity_r6": {
+    "candidate": {
+      "sha256": "ce05e8bd2acc16ceea51781745357bc90b87cb72800634eff60bc99061f358cb",
+      "size": 1559700
+    },
+    "disposition": "executable_difference",
+    "emitted_setting_difference_count": 5,
+    "hardware_abi_qualified": false,
+    "inputs_sha256": "a9fa4565908dd1d7f975d599c16f144bf46d310bd37df7138bf1c766dbe74e11",
+    "invariants": {
+      "candidate": {
+        "accepted_abi_signature": false,
+        "deposition_temperatures": [
+          220.0
+        ],
+        "executable_commands": 55268,
+        "layers": 10,
+        "macro_semantics_present": true,
+        "model_moves": 43241,
+        "passed": true
+      },
+      "native": {
+        "accepted_abi_signature": false,
+        "deposition_temperatures": [
+          220.0
+        ],
+        "executable_commands": 55273,
+        "layers": 10,
+        "macro_semantics_present": true,
+        "model_moves": 43241,
+        "passed": true
+      }
+    },
+    "macro_internals_observed": false,
+    "native": {
+      "sha256": "0fb149a6a1624cdf64cb03a8c0dcb0fc6a21d9d3f43a4fb0f3389e4e48485daa",
+      "size": 1576258
+    },
+    "native_evidence": [
+      {
+        "sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "size": 75490
+      },
+      {
+        "sha256": "af10ae708135903ac17e3db78eef30d93903b4b90faf082b223edf53c1bd2d7c",
+        "size": 15883
+      },
+      {
+        "sha256": "737f2c7d1acd76c90697d5806a96a48f9e7374c3ac27d2ca66bbe6327f8751b5",
+        "size": 238001
+      }
+    ],
+    "native_manifest_sha256": "2dfd06eb9df96c4742c5afc0963ac67bede22cbcb6ab3db88dc7dc6381cffb95",
+    "observations": {
+      "candidate_dynamic_acceleration_commands": 3054,
+      "candidate_model_extrusion_mm": 4854.673,
+      "candidate_model_moves": 43241,
+      "dynamic_acceleration_stream_equal": false,
+      "dynamic_acceleration_unique_values_equal": true,
+      "heater_stream_equal": true,
+      "machine_limits_equal": true,
+      "motion_extrusion_equal": false,
+      "native_dynamic_acceleration_commands": 3054,
+      "native_model_extrusion_mm": 4854.673,
+      "native_model_moves": 43241,
+      "printed_xy_bounds_equal": false,
+      "progress_estimates_equal": true,
+      "static_machine_limit_commands_present": false
+    },
+    "physical_actions": false,
+    "physical_readiness": false,
+    "policy": "exact-executable-v1",
+    "prepared_sha256": "13c03395a62a8d8ed7da095c7cba597dd9d554e10025603b2d0dce04879520c8",
+    "qualified": false,
+    "report_sha256": "5c5fb10764918deba29573a1ac5465b108ffdf659ad92418ed79152e287b27d3",
+    "schema": "helix-orca-v1-windows-parity-summary/v1",
+    "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+    "source_files": {
+      "contract": "27fab88b4b501777fc4a8a8282802538f986584582ec86acecabab8e7034d75d",
+      "parity": "51bb59178d6428f8791d94c0f0c3348db80e3569bedd29b98b40d17602e7bebc",
+      "runner": "d820b3cb1e452763cc73199a5f825e741a2fd509250fc1a94fa1e088a034b9a9"
+    },
+    "success": true,
+    "unclassified_setting_difference_count": 0
   },
   "native_references": {
     "flow_ratio_yolo": {
@@ -474,15 +566,19 @@
   "physical_actions": false,
   "physical_readiness": false,
   "schema": "helix-orca-v1-windows-reference-inventory/v1",
-  "scope": "Actual independent October 15 Windows native UI references; scalar/hash export only. No candidate generator or physical qualification.",
+  "scope": "Actual independent October 15 Windows native references and exact stock YOLO production parity; scalar/hash export only. No hardware or physical qualification.",
   "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
-  "yolo_actual_windows_parity": {
+  "yolo_actual_windows_production_parity_r8": {
     "candidate": {
-      "sha256": "ce05e8bd2acc16ceea51781745357bc90b87cb72800634eff60bc99061f358cb",
-      "size": 1559700
+      "sha256": "47020c7f3ce7f533ea1e6adbc13eaa383606792ffd1de6a7554416c0d6b32ffa",
+      "size": 1560554
     },
-    "disposition": "executable_difference",
+    "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+    "disposition": "exact_executable_and_invariants_match",
     "emitted_setting_difference_count": 5,
+    "executable_sha256": "e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759",
+    "flow_layout_sha256": "81e0e2d0e01368ee616124cf0304cedbc72c2003450c05f81a122714e7a7906d",
+    "generation_provenance_sha256": "be258b4b0886188263cfe8464c8d8accd331934c3576cb8594b415d0d23a05e3",
     "hardware_abi_qualified": false,
     "inputs_sha256": "a9fa4565908dd1d7f975d599c16f144bf46d310bd37df7138bf1c766dbe74e11",
     "invariants": {
@@ -491,7 +587,7 @@
         "deposition_temperatures": [
           220.0
         ],
-        "executable_commands": 55268,
+        "executable_commands": 55273,
         "layers": 10,
         "macro_semantics_present": true,
         "model_moves": 43241,
@@ -510,6 +606,7 @@
       }
     },
     "macro_internals_observed": false,
+    "model_3mf_sha256": "ac6c2f659d65c9af66fcef13132464719ededdbf218fabf9d6bf9502ed310f71",
     "native": {
       "sha256": "0fb149a6a1624cdf64cb03a8c0dcb0fc6a21d9d3f43a4fb0f3389e4e48485daa",
       "size": 1576258
@@ -533,32 +630,40 @@
       "candidate_dynamic_acceleration_commands": 3054,
       "candidate_model_extrusion_mm": 4854.673,
       "candidate_model_moves": 43241,
-      "dynamic_acceleration_stream_equal": false,
+      "dynamic_acceleration_stream_equal": true,
       "dynamic_acceleration_unique_values_equal": true,
       "heater_stream_equal": true,
       "machine_limits_equal": true,
-      "motion_extrusion_equal": false,
+      "motion_extrusion_equal": true,
       "native_dynamic_acceleration_commands": 3054,
       "native_model_extrusion_mm": 4854.673,
       "native_model_moves": 43241,
-      "printed_xy_bounds_equal": false,
+      "printed_xy_bounds_equal": true,
       "progress_estimates_equal": true,
       "static_machine_limit_commands_present": false
     },
     "physical_actions": false,
     "physical_readiness": false,
     "policy": "exact-executable-v1",
-    "prepared_sha256": "13c03395a62a8d8ed7da095c7cba597dd9d554e10025603b2d0dce04879520c8",
-    "qualified": false,
-    "report_sha256": "5c5fb10764918deba29573a1ac5465b108ffdf659ad92418ed79152e287b27d3",
-    "schema": "helix-orca-v1-windows-parity-summary/v1",
+    "prepared_sha256": "da542168ca7b351a8808f628b7a57ab701ad33b44b2ccc4cb4cb89d52fb918a9",
+    "production_generator": "integration.v1_generation.generate",
+    "public_asset_sha256": "c998359cef8c247c5c9c50ea0d07e778590be7cdaa1d21beaf84abccea7840ca",
+    "qualified": true,
+    "report_sha256": "f2fbe79592c354b61bf5051295c0d3f2a2d2bae8e2657e3026dd8dbe10227a92",
+    "request_created_at": 1792371322,
+    "request_expires_at": 1792374922,
+    "request_sha256": "f92e3dc4f9c8840a95b90cfec5c403fc0acff05d56d53f965bf89804b37b71b1",
+    "schema": "helix-orca-v1-windows-stock-yolo-summary/v1",
     "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
     "source_files": {
-      "contract": "27fab88b4b501777fc4a8a8282802538f986584582ec86acecabab8e7034d75d",
-      "parity": "51bb59178d6428f8791d94c0f0c3348db80e3569bedd29b98b40d17602e7bebc",
-      "runner": "d820b3cb1e452763cc73199a5f825e741a2fd509250fc1a94fa1e088a034b9a9"
+      "integration/v1_contract.py": "27fab88b4b501777fc4a8a8282802538f986584582ec86acecabab8e7034d75d",
+      "integration/v1_generation.py": "fdc468630effd01c9250689b066bc2c40fe5870bb503f4a3f9a03b4d748b0846",
+      "integration/v1_parity.py": "51bb59178d6428f8791d94c0f0c3348db80e3569bedd29b98b40d17602e7bebc",
+      "scripts/v1-windows-parity.py": "d820b3cb1e452763cc73199a5f825e741a2fd509250fc1a94fa1e088a034b9a9",
+      "scripts/v1-windows-stock-yolo.py": "39c2f59e02582aa020c866acac1c8b930674dca681f1aab62528280c3134d4ff"
     },
     "success": true,
+    "timeout_seconds": 45,
     "unclassified_setting_difference_count": 0
   }
 }

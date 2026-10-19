@@ -130,3 +130,25 @@ Remaining exact generation comparisons, native runtime refresh, independent
 review corrections and Founder acceptance are still pending. No
 new physical print, upload/queue, heat/motion, firmware/configuration change,
 writeback or printer deployment is validation evidence for this program.
+
+## R7 companion and R8 production YOLO correction
+
+The corrected self-contained companion source SHA-256
+`3c03e972706431469700d801ba3177d588d3e0e094bde73f8d04ed10f6bcda6a`
+was installed and activated through the marked isolated GUI's native plugin
+manager. Its actual waiting screenshot SHA-256 is
+`49970c962adbfa06186f52eacbaed4827a106a854d0c9b931d6e36a5d31ff2af`:
+heading and attention badge consistently say Waiting for Helix, the control says
+Refresh selection, and physical execution is explicitly disabled. The isolated
+GUI was gracefully restarted using the validated explicit NUL handle-list
+launcher; both normal Orca instances remained running. An update notice was
+dismissed without accepting any update. An occluded capture was rejected by
+the existing guard and retained; no guard was weakened.
+
+Actual R8 YOLO production generation now passes strict native-reference parity,
+report `f2fbe79592c354b61bf5051295c0d3f2a2d2bae8e2657e3026dd8dbe10227a92`.
+See [the exact run and hashes](V1_GENERATION_PARITY.md#corrected-actual-windows-yolo-production-parity--r8).
+This supersedes the failed R6 candidate and unsupported-option R7 attempt only
+for this new exact combination. It does not qualify Temperature, other routes,
+physical hardware or deployment. The waiting screenshot does not prove active
+job/result/profile-switch behavior; those target observations remain separate.

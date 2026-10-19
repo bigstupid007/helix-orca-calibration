@@ -9,15 +9,16 @@ G-code parity and a coordinator without Codex test-worker dependencies.
 This supersedes the earlier stop-after-Temperature instruction for this program.
 The accepted physical Temperature installation and evidence below remain intact.
 
-V1 is **in development, not qualified or Founder-ready**. Stock Temperature and
-Flow YOLO have produced actual October 15 Windows CLI slices; both remain
-unqualified because their executable output differs from independent native UI
-references. All five native Windows references pass their calibration invariants.
-PA Pattern, Retraction and Max Volumetric Speed await the grouped native-engine
-build. Its first 21 dependencies built; additional source-required OpenVDB
-prerequisites are pinned, and existing Windows native build tools are absent.
-The prior source-bound native UI matrix contains 341 frames across eleven sizes;
-refreshed native navigation/restart validation is underway after review fixes.
+V1 is **in development and not Founder-ready**. Stock Flow Ratio YOLO now passes
+strict executable and calibration-invariant parity against its independent native
+October 15 Windows reference for the exact retained profiles/parameters. Stock
+Temperature still has unexplained executable/geometry differences and remains
+unqualified. All five independent native Windows references pass their calibration
+invariants. The grouped native engine has compiled and linked on Linux x86_64;
+actual calibration-generation checks are underway, and Windows native build tools
+are absent. Linux availability does not enable the Windows route.
+The prior native UI matrix contains 341 historical frames; refreshed 396-frame
+qualification follows the integrated product review corrections.
 The direct coordinator keeps physical actions disabled. Its owned-job path uses
 bounded HTTP fixtures, and actual Windows lifecycle checks are component-scoped.
 Normal Orca's 1429 settings/profile files match the pre-V1 fingerprint. No

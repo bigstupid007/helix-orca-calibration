@@ -716,3 +716,36 @@ new private transfer bundle. New local generation retains `flow-layout.json`
 and binds that file plus the staged 3MF hash in generation provenance and the
 sanitized summary. Actual executable parity is still pending; these preparation
 hashes do not establish a pass or waive downstream differences.
+
+## Corrected actual Windows YOLO production parity — R8
+
+The R8 public-source-only driver called the real production generator on the
+exact October 15 Windows executable and returned exit 0. Under the unchanged
+`exact-executable-v1` policy, **qualified: true**: all 55,273 executable commands
+and both calibration-invariant inspections match the independently prepared
+native reference. Motion/extrusion, all 43,241 model moves, 4,854.673 mm model E,
+heater stream, dynamic acceleration stream (3,054 commands), printed XY bounds
+and progress estimates match. Five emitted-setting differences are classified;
+zero are unclassified. No tolerance was changed. The R6/R7 failures above remain
+historical evidence, superseded only by this distinct successful run.
+
+| Retained item | SHA-256 |
+| --- | --- |
+| Candidate G-code (1,560,554 bytes) | `47020c7f3ce7f533ea1e6adbc13eaa383606792ffd1de6a7554416c0d6b32ffa` |
+| Independent native G-code (1,576,258 bytes) | `0fb149a6a1624cdf64cb03a8c0dcb0fc6a21d9d3f43a4fb0f3389e4e48485daa` |
+| Exact parity report | `f2fbe79592c354b61bf5051295c0d3f2a2d2bae8e2657e3026dd8dbe10227a92` |
+| Prepared job | `da542168ca7b351a8808f628b7a57ab701ad33b44b2ccc4cb4cb89d52fb918a9` |
+| Canonical generation inputs | `a9fa4565908dd1d7f975d599c16f144bf46d310bd37df7138bf1c766dbe74e11` |
+| Source-only ZIP | `93d9b335476d2a7b8f9fdc063d6e3d5c0d04680428b728a8cf129512929bcada` |
+| Production generation source | `fdc468630effd01c9250689b066bc2c40fe5870bb503f4a3f9a03b4d748b0846` |
+| Job-local layout record | `81e0e2d0e01368ee616124cf0304cedbc72c2003450c05f81a122714e7a7906d` |
+| Local generation provenance | `be258b4b0886188263cfe8464c8d8accd331934c3576cb8594b415d0d23a05e3` |
+
+The native reference manifest and all local evidence files were rehashed before
+generation. The exact original context remains `3bf24bab…`, executable `e2b6da4c…`,
+and public model `c998359c…`. Full inputs, reports and G-code remain in isolated
+Windows `actual-flow-yolo-production-r8`; the public evidence inventory contains
+only the bounded summary. Qualification applies to these exact inputs, not all
+profiles or parameters. The accepted physical start-macro ABI does not match
+this context: `hardware_abi_qualified`, `physical_readiness` and `physical_actions`
+remain false. No upload, physical Start or printer action occurred.
