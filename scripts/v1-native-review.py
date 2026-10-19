@@ -133,6 +133,17 @@ def authorized_http(headers,post=False,token=None):
     require(headers.get('Origin') in (None,f'http://{LAN}:{PORT}'),'Unexpected review origin')
     if post:require(secrets.compare_digest(headers.get('X-Helix-Review',''),token),'Review token missing')
 
+def review_headers(handler,status,content_type,length):
+    # Keep accepted pixel-viewer CSP and prohibit embedding its native controls.
+    handler.send_response(status)
+    for name,value in (
+        ('Content-Type',content_type),('Content-Length',str(length)),
+        ('Cache-Control','no-store'),('X-Content-Type-Options','nosniff'),
+        ('X-Frame-Options','DENY'),
+        ('Content-Security-Policy',"default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self'; frame-ancestors 'none'")):
+        handler.send_header(name,value)
+    handler.end_headers()
+
 def duration(value):
     number=int(value)
     if not 60<=number<=900:raise argparse.ArgumentTypeError('Review duration must be 60..900 seconds')
@@ -151,6 +162,7 @@ def serve(record_path,seconds):
     version=digest(record['sources']);token=secrets.token_hex(32);document=html(token)
     fixture=Fixture(container,work);captures=0
     class Handler(a.ViewerHandler):
+        def _headers(self,status,content_type,length):review_headers(self,status,content_type,length)
         def setup(self):
             super().setup();self.connection.settimeout(5)
         def log_message(self,*_):pass

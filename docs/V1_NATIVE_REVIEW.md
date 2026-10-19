@@ -60,12 +60,14 @@ ROOT even when a viewer XDG override is present. Generated fixture plugins remai
 
 HTTP actions are a fixed typed allowlist, bounded to the 800×480 native frame.
 The wrapper validates the exact LAN Host, rejects foreign Origins and requires
-a random per-session token on each mutation. It has no CORS, arbitrary command,
+a random per-session token on each mutation. Every response sends
+`X-Frame-Options: DENY` and CSP `frame-ancestors 'none'` to prevent framed native
+input. It has no CORS, arbitrary command,
 RPC, G-code, profile/configuration update or production activation endpoint.
 Malformed input fails closed. Deployment authorization and the ordinary Windows
 coordinator remain separate, default-off product/runtime work.
 
-Eleven focused dependency-free checks pass. Actual viewer lifecycle/browser
+Twelve focused dependency-free checks pass. Actual viewer lifecycle/browser
 qualification must follow the frozen full native matrix and the queued engine
 diagnostic; no listener was started while the matrix was active. This document
 will be updated with the resulting managed proof before claiming that check.

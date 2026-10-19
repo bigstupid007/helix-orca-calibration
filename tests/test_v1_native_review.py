@@ -11,6 +11,17 @@ spec=importlib.util.spec_from_file_location('v1_native_review_test',ROOT/'script
 r=importlib.util.module_from_spec(spec);spec.loader.exec_module(r)
 
 class NativeReviewTests(unittest.TestCase):
+    def test_every_response_refuses_foreign_framing(self):
+        for status,content in ((200,'text/html'),(200,'image/png'),(400,'application/json')):
+            stored={}
+            fake=SimpleNamespace(send_response=lambda value:stored.update(status=value),send_header=lambda key,value:stored.update({key:value}),end_headers=lambda:stored.update(ended=True))
+            r.review_headers(fake,status,content,32)
+            self.assertEqual(stored['status'],status)
+            self.assertEqual(stored['X-Frame-Options'],'DENY')
+            self.assertIn("frame-ancestors 'none'",stored['Content-Security-Policy'])
+            self.assertIn("default-src 'self'",stored['Content-Security-Policy'])
+            self.assertEqual(stored['Cache-Control'],'no-store')
+            self.assertTrue(stored['ended'])
     def test_security_file_is_bound_in_source_inventory(self):
         key='integration/v1_private_file.py'
         self.assertEqual(r.sources()[key],r.sha(ROOT/key))
