@@ -8,18 +8,22 @@ from __future__ import annotations
 import argparse
 import hashlib
 import importlib.util
+import importlib.abc
+import importlib.machinery
 import json
 import os
 from pathlib import Path
 import re
 import secrets
+import stat
+import types
 import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from integration import v1_contract as c, v1_generation as g, v1_parity as p
-from integration.v1_temperature_geometry import inspect_stl
+# No owned import or bytecode load is permitted before external source pins.
+sys.dont_write_bytecode = True
+c = g = p = inspect_stl = None
 
 PIN = '6a7763f08d1a175a464a00ce13f0b5a815662fc4'
 CONTEXT_SHA = '3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c'
@@ -35,6 +39,106 @@ SOURCE_NAMES = ('integration/v1_contract.py', 'integration/v1_generation.py',
 
 class Refused(ValueError):
     pass
+
+
+SOURCE_SCHEMA = 'helix-orca-v1-reviewed-python-source/v1'
+
+
+def safe_path(path, directory=False):
+    """Reject path traversal and every symlink/reparse component before resolve."""
+    path = Path(path)
+    if str(path).startswith(('\\', '//')) or '..' in path.parts:
+        raise Refused('reviewed_source_path_unsafe')
+    path = path.absolute()
+    for component in reversed((path, *path.parents)):
+        status = component.lstat()
+        if stat.S_ISLNK(status.st_mode) or getattr(status,'st_file_attributes',0) & 0x400:
+            raise Refused('reviewed_source_link_or_reparse')
+    status = path.lstat()
+    if not (stat.S_ISDIR(status.st_mode) if directory else stat.S_ISREG(status.st_mode)):
+        raise Refused('reviewed_source_not_regular')
+    return path
+
+
+class ReviewedSource:
+    """Execute captured, externally pinned source bytes; never import .pyc."""
+    def __init__(self, manifest_path, expected_sha256):
+        self.root = safe_path(ROOT,directory=True)
+        self.manifest = safe_path(manifest_path)
+        if self.manifest.suffix != '.json' or self.manifest in {self.root/name for name in SOURCE_NAMES}:
+            raise Refused('reviewed_source_manifest_path_mismatch')
+        self.manifest_sha256 = digest_arg(expected_sha256)
+        data = self.manifest.read_bytes()
+        if len(data)>1048576 or hashlib.sha256(data).hexdigest()!=self.manifest_sha256:
+            raise Refused('reviewed_source_manifest_digest_mismatch')
+        manifest = json.loads(data)
+        if (not isinstance(manifest,dict) or set(manifest)!= {'schema','files'}
+                or manifest['schema']!=SOURCE_SCHEMA or not isinstance(manifest['files'],dict)
+                or set(manifest['files'])!=set(SOURCE_NAMES)):
+            raise Refused('reviewed_source_inventory_mismatch')
+        self.files = {name:digest_arg(value) for name,value in manifest['files'].items()}
+        self.bytes = self.recheck()
+        if safe_path(__file__) != self.root/'scripts/v1-windows-temperature-native-geometry.py':
+            raise Refused('reviewed_helper_path_mismatch')
+
+    def recheck(self):
+        manifest_bytes = safe_path(self.manifest).read_bytes()
+        if len(manifest_bytes)>1048576 or hashlib.sha256(manifest_bytes).hexdigest()!=self.manifest_sha256:
+            raise Refused('reviewed_source_manifest_changed')
+        safe_path(self.root,directory=True)
+        allowed = {self.root/name for name in SOURCE_NAMES}
+        if self.manifest.is_relative_to(self.root): allowed.add(self.manifest)
+        allowed_dirs = {self.root,self.root/'integration',self.root/'scripts'}
+        for directory, dirs, files in os.walk(self.root,followlinks=False):
+            for name in dirs:
+                path = safe_path(Path(directory)/name,directory=True)
+                if path not in allowed_dirs: raise Refused('unexpected_owned_source_directory_or_bytecode')
+            for name in files:
+                path = safe_path(Path(directory)/name)
+                if path not in allowed: raise Refused('unexpected_owned_source_file_or_bytecode')
+        captured = {}
+        for name,expected in self.files.items():
+            path = safe_path(self.root/name)
+            data = path.read_bytes()
+            if len(data)>1048576 or hashlib.sha256(data).hexdigest()!=expected:
+                raise Refused('reviewed_source_file_changed')
+            captured[name] = data
+        return captured
+
+    def execute(self,name,relative):
+        module = types.ModuleType(name)
+        module.__file__ = str(self.root/relative)
+        module.__package__ = name.rpartition('.')[0]
+        # Compile only the captured, hash-verified source. A loader cannot pick
+        # stale bytecode or race a second unverified disk read.
+        exec(compile(self.bytes[relative],module.__file__,'exec'),module.__dict__)
+        return module
+
+
+def load_owned(reviewed):
+    global c,g,p,inspect_stl
+    if any(name=='integration' or name.startswith('integration.') for name in sys.modules):
+        raise Refused('owned_modules_already_loaded')
+    class Loader(importlib.abc.Loader):
+        def __init__(self,relative): self.relative = relative
+        def create_module(self,spec): return None
+        def exec_module(self,module):
+            module.__file__ = str(reviewed.root/self.relative)
+            exec(compile(reviewed.bytes[self.relative],module.__file__,'exec'),module.__dict__)
+    class Finder(importlib.abc.MetaPathFinder):
+        def find_spec(self,fullname,path=None,target=None):
+            if fullname.startswith('integration.'):
+                relative = fullname.replace('.','/')+'.py'
+                if relative not in reviewed.files: raise Refused('unexpected_owned_module_import')
+                return importlib.util.spec_from_loader(fullname,Loader(relative),origin=str(reviewed.root/relative))
+    package = types.ModuleType('integration');package.__path__=[]
+    package.__package__='integration'
+    sys.modules['integration']=package
+    sys.meta_path.insert(0,Finder())
+    from integration import v1_contract,v1_generation,v1_parity,v1_temperature_geometry
+    c,g,p = v1_contract,v1_generation,v1_parity
+    inspect_stl = v1_temperature_geometry.inspect_stl
+    reviewed.recheck()
 
 
 def sha(path, maximum=2*1024**3):
@@ -112,6 +216,12 @@ def validate_geometry(context, model_path, model_sha256, receipt):
 def run(args):
     if os.name != 'nt':
         raise Refused('windows_execution_required')
+    if not sys.flags.isolated or not sys.flags.no_site:
+        raise Refused('isolated_no_site_interpreter_required')
+    reviewed = ReviewedSource(args.source_manifest,args.source_manifest_sha256)
+    load_owned(reviewed)
+    if args.output_dir.absolute().is_relative_to(reviewed.root):
+        raise Refused('output_must_be_outside_reviewed_source_tree')
     context = c.validate_context(read_json(args.context))
     if c.digest(context) != CONTEXT_SHA or context['runtime'] != p.PINS[PIN]:
         raise Refused('immutable_original_context_or_runtime_mismatch')
@@ -129,7 +239,7 @@ def run(args):
     if str(args.output_dir).startswith(('\\\\', '//')) or args.output_dir.is_symlink():
         raise Refused('new_local_output_directory_required')
     args.output_dir.mkdir(exist_ok=False)
-    source_files = {name:sha(ROOT/name) for name in SOURCE_NAMES}
+    source_files = dict(reviewed.files)
     config = dict(source_commit=PIN,runtime=p.PINS[PIN],now=now,timeout_seconds=45,
         executable=str(args.executable.resolve()),executable_sha256=EXE_SHA,
         temperature_model=model,
@@ -143,13 +253,14 @@ def run(args):
         write_json(args.output_dir/'generation-failure.json',dict(type=type(error).__name__,detail=str(error),
                    physical_actions=False,physical_readiness=False))
         raise
+    reviewed.recheck()
     report = read_json(args.output_dir/'job/parity.json')
     if prepared['parity']['report_sha256'] != c.digest(report) or (report.get('qualified') is True and not p.verify_report(report,prepared)):
         raise Refused('production_parity_revalidation_failed')
-    spec = importlib.util.spec_from_file_location('temperature_sanitizer',ROOT/'scripts/v1-windows-parity.py')
-    sanitizer = importlib.util.module_from_spec(spec);spec.loader.exec_module(sanitizer)
+    sanitizer = reviewed.execute('temperature_sanitizer','scripts/v1-windows-parity.py')
     summary = sanitizer.sanitized(report,prepared,manifest,source_files)
-    provenance = dict(schema='helix-orca-v1-local-production-generation/v1',source_files=source_files,
+    reviewed.recheck()
+    provenance = dict(reviewed_source_manifest_sha256=reviewed.manifest_sha256,schema='helix-orca-v1-local-production-generation/v1',source_files=source_files,
         parameters=PARAMETERS,context_sha256=c.digest(context),request_sha256=c.digest(request),
         inputs_sha256=c.digest(inputs),executable_sha256=EXE_SHA,native_geometry_sha256=args.model_sha256,
         geometry_receipt_file_sha256=args.geometry_receipt_sha256,native_sha256=NATIVE_SHA,
@@ -161,14 +272,16 @@ def run(args):
         native_geometry_build_inputs_sha256=geometry_receipt['build_inputs_sha256'],
         native_geometry_executable_sha256=geometry_receipt['executable_sha256'],
         physical_actions=False,physical_readiness=False)
+    reviewed.recheck()
     write_json(args.output_dir/'generation-provenance.json',provenance)
     summary.update(schema=SCHEMA,parameters=PARAMETERS,context_sha256=c.digest(context),
         production_generator='integration.v1_generation.generate',native_geometry_sha256=args.model_sha256,
         geometry_receipt_file_sha256=args.geometry_receipt_sha256,geometry_metrics=metrics,
         executable_sha256=EXE_SHA,timeout_seconds=45,generation_provenance_sha256=c.digest(provenance),
-        request_sha256=c.digest(request))
+        request_sha256=c.digest(request),reviewed_source_manifest_sha256=reviewed.manifest_sha256)
     if len(c.canonical(summary)) > 65536:
         raise Refused('summary_too_large')
+    reviewed.recheck()
     write_json(args.output_dir/'summary.json',summary)
     return summary
 
@@ -181,15 +294,15 @@ class Parser(argparse.ArgumentParser):
 def main():
     try:
         parser = Parser(description=__doc__)
-        for name in ('context','executable','model','geometry-receipt','native','native-manifest','output-dir'):
+        for name in ('context','executable','model','geometry-receipt','native','native-manifest','output-dir','source-manifest'):
             parser.add_argument('--'+name,type=Path,required=True)
-        for name in ('native-sha256','native-manifest-sha256','model-sha256','geometry-receipt-sha256'):
+        for name in ('native-sha256','native-manifest-sha256','model-sha256','geometry-receipt-sha256','source-manifest-sha256'):
             parser.add_argument('--'+name,type=digest_arg,required=True)
         result = run(parser.parse_args())
         print(c.canonical(result).decode())
         return 0 if result['qualified'] else 2
     except Exception as error:
-        code = str(error) if isinstance(error,Refused) else error.code if isinstance(error,g.GenerationBlocked) else 'local_production_generation_failed'
+        code = str(error) if isinstance(error,Refused) else error.code if g is not None and isinstance(error,g.GenerationBlocked) else 'local_production_generation_failed'
         print(json.dumps(dict(schema=SCHEMA,success=False,qualified=False,failure=code,
                               physical_actions=False,physical_readiness=False),sort_keys=True))
         return 2

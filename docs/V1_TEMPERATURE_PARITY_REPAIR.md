@@ -97,7 +97,9 @@ native G-code, native manifest and UI evidence remain on Windows. For example,
 with every path beneath the existing isolated qualification root:
 
 ```text
-python.exe -I -S scripts/v1-windows-temperature-native-geometry.py
+python.exe -I -S -B scripts/v1-windows-temperature-native-geometry.py
+  --source-manifest REVIEWED_SOURCE_MANIFEST_JSON
+  --source-manifest-sha256 EXTERNALLY_PINNED_REVIEWED_MANIFEST_SHA256
   --context ORIGINAL_CONTEXT --executable OCT15_EXECUTABLE
   --model NATIVE_PREPARED_STL --model-sha256 EXACT_MODEL_SHA256
   --geometry-receipt GEOMETRY_RECEIPT
@@ -116,3 +118,30 @@ comparison retains its full false report and preparation locally, writes a
 controlled scalar summary through the existing Windows parity sanitizer, and
 exits 2. Zero means strict parity qualified that exact retained combination;
 neither disposition claims printer hardware or macro-internal readiness.
+
+The Windows helper must run from a newly staged source directory containing
+exactly the seven public Python files listed above, the `integration` and
+`scripts` directories, and optionally the reviewed JSON manifest. Inputs,
+geometry, private context and job output live outside this source directory.
+Any other file or directory, including `__pycache__`, `.pyc`, initializer files,
+additional Python modules or native extensions, is rejected. Every source and
+manifest path component must be free of symlinks and Windows reparse points.
+
+Before any owned import, a standard-library bootstrap checks the external
+manifest's supplied SHA-256 and exact file inventory. The manifest format is:
+
+```json
+{"schema":"helix-orca-v1-reviewed-python-source/v1","files":{"integration/v1_contract.py":"EXACT_REVIEWED_SHA256","integration/v1_generation.py":"EXACT_REVIEWED_SHA256","integration/v1_parity.py":"EXACT_REVIEWED_SHA256","integration/v1_engine.py":"EXACT_REVIEWED_SHA256","integration/v1_temperature_geometry.py":"EXACT_REVIEWED_SHA256","scripts/v1-windows-temperature-native-geometry.py":"EXACT_REVIEWED_SHA256","scripts/v1-windows-parity.py":"EXACT_REVIEWED_SHA256"}}
+```
+
+The lead creates that public-code manifest from the reviewed candidate and pins
+its exact byte digest in the invocation. Values observed from the target at
+runtime are never substituted for expected pins. The bootstrap captures the
+verified source bytes and compiles only those bytes with bytecode disabled.
+It does not add the source root to Python's search path or accept an existing
+`integration` module. All five imported modules and the separately executed
+sanitizer are covered by the same manifest. The full manifest and filesystem
+inventory are rechecked after generation, after sanitization and immediately
+before writing provenance and summary. Changed source cannot publish a
+qualified summary. Both retained source pins and the external manifest digest
+are bound into the resulting provenance.
