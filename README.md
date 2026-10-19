@@ -38,7 +38,10 @@ changing its profiles. The actual Windows package CI build is the next shared
 infrastructure gate. The first actual Windows build completed all 25 dependencies
 then exposed an Expat configuration conflict; the Windows-only repair and strict
 explicit dependency checkpoint have independent source review and focused
-checks. No new native generator is yet qualified.
+checks. A second actual build exposed an empty-submodule inventory assumption
+in the new checkpoint; its correction now validates before compilation and
+passes fifteen actual Windows filesystem checks. No new native generator is
+yet qualified.
 
 The earlier native matrix passed all eleven sizes and 396 frames; its synthetic
 browser workflow and exact browser/listener/container cleanup are retained as

@@ -48,7 +48,9 @@ The unchanged CPython recipe invokes MSBuild `/m`; that switch uses the machine'
 processor count, so this builder rejects runners with more than four processors.
 `CL_MPCount=1` and the compiler's appended `_CL_=/MP1` prevent each compiler from
 multiplying that concurrency. The explicit upper bound is four compiler jobs
-on the four-CPU runner, with two for ordinary CMake builds. Microsoft documents
+on the four-CPU runner, with two for ordinary CMake builds and four for OCCT alone. The OCCT override
+is copied per target, retains the serial outer build and `/MP1`, and is bound in
+the dependency recipe/contract and the `occt_jobs` build receipt. Microsoft documents
 [MSBuild processor behavior](https://learn.microsoft.com/visualstudio/msbuild/building-multiple-projects-in-parallel-with-msbuild)
 and [the appended compiler environment option](https://learn.microsoft.com/cpp/build/reference/cl-environment-variables).
 
@@ -140,3 +142,23 @@ there is no automatic cache selection or fallback. ZIP entries, closed file and
 empty-directory inventories, byte hashes, bounds and atomic destination ownership
 are checked independently. Restored receipts retain the original publisher and
 remain `qualified:false`; a checkpoint never qualifies a generator.
+
+
+The second actual run [39215986939](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39215986939)
+again completed all 25 dependencies, then exposed an owned checkpoint defect:
+it required at least one submodule although this exact source's recursive
+inventory is empty. No dependency ZIP or native engine was produced. The
+validator now accepts the exact empty list, keeps malformed/duplicate/
+uninitialized inventories fatal, and runs before any dependency command.
+[Actual Windows checkpoint preflight](evidence/issue-14/generator-blockers/windows-checkpoint-preflight-r1.json)
+passes fifteen selected filesystem unit tests, including empty-inventory
+create/restore, hardlink publication, flush, Windows no-replace rename, tampering,
+rollback and producer checks. The case-sensitive/symlink creation test remains
+separate Linux coverage because it requires filesystem/privilege support.
+These synthetic file tests qualify no engine or calibration.
+
+OCCT's actual dependency stage took 2,541 seconds at two child jobs. The next
+build uses four child jobs only for OCCT, within the existing four-compiler
+upper bound, while native and other dependency builds remain at two. Speed or
+memory improvement is not claimed before measurement. Disk/deadline guards and
+all source, warning, package and parity requirements are unchanged.

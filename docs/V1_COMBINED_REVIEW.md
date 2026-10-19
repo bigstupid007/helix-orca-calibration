@@ -281,3 +281,32 @@ checks separately passed in the pinned offline tool container and two Windows-on
 checks). Accepted parameter-control preservation and `git diff --check` pass.
 The final independent re-review confirms the environment-contract finding is
 resolved; twenty affected wiring/Windows guard tests passed independently.
+
+
+A further read-only Temperature audit checked the retained native project's raw
+mesh against the helper STL while the actual Windows build ran. Both contain
+27,238 triangles and 13,585 unique vertices, but use different coordinate
+spaces. Native Cut creates centered volume meshes with compensating volume
+transforms; the 3MF exporter retains those vertices and writes separate volume
+and instance transforms. The STL helper bakes both transforms into float32
+vertices, zeroing only instance XY translation. Serialized 3MF transforms have
+limited decimal precision, so a reconstructed mesh fingerprint is diagnostic,
+not exact live-GUI geometry evidence. Both paths share Cut's centering, and GUI
+post-cut loading retains existing instances. No missing centering step or
+justified C++ correction was found. No mesh, profile or G-code was transferred
+for this fixed-scalar check; executable parity remains the deciding gate.
+
+
+The actual second Windows run exposed one missed contract assumption: the
+checkpoint required a nonempty recursive submodule inventory, while the pinned
+source reports `[]`. All 25 dependency targets succeeded before this rejection.
+The reviewed correction accepts exact empty inventories and validates the whole
+contract before any dependency command. Malformed, duplicate, over-bound and
+uninitialized rows remain fatal. Sixteen module and eight wiring tests pass;
+fifteen selected tests also passed on actual Windows using only fresh synthetic
+files. This tests Windows hardlink/flush/no-replace rename and archive/rollback
+behavior, not MSVC compilation or generation. Independent review found no
+additional concrete defect. A per-target OCCT four-job override remains inside
+the existing four-compiler upper bound, preserves all other two-job scheduling
+and is explicitly recorded in recipe provenance. Its eight wiring checks passed
+independently; actual resource/time improvement remains unclaimed.

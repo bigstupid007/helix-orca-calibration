@@ -188,3 +188,18 @@ checks separately passed in the pinned offline tool container and two Windows-on
 checks). Accepted parameter-control preservation and `git diff --check` pass.
 The final independent re-review confirms the environment-contract finding is
 resolved; twenty affected wiring/Windows guard tests passed independently.
+
+
+## Empty-inventory checkpoint correction
+
+Actual run 39215986939 completed all 25 dependencies with exit zero, then the
+new checkpoint rejected the exact empty recursive submodule inventory. This was
+an owned validator assumption, not a slicer failure. No ZIP or native executable
+was retained. The correction accepts an exact empty list and moves complete
+provenance validation before dependency commands. Malformed/uninitialized rows
+still fail. Twenty-four focused local module/wiring tests and fifteen actual
+Windows filesystem tests pass; the lead wiring and scoped OCCT-four-job override
+passed independent review (eight wiring tests). Accepted control preservation
+and whitespace checks pass. The previous integrated 557-test boundary remains
+retained; no broad UI recertification was repeated for this narrow repair.
+Actual MSVC compilation and full four-route parity remain outstanding.

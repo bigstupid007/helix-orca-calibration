@@ -241,7 +241,9 @@ class Build:
         targets=[item['target']for item in lock['sources']]
         targets[5:5]=lock['in_tree_targets']
         environment=dependency_environment(self.environment)
-        environment.update(HOST_PYTHON_SHA256=sha(Path(sys.executable)),
+        target_environments={'dep_OCCT':{'CMAKE_BUILD_PARALLEL_LEVEL':'4'}}
+        environment.update(DEPENDENCY_TARGET_ENVIRONMENTS=json.dumps(target_environments,sort_keys=True,separators=(',',':')),
+            HOST_PYTHON_SHA256=sha(Path(sys.executable)),
             DEPENDENCY_CONFIGURE_ARGV=json.dumps([str(arg)for arg in configure],separators=(',',':')),
             DEPENDENCY_TARGETS=json.dumps(targets,separators=(',',':')))
         contract=dict(schema=dependencies.CONTRACT_SCHEMA,source_commit=engine.ORCA_SOURCE,
@@ -250,6 +252,9 @@ class Build:
             module_sha256=sha(ROOT/'integration/v1_windows_dependencies.py'),toolchain=self.tools,
             environment=environment,prefix=str(prefix.absolute()),downloads=str(downloads.absolute()))
         save(self.evidence/'dependency-contract.json',contract)
+        # Validate real source/tool/environment provenance before any expensive
+        # command; an exact empty submodule inventory is valid for this source.
+        dependencies.validate_provenance(contract,builder,prefix,downloads,self.guard)
         supplied=getattr(self,'dependency_input',None)
         if supplied is not None:
             expected=dict(builder,application_commit=supplied['application_commit'],
@@ -261,7 +266,11 @@ class Build:
             return receipt
         self.run('deps-configure',configure)
         for target in targets:
-            self.run(target,['cmake','--build',deps,'--target',target,'--parallel','1'])
+            # OCCT alone uses the already declared four-compiler upper bound;
+            # the outer build stays serial and each compiler keeps /MP1.
+            override=target_environments.get(target)
+            self.run(target,['cmake','--build',deps,'--target',target,'--parallel','1'],
+                environment=dict(self.environment,**override)if override else None)
         # Optional retained progress cannot qualify or replace an engine build.
         # Resource guards and provenance failures propagate; optional checkpoint
         # size/count limits stay explicit without qualifying a partial archive.
@@ -383,7 +392,7 @@ class Build:
             raise ValueError('Registered Windows CI provenance required')
         inputs = {'source': source_report, 'builder': builder, 'submodules': modules.splitlines(),
             'owned_inputs': {name:sha(ROOT/name) for name in engine._WINDOWS_OWNED_INPUTS},
-            'compiler_slots': 4, 'cmake_jobs': 2, 'dependency_top_level_jobs': 1,
+            'compiler_slots': 4, 'cmake_jobs': 2, 'occt_jobs': 4, 'dependency_top_level_jobs': 1,
             'reserve_bytes': RESERVE, 'peak_bytes': PEAK, 'margin_bytes': MARGIN,
             'timeout_seconds': 7200, 'qualified': False}
         save(self.evidence/'native-inputs.json', inputs)

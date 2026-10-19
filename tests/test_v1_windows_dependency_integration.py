@@ -21,13 +21,13 @@ class DependencyBuildWiring(unittest.TestCase):
         self.build.work=self.root/'work';self.build.work.mkdir()
         self.build.source=self.root/'source';self.build.source.mkdir()
         self.build.evidence=self.build.work/'evidence';self.build.evidence.mkdir()
-        self.build.environment={'CMAKE_BUILD_PARALLEL_LEVEL':'2'}
+        self.build.environment={'CMAKE_BUILD_PARALLEL_LEVEL':'2','_CL_':'/MP1','CL_MPCOUNT':'1'}
         self.build.tools={name:dict(size=1,sha256='1'*64)for name in self.module.dependencies.TOOLS}
         self.build.children=[]
         self.build.guard=lambda:None
-        self.calls=[]
-        def run(label,argv):
-            self.calls.append((label,argv))
+        self.calls=[];self.environments=[]
+        def run(label,argv,environment=None):
+            self.calls.append((label,argv));self.environments.append(environment)
             if label=='deps-configure':
                 for directory in ('deps','prefix','downloads'):
                     (self.build.work/directory).mkdir()
@@ -36,7 +36,7 @@ class DependencyBuildWiring(unittest.TestCase):
                 (self.build.work/'downloads/source.tar').write_bytes(b'synthetic source archive')
         self.build.run=run
         self.lock={'sources':[dict(target='dep_fixture')],'in_tree_targets':[]}
-        self.submodules=[' '+'2'*40+' deps_src/fixture (heads/fixture)']
+        self.submodules=[]  # Exact pinned source has no submodules.
         self.publisher=dict(schema='helix-orca-v1-windows-builder/v1',
             repository='bigstupid007/helix-orca-calibration',workflow='.github/workflows/v1-windows-engine.yml',
             application_commit='3'*40,run_id='1',run_attempt='1',runner_image='windows-2022',
@@ -81,6 +81,25 @@ class DependencyBuildWiring(unittest.TestCase):
                 self.assertEqual(self.calls,[])
                 self.assertFalse((self.build.work/'prefix').exists())
                 del self.build.environment[name]
+
+    def test_occt_override_stays_within_declared_four_compiler_bound(self):
+        self.lock['sources']=[dict(target='dep_OCCT'),dict(target='dep_fixture')]
+        self.build.prepare_dependencies(self.lock,self.submodules,self.publisher)
+        self.assertEqual(self.environments,[None,dict(self.build.environment,CMAKE_BUILD_PARALLEL_LEVEL='4'),None])
+        self.assertEqual(self.build.environment['CMAKE_BUILD_PARALLEL_LEVEL'],'2')
+        self.assertEqual(self.environments[1]['_CL_'],'/MP1')
+        self.assertEqual(self.environments[1]['CL_MPCOUNT'],'1')
+        self.assertEqual(self.calls[1][1][-2:],['--parallel','1'])
+        contract=json.loads((self.build.evidence/'dependency-contract.json').read_text())
+        self.assertEqual(json.loads(contract['environment']['DEPENDENCY_TARGET_ENVIRONMENTS']),
+            {'dep_OCCT':{'CMAKE_BUILD_PARALLEL_LEVEL':'4'}})
+
+    def test_bad_provenance_rejected_before_any_dependency_command(self):
+        with self.assertRaisesRegex(self.module.dependencies.BundleError,'exact_initialized_submodules_required'):
+            self.build.prepare_dependencies(self.lock,['-'+'2'*40+' deps_src/uninitialized'],self.publisher)
+        self.assertEqual(self.calls,[])
+        self.assertFalse((self.build.work/'deps').exists())
+        self.assertFalse((self.build.work/'native-windows-dependencies.zip').exists())
 
     def test_environment_capture_is_case_insensitive_and_rejects_collisions(self):
         selected=self.module.dependency_environment({'VCToolsVersion':'14.44','Include':'sdk','CL':'/O2'})

@@ -19,8 +19,11 @@ original context.
 
 ## Reviewed source closure
 
-The externally reviewed manifest has exactly these 15 entries:
+The externally reviewed manifest has exactly these 18 entries:
 
+- `integration/v1-native-engine/windows-target.cmake`
+- `integration/v1-native-engine/windows-cmake/FindEXPAT.cmake`
+- `integration/v1_windows_dependencies.py`
 - `integration/v1_contract.py`
 - `integration/v1_parity.py`
 - `integration/v1_engine.py`
@@ -170,3 +173,13 @@ reference reuse is implemented. A fresh origin remains explicitly unsupported
 until its own independent matching native evidence is registered under the
 unchanged policy. The accepted physical Temperature evidence, YOLO routes,
 contracts, UI and correlation behavior are unchanged.
+
+
+## Target path limitation
+
+Current retained Windows qualification paths are ASCII. The small adapter uses
+narrow `main` arguments and has not reproduced the GUI entry point's explicit
+wide-argument/Nowide filesystem initialization. Non-ASCII Windows job/resource
+paths therefore remain unsupported pending implementation and independent target
+proof; success on the retained paths does not establish Unicode path support.
+This limitation does not change or waive any exact context/parameter parity gate.
