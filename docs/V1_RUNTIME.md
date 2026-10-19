@@ -81,7 +81,12 @@ nonce; active or unreturned completed work cannot be retargeted by profile chang
 Generation persists its intent before invoking Orca. An interrupted preparation
 is blocked and never silently rerun. Qualification reopens actual output and
 native evidence; a bare true flag cannot enable review. Confirm and Start are
-separate immutable native intents. Every intent is consumed durably once.
+separate immutable native intents. Every intent is consumed durably once. Confirmation outcome and intent consumption are one atomic journal update.
+Start consumption and the complete pending intent are persisted with `starting`
+before dispatch. Restart can adopt only an exact already-owned post-dispatch job
+through read-only adapter recovery; it never replays Start. Native restart
+reconciliation binds the complete retained request, preparation, job and completion
+proof and advances the sequence without weakening stale-status rejection.
 
 **The default review launcher supplies no physical action adapter.** Start cannot
 upload, queue, heat, move or print in this review. The integrated
@@ -121,3 +126,22 @@ immutable selection, original-context receipt and recovery. Native matrix and
 actual isolated Windows observations are separate evidence tiers. Generated
 G-code remains local and unqualified until exact parity passes. No new physical
 test or deployment is part of this program's validation.
+
+## Monitoring and companion review corrections
+
+The owned-job adapter reads elapsed time from Klipper `print_stats.total_duration`
+and progress from `virtual_sdcard.progress` only when the file path matches the
+exact owned artifact. It publishes these only after the same-job identity/history
+checks. Each metric may be unavailable independently. A malformed or missing
+metric clears the previous value; neither a timer nor 100% progress permits
+evaluation. Actual completed same-job history remains mandatory.
+
+The companion keeps the current Orca selection separate from the immutable
+original calibration context and the originating context of the retained result.
+The heading and preparation badge follow the same actual phase; waiting and
+blocked states use attention styling. **Refresh selection** recaptures the host
+selection without changing presets. Connection details describe retained health
+as “last reported running” or “stopped,” rather than claiming a live heartbeat.
+The candidate always states that physical execution is disabled. These source
+corrections address the independent native Windows review; final target captures
+and review status are recorded separately.

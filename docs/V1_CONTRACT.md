@@ -56,6 +56,10 @@ IDs are lowercase 32-hex and hashes 64-hex. Numbers exclude booleans and NaN.
   `printing`, `verifying`, `complete`, `cancelled`, `failed`, `uncertain`,
   `returning`, `delivered`. Sequence strictly increases for changed status.
   Duplicates are harmless; stale status cannot reverse terminal/retained result.
+  Optional `monitor` contains independently nullable `elapsed_s` (0 through 31 days)
+  and `progress` (0 through 1), both finite. It is informational only: completion
+  and evaluation require exact-job independent successful history, even at 100%.
+  Missing or invalid monitoring data is unavailable, never estimated.
 - **Result** `helix-orca-v1-result/v1`: `request_id`, `origin_id`,
   `context_sha256`, `prepared_sha256`, `job_id`, `completion_sha256`,
   `setting`, `value`, `not_applied: true`. Exact-job independent successful
