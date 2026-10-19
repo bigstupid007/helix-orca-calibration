@@ -23,11 +23,16 @@ with blocking generator limits.
 Stock Flow Ratio YOLO Recommended and Perfectionist pass strict executable and
 calibration-invariant parity against separate independent October 15 Windows
 references for their exact retained profiles and mode-specific parameters.
-Stock Temperature retains unexplained executable/geometry differences. All five independent native Windows references pass their invariants.
+Temperature native geometry has a reproducible source-bound repair; actual Windows
+stock slicing and executable parity remain pending. The old stock candidate
+retains material differences. All five independent native Windows references
+pass their invariants. [Current generator-only checkpoint](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md).
 The grouped Linux engine exports PA Pattern and passes candidate-
 only invariants, but native warning `1000C001` (retained bed 60°C versus filament
-vitrification 55°C) blocks Prepared. Native-reference parity and Windows engine
-packaging remain open; Linux output does not enable the Windows route.
+vitrification 55°C) blocks Prepared. PA executable-stream diagnostics match its native reference, but mandatory
+qualification remains blocked by the warning. The actual Windows package CI
+build is the next shared infrastructure gate; Linux output does not enable
+the Windows route.
 
 The earlier native matrix passed all eleven sizes and 396 frames; its synthetic
 browser workflow and exact browser/listener/container cleanup are retained as
