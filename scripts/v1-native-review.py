@@ -124,15 +124,35 @@ def transport_fixture(root):
         stream.write("""
 -- OFFLINE REVIEW TRANSPORT ONLY; omitted by the installable product builder.
 -- Values are the actual DirectoryEvents payloads; no business action is seeded.
+local review_frames={id=nil,next=1,total=0,parts={}}
 helix.subject.string('v1_review_delivery',''):observe(function(raw)
- local ok,value=pcall(helix.json.decode,raw)
- if not ok or type(value)~='table' then return end
+ local ok,frame=pcall(helix.json.decode,raw)
+ if not ok or type(frame)~='table' or type(frame.id)~='string' or #frame.id~=32
+  or type(frame.index)~='number' or frame.index%1~=0 or type(frame.total)~='number' or frame.total%1~=0
+  or frame.total<1 or frame.total>128 or type(frame.part)~='string' or #frame.part>400 then return end
+ if frame.index==1 then review_frames={id=frame.id,next=1,total=frame.total,parts={}} end
+ if frame.id~=review_frames.id or frame.index~=review_frames.next or frame.total~=review_frames.total then return end
+ review_frames.parts[#review_frames.parts+1]=frame.part;review_frames.next=review_frames.next+1
+ if frame.index~=frame.total then return end
+ local decoded,value=pcall(helix.json.decode,table.concat(review_frames.parts));review_frames={id=nil,next=1,total=0,parts={}}
+ if not decoded or type(value)~='table' then return end
  if value.event=='helix_orca_v1.context.v1' then v1_receive_offer('offline-review',value.data)
  elseif value.event=='helix_orca_v1.status.v1' then v1_receive_status('offline-review',value.data)
  elseif value.event=='helix_orca_v1.ack.v1' then v1_receive_ack('offline-review',value.data) end
 end)
 """)
     return root
+
+
+def deliver(container,event,data):
+    raw=json.dumps(dict(event=event,data=data),separators=(',',':'),ensure_ascii=True)
+    parts=[raw[start:start+400] for start in range(0,len(raw),400)]
+    require(1<=len(parts)<=128,'Review event exceeds bounded transport')
+    identity=secrets.token_hex(16)
+    for index,part in enumerate(parts,1):
+        frame=json.dumps(dict(id=identity,index=index,total=len(parts),part=part),separators=(',',':'))
+        require(len(frame.encode())<1023,'Review fragment exceeds beta.9 subject capacity')
+        q.ctl(container,'set','orcacal__v1_review_delivery',frame)
 
 
 def review_context():
@@ -167,7 +187,7 @@ class CoordinatorReview:
             if not path.exists():continue
             data=read_json(path);fingerprint=digest(data)
             if self.delivered.get(event)==fingerprint:continue
-            q.ctl(self.container,'set','orcacal__v1_review_delivery',json.dumps(dict(event='helix_orca_v1.'+event+'.v1',data=data),separators=(',',':')))
+            deliver(self.container,'helix_orca_v1.'+event+'.v1',data)
             self.delivered[event]=fingerprint
         state=self.runtime.state;request=state.get('request')
         # tick archives terminal requests before offering a fresh nonce. Bind the

@@ -100,6 +100,17 @@ class NativeReviewTests(unittest.TestCase):
         self.assertEqual(r.duration(60),60);self.assertEqual(r.duration(900),900)
         for value in (0,59,901):
             with self.assertRaises(Exception):r.duration(value)
+    def test_real_event_fragmentation_preserves_payload_under_native_subject_limit(self):
+        data=dict(message='°'*512,values=list(range(1000)))
+        with patch.object(r.q,'ctl') as native:
+            r.deliver('owned','helix_orca_v1.context.v1',data)
+        frames=[json.loads(call.args[-1]) for call in native.call_args_list]
+        self.assertGreater(len(frames),1)
+        self.assertTrue(all(len(call.args[-1].encode())<1023 for call in native.call_args_list))
+        self.assertEqual([f['index'] for f in frames],list(range(1,len(frames)+1)))
+        self.assertEqual(len({f['id'] for f in frames}),1)
+        self.assertEqual(json.loads(''.join(f['part'] for f in frames)),dict(event='helix_orca_v1.context.v1',data=data))
+
     def test_actual_coordinator_retains_unavailable_request_and_archives_trace(self):
         with tempfile.TemporaryDirectory() as tmp:
             work=Path(tmp)/'view';work.mkdir()
