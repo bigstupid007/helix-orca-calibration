@@ -77,6 +77,32 @@ class DependencyBundleTests(unittest.TestCase):
                 d.restore_bundle(self.bundle,pin,self.prefix,self.downloads,self.contract,self.publisher,self.guard)
             self.assertFalse(self.prefix.exists());self.assertFalse(self.downloads.exists());self.no_staging()
 
+    def test_exact_empty_submodule_inventory_roundtrip_and_preflight_before_roots(self):
+        # The pinned Orca source has no gitlinks: git submodule status is empty.
+        self.contract['submodules']=[]
+        receipt=self.create();self.remove_roots()
+        d.validate_provenance(self.contract,self.publisher,self.prefix,self.downloads,self.guard)
+        self.assertFalse(self.prefix.exists());self.assertFalse(self.downloads.exists());self.no_staging()
+        restored=self.restore(expected=receipt['sha256'])
+        self.assertTrue(restored['restored']);self.assertFalse(restored['qualified'])
+        with zipfile.ZipFile(self.bundle) as archive:
+            self.assertEqual(json.loads(archive.read(d.MANIFEST))['contract']['submodules'],[])
+        self.assertEqual((self.downloads/'otherwise-unused-source.zip').read_bytes(),b'preserve ALL downloads')
+
+    def test_preflight_rejects_malformed_duplicate_and_uninitialized_submodule_rows(self):
+        row=' '+'1'*40+' deps/example'
+        malformed=[None,{},'',{},[''],[{}],[row,row],['-'+'1'*40+' deps/example'],
+            ['+'+'1'*40+' deps/example'],['U'+'1'*40+' deps/example'],[row+'\n'],[row]*513]
+        self.remove_roots()
+        for rows in malformed:
+            contract=copy.deepcopy(self.contract);contract['submodules']=rows
+            with self.subTest(rows=rows),self.assertRaises(d.BundleError):
+                d.validate_provenance(contract,self.publisher,self.prefix,self.downloads,self.guard)
+            self.assertFalse(self.prefix.exists());self.assertFalse(self.downloads.exists());self.no_staging()
+        bad=copy.deepcopy(self.contract);bad['module_sha256']='0'*64
+        with self.assertRaisesRegex(d.BundleError,'module_source_changed'):
+            d.validate_provenance(bad,self.publisher,self.prefix,self.downloads,self.guard)
+
     def test_exact_producer_and_recipe_no_fallback(self):
         self.create();self.remove_roots()
         for key,value in [('application_commit','6'*40),('run_attempt','2'),('image_version','different')]:

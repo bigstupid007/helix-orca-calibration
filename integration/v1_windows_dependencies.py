@@ -138,7 +138,7 @@ def _provenance(contract,publisher,prefix,downloads,guard):
     if _sha(Path(__file__),guard,1024**2)['sha256']!=contract['module_sha256']:
         raise BundleError('dependency_module_source_changed')
     modules=contract['submodules']
-    if (not isinstance(modules,list) or not 1<=len(modules)<=512
+    if (not isinstance(modules,list) or len(modules)>512
             or any(not isinstance(row,str) or re.fullmatch(r' [0-9a-f]{40} [^\x00\r\n]{1,2048}',row) is None for row in modules)
             or len(set(modules))!=len(modules)):
         raise BundleError('exact_initialized_submodules_required')
@@ -168,6 +168,21 @@ def _provenance(contract,publisher,prefix,downloads,guard):
     if _canonical(publisher['toolchain'])!=_canonical(contract['toolchain']):raise BundleError('publisher_toolchain_mismatch')
     if prefix==downloads or prefix.is_relative_to(downloads) or downloads.is_relative_to(prefix):
         raise BundleError('distinct_closed_dependency_roots_required')
+
+
+def validate_provenance(contract,publisher,prefix,downloads,guard):
+    """Fail fast on exact recipe/producer pins before dependency commands.
+
+    Root parents must already exist and belong to the caller; the roots may
+    be absent before a cold build. No directories or artifacts are created.
+    An empty initialized submodule inventory is valid for a source with no
+    gitlinks. Bundle creation/restoration repeat these checks independently.
+    """
+    _guard(guard)
+    prefix=_parent(prefix);downloads=_parent(downloads)
+    for root in (prefix,downloads):
+        if root.exists() or root.is_symlink():_path(root,True)
+    _provenance(contract,publisher,prefix,downloads,guard)
 
 
 def _inventory(roots,guard):
