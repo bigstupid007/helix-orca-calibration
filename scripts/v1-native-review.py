@@ -79,19 +79,34 @@ def payload(route,body):
             require(type(body[key]) is int and 0<=body[key]<limit,'Native pointer outside 800x480')
     return body
 
-def pointer(work,points):
-    # Same private, source-verified beta.9 pointer protocol as the capture tool.
+def _pointer_send(work,events,attempt=lambda *_:None,ack=lambda *_:None):
     directory=os.open(work,os.O_RDONLY|os.O_DIRECTORY|os.O_NOFOLLOW)
     try:
         with socket.socket(socket.AF_UNIX,socket.SOCK_STREAM) as client:
             client.settimeout(3);client.connect(f'/proc/self/fd/{directory}/control.sock')
             stream=client.makefile('rwb',buffering=0)
             try:
-                for index,(method,x,y) in enumerate(points,1):
+                for index,(method,x,y) in enumerate(events,1):
+                    attempt(method,x,y)
                     stream.write((json.dumps(dict(jsonrpc='2.0',id=index,method=method,params=dict(x=x,y=y)))+'\n').encode())
                     reply=json.loads(stream.readline(65537));require(reply.get('id')==index and 'error' not in reply,'Native pointer rejected')
+                    ack(method,x,y)
             finally:stream.close()
     finally:os.close(directory)
+
+def pointer(work,events):
+    # A socket disconnect does not release beta.9's process-wide pointer state.
+    state=dict(held=False,x=0,y=0)
+    def attempted(method,x,y):
+        state.update(x=x,y=y)
+        if method=='pointer_press':state['held']=True
+    def acknowledged(method,*_):
+        if method=='pointer_release':state['held']=False
+    try:_pointer_send(work,events,attempted,acknowledged)
+    finally:
+        if state['held']:
+            try:_pointer_send(work,[('pointer_release',state['x'],state['y'])])
+            except Exception:pass  # Preserve the original error; exact bounded best effort.
 
 def points(body):
     if 'x' in body:return [('pointer_press',body['x'],body['y']),('pointer_release',body['x'],body['y'])]

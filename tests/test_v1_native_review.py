@@ -11,6 +11,28 @@ spec=importlib.util.spec_from_file_location('v1_native_review_test',ROOT/'script
 r=importlib.util.module_from_spec(spec);spec.loader.exec_module(r)
 
 class NativeReviewTests(unittest.TestCase):
+    def test_lost_press_reply_uses_fresh_socket_release_and_keeps_original_error(self):
+        writes=[];connections=[]
+        class Stream:
+            def __init__(self,fail):self.fail=fail
+            def write(self,data):writes.append(json.loads(data))
+            def readline(self,_):
+                if self.fail:raise OSError('original lost press reply')
+                return b'{"id":1,"result":true}\n'
+            def close(self):pass
+        class Client:
+            def __init__(self,fail):self.stream=Stream(fail)
+            def __enter__(self):return self
+            def __exit__(self,*_):pass
+            def settimeout(self,value):self.timeout=value
+            def connect(self,path):connections.append(path)
+            def makefile(self,*_,**__):return self.stream
+        with tempfile.TemporaryDirectory() as tmp,patch.object(r.socket,'socket',side_effect=[Client(True),Client(False)]):
+            with self.assertRaisesRegex(OSError,'original lost press reply'):
+                r.pointer(Path(tmp),r.points(dict(x=21,y=34)))
+        self.assertEqual(len(connections),2)
+        self.assertEqual([v['method'] for v in writes],['pointer_press','pointer_release'])
+        self.assertEqual(writes[1]['params'],dict(x=21,y=34))
     def test_every_response_refuses_foreign_framing(self):
         for status,content in ((200,'text/html'),(200,'image/png'),(400,'application/json')):
             stored={}

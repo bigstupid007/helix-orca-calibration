@@ -64,10 +64,12 @@ a random per-session token on each mutation. Every response sends
 `X-Frame-Options: DENY` and CSP `frame-ancestors 'none'` to prevent framed native
 input. It has no CORS, arbitrary command,
 RPC, G-code, profile/configuration update or production activation endpoint.
-Malformed input fails closed. Deployment authorization and the ordinary Windows
+Malformed input fails closed. If a pointer press may have applied before an
+RPC failure, the wrapper makes one bounded release attempt on a fresh private
+socket and preserves the original error. Deployment authorization and the ordinary Windows
 coordinator remain separate, default-off product/runtime work.
 
-Twelve focused dependency-free checks pass. Actual viewer lifecycle/browser
+Thirteen focused dependency-free checks pass. Actual viewer lifecycle/browser
 qualification must follow the frozen full native matrix and the queued engine
 diagnostic; no listener was started while the matrix was active. This document
 will be updated with the resulting managed proof before claiming that check.
