@@ -425,3 +425,12 @@ against a complete source-fingerprinted closure. The bounded native reviewer is
 separate test infrastructure: fixed private LAN, typed input, explicit synthetic
 completion, no product adapter, source/owner binding and exact managed cleanup.
 Its clean-clone imports do not require the devbox lifecycle checkout.
+
+
+Final verification binds the corrected native UI to all eleven targets/396
+frames and the synthetic browser workflow to exact owner-bound cleanup. The
+Linux native engine uses a two-thread task arena as well as a persistent global
+cap; these must agree with upstream's initialization barrier. A real PA artifact
+exists but a retained-profile processor warning blocks Prepared and parity
+remains false. Generator availability, actual generation, parity qualification
+and physical deployment remain separate gates.

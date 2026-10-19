@@ -90,6 +90,20 @@ do not claim independent visual inspection of every matrix frame.
 
 Small low-emphasis metadata and scroll discoverability remain limitations;
 keyboard, screen reader, contrast and motor accessibility are not qualified by
-these stills. The complete eleven-size capture and interactive review remain
-separate final gates. No physical lifecycle or generation qualification is
+these stills. The complete eleven-size capture and actual browser interaction
+qualification now pass; these checks remain distinct from the cold visual
+review scope above. No physical lifecycle or generation qualification is
 inferred from the synthetic native flows.
+
+
+## Actual browser review and exact cleanup
+
+A fresh isolated Chromium 140 browser (Playwright 1.64.1) exercised actual native
+pointer controls through Generate, Confirm, distinct Start, simulated completion,
+Return result, NOT APPLIED receipt, Done, Home and Back. Native Returned was
+asserted and each saved image awaited a fresh frame; all nine full browser frames
+retain the SYNTHETIC ONLY heading. There were no page errors or owned browser
+processes left. Live Host/Origin/token/command/coordinate refusals passed, followed
+by nonce-bound graceful stop, listener closure and exact ManagedRun cleanup.
+This lead-operated interaction check is separate from the independent cold
+screenshot review and does not qualify accessibility or physical behavior.

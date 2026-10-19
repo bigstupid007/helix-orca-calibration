@@ -69,7 +69,29 @@ RPC failure, the wrapper makes one bounded release attempt on a fresh private
 socket and preserves the original error. Deployment authorization and the ordinary Windows
 coordinator remain separate, default-off product/runtime work.
 
-Thirteen focused dependency-free checks pass. Actual viewer lifecycle/browser
-qualification must follow the frozen full native matrix and the queued engine
-diagnostic; no listener was started while the matrix was active. This document
-will be updated with the resulting managed proof before claiming that check.
+Thirteen focused dependency-free checks pass. Actual qualification run
+`d7c80433b4a74a44aede3ae9567ef7e8` passed after the full 396-frame matrix and
+engine cleanup released the resource gate. Chromium 140.0.7339.186 with
+Playwright 1.64.1 used a fresh isolated profile and actual native browser pointer
+input: Generate, Confirm, deliberate Start, simulated completion, Return result,
+NOT APPLIED receipt, Done, Home and Back. Finish remained disabled before Start.
+Nine synchronized full browser frames and zero page errors are retained in the
+[interactive evidence](evidence/issue-14/interactive-review/report.json).
+
+Live bad Host, foreign Origin, missing token, unsupported command and out-of-range
+pointer requests all returned 400 with frame protection. Exact nonce-bound Stop
+then exited 0, closed the listener and retired the owned container; runtime clear
+and verification errors `[]` were checked against the full private manifest. The
+browser closed with zero remaining processes carrying its unique profile.
+Source closure is `247f3b462d34b70c18be3647f2e1e2a72fcf6727167cc14c9e3978eb24666119`.
+Full inventories remain private.
+
+The cached browser initially lacked desktop shared libraries. Fourteen public
+Ubuntu packages (under 1 MiB compressed) were extracted only into an owned user
+cache and passed to that browser through its child environment; no system
+installation or maintainer script ran. Package and browser hashes are retained.
+Earlier failed setup records remain private. An earlier passed workflow had
+immediate screenshots ahead of the periodic image refresh; the final evidence
+recheck explicitly awaited fresh frames and the native Returned label. No product
+source changed for that capture correction. The normal viewer operation above
+does not depend on the qualification browser/library bundle.

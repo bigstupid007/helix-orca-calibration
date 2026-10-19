@@ -30,7 +30,7 @@ written. [Windows evidence](V1_WINDOWS_ORCA.md) distinguishes those proof levels
 | --- | --- |
 | Flow Ratio YOLO Recommended | Actual Windows production generator passes strict executable and calibration-invariant parity for the exact retained context/default parameters. Hardware ABI and physical readiness remain false. |
 | Temperature standard tower | Actual stock Windows slice exists, but executable/geometry differences from the independent native reference remain unexplained. Qualification is blocked. Accepted physical Temperature behavior is preserved separately. |
-| PA Pattern, Retraction, Max Volumetric Speed | Native preparation uses the real pinned internal engine. Linux build/capability commands pass; actual generation is blocked at a shared native initialization wait. No compatible audited Windows engine package exists. |
+| PA Pattern, Retraction, Max Volumetric Speed | Native preparation uses the real pinned internal engine. Linux build/capabilities and real PA export pass; candidate-only PA invariants pass. Native warning `1000C001` (retained bed 60°C versus vitrification 55°C) rejects the export before Prepared. Remaining routes are not repeated against that shared blocker. Exact native-reference parity remains open. No compatible audited Windows engine package exists. |
 
 All five independent Windows-native references are retained and pass their
 calibration invariant inspections. A native reference is not its candidate
@@ -52,9 +52,12 @@ deployment grant or action-enabled adapter was created.
 The combined independent source review and correction rechecks are retained in
 [V1 combined review](V1_COMBINED_REVIEW.md). The fresh native/Windows visual
 findings and remaining small-text, scrolling and accessibility limits are in
-[AI Product Preflight](V1_PRODUCT_PREFLIGHT.md). The complete source-bound eleven-size matrix passed all 396 frames and verifies
-against the eleven original private ManagedRun records. The live viewer lifecycle
-remains a separate verification gate before this review package is complete.
+[AI Product Preflight](V1_PRODUCT_PREFLIGHT.md). The complete source-bound
+eleven-size matrix passed all 396 frames and verifies against the eleven
+original private ManagedRun records. The actual Chromium browser workflow,
+five live HTTP refusal checks and exact owner-bound teardown also passed.
+[Interactive evidence](evidence/issue-14/interactive-review/report.json) retains
+the source bindings, nine synchronized browser frames and cleanup outcomes.
 
 The candidate does not qualify hardware, deploy to the printer or authorize a
 new physical test. Confirm and Start remain separate; default review Start

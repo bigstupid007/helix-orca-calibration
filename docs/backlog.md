@@ -17,9 +17,11 @@ Current integration has common contracts, both five-calibration UI surfaces,
 strict native-reference parity, a durable external runtime and a per-user Windows
 lifecycle. Exact retained YOLO inputs pass actual Windows production parity;
 Temperature remains blocked by unexplained differences. The grouped Linux engine
-builds but currently stalls after model preparation; Windows engine packaging is
-unavailable. The full native matrix passed all eleven targets and 396 frames; interactive
-review qualification and the final bounded engine diagnostic remain open. See the [integrated Founder review](V1_FOUNDER_REVIEW.md)
+exports real PA with passing candidate-only invariants, but native warning
+`1000C001` (retained bed 60°C versus vitrification 55°C) rejects Prepared. Native
+parity and Windows packaging remain open. The full native matrix passed all
+eleven targets and 396 frames; actual browser workflow/protections and exact
+teardown passed. See the [integrated Founder review](V1_FOUNDER_REVIEW.md)
 for exact scope and limitations. Acceptance/merge/physical activation remain open.
 
 

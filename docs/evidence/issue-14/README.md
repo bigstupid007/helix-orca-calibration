@@ -39,3 +39,12 @@ lifecycle evidence are separate inventories. No generator is qualified by UI
 fixture screenshots. Accepted Issue #12 physical and synthetic proof remains
 unchanged in its original evidence directories. See the
 [integrated review guide](../../V1_FOUNDER_REVIEW.md) for proof levels and limits.
+
+
+`interactive-review/` retains nine full Chromium/native browser frames and a
+source-bound summary of actual synthetic workflow, five live HTTP refusals,
+private browser-library hashes and exact graceful teardown.
+`native-engine-checkpoint.json` retains the real Linux PA export and rejected
+processor/parity disposition; candidate-only invariant success does not qualify
+that artifact. Windows reference, companion and runtime inventories retain
+their actual target proof separately. None supplies physical readiness.

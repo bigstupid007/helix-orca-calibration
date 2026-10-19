@@ -481,3 +481,11 @@ was stopped/removed; lifecycle verification records runtime clear with no errors
 The heavy slot was explicitly released for the integrated viewer review.
 Windows native packaging and independent local native-reference parity remain
 separate open gates.
+
+
+The lead independently rehashed the artifact, processor, false-parity and
+candidate-invariant reports. All five owned adapter inputs match the successful
+build receipt after integrating the original native numeric/primitive fidelity
+hunks. The [public bounded checkpoint](evidence/issue-14/native-engine-checkpoint.json)
+retains these bindings and the rejected disposition; full source/configuration
+and host inventories remain private.

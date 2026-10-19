@@ -499,7 +499,11 @@ The native build requires all 25 pinned dependencies and real NASM/Clang-backed
 FFmpeg tooling. A successful link/capability response does not prove generation:
 actual smoke caught null enum lookup maps in cloned static defaults. Fresh
 definition-created options supplied only from retained values repair that crash.
-The subsequent shared post-model wait remains under bounded diagnosis; no native
-artifact or Windows availability is implied. The native mock matrix separately
+The subsequent thread-name/locale barrier counted the larger host task arena
+while a global cap admitted only two threads. An explicit two-thread arena
+cleared the wait: real PA export and candidate-only invariants pass. The native
+processor then rejects warning `1000C001` for the retained bed 60°C/filament
+vitrification 55°C condition. Mandatory parity remains false and no Prepared job
+is created; no warning or profile was changed. Windows availability is absent. The native mock matrix separately
 exposed test-grid stamping and scroll-parent issues, corrected against actual
 source/native pixels before full evidence promotion.

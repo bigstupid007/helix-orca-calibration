@@ -1,0 +1,52 @@
+{
+  "build": {
+    "exit_code": 0,
+    "inputs_sha256": "1e0957de2b3153515700153bbbe68cd77b3d8a33b87b0ccf208723307f4ed68a",
+    "manifest_sha256": "5f484080bf11a1443253582f68efc7991f588d90251b8435d2aa4a2277457f01",
+    "receipt_sha256": "f27b8f1904070b370d080e21d1fcaf1da11acf4765f764b113a40134009eaeff",
+    "run_id": "729eb5226e2d429dbe5abf0c5e6a9aff",
+    "runtime_clear": true,
+    "state": "complete"
+  },
+  "owned_inputs": {
+    "integration/v1-native-build-tools.py": "6a1cb112a9b091715907c17af06d769af1947b15dd6927a4ae0b2dbd27897b30",
+    "integration/v1-native-dependencies.json": "14fca0b1f471a4ced824d98523e8bb21a1038e02bd4d368e50e0383b67a3dc0b",
+    "integration/v1-native-engine/add-target.cmake": "8f0dc9cf18b0ddd400f284dc8d06acec32d78615a78ca426f68d453657feb09d",
+    "integration/v1-native-engine/main.cpp": "c4c5680881263043abb5ade5a9e0e75c3a10d4e661298430bfaa2ade1d6ba011",
+    "scripts/v1-engine-native.py": "5e83f8ee2e26daf53d6e141feed26e8c01393a517fa44f295022d5eb44fd2cf6"
+  },
+  "physical_actions": false,
+  "physical_readiness": false,
+  "pressure_advance_pattern": {
+    "candidate_invariants_passed": true,
+    "candidate_invariants_sha256": "f8e9bcf8e35cabd1d55fda18a363494b7577009b7d45657d3b8eee2a0f26eb6a",
+    "exit_code": 2,
+    "gcode_sha256": "d35a92c6110933cd70dc341ac4fee2df9963e6bbc5c4fe62b1c1c83b45eb2e93",
+    "generated_bytes": 122119,
+    "manifest_sha256": "94bcaae7f60b1838e33f1bdb681a81b3f4caf63bc6d1e4eae61225f6e3762bc9",
+    "parity_qualified": false,
+    "parity_sha256": "f5e820b915bc1c9e3b36e615c5374934fd9ef4c65a38b0906a6862be053a748b",
+    "prepared_created": false,
+    "processing_sha256": "37e8113c2511bb6e2525a8009ba94e4c86e90546ab199a97df51c6f04b5a57df",
+    "run_id": "7aabbba11d844358801bd93c67919c64",
+    "runtime_clear": true,
+    "state": "incomplete",
+    "warning": {
+      "bed_c": 60,
+      "code": "1000C001",
+      "level": 3,
+      "reason": "bed_temperature_too_high_than_filament",
+      "vitrification_c": 55
+    }
+  },
+  "remaining_routes_not_repeated": "Shared retained-profile warning remains blocked; candidate-only invariants do not establish native-reference parity.",
+  "schema": "helix-orca-v1-native-engine-checkpoint/v1",
+  "settings_changed": false,
+  "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+  "target": {
+    "architecture": "x86_64",
+    "format": "ELF64-LE-EM_X86_64",
+    "system": "Linux"
+  },
+  "windows_available": false
+}

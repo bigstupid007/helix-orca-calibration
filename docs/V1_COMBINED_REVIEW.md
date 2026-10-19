@@ -74,6 +74,24 @@ frame denial and conservative pointer release after lost replies. The final
 independent correction recheck through `48b7e0c` found no remaining material
 source defect and passed all 13 focused viewer tests plus `git diff --check`.
 The integrated lead suite passed 434 tests with two Windows-only skips on Linux.
-Actual viewer lifecycle/browser qualification remains a separate gate. These
-changes affect review infrastructure, not the frozen native product/capture
-source.
+The actual browser/native workflow, live refusal checks and exact graceful
+teardown now pass; their synchronized nine-frame proof is separate from source
+review. These changes affect review infrastructure, not the frozen native
+product/capture source.
+
+
+## Final native-engine correction rechecks
+
+The independent reviewer found no material issue in `0262ab4`: the explicit
+two-thread task arena aligns Orca's thread-name/locale barrier count with the
+retained global cap, preserving exception/result lifetime and export validation.
+The actual targeted run clears the wait and exports PA; native warning `1000C001`
+then correctly blocks Prepared, with mandatory false parity retained.
+
+The lead's receipt audit found two missing fidelity hunks between worker and
+integration C++ bytes. Source-only `e500374` restores pinned native retraction
+float semantics and PA bed-relative primitive/initial placement. The independent
+reviewer checked both against pinned GUI/Plater source and found no material
+issue. All five owned native build inputs now exactly match the successful
+actual build receipt; no prior differing integration bytes are relabeled built.
+The complete native UI 396 matrix remains unchanged by these engine-only deltas.

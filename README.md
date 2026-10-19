@@ -9,26 +9,31 @@ G-code parity and a coordinator without Codex test-worker dependencies.
 This supersedes the earlier stop-after-Temperature instruction for this program.
 The accepted physical Temperature installation and evidence below remain intact.
 
-V1 is **in development and not Founder-ready**. Stock Flow Ratio YOLO now passes
-strict executable and calibration-invariant parity against its independent native
-October 15 Windows reference for the exact retained profiles/parameters. Stock
-Temperature still has unexplained executable/geometry differences and remains
-unqualified. All five independent native Windows references pass their calibration
-invariants. The grouped native engine has compiled and linked on Linux x86_64;
-actual calibration-generation checks are underway, and Windows native build tools
-are absent. Linux availability does not enable the Windows route.
-The complete corrected native UI matrix passes all eleven sizes and 396 frames,
-with exact source/runtime/frame bindings and verified owned-runtime teardown.
-Interactive browser review and the final native-engine diagnostic remain open.
-The direct coordinator keeps physical actions disabled. Its owned-job path uses
-bounded HTTP fixtures, and actual Windows lifecycle checks are component-scoped.
-Normal Orca's 1429 settings/profile files match the pre-V1 fingerprint. No
-operational deployment approval, new physical test or merge has occurred.
+V1 is an **integrated Founder Review candidate with blocking generator limits**.
+Stock Flow Ratio YOLO passes strict executable and calibration-invariant parity
+against its independent October 15 Windows reference for the exact retained
+profiles/parameters. Stock Temperature retains unexplained executable/geometry
+differences. All five independent native Windows references pass their invariants.
+The grouped Linux engine now genuinely exports PA Pattern and passes candidate-
+only invariants, but native warning `1000C001` (retained bed 60°C versus filament
+vitrification 55°C) blocks Prepared. Native-reference parity and Windows engine
+packaging remain open; Linux output does not enable the Windows route.
 
-Start with [program scope](docs/BUILD_PROGRAM_V1.md), [shared contracts](docs/V1_CONTRACT.md),
-[generation/parity](docs/V1_GENERATION_PARITY.md), [grouped engine reuse](docs/V1_ENGINE_REUSE.md),
-and [V1 runtime operations](docs/V1_RUNTIME.md). One integrated PR will retain
-exact native/Windows/parity/review evidence and remaining blockers.
+The corrected native matrix passes all eleven sizes and 396 frames. A real
+browser passed the native synthetic workflow, five live HTTP rejection checks
+passed, and exact browser/listener/container teardown was verified. One combined
+independent review and correction rechecks have no remaining material source
+finding. Actual Windows lifecycle qualification matches the current Python
+closure and requires no Codex test worker. The direct coordinator keeps physical
+actions disabled; no operational deployment grant exists. Normal Orca's 1429
+settings/profile files match their pre-V1 fingerprint. No new physical test or
+merge occurred.
+
+Start with the [integrated Founder review guide](docs/V1_FOUNDER_REVIEW.md),
+[program scope](docs/BUILD_PROGRAM_V1.md), [shared contracts](docs/V1_CONTRACT.md),
+[generation/parity](docs/V1_GENERATION_PARITY.md), [grouped engine status](docs/V1_ENGINE_REUSE.md),
+and [runtime operations](docs/V1_RUNTIME.md). PR #15 remains unmerged pending
+Founder acceptance; this is not a qualified five-calibration release.
 
 ## Issue #12 — accepted physical Temperature calibration
 
