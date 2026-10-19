@@ -485,3 +485,21 @@ APIs, so the coordinator supplies timestamps/nonces and digest tokens.
 Source constraints, actual offline slices and unresolved qualification remain
 separate in [generation/parity](V1_GENERATION_PARITY.md) and
 [engine reuse](V1_ENGINE_REUSE.md).
+
+The corrected Windows YOLO route passes exact executable parity only after
+preserving Orca's eleven-patch relative layout: native import uniformly centers
+the group, while the initial stock recipe repacked patches. `--center` is not
+registered in this baseline despite an implementation branch. The replacement
+changes only job-local 3MF build-instance translations and disables arranging.
+All resources/mesh bytes are retained, unsupported layouts block, and the R8
+actual production run matches all executable commands and invariants without
+tolerance changes. Historical failed runs remain retained.
+
+The native build requires all 25 pinned dependencies and real NASM/Clang-backed
+FFmpeg tooling. A successful link/capability response does not prove generation:
+actual smoke caught null enum lookup maps in cloned static defaults. Fresh
+definition-created options supplied only from retained values repair that crash.
+The subsequent shared post-model wait remains under bounded diagnosis; no native
+artifact or Windows availability is implied. The native mock matrix separately
+exposed test-grid stamping and scroll-parent issues, corrected against actual
+source/native pixels before full evidence promotion.

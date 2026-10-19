@@ -13,6 +13,16 @@ No new physical test, automatic Start/writeback, firmware/configuration change,
 public exposure, physical deployment or merge is approved. Prior physical and
 synthetic Temperature evidence, profiles and rollback remain preserved.
 
+Current integration has common contracts, both five-calibration UI surfaces,
+strict native-reference parity, a durable external runtime and a per-user Windows
+lifecycle. Exact retained YOLO inputs pass actual Windows production parity;
+Temperature remains blocked by unexplained differences. The grouped Linux engine
+builds but currently stalls after model preparation; Windows engine packaging is
+unavailable. Full native matrix and interactive review qualification are the
+remaining evidence gates. See the [integrated Founder review](V1_FOUNDER_REVIEW.md)
+for exact scope and limitations. Acceptance/merge/physical activation remain open.
+
+
 ## Accepted: Issue #10 — official OrcaSlicer 2.5.0 Alpha qualification
 
 - [x] Verify isolated OSS identity, accepted Issue #8 / PR #9 baseline and no overlapping active work.

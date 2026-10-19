@@ -416,3 +416,12 @@ Slice success is not qualification. See [contracts](V1_CONTRACT.md),
 [native engine](V1_ENGINE_REUSE.md). Earlier accepted implementations/evidence
 remain historical baseline; this candidate changes none of their installed
 physical behavior or consumed physical authorizations.
+
+The integrated correction path now binds atomic intent consumption to its durable
+outcome, permits only read-only exact-job restart adoption, and reconciles native
+restart without relaxing sequence checks. Same-job progress/elapsed are nullable
+and cannot authorize evaluation. Windows lifecycle and local privacy checks run
+against a complete source-fingerprinted closure. The bounded native reviewer is
+separate test infrastructure: fixed private LAN, typed input, explicit synthetic
+completion, no product adapter, source/owner binding and exact managed cleanup.
+Its clean-clone imports do not require the devbox lifecycle checkout.
