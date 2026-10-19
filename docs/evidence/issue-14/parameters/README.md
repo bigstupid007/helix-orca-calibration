@@ -54,6 +54,12 @@ Verify portably:
 python3 scripts/v1-parameter-evidence.py verify docs/evidence/issue-14/parameters
 ```
 
+That command verifies the exact accepted source snapshot. Later generator-only
+sources use the separate
+[preservation gate](../../../V1_PARAMETER_EVIDENCE_PRESERVATION.md), which keeps
+these accepted proof bytes and the native control/request boundary exact without
+relabeling the recorded generator dispositions as current qualification.
+
 Earlier incomplete attempts remain private and unpromoted, including a fully
 functional pass whose unrelated baseline-container drift failed lifecycle checks.
 The final run passes those same strict checks. The review-only2GiB aggregate

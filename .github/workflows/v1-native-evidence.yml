@@ -17,5 +17,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Focused native parameters and Windows coordinator proof
-        run: python3 scripts/v1-parameter-evidence.py verify docs/evidence/issue-14/parameters
+      - name: Preserve focused native parameter and request proof
+        run: python3 scripts/v1-parameter-preservation.py
