@@ -1,0 +1,53 @@
+name: V1 Windows native engine
+on:
+  pull_request:
+    paths:
+      - 'integration/v1-native*'
+      - 'integration/v1-native-engine/**'
+      - 'integration/v1_engine.py'
+      - 'integration/v1_pe.py'
+      - 'scripts/v1-engine-windows.py'
+      - '.github/workflows/v1-windows-engine.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v1-windows-engine-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-windows:
+    runs-on: windows-2022
+    timeout-minutes: 130
+    steps:
+      - name: Preserve exact source line endings in this disposable runner
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: OrcaSlicer/OrcaSlicer
+          ref: 6a7763f08d1a175a464a00ce13f0b5a815662fc4
+          path: upstream
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build bounded source-pinned native package
+        timeout-minutes: 120
+        run: python scripts/v1-engine-windows.py --source upstream --work "${{ runner.temp }}/helix-orca-native-windows"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v1-windows-native-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/helix-orca-native-windows/evidence
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: v1-windows-native-package-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/helix-orca-native-windows/native-windows-package.zip
+            ${{ runner.temp }}/helix-orca-native-windows/native-windows-source.zip
+          retention-days: 7

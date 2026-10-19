@@ -11,6 +11,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import subprocess
 from pathlib import Path
 from types import MappingProxyType
@@ -57,9 +58,9 @@ class NativeSourceError(ValueError):
 
 def capabilities(config=None):
     """Return fresh capability data, never a source-derived permission to execute."""
-    backend, failure = None, "Native adapter is not built or qualified. "
+    backend, failure = None, "Native adapter is not built or qualified; a compatible audited build is required. "
     if not _compatible_host():
-        failure = "Native Linux x86_64 target is unavailable on this host; a compatible audited build is required. "
+        failure = "Native x86_64 target is unavailable on this host; a compatible audited build is required. "
     if config:
         try:
             backend = _backend(config)
@@ -96,10 +97,77 @@ _NATIVE_ASSETS = {"calib/temperature_tower/temperature_tower.drc", "calib/retrac
                   "calib/volumetric_speed/SpeedTestStructure.drc"}
 _ROOT = Path(__file__).resolve().parents[1]
 _TARGET = {"system": "Linux", "architecture": "x86_64", "format": "ELF64-LE-EM_X86_64"}
+_WINDOWS_TARGET = {"system": "Windows", "architecture": "x86_64", "format": "PE32+-LE-AMD64"}
+_WINDOWS_OWNED_INPUTS = _OWNED_INPUTS + (
+    "integration/v1_pe.py", "integration/v1-native-windows-dependencies.json",
+    "scripts/v1-engine-windows.py", ".github/workflows/v1-windows-engine.yml")
+
+
+def _host_target():
+    if platform.machine().lower() in ("x86_64", "amd64"):
+        return {"Linux": _TARGET, "Windows": _WINDOWS_TARGET}.get(platform.system())
+    return None
 
 
 def _compatible_host():
-    return platform.system() == "Linux" and platform.machine().lower() in ("x86_64", "amd64")
+    return _host_target() is not None
+
+
+def _windows_builder_valid(builder, receipt):
+    if not isinstance(builder, dict):
+        return False
+    run_id, attempt = builder.get("run_id"), builder.get("run_attempt")
+    commit, tools = builder.get("application_commit"), builder.get("toolchain")
+    return (builder.get("schema") == "helix-orca-v1-windows-builder/v1"
+        and builder.get("repository") == "bigstupid007/helix-orca-calibration"
+        and builder.get("workflow") == ".github/workflows/v1-windows-engine.yml"
+        and builder.get("runner_image") == "windows-2022"
+        and isinstance(builder.get("image_version"), str) and 0 < len(builder["image_version"]) <= 128
+        and isinstance(run_id, str) and run_id.isdecimal() and int(run_id) > 0
+        and isinstance(attempt, str) and attempt.isdecimal() and int(attempt) > 0
+        and builder.get("run_url") == "https://github.com/bigstupid007/helix-orca-calibration/actions/runs/" + run_id
+        and isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None
+        and receipt.get("application_commit") == commit and isinstance(tools, dict)
+        and set(tools) == {"cl", "link", "cmake", "ninja", "perl", "msbuild"}
+        and all(isinstance(row, dict) and type(row.get("size")) is int and row["size"] > 0
+                and isinstance(row.get("sha256"), str) and re.fullmatch(r"[0-9a-f]{64}", row["sha256"])
+                for row in tools.values()))
+
+
+def _windows_closure(executable, receipt):
+    from integration import v1_pe as pe
+    files, closure = receipt.get("runtime_dlls"), receipt.get("import_closure")
+    if (executable.suffix.lower() != ".exe" or not isinstance(files, dict) or len(files) > 128 or not isinstance(closure, dict)
+            or set(closure) != {executable.name.lower(), *files}
+            or any(not isinstance(name, str) or not pe.DLL_NAME.fullmatch(name) or pe.system_dll(name)
+                   for name in files)
+            or {path.name.lower() for path in executable.parent.iterdir() if path.suffix.lower() == ".dll"} != set(files)):
+        raise NativeEngineBlocked("Exact isolated Windows DLL inventory required", "native_runtime")
+    actual_system = set()
+    try:
+        for name in closure:
+            path = executable if name == executable.name.lower() else _checked(
+                {"path": str(executable.parent/name), "sha256": files[name]["sha256"]}, 256*1024**2)
+            if name in files and path.stat().st_size != files[name].get("size"):
+                raise ValueError("Runtime DLL size differs")
+            actual = pe.inspect(path, dll=name in files)
+            if actual != closure[name]:
+                raise ValueError("Runtime PE imports differ")
+            for imported in actual:
+                if pe.system_dll(imported):
+                    actual_system.add(imported)
+                elif imported not in files:
+                    raise ValueError("Unresolved non-system runtime DLL")
+        reachable, pending = set(), [executable.name.lower()]
+        while pending:
+            name = pending.pop()
+            if name not in reachable:
+                reachable.add(name)
+                pending.extend(item for item in closure[name] if item in files)
+        if reachable != set(closure) or sorted(actual_system) != receipt.get("system_imports"):
+            raise ValueError("Runtime/system import inventory differs")
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise NativeEngineBlocked("Windows runtime import closure differs", "native_runtime") from exc
 
 
 def _sha_file(path):
@@ -124,7 +192,7 @@ def _checked(record, maximum):
 def _backend(config):
     """Trusted process configuration, never fields accepted from a UI request."""
     if not _compatible_host():
-        raise NativeEngineBlocked("Native Linux x86_64 target is unavailable on this host; a compatible audited build is required", "native_platform")
+        raise NativeEngineBlocked("Native x86_64 target is unavailable on this host; a compatible audited build is required", "native_platform")
     receipt_path = _checked(config["build_receipt"], 1048576)
     inputs_path = _checked(config["build_inputs"], 1048576)
     receipt = json.loads(receipt_path.read_text())
@@ -133,27 +201,34 @@ def _backend(config):
             or receipt.get("qualified") is not False or receipt.get("source_commit") != ORCA_SOURCE
             or receipt.get("native_inputs_sha256") != _sha_file(inputs_path)):
         raise NativeEngineBlocked("Exact successful native build receipt required", "native_receipt")
+    caps = receipt["capabilities"]
+    target = _host_target()
+    if receipt.get("target") != target or caps.get("target") != target:
+        raise NativeEngineBlocked("Native backend requires an actual compatible audited build for this host", "native_platform")
+    windows = target == _WINDOWS_TARGET
     source = inputs["source"]
     if (source.get("source_commit") != ORCA_SOURCE or source.get("source_verified") is not True
             or set(source.get("files", {})) != set(SOURCE_HASHES)
             or any(source["files"][name].get("sha256") != sha for name, sha in SOURCE_HASHES.items())
-            or inputs.get("builder_image") != "sha256:f67960f55aa1b7cfa8af41bd89943b13730b791ce55e1925bc575d5eef89f6d9"):
+            or (not windows and inputs.get("builder_image") != "sha256:f67960f55aa1b7cfa8af41bd89943b13730b791ce55e1925bc575d5eef89f6d9")
+            or (windows and not _windows_builder_valid(inputs.get("builder"), receipt))):
         raise NativeEngineBlocked("Native source/build provenance differs", "native_source")
-    if set(inputs.get("owned_inputs", {})) != set(_OWNED_INPUTS) or any(
-            inputs["owned_inputs"][name] != _sha_file(_ROOT / name) for name in _OWNED_INPUTS):
+    owned = _WINDOWS_OWNED_INPUTS if windows else _OWNED_INPUTS
+    if set(inputs.get("owned_inputs", {})) != set(owned) or any(
+            inputs["owned_inputs"][name] != _sha_file(_ROOT / name) for name in owned):
         raise NativeEngineBlocked("Native adapter source differs from its build", "native_adapter_source")
     executable = _checked(config["native_executable"], 2 * 1024**3)
     if (receipt["adapter"]["sha256"] != _sha_file(executable)
             or receipt["adapter"]["size"] != executable.stat().st_size or not os.access(executable, os.X_OK)):
         raise NativeEngineBlocked("Actual built executable differs", "native_executable")
-    caps = receipt["capabilities"]
-    if receipt.get("target") != _TARGET or caps.get("target") != _TARGET:
-        raise NativeEngineBlocked("Native backend requires an actual compatible Linux x86_64 build; Windows and other targets are unavailable", "native_platform")
-    with executable.open("rb") as stream:
-        header = stream.read(64)
-    if (len(header) != 64 or header[:7] != b"\x7fELF\x02\x01\x01"
-            or int.from_bytes(header[18:20], "little") != 62):
-        raise NativeEngineBlocked("Native executable is not the recorded Linux x86_64 ELF64 target", "native_format")
+    if windows:
+        _windows_closure(executable, receipt)
+    else:
+        with executable.open("rb") as stream:
+            header = stream.read(64)
+        if (len(header) != 64 or header[:7] != b"\x7fELF\x02\x01\x01"
+                or int.from_bytes(header[18:20], "little") != 62):
+            raise NativeEngineBlocked("Native executable is not the recorded Linux x86_64 ELF64 target", "native_format")
     if caps.get("max_parallelism") != 2:
         raise NativeEngineBlocked("Native scheduler bound is unavailable", "native_scheduler")
     required = caps.get("required_effective_keys")
