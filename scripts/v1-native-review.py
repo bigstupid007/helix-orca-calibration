@@ -226,7 +226,7 @@ def html(token):
     text=text.replace('async function update(){if(busy)return;try{',
         'let refreshing=false;async function update(){if(busy||refreshing)return;refreshing=true;try{')
     text=text.replace("frame.src='/frame.png?t='+Date.now();}catch(e){message.textContent=e.message;}}",
-        "await new Promise((resolve,reject)=>{const timer=setTimeout(()=>finish(Error('Native frame timed out')),5000);function finish(error){clearTimeout(timer);frame.onload=null;frame.onerror=null;error?reject(error):resolve();}frame.onload=()=>finish();frame.onerror=()=>finish(Error('Native frame unavailable'));frame.src='/frame.png?t='+Date.now();});}catch(e){message.textContent=e.message;}finally{refreshing=false;}}")
+        "await new Promise((resolve,reject)=>{const timer=setTimeout(()=>finish(Error('Native frame timed out')),5000);function finish(error){clearTimeout(timer);frame.onload=null;frame.onerror=null;error?reject(error):resolve();}frame.onload=()=>finish();frame.onerror=()=>finish(Error('Native frame unavailable'));frame.src='/frame.png?t='+Date.now();});message.textContent='Native frame current; no printer connected.';}catch(e){message.textContent=e.message;}finally{refreshing=false;}}")
     return text
 
 def authorized_http(headers,post=False,token=None):
