@@ -1,10 +1,9 @@
 # Experimental downstream native adapter
 
 This source uses exact October 15 internal C++ `Model`, `Cut`, `Flow`, `Print`
-and calibration state; it does not modify Orca. It is **uncompiled and
-unqualified**. Do not advertise generator availability from the source file.
-The separate native static dependency build must pass before target injection
-and an incremental adapter build are attempted.
+and calibration state; it does not modify Orca. Its Linux x86_64 executable and
+actual capability command now build, but it remains **unqualified and blocked
+on runtime configuration**. Do not infer working generation from compilation.
 
 The intended CLI reads an immutable V1 request and complete effective context,
 explicit pinned native resources and an existing empty output directory. It
@@ -19,14 +18,14 @@ mandatory independent native-UI parity; this file grants no physical action.
 
 The registered executable target is Linux x86_64 ELF64. Its receipt is
 unavailable on Windows; Windows needs its own real compatible audited build.
-The actual build checkpoint passed 21 dependencies, then root configuration
-failed on missing OpenVDB/IlmBase. The three source-pinned supporting dependency
-targets are now retained in the lock for the next bounded build. Native export
+All 25 native dependencies and the real static engine/adapter now build. Actual
+grouped generation exposed a shared enum-default deserialization crash before
+G-code. Its source-backed fresh dynamic-config repair awaits runtime validation.
+Native export
 also retains and checks processor errors/warnings, and a persistent TBB control
-limits generation to two workers. The next incremental checkpoint built all
-three OpenVDB prerequisites, then hit the root's unconditional FFmpeg packaging
-copy; the exact upstream FFmpeg source target is now pinned too. None of these
-source changes is a build proof.
+limits generation to two workers. Exact source/build receipts and actual failed
+jobs are retained in the managed run evidence; no generated native calibration
+or qualification is claimed yet.
 
 Use `-DCMAKE_PROJECT_OrcaSlicer_INCLUDE=/absolute/path/add-target.cmake` on a
 pinned Orca source root to add target `helix_orca_native` without editing that

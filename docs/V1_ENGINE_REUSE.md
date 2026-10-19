@@ -2,11 +2,15 @@
 
 Build Program #14 owns this investigation. Baseline:
 `6a7763f08d1a175a464a00ce13f0b5a815662fc4`, the accepted October 15 Orca nightly.
-This is source and build-feasibility evidence. No native adapter has been built,
-and none of the five V1 calibrations is qualified by this document. All five
-native calibration references from October 15 Windows are now retained
-separately by the lead; those observations do not change native build status.
-The accepted physical Temperature milestone and lab remain unchanged.
+The real Linux x86_64 native adapter and its capability command now build.
+Actual generation remains blocked on a shared native enum-default startup
+failure; its source-backed repair is awaiting an incremental build/smoke.
+No native calibration is qualified by this document. All five independent
+native Windows references are retained separately; they do not change the
+adapter's generation status. The accepted physical Temperature milestone and
+lab remain unchanged. Historical checkpoints below retain the actual failures
+rather than implying that a successful build alone is a working or qualified
+generator.
 
 ## Common engine and three preparation families
 
@@ -130,17 +134,18 @@ Read-only metadata inspected on October 18, 2026:
   limits, not measured build predictions. Shared managed-run ownership, lock,
   retained logs and exact owned-container teardown are required.
 
-The next native implementation dependency is a **compatible isolated dependency
-prefix and successful headless static-target build**, followed by the shared
-adapter and native-UI parity corpus. Missing APIs in stock Python and transient
-native calibration state are verified interface blockers; missing host tools
-are recoverable infrastructure. Current capability responses remain unavailable.
-A capability inventory is progress, not a usable generator.
+The isolated dependency prefix, headless static target and shared adapter now
+build; runtime configuration and native-UI parity are the next gates. Missing
+APIs in stock Python and transient native calibration state are verified
+interface constraints; missing host tools were recoverable infrastructure.
+Default capability responses remain unavailable without a real matching build
+receipt, and a capability inventory alone does not prove usable generation.
 
 ## Reusable exact-source audit
 
 `integration/v1_engine.py` records SHA-256 for eleven exact baseline files and
-returns explicit unavailable native capabilities. `audit-source --repository
+returns unavailable native capabilities unless an actual compatible build
+receipt is configured. `audit-source --repository
 /PATH/TO/ORCA` reads fixed git objects with replacement objects disabled; it never
 changes a checkout or trusts the current branch. It rejects missing, altered or
 unknown source inventory entries. Its report distinguishes source verification,
@@ -169,8 +174,8 @@ shared managed writer. Tests reject substituted and oversized archives.
 using an immutable existing builder, read-only source/app/archive mounts, owned
 build/evidence mounts, exact container teardown and capped per-stage first/tail
 logs. CPU, memory, PID, time and disk-headroom bounds are explicit. The native
-static library is not yet built; no available-generator claim follows from a
-successful source download or dependency configure.
+static library was not yet built at that initial checkpoint; source downloads
+or dependency configure never enabled generation.
 
 Upstream GMP/MPFR invoke unbounded `make -j`, and OpenSSL/Python derive jobs from
 `ProcessorCount`; setting only `CMAKE_BUILD_PARALLEL_LEVEL=4` would misstate the
@@ -199,9 +204,9 @@ providing a measured source-expansion component of the 16 GiB peak bound.
 Separate experimental C++ adapter sources now live in
 `integration/v1-native-engine/`. They reproduce three native tower setup
 paths and the PA Pattern generator/arrangement/custom-G-code path using actual `Model`/`Cut`/`Flow`/`Print` interfaces and an app-owned
-CMake target injection. They remain explicitly uncompiled/unqualified. The next managed build attempts that
-actual executable only after the dependency/static-engine gates pass. It must
-not be advertised to the product before native parity and integration.
+CMake target injection. They were uncompiled at this initial checkpoint; actual
+build and runtime results are recorded below. Product Ready always requires
+independent native parity and integration.
 
 GMP subsequently built successfully. The next MPFR step invokes
 `autoreconf -f -i` in the unchanged upstream dependency recipe; that tool was
@@ -227,7 +232,7 @@ selection and printed numbers. It requires Klipper flavor because V1's
 retained context lacks the native vendor object needed to prove Bambu writer
 selection for other firmware. The one pattern is arranged before generation;
 its anchor must not subsequently be recentered independently of custom paths.
-This remains uncompiled source until the native target build passes.
+Its actual compilation now passes; runtime behavior and parity remain gates.
 
 The retained complete Windows R4 context was inventoried against all active
 `FullPrintConfig` class declarations and literal native definitions. The only
@@ -254,8 +259,9 @@ bounds before any compile stage runs.
 the same prepared-job contract and mandatory `v1_parity` evaluator as the stock
 route. The lead may dispatch `pressure_advance_pattern`, `retraction` and
 `max_volumetric_speed` here, and optionally native Temperature. Flow YOLO remains
-the stock route. No native generator is presently built; default capabilities
-remain unavailable. Successful process exit alone never makes a job Ready.
+the stock route. The Linux native executable is built; default capabilities
+remain unavailable without its exact compatible receipt. Successful process
+exit alone never makes a job Ready.
 
 Trusted runtime configuration supplies:
 
@@ -351,3 +357,39 @@ with SHA-256 independently retained by the
 [FreeBSD ports update](https://cgit.freebsd.org/ports/commit/?id=264dd71e3875a9c9dfdc3c25231cc0829cb8c8b2).
 No compiler or assembler is installed on the host, and no assembly is replaced
 with placeholders or disabled to manufacture a passing native build.
+
+## Actual adapter build and shared runtime gate
+
+Run `17384310035646fdb83974208145503b` built the real static `libslic3r` target
+in 844.965 seconds and compiled the adapter on its first pass. Linking required
+NanoSVG's header implementations, exactly as the upstream headless profile
+validator does (`src/dev-utils/OrcaSlicer_profile_validator.cpp:1–9`), rather
+than the GUI-owned implementation. Run `ce3fc31f304342d8b18c50956ae31a44` then
+completed the native build and actual `--capabilities` command: executable
+71,627,768 bytes, four native routes, 721 required effective keys, Linux x86_64
+ELF64 and two-worker scheduler bound. Run `eba06ccacdf44c25b604ef003c9d6d65`
+subsequently built optional bounded diagnostics. Both successful build runs
+record runtime clear; no Windows execution capability is inferred.
+
+The grouped smoke tool `scripts/v1-engine-smoke.py` uses one private, offline,
+2-CPU/4-GiB/128-PID/300-second managed container per calibration, exact teardown,
+immutable retained context, and the same guarded product adapter/parity path.
+Its first four actual native jobs all exited 139 before generating G-code:
+`67342532791f44c58ee67c59dbed8d84` (Temperature),
+`e133c59aba8b4551a65de869d4515fba` (PA),
+`a28fd2e999834d9a8d695bac5a5dfa3a` (Retraction), and
+`27ce6e502cf04429b1518b4ee59c188f` (MVS). All failures are retained with runtime
+clear and qualification false. No process exit or fixture is presented as a
+working calibration. Real native-UI Windows references remain separate evidence.
+
+Diagnostic run `03078f9ecdd34c8bbd7fb4a7284fa0ce` localized the shared crash
+to strict parsing of `extruder_type`; it logs only phase/key names, never
+configuration values. `full_print_config()` (`PrintConfig.cpp:10183`) clones
+static options (`Config.cpp:1689`), including enum-list defaults with null
+lookup maps. `ConfigOptionEnumsGeneric::deserialize` dereferences that map
+(`Config.hpp:2249`). The genuine dynamic option factory explicitly attaches
+the correct native map (`Config.cpp:322–338`, `1721–1741`). The downstream repair
+uses full defaults only to inventory mandatory keys and fills a fresh dynamic
+configuration from every retained serialized effective value. It changes no
+upstream source or profile value, and introduces no missing-value fallback.
+That repair remains pending actual incremental runtime verification.

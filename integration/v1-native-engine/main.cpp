@@ -70,13 +70,17 @@ static DynamicPrintConfig retained_config(const json &snapshot)
         throw std::runtime_error("Approved October 15 retained context required");
     const auto &effective = snapshot.at("effective");
     if (!effective.is_object()) throw std::runtime_error("Effective config unavailable");
-    DynamicPrintConfig config = DynamicPrintConfig::full_print_config();
-    diagnostic("config-defaults");
+    auto required = DynamicPrintConfig::full_print_config();
+    DynamicPrintConfig config;
+    diagnostic("config-required-inventory");
     // GUI-only bed asset paths are deliberately redacted from retained context.
     // PrintConfig.cpp 1037/1043 define them; no executable slicing consumes them.
-    config.erase("bed_custom_model");config.erase("bed_custom_texture");
-    // Defaults establish native types, never replace unavailable effective values.
-    for (const auto &key : config.keys()) {
+    required.erase("bed_custom_model");required.erase("bed_custom_texture");
+    // Static enum-list defaults can carry null lookup maps. Keep them only as
+    // an inventory; the fresh dynamic config creates each option through its
+    // real native definition, which attaches the enum lookup map. Every value
+    // still comes from the retained effective snapshot, with no fallback.
+    for (const auto &key : required.keys()) {
         if (!effective.contains(key) || !effective.at(key).is_string())
             throw std::runtime_error("Effective value unavailable: " + key);
     }
