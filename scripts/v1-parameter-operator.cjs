@@ -225,7 +225,9 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
     const state=await until(async()=>{
       const candidate=await parameterState();
       const trace=candidate.trace;
-      return trace&&trace.native_request&&trace.native_request.calibration===kind&&trace.phase==='blocked'?candidate:false;
+      return trace&&trace.native_request&&trace.native_request.calibration===kind&&trace.phase==='blocked'&&
+        candidate.native&&candidate.native.phase==='blocked'&&candidate.native.request&&
+        canonical(candidate.native.request)===canonical(trace.native_request)?candidate:false;
     },`${kind} did not reach a genuine blocked Coordinator journal`,15000);
     const trace=state.trace,request=trace.native_request;
     same(request.parameters,expected,`${kind} request parameters changed`);
@@ -244,6 +246,8 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
     const reason=String(availability).replace(/^Blocked ·\s*/,'');
     assert.equal(trace.message,reason,`${kind} blocker differs from the offered capability reason`);
     proofs.push({kind,request_id:request.request_id,parameters:request.parameters,request_sha256:independent,
+      native_request:trace.native_request,transport_request:trace.transport_request,coordinator_request:trace.coordinator_request,
+      native_sha256:trace.native_sha256,transport_sha256:trace.transport_sha256,coordinator_sha256:trace.coordinator_sha256,
       phase:trace.phase,message:trace.message,generator_dispatched:false,prepared:null,physical_adapter_enabled:false});
     await capture(`${kind}-blocked`);
     await page.waitForTimeout(750); // let the real loop archive and publish the next single-use offer
