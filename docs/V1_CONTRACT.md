@@ -114,3 +114,15 @@ all retained result fields before accepting. This preserves the Founder flow
 without an unsupported Lua clock/hash API. The trusted coordinator verifies
 all digests and independently owned successful completion; native events alone
 are not physical qualification or action authority.
+
+## Functional parameter correction
+
+The current [parameter correction](V1_PARAMETER_CORRECTION.md) is controlling for
+editable setup controls and operator acceptance. YOLO `pass` is integer1 Recommended
+or2 Perfectionist; fixed additive sample sets differ and require distinct parity.
+The offer may include `extruder_type` (`direct_drive`, `bowden`, `unavailable`) to
+select source-verified PA defaults from effective context only. This is setup metadata,
+not a printer/preset write or execution flag. Required numeric fields use free entry
+inside explicit V1 bounds; invalid input remains visible with a correctable error.
+A valid request for a known blocked capability is still retained by the coordinator
+with exact selected values and the actual blocker. No qualification bypass is added.

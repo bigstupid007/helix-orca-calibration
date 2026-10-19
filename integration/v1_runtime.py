@@ -16,7 +16,8 @@ import tempfile
 import time
 
 from integration.v1_contract import (CALIBRATIONS, DEFAULTS, SETTINGS, ContractError,
-    canonical, digest, exact, hex_value, validate_context, validate_prepared, validate_request)
+    canonical, digest, exact, hex_value, validate_context, validate_prepared, validate_request,
+    default_parameters, context_extruder_type, flow_ratio_choices)
 
 
 def read_json(path):
@@ -152,7 +153,8 @@ class Coordinator:
         offer = dict(schema="helix-orca-v1-offer/v1", request_id=secrets.token_hex(16),
                      origin_id=context["origin_id"], context_sha256=digest(context),
                      created_at=now, expires_at=now + 3600, nozzle_mm=context["nozzle_mm"],
-                     capabilities=self.capabilities, defaults=copy.deepcopy(DEFAULTS))
+                     capabilities=self.capabilities, defaults=default_parameters(context),
+                     extruder_type=context_extruder_type(context))
         for role in ("printer", "process", "filament"):
             offer[role] = context[role]["saved"]["name"]
         self.state.update(context=context, offer=offer, request=None, prepared=None, result=None,
@@ -189,7 +191,7 @@ class Coordinator:
         directory = self.root / "jobs" / request["request_id"]
         directory.mkdir(parents=True, exist_ok=False, mode=0o700)
         try:
-            prepared = validate_prepared(self.generator(request, copy.deepcopy(self.state["context"]), directory, self.config), request)
+            prepared = validate_prepared(self.generator(copy.deepcopy(request), copy.deepcopy(self.state["context"]), directory, self.config), request)
             self.state["prepared"] = prepared
             atomic_json(directory / "prepared.json", prepared)
             if prepared["artifact"]:
@@ -364,15 +366,14 @@ class Coordinator:
             options = list(range(p["start"], p["end"] - 1, -5))
             unit = "°C"
         elif kind == "flow_ratio_yolo":
-            current = Decimal(self.state["context"]["effective"]["filament_flow_ratio"])
-            options = [float(current + Decimal(i) / 100) for i in range(-5, 6)]
+            options = flow_ratio_choices(self.state["context"]["effective"]["filament_flow_ratio"], p["pass"])
             unit = "ratio"
         else:
             start, end, step = (Decimal(str(p[k])) for k in ("start", "end", "step"))
             options = [float(start + step * i) for i in range(int((end - start) // step) + 1)]
             unit = {"retraction": "mm", "pressure_advance_pattern": "s", "max_volumetric_speed": "mm³/s"}[kind]
         if len(options) > 128:
-            raise ContractError("Evaluation exceeds native option limit")
+            raise ContractError("V1 supports at most 128 result choices. Increase Step or reduce the range.")
         return dict(setting=SETTINGS[kind], options=options, unit=unit)
 
     def result(self, value):

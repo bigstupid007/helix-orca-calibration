@@ -4,6 +4,7 @@ import json
 import math
 import re
 import time
+from decimal import Decimal, InvalidOperation
 
 CALIBRATIONS = ("temperature", "flow_ratio_yolo", "pressure_advance_pattern", "retraction", "max_volumetric_speed")
 DEFAULTS = {
@@ -13,6 +14,48 @@ DEFAULTS = {
     "retraction": {"start": 0, "end": 2, "step": 0.1},
     "max_volumetric_speed": {"start": 5, "end": 20, "step": 0.5},
 }
+PA_DEFAULTS = {
+    "direct_drive": {"start": 0, "end": 0.08, "step": 0.005},
+    "bowden": {"start": 0, "end": 1, "step": 0.05},
+}
+# These are existing V1 resource envelopes, not Orca's physical printer limits.
+PARAMETER_LIMITS = {
+    "temperature": {"start": [160, 500], "end": [155, 495]},
+    "pressure_advance_pattern": {"start": [0, 5], "end": [0, 5], "step": [0.001, 5]},
+    "retraction": {"start": [0, 20], "end": [0, 20], "step": [0.001, 20]},
+    "max_volumetric_speed": {"start": [0.01, 200], "end": [0.01, 200], "step": [0.001, 200]},
+}
+
+
+def context_extruder_type(context):
+    """Only the effective native serialized value may select PA defaults."""
+    value = context.get("effective", {}).get("extruder_type") if context else None
+    return {"Direct Drive": "direct_drive", "Bowden": "bowden"}.get(value, "unavailable")
+
+
+def default_parameters(context=None):
+    result = json.loads(json.dumps(DEFAULTS))
+    kind = context_extruder_type(context)
+    # The offer explicitly reports unavailable; the UI labels this generic DD
+    # preset and offers the deliberate Bowden-default action. It is not a
+    # claimed effective printer value or a saved-preset fallback.
+    if kind in PA_DEFAULTS:
+        result["pressure_advance_pattern"] = dict(PA_DEFAULTS[kind])
+    return result
+
+
+def flow_ratio_choices(original, flow_pass):
+    """Native YOLO additive samples, including asymmetric Perfectionist ends."""
+    if type(flow_pass) is not int or flow_pass not in (1, 2):
+        raise ContractError("Choose YOLO Recommended or Perfectionist.")
+    try:
+        current = Decimal(str(original))
+        if not current.is_finite():
+            raise InvalidOperation
+    except (InvalidOperation, ValueError):
+        raise ContractError("The original effective flow ratio is unavailable.") from None
+    divisor, first, last = (100, -5, 5) if flow_pass == 1 else (200, -8, 7)
+    return [float(current + Decimal(i) / divisor) for i in range(first, last + 1)]
 SETTINGS = {"temperature": "nozzle_temperature", "flow_ratio_yolo": "filament_flow_ratio",
             "pressure_advance_pattern": "pressure_advance", "retraction": "filament_retraction_length",
             "max_volumetric_speed": "filament_max_volumetric_speed"}
@@ -54,9 +97,9 @@ def hex_value(value, size=64):
     return value
 
 
-def number(value, minimum, maximum):
+def number(value, minimum, maximum, label="Parameter"):
     if type(value) not in (int, float) or not math.isfinite(value) or not minimum <= value <= maximum:
-        raise ContractError("Parameter outside supported native range")
+        raise ContractError(f"{label} must be a finite number from {minimum} to {maximum}.")
     return value
 
 
@@ -65,26 +108,24 @@ def validate_parameters(calibration, value):
         raise ContractError("Unknown calibration")
     exact(value, " ".join(DEFAULTS[calibration]), "parameters")
     if calibration == "flow_ratio_yolo":
-        if type(value["pass"]) is not int or value["pass"] != 1:
-            raise ContractError("V1 supports native YOLO Recommended pass 1")
+        if type(value["pass"]) is not int or value["pass"] not in (1, 2):
+            raise ContractError("Choose YOLO Recommended (1) or Perfectionist (2).")
     elif calibration == "temperature":
         if any(type(value[k]) is not int for k in ("start", "end", "step")):
             raise ContractError("Temperature bands must be integers")
-        number(value["start"], 160, 500)
-        number(value["end"], 155, 495)
+        number(value["start"], 160, 500, "Starting temperature (°C)")
+        number(value["end"], 155, 495, "Ending temperature (°C)")
         if value["step"] != 5 or value["start"] < value["end"] + 5 or value["start"] % 5 or value["end"] % 5:
-            raise ContractError("Native Temperature uses descending 5 degree bands")
+            raise ContractError("Use 5°C increments, with Start at least 5°C above End. Temperature step is fixed at 5°C.")
         if type(value["scale"]) is not bool:
             raise ContractError("Temperature scale must be boolean")
     else:
-        limits = {"pressure_advance_pattern": (0, 5, 0.001), "retraction": (0, 20, 0.001),
-                  "max_volumetric_speed": (0.01, 200, 0.001)}
-        low, high, step = limits[calibration]
-        number(value["start"], low, high)
-        number(value["end"], low, high)
-        number(value["step"], step, high)
-        if value["end"] < value["start"] + value["step"] or (value["end"] - value["start"]) / value["step"] > 1000:
-            raise ContractError("Native range needs at least two and at most 1001 samples")
+        for key, bounds in PARAMETER_LIMITS[calibration].items():
+            number(value[key], *bounds, label=key.capitalize())
+        if value["end"] < value["start"] + value["step"]:
+            raise ContractError("End must be at least Start + Step. Increase End or reduce Start/Step.")
+        if (value["end"] - value["start"]) / value["step"] > 1000:
+            raise ContractError("V1 supports at most 1001 samples. Increase Step or reduce the range.")
     return json.loads(canonical(value))
 
 

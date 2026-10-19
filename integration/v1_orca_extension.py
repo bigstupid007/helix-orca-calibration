@@ -105,8 +105,7 @@ def v1_commit_inbox(directory):
     if kind == "temperature":
         choices = list(range(parameters["start"], parameters["end"] - 1, -5))
     elif kind == "flow_ratio_yolo":
-        current = Decimal(original["effective"]["filament_flow_ratio"])
-        choices = [float(current + Decimal(i) / 100) for i in range(-5, 6)]
+        choices = flow_ratio_choices(original["effective"]["filament_flow_ratio"], parameters["pass"])
     else:
         start, end, step = (Decimal(str(parameters[k])) for k in ("start", "end", "step"))
         choices = [float(start + step * i) for i in range(int((end - start) // step) + 1)]
