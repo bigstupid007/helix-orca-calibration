@@ -32,7 +32,9 @@ only invariants, but native warning `1000C001` (retained bed 60°C versus filame
 vitrification 55°C) blocks Prepared. PA executable-stream diagnostics match its native reference, but mandatory
 qualification remains blocked by the warning. The actual Windows package CI
 build is the next shared infrastructure gate; Linux output does not enable
-the Windows route.
+the Windows route. A separately captured, explicit unsaved 50°C bed input is
+being qualified against fresh native UI exports; the original 60/55 context
+remains blocked and unchanged. No new native generator is yet qualified.
 
 The earlier native matrix passed all eleven sizes and 396 frames; its synthetic
 browser workflow and exact browser/listener/container cleanup are retained as

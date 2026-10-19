@@ -52,3 +52,55 @@ A substantial combined review is in progress. The next meaningful Founder review
 is a candidate with actual Windows package evidence and exact generation/parity
 results, or an explicit residual blocker that prevents that product milestone.
 No physical action, deployment, profile writeback or merge is authorized.
+
+## Integrated Windows qualification continuation
+
+The first actual Windows CI attempts exposed environment-command quoting,
+Windows checkout line endings and CMake cache-path escaping. Causal fixes use
+an owned CRLF batch file, LF checkout (preserving explicit upstream batch-file
+attributes), and forward-slash CMake cache paths. Strict source hashes are
+unchanged. Bounded failure logs and lifecycle records retain each failure.
+
+Package source materials now have a closed hash/size inventory, unique required
+archives and a same-stream rehash into an unpromoted ZIP. Unknown, missing,
+substituted, duplicated or late-mutated archives make the source gate incomplete;
+only explicitly excluded binary build inputs may be ignored. Matching GNU
+upstream source versions and original licenses are retained where verified.
+Historical vendored compiler/patch provenance and OpenCV's opaque Windows IPP
+component remain explicit production source-material limitations; there is no
+complete-corresponding-source claim. Upstream compilation behavior is unchanged.
+
+The shared [Windows qualification driver](V1_WINDOWS_NATIVE_QUALIFICATION.md)
+uses externally pinned source and input bytes, an actual PE/DLL/resource-bound
+package, the existing native engine entry point, and unchanged strict parity.
+Its separate registration mode calls the original native invariant harness and
+always reports unqualified. Source/resource/input mutations prevent publication;
+warnings preserve the requested values and actual blocker without Prepared.
+Independent review found no remaining material defect in that driver or the
+Temperature stock helper's corrected source binding.
+
+Native UI investigation found that the installed Generic PETG system profile
+exposes six saved nozzle temperatures while the active contract requires an
+unambiguous single value; its 80°C bed / 70°C threshold would also warn. It was
+not silently coerced. The original filament was restored without preset saving.
+A separate qualification input deliberately edits both bed fields to 50°C in
+isolated native Orca, without saving. Native capture SHA
+`bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711`
+retains the original 60°C saved values. The only differences are those two
+filament edited/effective fields; printer/process and every saved configuration
+match the original context. Each native calibration setup must independently
+match this exact captured context before preparation; the UI's explicit
+Transfer action carries these unsaved values into the qualification project.
+Between cases, native Discard restores saved settings. Fresh UI exports remain
+private and are distinct from every generated candidate. This input qualifies
+nothing until real Windows generation and strict parity both pass. It never
+qualifies or substitutes for the original 60/55 input combination.
+
+The direct native-engine Temperature case uses genuine native Cut and calibration
+state on Windows. It is separate from the still-untransferred STL experiment;
+no protected mesh payload is consumed or transferred by that route.
+
+Combined local validation at `32f3a68` passes 522 tests (two Windows-only skips)
+and the unchanged-control preservation gate. The subsequent closed-inventory
+classifier correction passes all 14 focused Windows guard tests. Actual Windows
+build/target/parity evidence remains required; no new generator is yet qualified.

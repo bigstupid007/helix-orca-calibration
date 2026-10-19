@@ -1,5 +1,10 @@
 # V1 grouped native-engine reuse
 
+Generator-only continuation: see the [current repair checkpoint](V1_GENERATOR_BLOCKER_CHECKPOINT.md)
+for actual Windows build gates, source-material limits and the separate explicitly
+edited 50°C qualification context. No new native route is claimed qualified;
+Founder review remains pending actual package/parity evidence.
+
 Build Program #14 owns this investigation. Baseline:
 `6a7763f08d1a175a464a00ce13f0b5a815662fc4`, the accepted October 15 Orca nightly.
 The real Linux x86_64 native adapter and its capability command now build.

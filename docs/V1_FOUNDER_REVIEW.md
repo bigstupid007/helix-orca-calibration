@@ -1,5 +1,10 @@
 # Integrated V1 Founder Review
 
+Generator-only continuation: see the [current repair checkpoint](V1_GENERATOR_BLOCKER_CHECKPOINT.md)
+for actual Windows build gates, source-material limits and the separate explicitly
+edited 50°C qualification context. No new native route is claimed qualified;
+Founder review remains pending actual package/parity evidence.
+
 Build Program #14 and draft PR #15 are the governing review unit. Founder
 acceptance, merge and physical deployment remain pending. This candidate keeps
 physical execution disabled and preserves the accepted Temperature installation,

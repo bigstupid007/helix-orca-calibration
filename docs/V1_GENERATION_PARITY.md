@@ -1,5 +1,10 @@
 # V1 generation and mandatory native G-code parity
 
+Generator-only continuation: see the [current repair checkpoint](V1_GENERATOR_BLOCKER_CHECKPOINT.md)
+for actual Windows build gates, source-material limits and the separate explicitly
+edited 50°C qualification context. No new native route is claimed qualified;
+Founder review remains pending actual package/parity evidence.
+
 Build Program #14 approves these recipes and the grouped engine investigation.
 This document records a working foundation, not a V1 qualification or approval
 for a new physical test. Completed Temperature implementation, physical proof,
