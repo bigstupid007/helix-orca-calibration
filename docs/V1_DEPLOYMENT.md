@@ -7,8 +7,9 @@ wrapper use no action-enabled job adapter. All current review operation stays
 within that boundary.
 
 `--deployment-authorization` is implemented for a later separately approved
-local deployment. No helper creates or signs an approval, and no approval record
-is created by tests or this program. A native request, result, configuration flag
+local deployment. No helper creates or signs an operational approval, and this program has not
+created an operational approval record. Unit tests use synthetic records against
+local fixtures only. A native request, result, configuration flag
 or parity report alone cannot enable the adapter.
 
 The exact local record schema is `helix-orca-v1-local-deployment/v1`, with only

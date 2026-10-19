@@ -3,10 +3,10 @@
 Build Program #14 owns this investigation. Baseline:
 `6a7763f08d1a175a464a00ce13f0b5a815662fc4`, the accepted October 15 Orca nightly.
 This is source and build-feasibility evidence. No native adapter has been built,
-and none of the five V1 calibrations is qualified by this document. Actual
-October 15 Windows Temperature and YOLO native references are now retained
-separately by the lead; those observations do not change native build status. The accepted physical Temperature
-milestone and lab remain unchanged.
+and none of the five V1 calibrations is qualified by this document. All five
+native calibration references from October 15 Windows are now retained
+separately by the lead; those observations do not change native build status.
+The accepted physical Temperature milestone and lab remain unchanged.
 
 ## Common engine and three preparation families
 

@@ -1,0 +1,132 @@
+# V1 isolated Windows Orca observations
+
+These are actual Windows UI/CLI observations for Issue #14, separate from the
+synthetic native Helix matrix and Linux lab. The target is the October 15
+`6a7763f08d1a175a464a00ce13f0b5a815662fc4` nightly, executable SHA-256
+`e2b6da4c20e7080eade97379f326dcfcaa90f1ecb9991f1db9eb61e3065a9759`.
+A dedicated marked `v1-qualification` data directory and separate WebView storage
+reuse only copied test profiles. Accepted/normal installations, printer config,
+physical grants and rollback material are not runtime inputs for this candidate.
+
+## Actual companion
+
+R5 generated self-contained source SHA-256
+`9d02d75abe03d0614e2e5313caa489c838cedc1778a2109b8b2d5a15137dc61e`
+was installed, replaced and activated through the real native plugin manager.
+The native action launcher opens the V1 dock. Selected profile/nozzle fields,
+preparation status, explicit review-only physical execution notice and provenance
+expander render in the actual Windows WebView. No preset setter is used.
+The retained screenshot `v1-r5-companion-open.png` SHA-256 is
+`26daba62e5b32f85369770acc3d8b8259f6da486bdef4e6d3b47789877aa29c6`.
+Full screenshots remain private because they show the owner's profile identities.
+
+The real callback captures saved, edited and effective configuration separately.
+Complete R4 and fresh pre-calibration R5 snapshots are byte-identical SHA-256
+`3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c`,
+with 775 effective serialized keys, 0.4 mm nozzle and explicit empty post-processing.
+The original incomplete context omitted that key and is retained as failed
+provenance; it was never silently repaired into a complete native reference.
+
+## Independent Temperature reference and actual generation
+
+The native calibration dialog independently prepared the default PLA standard
+tower 230→190°C, 5°C step, auto-scaling enabled, from the original context. The
+reference model was not imported from the programmatic recipe. Native slicing
+and local G-code/project Save As actions produced the retained Windows reference.
+The final native G-code is 3028201 bytes, SHA-256
+`512eb13a80788bd22f928b1b073382070a7c43b5c667efd08ffcc05e550e29b7`.
+Its Windows-local 3MF is 341982 bytes, SHA-256
+`f6ac5e0a1bf46f7caeb826c0059dd0044a451be253a707fa81a51689fc6fbdbd`.
+
+The bounded stock CLI helper then executed the same pinned Windows executable
+with matching exact input context, separate job data/browser directories and
+explicit High Temp Plate. The verified run returned exit 0 in 1.593 seconds;
+G-code 2965977 bytes SHA-256
+`7bcb855addd5747b4c8a2d8eb2c606b7d4415ff8b82ebe9543f7e3a840e9e544`.
+A preceding run whose PowerShell exit-code capture was unavailable remains a
+failed qualification attempt; output existence was not treated as exit 0.
+
+Both actual files pass the 450-layer/nine-temperature-section deposition
+invariants. Their executable streams differ. Exact metrics and measured
+geometry/brim diagnostics are in [generation/parity](V1_GENERATION_PARITY.md).
+Qualification remains false; no command, mesh or flow difference is waived.
+The private reports retain exact commands, inputs, screenshots, helper/ZIP hashes,
+stdout/stderr and artifact bytes. Public documentation exports only bounded
+metrics and digests.
+
+## Other calibration references and limits
+
+Native YOLO Recommended/Archimedean surface was independently prepared and sliced
+through the native Flow Ratio dialog, with local G-code and 3MF references retained.
+The actual stock Windows CLI run completed with exit 0 in 2.457 seconds using
+approved exact bundle SHA-256
+`d2296b855fbc2ace4d61817bf91454572ecd534da3341ee5dcc3155d42072996`.
+Candidate G-code 1559700 bytes SHA-256
+`ce05e8bd2acc16ceea51781745357bc90b87cb72800634eff60bc99061f358cb`;
+native G-code 1576258 bytes SHA-256
+`0fb149a6a1624cdf64cb03a8c0dcb0fc6a21d9d3f43a4fb0f3389e4e48485daa`.
+Both pass the ten-layer YOLO invariants, with identical 4854.673 mm extrusion
+and 43241 deposition moves. Executable commands differ (55268 versus 55273),
+as do the dynamic acceleration stream, motion stream and printed XY bounds.
+There are five classified emitted-setting differences and no unclassified
+setting differences. Strict parity remains **false**, report SHA-256
+`5c5fb10764918deba29573a1ac5465b108ffdf659ad92418ed79152e287b27d3`.
+No numerical or geometry difference has been waived.
+
+Native direct-drive PA Pattern was independently prepared at 0→0.08 by 0.005,
+numbering enabled, and exported locally. Its genuine native inspection passes:
+4 custom layers, 17 values, 3 walls per sample, 789 deposition moves and 2904 executable
+commands at 220°C. Native G-code 92568 bytes SHA-256
+`53fcd2d926eac9dbe9979450a4b0d4ba30ed9025c2f9bcc3eead155b7300eab5`;
+manifest SHA-256
+`4583a44a32f8611f201b60ad89f8b2345384a40ca42a4b5dd69f3157c87e5452`.
+This registers actual native evidence, not candidate qualification.
+
+Native Retraction independently prepared 0→2 mm by 0.1 mm. Its 107-layer,
+21.4 mm tower was sliced and locally exported: G-code 539980 bytes SHA-256
+`0f5dec36bf301cf94c2c9824d940d725083ae5b8b873435a493887533a2de678`;
+3MF 127420 bytes SHA-256
+`de12eb4abd834235a58bacc4f4b8ffc13a55873f9f91c754670c4b14ebd8baa7`.
+The initial native invariant inspection failed `retraction_episode_length` and is
+retained unchanged. A bounded local diagnostic found seven transition episodes
+among 204 software retractions: recorded motion Z still belongs to the previous
+layer while the next deposition belongs to the next nominal layer. The corrected source-derived checker associates the final negative-extrusion
+command with that layer's independently measured deposition Z. Its fresh,
+separately retained inspection passes 202 checked episodes across 107 layers;
+report SHA-256 `5e0d0a19ee77809f30e1195c667ed32dd9f2ec77e36de4033f9525ba936f23f5`.
+Tolerances remain unchanged and forged wrong-length top-ups still fail.
+
+Native MVS independently prepared 5→20 mm³/s by 0.5. G-code 1296372 bytes,
+SHA-256 `3e204ce2d2cd1ede29e68ae4e375160dea966d9877ece05c9ce3be7e14c30a97`;
+3MF 104748 bytes SHA-256
+`28fd4295f90628ad9f748b54a43a5143142c6500a9afa4822535d6e1a4bae35c`.
+The native inspection passes 101 layers and 99 checked outer-wall ramp layers;
+report SHA-256 `2a9b765e2047f2352f3e0ac85dfcc658e3c509099088760fba86a3986f0874ac`.
+These three native-engine-family references do not qualify programmatic output.
+No programmatic artifact may serve as its own native reference.
+
+The source-only metrics/parity utilities execute locally on Windows with the
+existing Python in isolated/no-site mode. Complete native projects stay there;
+whitelisted scalar geometry/settings summaries can be retained separately. No
+profile/configuration/model payload is published with these observations.
+The Spare bridge is testing infrastructure, not an ordinary runtime dependency.
+Actual detached coordinator lifecycle and Win32 ACL evidence are recorded in
+[V1 Windows runtime](V1_WINDOWS_RUNTIME.md), without physical activation.
+
+A read-only Windows toolchain probe found no existing `cmake`, `ninja`, `cl` or
+`msbuild` command and no Visual Studio Installer/VC toolchain registration. No
+build tools were installed. The current native-engine build is Linux x86_64 only;
+its executable/receipt cannot qualify Windows generation or packaging.
+
+After all five native preparations and local exports, the pre-V1 normal-profile
+fingerprint remains unchanged: 1429 `.json/.conf/.ini` settings/profile files,
+aggregate SHA-256 `41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`.
+Only isolated native test edits were discarded; the baseline was not rewritten.
+The [public-safe reference inventory](evidence/issue-14/windows-reference-inventory.json)
+retains all five native checks, exact source/report digests, the historical
+Retraction failure, actual YOLO parity failure and preservation proof.
+
+Remaining exact generation comparisons, native runtime refresh, independent
+review corrections and Founder acceptance are still pending. No
+new physical print, upload/queue, heat/motion, firmware/configuration change,
+writeback or printer deployment is validation evidence for this program.

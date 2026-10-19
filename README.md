@@ -10,14 +10,18 @@ This supersedes the earlier stop-after-Temperature instruction for this program.
 The accepted physical Temperature installation and evidence below remain intact.
 
 V1 is **in development, not qualified or Founder-ready**. Stock Temperature and
-Flow YOLO recipes have produced offline slices; no V1 generator is qualified yet.
-PA Pattern, Retraction and Max Volumetric Speed need the grouped native-engine
-route. The revised native UI matrix passes all eleven targets, all five workflows
-and 341 frames, including separate cancellation confirmation. Isolated October
-15 Windows Temperature parity remains blocked on measured differences. The direct local coordinator ships with physical actions disabled;
-its owned-job/completion/result path is currently proven with bounded local HTTP
-fixtures, not new hardware tests. Actual Windows process lifecycle tests pass;
-no deployment approval record or physical activation has been created. No physical deployment or merge is authorized.
+Flow YOLO have produced actual October 15 Windows CLI slices; both remain
+unqualified because their executable output differs from independent native UI
+references. All five native Windows references pass their calibration invariants.
+PA Pattern, Retraction and Max Volumetric Speed await the grouped native-engine
+build. Its first 21 dependencies built; additional source-required OpenVDB
+prerequisites are pinned, and existing Windows native build tools are absent.
+The prior source-bound native UI matrix contains 341 frames across eleven sizes;
+refreshed native navigation/restart validation is underway after review fixes.
+The direct coordinator keeps physical actions disabled. Its owned-job path uses
+bounded HTTP fixtures, and actual Windows lifecycle checks are component-scoped.
+Normal Orca's 1429 settings/profile files match the pre-V1 fingerprint. No
+operational deployment approval, new physical test or merge has occurred.
 
 Start with [program scope](docs/BUILD_PROGRAM_V1.md), [shared contracts](docs/V1_CONTRACT.md),
 [generation/parity](docs/V1_GENERATION_PARITY.md), [grouped engine reuse](docs/V1_ENGINE_REUSE.md),
@@ -48,9 +52,10 @@ manual recovery after fresh verification. No queued API, delay workaround,
 notification change, upstream patch or profile writeback is introduced.
 October 15 nightly remains preferred; Alpha has no physical adoption.
 
-**Implementation stops after closeout.** The next activity is a fresh
-Founder-led review of the overall Helix–Orca goal. No further print, firmware/
-printer configuration change, profile writeback or new build is authorized.
+The Issue #12 closeout stopped implementation pending a new Founder launch.
+The V1 program above supersedes that stop for approved development only. New
+physical tests, firmware/printer configuration changes and profile writeback
+remain outside this approval.
 
 ## Issue #1 — native Helix calibration foundation
 

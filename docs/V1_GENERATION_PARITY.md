@@ -16,7 +16,7 @@ October 15 Windows output.
 | Calibration | Verified native mechanism | Current route and qualification boundary |
 | --- | --- | --- |
 | Temperature standard tower | `Plater::calib_temp`, native DRC cut/scale; transient `Print::set_calib_params`; native layer-count temperature interpolation | Job-local model + explicit machine/process/filament serialized inputs + explicit bed + stock `--slice`. Recipe attempt supports hash-bound prepared geometry for exact scaled 0.4/0.6 mm single-tool Marlin/Klipper cases. Exact independent native parity remains mandatory. |
-| Flow Ratio YOLO Recommended | `calib_flowrate(true,1,ArchimedeanChords)`, `Orca-LinearFlow.3mf`, native eleven labeled objects, absolute additive flow increments and special top-infill order | Job-local copy adds native per-object settings and ratios, stock Orca slices it. Initial recipe envelope is 0.4 mm nozzle / 0.2 mm first layer. Native UI output comparison remains pending. |
+| Flow Ratio YOLO Recommended | `calib_flowrate(true,1,ArchimedeanChords)`, `Orca-LinearFlow.3mf`, native eleven labeled objects, absolute additive flow increments and special top-infill order | Job-local copy adds native per-object settings and ratios, stock Orca slices it. Initial recipe envelope is 0.4 mm nozzle / 0.2 mm first layer. Actual matching Windows native/CLI comparison passes YOLO invariants but fails strict executable parity; retained measurements below. |
 | Pressure Advance Pattern | `_calib_pa_pattern`, native `CalibPressureAdvancePattern::generate_custom_gcodes`, handles/arrangement and writer state | Stock CLI has no calibration-state input. Explicit native-generator blocker; a generic STL or PA command schedule cannot reproduce the custom pattern paths/digits. |
 | Retraction tower | `calib_retraction`; exporter changes software writer `retraction_length` per height | Explicit native-writer blocker. Firmware retraction commands cannot substitute for generated software retract/unretract moves. |
 | Max Volumetric Speed tower | `calib_max_vol_speed`, `Flow::mm3_per_mm`, spiral mode; exporter changes internal `outer_wall_speed` per height | Explicit native-planner blocker. Firmware feed scaling does not reproduce internal extrusion planning and limits. |
@@ -132,8 +132,9 @@ post-process rejection, slicing warnings, explicit grouped blockers, native
 provenance tampering, changed motion/bed, actual-Z and late-heater failures,
 self-reference, changed evidence, report revalidation and forged flags.
 
-Actual Windows native reference preparation/parity for all five V1 calibrations,
-production edited-profile fidelity, wider nozzle/dialect support, a native-engine
+All five genuine October 15 Windows native references now pass their calibration
+invariants; candidate/native parity remains unqualified for every generator.
+Production edited-profile fidelity, wider nozzle/dialect support, a native-engine
 adapter for the three internal-state calibrations, full distribution packaging
 and real print quality remain unqualified. No generated file is authorized for a
 new physical test.
@@ -157,8 +158,10 @@ matching that GUI run's complete original inputs; the executable comparison
 also finds 32,586 differing command positions, starting with M73 estimates and
 M201/M203 machine limits. Both files pass the bounded temperature/deposition
 checks, but those checks do not erase input or executable differences. The
-exploratory report explicitly keeps `qualified: false`. No matching native
-YOLO export exists yet. Neither prepared artifact is Ready.
+exploratory report explicitly keeps `qualified: false`. That October 11 lab
+checkpoint had no matching native YOLO export. The later October 15 Windows
+YOLO reference/comparison below exists and fails strict parity. Neither prepared
+artifact is Ready.
 
 Logs, input snapshots, generated profiles, exact invocation/container commands,
 G-code, reports and the checkpoint source are retained beneath
@@ -579,6 +582,31 @@ layer's independently measured deposition Z. Native length comments are not
 an oracle. Length/Z tolerances and exact executable equality are unchanged.
 Synthetic cross-layer/lifted-Z tests verify both incomplete and excessive
 top-ups still fail even with forged native-looking comments. The historical
-failed inspection and source archive remain unchanged; a corrected Windows
-inspection must produce a separately fingerprinted report before claiming the
-actual native invariant passes.
+failed inspection and source archive remain unchanged. A fresh corrected Windows
+inspection now passes 202 checked episodes across 107 layers, in the separately
+fingerprinted report `5e0d0a19ee77809f30e1195c667ed32dd9f2ec77e36de4033f9525ba936f23f5`.
+This native invariant result does not qualify programmatic output.
+
+
+## Actual Windows YOLO comparison and complete native references
+
+The approved exact original-context bundle was transferred back to the same
+isolated Windows stage and sliced by the pinned October 15 executable. Exit 0,
+2.457 seconds; candidate G-code SHA-256
+`ce05e8bd2acc16ceea51781745357bc90b87cb72800634eff60bc99061f358cb`.
+The independently prepared native UI G-code SHA-256 is
+`0fb149a6a1624cdf64cb03a8c0dcb0fc6a21d9d3f43a4fb0f3389e4e48485daa`.
+Both ten-layer YOLO invariant checks pass with identical 4854.673 mm extrusion
+and 43241 deposition moves. Executable commands differ (55268 vs 55273), along
+with dynamic acceleration stream, motion stream and printed XY bounds. Five
+emitted-setting differences are classified, none waived. Exact parity is false;
+report SHA-256 `5c5fb10764918deba29573a1ac5465b108ffdf659ad92418ed79152e287b27d3`.
+
+Native PA Pattern, Retraction and MVS references also pass their source-derived
+invariants after Retraction's measured layer-transition checker correction. Their
+references do not qualify an unbuilt native adapter. All exact native/report/tool
+hashes and the historical failed Retraction inspection are retained in the
+[public-safe Windows inventory](evidence/issue-14/windows-reference-inventory.json).
+[Windows observations](V1_WINDOWS_ORCA.md) distinguish actual native references,
+actual CLI outputs, parity failures, normal-profile preservation and packaging
+limits. Full private G-code/projects/configuration stay separate from that export.
