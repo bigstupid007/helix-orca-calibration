@@ -70,3 +70,49 @@ and provenance handling; those bytes are never native calibration evidence.
 Actual preparation/slicing/parity results will be recorded by the lead after
 one serialized native rebuild and the retained Windows reference comparison.
 The accepted physical Temperature baseline remains untouched.
+
+## Bounded Windows production comparison
+
+The separate `scripts/v1-windows-temperature-native-geometry.py` helper runs
+only the real existing `integration.v1_generation.generate` stock path. It
+accepts the exact native-prepared STL and its hash-bound geometry receipt,
+checks the retained original context and October 15 executable, and rechecks
+all distinct native-UI reference evidence. Initially it supports only the
+retained 230→190°C / 5°C / resize-enabled / 0.4 mm combination. A different
+range, context, nozzle, model digest or reference is rejected explicitly.
+
+The source-only Windows staging closure is exactly:
+
+- `integration/v1_contract.py`
+- `integration/v1_generation.py`
+- `integration/v1_parity.py`
+- `integration/v1_engine.py`
+- `integration/v1_temperature_geometry.py`
+- `scripts/v1-windows-temperature-native-geometry.py`
+- `scripts/v1-windows-parity.py`
+
+In addition to these public sources, stage only the newly native-prepared public
+tower geometry and its scalar geometry receipt. The original complete context,
+native G-code, native manifest and UI evidence remain on Windows. For example,
+with every path beneath the existing isolated qualification root:
+
+```text
+python.exe -I -S scripts/v1-windows-temperature-native-geometry.py
+  --context ORIGINAL_CONTEXT --executable OCT15_EXECUTABLE
+  --model NATIVE_PREPARED_STL --model-sha256 EXACT_MODEL_SHA256
+  --geometry-receipt GEOMETRY_RECEIPT
+  --geometry-receipt-sha256 EXACT_RECEIPT_SHA256
+  --native RETAINED_NATIVE_GCODE
+  --native-sha256 512eb13a80788bd22f928b1b073382070a7c43b5c667efd08ffcc05e550e29b7
+  --native-manifest RETAINED_NATIVE_MANIFEST
+  --native-manifest-sha256 EXACT_NATIVE_MANIFEST_FILE_SHA256
+  --output-dir NEW_LOCAL_JOB
+```
+
+The slicing deadline is 45 seconds. There is no runner argument, network route,
+GUI automation, profile writeback or physical action. Actual stock slicer
+warnings remain fatal under the existing generator's checks. An unqualified
+comparison retains its full false report and preparation locally, writes a
+controlled scalar summary through the existing Windows parity sanitizer, and
+exits 2. Zero means strict parity qualified that exact retained combination;
+neither disposition claims printer hardware or macro-internal readiness.
