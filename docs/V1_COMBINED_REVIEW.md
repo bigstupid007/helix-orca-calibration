@@ -141,3 +141,71 @@ proof presses no Confirm/Start/Cancel and makes no completion/evaluation, hardwa
 ABI, physical-readiness, deployment, profile-writeback or public-network claim.
 Required exact-head GitHub CI is reported separately on draft PR #15. Founder
 acceptance and merge remain pending.
+
+## Generator-only correction review
+
+The same independent reviewer performed a substantial generator/build review
+through `02b9676ea8f19e49b36b7cd69f02cba0166b2fa4`. The review covered the
+retained parameter-proof boundary, native C++ calibration fidelity, managed
+Temperature geometry provenance, the Windows build/package path, warning
+handling, independent native-reference registration and the four-route native
+qualification driver. The native UI/control, request, Coordinator and transport
+sources protected by the parameter-preservation gate remain byte-identical to
+the accepted proof snapshot. Historical blocker statuses are not promoted into
+current generator evidence.
+
+The review found three material provenance defects. The Windows Temperature
+helper originally imported owned modules before authenticating its reviewed
+source closure. It now admits only an exact external manifest/inventory, compiles
+captured verified bytes through a closed loader, rejects bytecode and linked or
+reparse paths, and rechecks source after generation and sanitization and before
+publication. The Windows source-material archive originally copied dependency
+downloads without rehashing the bytes placed in the ZIP. It now requires every
+nonexcluded locked direct, transitive and supplemental source digest exactly
+once, inventories sizes and hashes, rehashes the same stream written to an
+unpromoted ZIP and promotes atomically. A follow-up found that an unrecognized
+download could still be omitted without making the source-material status
+incomplete; `02b9676` now rejects every such file. Explicitly named binary-only
+downloads remain excluded and disclosed. The reviewer rechecked all three
+corrections and found no remaining material source defect at this head.
+
+The native import, placement and Cut path matches the pinned GUI ordering. A
+fresh closure-bound managed run independently reproduced the earlier Temperature
+STL byte-for-byte, while retaining separate raw receipt/request hashes and
+explicit nonce/path normalization. This is geometry reproducibility only; it is
+not native executable parity and does not retroactively add provenance to the
+earlier run. The protected Temperature transfer bundle remains unchanged and
+requires its own explicit transfer authorization.
+
+The Windows package keeps PE/import/resource/source checks fail closed. Actual
+build attempts exposed and retained three portability failures before any
+qualification: command-shell quoting, CRLF source checkout and backslashes in
+generated CMake cache values. Their bounded corrections use an owned command
+file, exact LF source-byte audit and forward-slash cache paths. Source materials
+retain locked upstream GMP/MPFR versions but explicitly do not claim reproduction
+of the historical vendor compiler, flags or patches. Windows OpenCV IPP-ICV and
+excluded binary-only inputs remain disclosed production source-acceptance limits;
+`complete_corresponding_source_claim` and physical readiness remain false.
+
+The generic Windows qualification helper invokes the actual receipt-validated
+Windows backend and generator for PA Pattern, Retraction, Max Volumetric Speed
+and native Temperature. Native-reference registration cannot invoke or qualify
+the package and records `qualified:false` and `prepared:false`. Qualification
+requires exact context/parameters, a separately pinned native UI manifest,
+candidate/reference path separation, matching input/source/runtime provenance,
+receipt-bound DLL and resource closure, and a successful recomputation by the
+unchanged strict parity verifier. Every native warning or processor error remains
+fatal; fixed public codes and reasons are separated from retained private
+diagnostics. Screenshots and registration ordering remain operator evidence and
+must be inspected with the target run; PNG structure alone does not prove GUI
+causality.
+
+The deliberate unsaved 50°C bed case is a separate effective context. It may
+qualify only with fresh visible edited-versus-saved evidence, exact native and
+candidate binding, proof that the preset was not written back and restoration of
+the original selection. It does not rewrite or qualify the retained 60°C bed /
+55°C vitrification rejection. No Confirm, Start, physical adapter, deployment,
+profile writeback or public-network operation is included in this source verdict.
+The reviewer did not run a Windows build, target executable or heavy native job.
+An actual successful Windows package receipt and calibration-specific target
+results remain mandatory before this generator correction can be accepted.
