@@ -131,9 +131,16 @@ function widgetName(kind, key) { return `orcacal__v1_${kind}_${key}`; }
     await freshFrame(after); actions.push({type:'browser-native-drag',reason,x0,y0,x1,y1});
   }
   async function ensureVisible(name) {
-    for (let attempt=0;attempt<12;attempt++) {
+    const deadline=Date.now()+6000; let signature=null; let stable=0;
+    while (Date.now()<deadline) {
       const {widget}=await rawGeometry(name);
-      if (visible(widget)) return widget;
+      if (visible(widget)) {
+        const next=canonical({x:widget.x,y:widget.y,w:widget.w,h:widget.h});
+        if (next===signature) stable+=1; else {signature=next;stable=1;}
+        if (stable===3) return widget;
+        await page.waitForTimeout(200); continue;
+      }
+      signature=null;stable=0;
       const y=Number(widget.y),h=Number(widget.h);
       if (Number.isFinite(y) && y+h>VIEWPORT.height) await browserDrag(400,410,400,115,`reveal ${name}`);
       else if (Number.isFinite(y) && y<70) await browserDrag(400,115,400,410,`reveal ${name}`);
