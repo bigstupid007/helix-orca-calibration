@@ -43,20 +43,19 @@ APP='helix-orca-v1-native-review'
 SCHEMA='helix-orca-v1-native-review-session/v1'
 STOP_SCHEMA='helix-orca-v1-native-review-stop/v1'
 CURRENT=Path(os.environ.get('XDG_STATE_HOME',Path.home()/'.local/state'))/'helix-orca-calibration/v1-native-review/current.json'
-MANAGED_ROOT=Path(os.environ.get('XDG_STATE_HOME',Path.home()/'.local/state'))/'100day-dev'
 
 def require(value,message):
     if not value:raise ContractError(message)
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def sources():
-    return dict(q.hashes(),**{'scripts/v1-native-review.py':sha(__file__),'scripts/temperature-viewer.html':sha(ROOT/'scripts/temperature-viewer.html'),'shared/resource_lifecycle.py':HELPER_SHA256})
+    return dict(q.hashes(),**{'scripts/v1-native-review.py':sha(__file__),'scripts/temperature-viewer.html':sha(ROOT/'scripts/temperature-viewer.html'),'shared/resource_lifecycle.py':HELPER_SHA256,'integration/v1_private_file.py':sha(ROOT/'integration/v1_private_file.py')})
 def session(path=CURRENT):
     resource=get_resource()
     record=read_json(private_file(Path(path).absolute()))
     require(record.get('schema')==SCHEMA and record.get('app')==APP,'Not a V1 review session')
     run_id=record.get('run_id','')
     require(len(run_id)==32 and all(c in '0123456789abcdef' for c in run_id),'Invalid owned run ID')
-    directory=Path(MANAGED_ROOT)/'runs'/run_id
+    directory=Path(resource.ROOT)/'runs'/run_id
     require(Path(record['work'])==directory/'artifacts/view' and Path(record['stop_file'])==directory/'artifacts/review-stop.json','Unexpected owned review paths')
     manifest=read_json(directory/'manifest.json')
     require(manifest['run_id']==run_id and manifest['app']==APP and manifest['repo']==str(ROOT.resolve())

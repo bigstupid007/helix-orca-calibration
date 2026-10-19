@@ -54,8 +54,9 @@ no devbox helper), and retains it with pinned runtime/fixture/source inventories
 `--test`, Docker `--network none`, no published container ports, a private
 control socket, 2 CPU, 512 MiB RAM, 128 PIDs and bounded logs. ManagedRun requires
 5 GiB disk reserve plus a 512 MiB peak and 512 MiB margin. The new session,
-source/fixture inventories, manifests, snapshots and captures remain in XDG
-state; generated fixture plugins remain in the existing user cache.
+source/fixture inventories (including the owner-private file validator), manifests, snapshots and captures remain in XDG
+state; managed manifests and the shared gate always follow the verified helper
+ROOT even when a viewer XDG override is present. Generated fixture plugins remain in the existing user cache.
 
 HTTP actions are a fixed typed allowlist, bounded to the 800×480 native frame.
 The wrapper validates the exact LAN Host, rejects foreign Origins and requires
@@ -64,7 +65,7 @@ RPC, G-code, profile/configuration update or production activation endpoint.
 Malformed input fails closed. Deployment authorization and the ordinary Windows
 coordinator remain separate, default-off product/runtime work.
 
-Ten focused dependency-free checks pass. Actual viewer lifecycle/browser
+Eleven focused dependency-free checks pass. Actual viewer lifecycle/browser
 qualification must follow the frozen full native matrix and the queued engine
 diagnostic; no listener was started while the matrix was active. This document
 will be updated with the resulting managed proof before claiming that check.

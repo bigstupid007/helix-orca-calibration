@@ -11,6 +11,12 @@ spec=importlib.util.spec_from_file_location('v1_native_review_test',ROOT/'script
 r=importlib.util.module_from_spec(spec);spec.loader.exec_module(r)
 
 class NativeReviewTests(unittest.TestCase):
+    def test_security_file_is_bound_in_source_inventory(self):
+        key='integration/v1_private_file.py'
+        self.assertEqual(r.sources()[key],r.sha(ROOT/key))
+        original=r.sha
+        def changed(path):return '0'*64 if Path(path)==ROOT/key else original(path)
+        with patch.object(r,'sha',changed):self.assertEqual(r.sources()[key],'0'*64)
     def test_import_and_pure_controls_without_devbox_helper(self):
         original=Path.read_bytes
         def unavailable(path):
@@ -92,10 +98,10 @@ class NativeReviewTests(unittest.TestCase):
             root=Path(tmp);run_id='b'*32;directory=root/'runs'/run_id
             artifacts=directory/'artifacts';artifacts.mkdir(parents=True)
             record=dict(schema=r.SCHEMA,app=r.APP,run_id=run_id,container='c'*64,work=str(artifacts/'view'),stop_file=str(artifacts/'review-stop.json'))
-            helper=SimpleNamespace(identity=lambda path:[Path(path).stat().st_dev,Path(path).stat().st_ino],LABEL='io.100day.lifecycle.run')
+            helper=SimpleNamespace(ROOT=root,identity=lambda path:[Path(path).stat().st_dev,Path(path).stat().st_ino],LABEL='io.100day.lifecycle.run')
             manifest=dict(run_id=run_id,app=r.APP,repo=str(r.ROOT.resolve()),owner=r.os.getuid(),artifacts=helper.identity(artifacts),containers={'c'*64:dict(labels={helper.LABEL:run_id})})
             r.atomic_json(directory/'manifest.json',manifest);r.atomic_json(root/'current.json',record)
-            with patch.object(r,'MANAGED_ROOT',root),patch.object(r,'resource',helper):
+            with patch.dict(r.os.environ,{'XDG_STATE_HOME':str(root/'other-xdg')}),patch.object(r,'resource',helper):
                 self.assertEqual(r.session(root/'current.json')[0],record)
                 manifest['app']='different';r.atomic_json(directory/'manifest.json',manifest)
                 with self.assertRaises(r.ContractError):r.session(root/'current.json')
