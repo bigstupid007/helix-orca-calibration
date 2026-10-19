@@ -1,5 +1,14 @@
 # Helix-Orca Calibration
 
+The functional parameter correction is implemented: editable native numeric
+controls, both fixed YOLO modes, explicit PA defaults and retained request values.
+Independent native800×480 input verified all five edited requests unchanged at
+the actual Windows coordinator. All14 fresh captures and complete managed cleanup
+pass; Perfectionist reaches genuine parity-qualified Review. Full Product Design
+work remains deferred.
+The historical 396-frame matrix and synthetic browser workflow do not qualify the
+changed controls. [Current correction and acceptance gate](docs/V1_PARAMETER_CORRECTION.md).
+
 ## Active: integrated V1 Build Program #14
 
 The Founder launched [V1 Build Program #14](https://github.com/bigstupid007/helix-orca-calibration/issues/14)
@@ -9,31 +18,34 @@ G-code parity and a coordinator without Codex test-worker dependencies.
 This supersedes the earlier stop-after-Temperature instruction for this program.
 The accepted physical Temperature installation and evidence below remain intact.
 
-V1 is an **integrated Founder Review candidate with blocking generator limits**.
-Stock Flow Ratio YOLO passes strict executable and calibration-invariant parity
-against its independent October 15 Windows reference for the exact retained
-profiles/parameters. Stock Temperature retains unexplained executable/geometry
-differences. All five independent native Windows references pass their invariants.
-The grouped Linux engine now genuinely exports PA Pattern and passes candidate-
+V1 is an **integrated Founder Review candidate with verified functional controls**,
+with blocking generator limits.
+Stock Flow Ratio YOLO Recommended and Perfectionist pass strict executable and
+calibration-invariant parity against separate independent October 15 Windows
+references for their exact retained profiles and mode-specific parameters.
+Stock Temperature retains unexplained executable/geometry differences. All five independent native Windows references pass their invariants.
+The grouped Linux engine exports PA Pattern and passes candidate-
 only invariants, but native warning `1000C001` (retained bed 60°C versus filament
 vitrification 55°C) blocks Prepared. Native-reference parity and Windows engine
 packaging remain open; Linux output does not enable the Windows route.
 
-The corrected native matrix passes all eleven sizes and 396 frames. A real
-browser passed the native synthetic workflow, five live HTTP rejection checks
-passed, and exact browser/listener/container teardown was verified. One combined
-independent review and correction rechecks have no remaining material source
-finding. Actual Windows lifecycle qualification matches the current Python
-closure and requires no Codex test worker. The direct coordinator keeps physical
+The earlier native matrix passed all eleven sizes and 396 frames; its synthetic
+browser workflow and exact browser/listener/container cleanup are retained as
+historical evidence. They do not establish the new parameter controls. Earlier
+combined source review and Windows runtime lifecycle evidence retain their exact
+source scope. The current focused [parameter evidence](docs/evidence/issue-14/parameters/README.md)
+and independent correction review pass separately.
+The ordinary coordinator runs without a Codex test worker and keeps physical
 actions disabled; no operational deployment grant exists. Normal Orca's 1429
-settings/profile files match their pre-V1 fingerprint. No new physical test or
+settings/profile files retain their pre-V1 fingerprint. No new physical test or
 merge occurred.
 
-Start with the [integrated Founder review guide](docs/V1_FOUNDER_REVIEW.md),
+The [candidate status and future Founder review guide](docs/V1_FOUNDER_REVIEW.md),
 [program scope](docs/BUILD_PROGRAM_V1.md), [shared contracts](docs/V1_CONTRACT.md),
 [generation/parity](docs/V1_GENERATION_PARITY.md), [grouped engine status](docs/V1_ENGINE_REUSE.md),
-and [runtime operations](docs/V1_RUNTIME.md). PR #15 remains unmerged pending
-Founder acceptance; this is not a qualified five-calibration release.
+and [runtime operations](docs/V1_RUNTIME.md) record the implementation and limits.
+PR #15 remains draft and unmerged pending Founder acceptance;
+this is not a qualified five-calibration release.
 
 ## Issue #12 — accepted physical Temperature calibration
 

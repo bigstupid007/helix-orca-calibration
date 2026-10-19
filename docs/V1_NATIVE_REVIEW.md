@@ -35,7 +35,7 @@ Set use the same native pointer path. The real coordinator retains the selected
 values and reports its actual capability blocker. Confirm and Start remain
 inaccessible without a genuinely parity-qualified prepared job. No simulated
 finish control exists. Home/Back use native navigation. Save capture retains
-at most32 manual frames in the private managed artifacts.
+at most 32 manual frames in the private managed artifacts.
 
 Read-only `/api/geometry`, `/api/subject`, and `/api/parameter-state` expose
 calibration geometry, displayed subjects, and exact request/coordination traces
@@ -56,16 +56,17 @@ No broad signals or name-based deletion are used. Ctrl-C remains subject to the
 same ManagedRun ownership and teardown controls.
 
 The wrapper reuses the accepted pixel viewer HTML and source-verified private
-beta.9 input socket, without changing the accepted harness. It verifies the reviewed shared ManagedRun helper (4a42a94; SHA-256
+beta.9 input socket without changing the accepted harness. It verifies the shared
+ManagedRun helper (4a42a94; SHA-256
 `8a2cb48220f14c8f4ca5c2cc9f6fcdcdf28fa436fe4b7dd50cf6489178ba6fcc`)
-lazily before actual lifecycle operations (pure controls and test imports need
-no devbox helper), and retains it with pinned runtime/fixture/source inventories; mounts runtime/plugin read-only; uses
-`--test`, Docker `--network none`, no published container ports, a private
-control socket, 2 CPU, 512 MiB RAM, 128 PIDs and bounded logs. ManagedRun requires
-5 GiB disk reserve plus a 512 MiB peak and 512 MiB margin. The new session,
-source/fixture inventories (including the owner-private file validator), manifests, snapshots and captures remain in XDG
-state; managed manifests and the shared gate always follow the verified helper
-ROOT even when a viewer XDG override is present. Generated fixture plugins remain in the existing user cache.
+lazily before lifecycle operations; pure control/test imports require no devbox
+helper. Runtime/plugin mounts stay read-only, with `--test`, Docker
+`--network none`, no published container ports, a private control socket,
+2 CPU, 512 MiB RAM, 128 PIDs and bounded logs. ManagedRun requires 5 GiB disk reserve
+plus a 2 GiB aggregate filesystem-loss limit and 512 MiB margin. Session/source inventories, manifests,
+snapshots and captures stay in XDG state. Managed manifests and the shared gate
+follow the verified helper ROOT even with a viewer XDG override. Generated
+review derivatives stay in the existing user cache.
 
 HTTP actions are a fixed typed allowlist, bounded to the 800×480 native frame.
 The wrapper validates the exact LAN Host, rejects foreign Origins and requires
@@ -78,7 +79,7 @@ RPC failure, the wrapper makes one bounded release attempt on a fresh private
 socket and preserves the original error. Deployment authorization and the ordinary Windows
 coordinator remain separate, default-off product/runtime work.
 
-Twelve focused dependency-free review checks pass, including actual coordinator
+Thirteen focused dependency-free review checks pass, including actual coordinator
 request retention and archive tracing.
 
 Historical synthetic qualification run
@@ -95,7 +96,7 @@ pointer requests all returned 400 with frame protection. Exact nonce-bound Stop
 then exited 0, closed the listener and retired the owned container; runtime clear
 and verification errors `[]` were checked against the full private manifest. The
 browser closed with zero remaining processes carrying its unique profile.
-Source closure is `247f3b462d34b70c18be3647f2e1e2a72fcf6727167cc14c9e3978eb24666119`.
+That historical source closure is `247f3b462d34b70c18be3647f2e1e2a72fcf6727167cc14c9e3978eb24666119`.
 Full inventories remain private.
 
 The cached browser initially lacked desktop shared libraries. Fourteen public
@@ -107,3 +108,36 @@ immediate screenshots ahead of the periodic image refresh; the final evidence
 recheck explicitly awaited fresh frames and the native Returned label. No product
 source changed for that capture correction. The normal viewer operation above
 does not depend on the qualification browser/library bundle.
+
+
+The functional correction also serializes review-frame refreshes and waits for
+image load; polling no longer replaces an in-flight frame. Operator proof waits
+for a post-action complete frame and stable geometry after native scroll inertia.
+These are emulator/probe corrections, not product timing changes. Incomplete
+attempts remain private and cannot be promoted as passing operator evidence.
+
+
+## Current operator evidence gate
+
+The [Windows parameter bridge](V1_WINDOWS_PARAMETER_BRIDGE.md) connects the
+unchanged operator-selected request to the actual Windows coordinator under the
+approved qualification boundary. All five edited requests have been observed
+there, including genuine qualified Flow Review. Full profiles, configuration,
+G-code and projects stay on Windows; returned metadata/status is not a physical
+print or production-transport qualification.
+
+The final healthy14-frame operator capture and complete managed-lifecycle/source
+verification pass in run `b04728721c2741bd8d05b3001a343cdf`, with exit0, no verification
+errors and runtime cleared. [Focused evidence](evidence/issue-14/parameters/README.md)
+retains the exact source, request, Windows parity and private-frame hashes. Earlier
+failed/partial attempts remain private and unpromoted; the historical synthetic
+nine-frame workflow above is not qualification of changed controls.
+
+The focused parameter acceptance run uses a 2 GiB maximum tolerated aggregate
+loss of user-available bytes on the shared filesystem. This is not a claim that
+the native application owns or needs 2 GiB. The pinned helper measures the whole
+filesystem; repeated unrelated bounded E2E writers exceeded the earlier 512 MiB
+allowance and safely stopped incomplete runs. The new explicit preflight needs
+7.5 GiB available (5 GiB reserve + 2 GiB limit + 512 MiB reaction margin); growth
+above 2 GiB still refuses. No guard, shared helper, lock, protected-resource
+verification, container limit or ownership rule is disabled.

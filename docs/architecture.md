@@ -404,8 +404,8 @@ verified host APIs and performs bounded local artifact I/O. Neither plugin runs
 processes, slices, networks or writes profiles. The external local coordinator
 owns durable jobs, explicit generator configuration, stock subprocess execution,
 parity re-verification and original-context result/receipt correlation. It does
-not depend on the Spare testing worker. The current launcher has no physical
-action adapter; direct events/storage transport is candidate code, not a
+not depend on the Spare testing worker. The review launcher supplies no action-enabled physical
+adapter; direct events/storage transport is candidate code, not a
 production deployment/security qualification.
 
 Stock CLI recipes and grouped native engine reuse are separate generator
@@ -422,15 +422,34 @@ outcome, permits only read-only exact-job restart adoption, and reconciles nativ
 restart without relaxing sequence checks. Same-job progress/elapsed are nullable
 and cannot authorize evaluation. Windows lifecycle and local privacy checks run
 against a complete source-fingerprinted closure. The bounded native reviewer is
-separate test infrastructure: fixed private LAN, typed input, explicit synthetic
-completion, no product adapter, source/owner binding and exact managed cleanup.
+separate test infrastructure: fixed private LAN, typed input, no physical adapter,
+source/owner binding and exact managed cleanup. Its earlier synthetic completion
+fixture belongs to historical evidence; current review uses the real coordinator.
 Its clean-clone imports do not require the devbox lifecycle checkout.
 
 
-Final verification binds the corrected native UI to all eleven targets/396
-frames and the synthetic browser workflow to exact owner-bound cleanup. The
+Historical verification binds the earlier native UI to 396 frames across eleven
+targets and its synthetic browser workflow to exact owner-bound cleanup. That
+source-bound evidence does not qualify the changed parameter controls. The
 Linux native engine uses a two-thread task arena as well as a persistent global
 cap; these must agree with upstream's initialization barrier. A real PA artifact
 exists but a retained-profile processor warning blocks Prepared and parity
 remains false. Generator availability, actual generation, parity qualification
 and physical deployment remain separate gates.
+
+
+The functional parameter correction uses a plugin-owned native numeric keypad
+because the pinned plugin allowlist does not expose the app text-input widget.
+The shared contract defines bounds/defaults; numeric fields are not finite test
+picklists. Fixed YOLO modes select separate native assets/sample sets. Submitted
+parameter scalars are copied, retained and validated through preparation/results.
+The bounded viewer now delivers real Coordinator/DirectoryEvents events through
+an explicitly test-only fragmented hook (beta.9 subjects have 1023-byte capacity).
+It creates no prepared/completion fixtures. Captured context stays outside the
+container mount; normal plugin/runtime networking boundaries remain unchanged.
+Historical full-size fixture proof is preserved. The current acceptance gate is
+focused 800×480 operator input through unchanged transport into the actual Windows
+coordinator. All five exact requests, genuine qualified Flow Review, all14 healthy
+captures and final managed/source verification pass in run
+`b04728721c2741bd8d05b3001a343cdf`. No prepared/status fixture or physical adapter
+participates in that focused proof.

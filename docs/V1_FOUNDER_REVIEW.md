@@ -5,21 +5,28 @@ acceptance, merge and physical deployment remain pending. This candidate keeps
 physical execution disabled and preserves the accepted Temperature installation,
 first/final physical proof, normal profiles and rollback material.
 
-## Review the two native surfaces
+## Verified controls and the two native surfaces
 
-Use the [bounded native review viewer](V1_NATIVE_REVIEW.md) for the pinned Helix
-beta.9 mock runtime. It shows actual native pixels and accepts native input.
-Its context, preparation, parity, job completion and receipts are explicitly
-synthetic UI fixtures; no printer or production job adapter is connected.
-Choose a calibration, configure it, Generate, inspect the prepared job, Confirm,
-then deliberately Start. Finish simulated print is available only after native
-Start. Evaluate, Return result, inspect NOT APPLIED and dismiss with Done.
-Use Home/Back and drag to scroll; no terminal relay is part of that review flow.
+The functional correction passes independent operator verification on actual
+800×480 native Helix through the LAN emulator. All five edited requests match
+actual Windows transport/journal readback; all14 fresh captures, exact source
+bindings and complete managed cleanup pass. Perfectionist reaches genuine
+parity-qualified Review. See [the focused proof and selected values](evidence/issue-14/parameters/README.md)
+and [the controlling correction](V1_PARAMETER_CORRECTION.md). Full Product Design
+work remains deferred. Failed earlier attempts remain private and unpromoted.
 
-On SPARE, the marked isolated October 15 Orca window has **Helix V1 Calibration**
-open. Its V1 candidate heading distinguishes it from the preserved normal Orca
-instances. The companion was exercised with actual production preparation and
-an actual copied-process switch. Its retained result is explicitly a synthetic
+The [bounded native viewer](V1_NATIVE_REVIEW.md) now uses actual native numeric
+keypad controls, fixed 5°C Temperature step, both YOLO modes, and explicit PA
+Direct Drive/Bowden defaults. It sends actual native-selected requests to the real
+offline coordinator and displays genuine blockers. It no longer manufactures
+Prepared/printing/completion status. No printer adapter is connected. Drag to
+scroll, edit a value and Set, then Request generation. Confirm and deliberate
+Start remain separate and require a genuinely qualified job.
+
+The marked isolated October 15 Orca environment on SPARE supplies the native
+**Helix V1 Calibration** companion. Its candidate heading distinguishes it from
+preserved normal Orca instances. The companion was exercised with actual
+production preparation and an actual copied-process switch. Its retained result is explicitly a synthetic
 completion/receipt test, not a physical print. The current selection and original
 calibration/result context are separately identified. Normal profiles are not
 written. [Windows evidence](V1_WINDOWS_ORCA.md) distinguishes those proof levels.
@@ -28,7 +35,7 @@ written. [Windows evidence](V1_WINDOWS_ORCA.md) distinguishes those proof levels
 
 | Calibration | Current disposition |
 | --- | --- |
-| Flow Ratio YOLO Recommended | Actual Windows production generator passes strict executable and calibration-invariant parity for the exact retained context/default parameters. Hardware ABI and physical readiness remain false. |
+| Flow Ratio YOLO Recommended and Perfectionist | Actual Windows production generator passes strict executable and calibration-invariant parity for the exact retained context and mode-specific parameters, each against a separate independent native reference. Hardware ABI and physical readiness remain false. |
 | Temperature standard tower | Actual stock Windows slice exists, but executable/geometry differences from the independent native reference remain unexplained. Qualification is blocked. Accepted physical Temperature behavior is preserved separately. |
 | PA Pattern, Retraction, Max Volumetric Speed | Native preparation uses the real pinned internal engine. Linux build/capabilities and real PA export pass; candidate-only PA invariants pass. Native warning `1000C001` (retained bed 60°C versus vitrification 55°C) rejects the export before Prepared. Remaining routes are not repeated against that shared blocker. Exact native-reference parity remains open. No compatible audited Windows engine package exists. |
 
@@ -49,15 +56,22 @@ deployment grant or action-enabled adapter was created.
 
 ## Evidence and remaining limitations
 
-The combined independent source review and correction rechecks are retained in
-[V1 combined review](V1_COMBINED_REVIEW.md). The fresh native/Windows visual
-findings and remaining small-text, scrolling and accessibility limits are in
-[AI Product Preflight](V1_PRODUCT_PREFLIGHT.md). The complete source-bound
-eleven-size matrix passed all 396 frames and verifies against the eleven
-original private ManagedRun records. The actual Chromium browser workflow,
-five live HTTP refusal checks and exact owner-bound teardown also passed.
-[Interactive evidence](evidence/issue-14/interactive-review/report.json) retains
-the source bindings, nine synchronized browser frames and cleanup outcomes.
+The earlier combined source review and correction rechecks are retained in
+[V1 combined review](V1_COMBINED_REVIEW.md). Historical native/Windows visual
+findings and small-text, scrolling and accessibility limits remain in
+[AI Product Preflight](V1_PRODUCT_PREFLIGHT.md). The source-bound historical
+matrix passed 396 frames across eleven sizes and was checked against all eleven
+private ManagedRun records. Its earlier synthetic Chromium workflow, live HTTP
+refusal checks and exact teardown also passed; [interactive evidence](evidence/issue-14/interactive-review/report.json)
+retains nine synchronized browser frames and its exact source bindings. These
+records remain immutable and do not qualify the changed controls.
+
+The current operator-selected requests and actual Windows observations are a
+separate functional evidence boundary. Both YOLO modes have retained strict
+parity evidence. The current control path passes all14 healthy captures and
+final lifecycle/source verification in managed run `b04728721c2741bd8d05b3001a343cdf`.
+The exact native-selected Flow request is bound to its real generated artifact and
+strict parity report; no Confirm, Start or physical completion was exercised.
 
 The candidate does not qualify hardware, deploy to the printer or authorize a
 new physical test. Confirm and Start remain separate; default review Start

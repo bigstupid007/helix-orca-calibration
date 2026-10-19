@@ -1,8 +1,19 @@
 # V1 AI Product Preflight
 
-Status: corrections integrated and fresh compact/Windows rechecks completed;
-full eleven-target native interaction matrix passed. This is an
-independent product review, not Founder acceptance or generator qualification.
+Current functional status: independent actual800×480 native operator proof passes
+all five edited requests against the actual Windows coordinator. All14 fresh
+captures, exact source bindings and complete managed cleanup pass. Both PA default
+sets, invalid Retraction rejection, all numeric fields and Perfectionist selection
+were operated. Flow reaches real parity-qualified Review; four actual blockers
+retain exact values. The [focused proof](evidence/issue-14/parameters/README.md)
+records this functional inspection; it is not a new visual design audit.
+
+The following visual audit, 396-frame matrix and earlier synthetic browser workflow
+are historical, tied to their exact source snapshots. They do not qualify the
+changed controls. Full Product Design work remains deferred; this correction
+restores functionality. [Current functional acceptance gate](V1_PARAMETER_CORRECTION.md).
+
+## Historical visual review and corrections
 
 A fresh-context independent Codex reviewer inspected this program's
 newly captured native beta.9 screens using the Product Design audit workflow.
@@ -60,8 +71,8 @@ qualification visible when presenting result evidence (use full frames). Narrow
 dock content needs vertical scrolling. Exact contrast, keyboard/screen-reader
 behavior, Windows scaling/high contrast and focus/scroll order remain unverified.
 Screenshots and profile identifiers remain private; their hashes and bounded
-workflow observations are recorded in the Windows inventory. The corrected full Helix matrix has now passed all eleven targets and 396
-frames, including the smallest-layout scrolling correction.
+workflow observations are recorded in the Windows inventory. The historical
+corrected Helix matrix passed 396 frames across all eleven targets, including that candidate's smallest-layout scrolling correction.
 
 ## Fresh compact Helix correction recheck
 
@@ -82,7 +93,7 @@ inspection by the lead and isolated rechecks showed complete headers/back
 controls, and the reviewer fully retracted both. No speculative product change
 was made. Full-frame original evidence is authoritative.
 
-The complete corrected matrix is promoted beneath
+The historical complete corrected matrix is retained beneath
 `docs/evidence/issue-14/native` and verifies against all eleven original private
 ManagedRun records. The lead also inspected the saved phone PA Confirmed and
 tall Flow Returned frames at original resolution. These bounded visual checks
@@ -90,13 +101,13 @@ do not claim independent visual inspection of every matrix frame.
 
 Small low-emphasis metadata and scroll discoverability remain limitations;
 keyboard, screen reader, contrast and motor accessibility are not qualified by
-these stills. The complete eleven-size capture and actual browser interaction
-qualification now pass; these checks remain distinct from the cold visual
+these stills. That candidate's complete eleven-size capture and synthetic browser interaction
+qualification passed; these checks remain distinct from the cold visual
 review scope above. No physical lifecycle or generation qualification is
 inferred from the synthetic native flows.
 
 
-## Actual browser review and exact cleanup
+## Historical browser review and exact cleanup
 
 A fresh isolated Chromium 140 browser (Playwright 1.64.1) exercised actual native
 pointer controls through Generate, Confirm, distinct Start, simulated completion,
@@ -107,3 +118,15 @@ processes left. Live Host/Origin/token/command/coordinate refusals passed, follo
 by nonce-bound graceful stop, listener closure and exact ManagedRun cleanup.
 This lead-operated interaction check is separate from the independent cold
 screenshot review and does not qualify accessibility or physical behavior.
+
+
+## Current functional correction gate
+
+Implemented numeric controls, both fixed YOLO modes and explicit PA defaults pass
+focused source/build checks and independent actual800×480 native operator input.
+All five selected requests match actual Windows transport/journal readback; Flow
+reaches genuine qualified Review with mode-specific parity. All14 healthy frames,
+current source closure and exact owned resource cleanup pass. Independent visual
+inspection of these functional captures found no material issue; this is a focused
+operability check, not a new Product Design audit. No new accessibility, physical
+printing or broader visual design qualification is inferred.

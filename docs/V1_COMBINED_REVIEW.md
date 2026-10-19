@@ -102,3 +102,42 @@ template. The check now supplies its own isolated upstream template while
 exercising the real seed transformation. All geometry/style assertions remain;
 no runtime/product/capture source changed, and the complete native evidence
 still verifies. The failed CI run is retained rather than relabeled successful.
+
+## Functional parameter correction: final independent acceptance
+
+The independent reviewer passes the integrated correction through
+`54387c4de4a8f5930f54cb4aa5d441721067142c`, plus the final focused verifier,
+evidence and reconciled documentation. No material source, contract, safety,
+fidelity, privacy, evidence or current-documentation finding remains. This is a
+bounded correction recheck within the one combined review, not a new design audit.
+
+The reviewer independently operated the actual800×480 native UI through the LAN
+browser: pointer, drag, native keypad, Set, both PA defaults, invalid Retraction
+rejection and changed values for every required field/mode. Native requests,
+actual Windows DirectoryEvents input and independently reread Coordinator journals
+match exactly for all five calibrations. Four actual blockers dispatch no generator
+or artifact. Perfectionist genuinely generates and passes unchanged strict native
+parity, reaches Review, and retains exact parameters. All14 fresh frames/101 actions
+pass, with zero navigation/read retries or page errors and no owned browser left.
+
+Managed run `b04728721c2741bd8d05b3001a343cdf` completes with exit0, runtime clear
+and no verification errors. Operator report SHA is
+`f39b272a459bc309fb3cb34cab9e5cd1aa6bf2fa2b7efce1e80e59182ba85449`;
+promoted report SHA is
+`a0386c8cb0edb96976e8e3ec411980ed9dd506052103a66de46730ee5775ece2`.
+The reviewer independently passes the portable verifier and inspects all14 private
+frames. Public records contain controlled scalar metadata/hashes, without frames,
+profile labels, local paths, full saved state or geometry. The review-only2GiB
+aggregate shared-filesystem-loss limit retains5GiB reserve,512MiB margin and all
+container/network/ownership controls; the pinned helper's exact excess boundary
+was checked. Earlier failed/incomplete runs remain private and unpromoted.
+
+The [focused proof](evidence/issue-14/parameters/README.md) controls this verdict.
+Historical396-frame evidence stays historical. Temperature still lacks matching
+qualified geometry/native parity. PA retains warning1000C001 and compatible audited
+Windows engine/exact-parity gaps. Retraction/MVS retain the same Windows packaging
+and native-parity gaps; they were not rerun past the shared engine blocker. This
+proof presses no Confirm/Start/Cancel and makes no completion/evaluation, hardware
+ABI, physical-readiness, deployment, profile-writeback or public-network claim.
+Required exact-head GitHub CI is reported separately on draft PR #15. Founder
+acceptance and merge remain pending.

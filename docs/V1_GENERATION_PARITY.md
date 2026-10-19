@@ -796,7 +796,37 @@ sixteen-patch set, including the fine −0.04 label and excluding fine +0.04.
 Independent native-reference provenance binds the exact parameters, so an
 existing Recommended reference cannot qualify Perfectionist. The existing
 Recommended actual Windows qualification remains scoped to its retained
-profiles and inputs. Perfectionist source/unit coverage establishes preparation
-support only: a real independently prepared matching Windows native reference
-and actual generated-artifact comparison remain required. Synthetic test meshes
-and runner output are explicitly fixtures and never qualification evidence.
+profiles and inputs. Source/unit coverage alone establishes preparation support;
+the actual separate Windows-native reference and comparison below establish
+Perfectionist qualification for their exact inputs. Synthetic test meshes and
+runner output remain fixtures and never qualification evidence.
+
+
+## Actual Perfectionist production validation after functional correction
+
+The new [Windows scalar evidence](evidence/issue-14/parameter-windows/README.md)
+passes the unchanged strict exact-executable/parity policy for `{pass:2}` and the
+retained original October15 context. An independently selected native Perfectionist
+reference matches the production candidate's82,060 executable commands,63,357
+model moves,7034.20406mm model extrusion, heater and acceleration streams, machine
+limits, progress estimates and XY bounds. There are zero unclassified setting
+differences. The reference's16 native patches are distinct from Recommended's11;
+output changes materially with the selected mode. ReportSHA
+`b12fb0114f4366c81c90696b5af4615884d0b30b4f97c1629515f306320632a5`.
+The5 emitted-setting differences are classified bookkeeping differences under the
+existing unchanged policy, not executable tolerance waivers. Hardware ABI and
+physical readiness remain false. The standalone generator request is not evidence
+of native-selected request identity reaching Windows; that boundary requires the
+separate actual-coordinator bridge proof. Temperature/native-engine blockers and
+accepted physical Temperature evidence remain unchanged.
+
+The final [native-parameter proof](evidence/issue-14/parameters/README.md) also binds
+actual native-selected `{pass:2}` to Windows production generation. Candidate
+`14e88c262b0685dd61bb285ff48c4b185cee8c96be8373a1b022888058fcc244` passes
+against the same separately prepared native reference; request-bound parity report
+`ffe947043c42596beea42d2e376aa6e0dceba8599c119626668326164a494013` retains
+all82,060 executable commands/63,357 model moves and zero unexplained differences.
+This final request is independently reread from native storage, Windows transport
+and Coordinator journal. Four unavailable routes retain selected parameters and
+actual blockers without dispatch. Full14-frame/source/lifecycle acceptance passes;
+no Confirm, Start or physical execution occurs.

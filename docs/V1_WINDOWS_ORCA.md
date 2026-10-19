@@ -227,3 +227,31 @@ synthetic fixture below the marker-verified isolated host storage. `readback`
 checks the native plugin's exact original-context commit and receipt. It cannot
 contact a printer and supplies no job adapter or physical intent. Retain the
 existing run rather than replaying preparation in populated review storage.
+
+
+## Functional parameter correction: separate Perfectionist reference
+
+The lead independently selected YOLO Perfectionist in the actual isolated native
+Flow Ratio dialog, kept Archimedean Chords, sliced/exported locally, and ran the
+production generator. The [scalar evidence](evidence/issue-14/parameter-windows/README.md)
+retains exact source/provenance/parity digests:82,060 executable commands and63,357
+model moves match, with all invariants passing. Both mode-specific references are
+separate; Recommended R8 is unchanged. Before preparation, saved/edited/effective
+profiles, runtime and nozzle matched the preserved original; origin IDs remained
+distinct. Full profiles/projects/G-code/Windows screenshots stay private/local.
+The post-correction normal fingerprint again matches all1429 files and
+`41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`.
+Native-selected identity propagation to the Windows coordinator has separate
+focused relay/operator evidence; standalone generation does not prove that step.
+No physical execution or deployment follows from parity.
+
+Final native-selected request propagation is now independently verified in the
+[focused proof](evidence/issue-14/parameters/README.md): all five exact requests
+match real Windows DirectoryEvents and journal readback. Perfectionist actually
+generates and reaches qualified Review with request-bound strict parity report
+`ffe947043c42596beea42d2e376aa6e0dceba8599c119626668326164a494013`.
+Four blocked Windows routes preserve their changed values and report real
+capability reasons, without dispatch or artifacts. Final normal-profile readback
+again matches1429 files and the original aggregate fingerprint. Current companion
+label changes have source/focused callback coverage; they were not deployed to an
+operational installation during this correction.

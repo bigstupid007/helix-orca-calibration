@@ -1,5 +1,13 @@
 # Backlog
 
+The functional parameter correction passes independent actual800×480 native
+operator proof: all five changed requests match Windows transport/journal readback,
+all14 fresh captures pass, and source-bound managed cleanup completes. Perfectionist
+reaches real parity-qualified Review; four generators retain their actual blockers.
+Full Product Design work remains deferred. The historical 396-frame matrix and
+synthetic browser workflow do not qualify changed controls.
+[Current functional acceptance gate](V1_PARAMETER_CORRECTION.md).
+
 ## Active approved: Issue #14 integrated V1
 
 Founder launch on 2026-10-18 approves Temperature standard tower, Flow Ratio YOLO,
@@ -15,13 +23,15 @@ synthetic Temperature evidence, profiles and rollback remain preserved.
 
 Current integration has common contracts, both five-calibration UI surfaces,
 strict native-reference parity, a durable external runtime and a per-user Windows
-lifecycle. Exact retained YOLO inputs pass actual Windows production parity;
+lifecycle. Exact retained Recommended and Perfectionist inputs pass separate actual Windows
+production parity;
 Temperature remains blocked by unexplained differences. The grouped Linux engine
 exports real PA with passing candidate-only invariants, but native warning
 `1000C001` (retained bed 60°C versus vitrification 55°C) rejects Prepared. Native
-parity and Windows packaging remain open. The full native matrix passed all
-eleven targets and 396 frames; actual browser workflow/protections and exact
-teardown passed. See the [integrated Founder review](V1_FOUNDER_REVIEW.md)
+parity and Windows packaging remain open. The earlier native matrix passed
+396 frames across eleven targets; its synthetic browser workflow/protections and exact teardown passed. Current control
+acceptance now passes the separate healthy14-frame operator capture and complete
+managed-lifecycle verification. See the [Founder review candidate](V1_FOUNDER_REVIEW.md)
 for exact scope and limitations. Acceptance/merge/physical activation remain open.
 
 

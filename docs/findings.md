@@ -507,3 +507,31 @@ vitrification 55°C condition. Mandatory parity remains false and no Prepared jo
 is created; no warning or profile was changed. Windows availability is absent. The native mock matrix separately
 exposed test-grid stamping and scroll-parent issues, corrected against actual
 source/native pixels before full evidence promotion.
+
+
+The functional correction independently verifies native source defaults and both
+YOLO modes. Perfectionist uses 16 asymmetric offsets from −0.04 to +0.035 by 0.005 and a separate
+public asset, with native max-positive speed adjustment. Actual Windows generation
+now passes strict parity against an independently selected Perfectionist reference
+(82,060 executable commands), while Recommended R8 remains preserved (55,273).
+Native free numeric input uses supported owned overlays/buttons; no unsupported
+Python generator or Helix app-only text-input API is assumed. Earlier control
+proofs that assigned subjects/picklist values were inadequate operator evidence.
+Focused actual pointer/keypad/native→transport→Coordinator proof controls the
+correction's acceptance. Profile preservation and all physical safeguards persist.
+
+
+The final focused run `b04728721c2741bd8d05b3001a343cdf` passes all five exact
+operator-selected requests, all14 healthy frames and complete source-bound managed
+cleanup. Browser page errors and retries are empty. Native-selected Perfectionist
+passes strict parity with82,060 executable commands and63,357 model moves against
+its independent native reference. Four other routes retain exact values and real
+blockers. Earlier resource-guard/read-only HTTP/baseline-drift failures stay private
+and unpromoted. Historical396-frame and synthetic browser records are unchanged.
+
+Test-only event delivery must respect beta.9's 1023-byte string-subject capacity.
+A full offer exceeded it; bounded fragmented JSON delivery restored the event
+object without altering native-selected requests. Frame-refresh serialization,
+post-action image loading, content clipping and scroll-inertia checks correct
+emulator/probe assumptions. They add no product timer, unsupported input API,
+physical action or profile mutation. Failed/incomplete attempts remain retained.

@@ -171,3 +171,12 @@ request numbers through PowerShell JSON conversion. The envelope is retained in
 XDG state and its canonical digest binds the trace. Request/event/DirectoryEvents/
 journal hashes are checked independently before status delivery. These fields
 let the final operator driver reject local-coordinator-shaped traces.
+
+
+The Founder explicitly approved the bounded UI-contract qualification relay on
+2026-10-18 after automatic approval review required that data-boundary decision.
+Only profile display names, IDs/digests, selected parameters and preparation status
+cross this existing test boundary. Full profiles, configuration, G-code and printer
+commands remain outside it. No production transport/activation approval follows.
+Actual Windows/native frames and raw metadata stay private; public evidence uses
+controlled scalar fields and exact file hashes.
