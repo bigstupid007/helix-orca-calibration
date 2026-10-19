@@ -25,6 +25,7 @@
 #include "libslic3r/GCode/GCodeProcessor.hpp"
 #include <nlohmann/json.hpp>
 #include <tbb/global_control.h>
+#include <tbb/task_arena.h>
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -419,12 +420,18 @@ int main(int argc,char **argv)
             throw std::runtime_error("Native validation rejected preparation: "+error.string);
         if(print.empty()) throw std::runtime_error("Native print is empty");
         Model::setExtruderParams(config,1);Model::setPrintSpeedTable(config,print.config());
-        diagnostic("process-start");
-        print.process();
-        diagnostic("process-ready");
         GCodeProcessorResult processed;
-        print.export_gcode(gcode.string(),&processed,nullptr);
-        diagnostic("export-ready");
+        // Native Thread.cpp's thread-name/locale barrier counts the current
+        // arena, not global_control's worker cap. Match both to avoid waiting
+        // for unavailable host-arena workers. Keep process/export in that arena.
+        tbb::task_arena slicing_arena(2);
+        slicing_arena.execute([&] {
+            diagnostic("process-start");
+            print.process();
+            diagnostic("process-ready");
+            print.export_gcode(gcode.string(),&processed,nullptr);
+            diagnostic("export-ready");
+        });
         json processing={{"error_code",processed.gcode_check_result.error_code},{"warnings",json::array()}};
         for(const auto &warning:processed.warnings)
             processing["warnings"].push_back({{"level",warning.level},{"message",warning.msg},

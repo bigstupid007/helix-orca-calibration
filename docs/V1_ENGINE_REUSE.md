@@ -4,9 +4,9 @@ Build Program #14 owns this investigation. Baseline:
 `6a7763f08d1a175a464a00ce13f0b5a815662fc4`, the accepted October 15 Orca nightly.
 The real Linux x86_64 native adapter and its capability command now build.
 The native enum-default startup repair passes actual retained-configuration
-loading and Temperature model preparation. Generation remains blocked on a
-subsequent native wait after model preparation; phase diagnostics are ready
-for the next bounded single-job check.
+loading and Temperature model preparation. The subsequent wait is now localized
+to Orca's thread-name/locale initialization barrier; the downstream two-worker
+task-arena repair awaits its targeted runtime check.
 No native calibration is qualified by this document. All five independent
 native Windows references are retained separately; they do not change the
 adapter's generation status. The accepted physical Temperature milestone and
@@ -412,6 +412,20 @@ are unchanged. The next shared-wait check uses one PA case with at most
 and an optional `SIGUSR1` stack dump for their exact owned process; no debugger
 attachment, elevated container capability or network endpoint is required.
 Ordinary native execution installs no diagnostic signal handler.
+
+The final diagnostic build `3aa200694be341e5b5af4d4ffa02755f` passed. A single
+45-second PA job `b85b5160dd8b4fb6813c76beef6d899b` passed native apply and
+validation, then waited at `Print::process`. One signal to its exact registered
+container retained a stack in `diagnostic-stack.log`; the matching executable
+symbolizes it as `name_tbb_thread_pool_threads_set_locale()` (`Thread.cpp:225–286`),
+called at `Print.cpp:3146`. The native barrier counts
+`tbb::this_task_arena::max_concurrency()` while `global_control(2)` only limits
+worker availability. A larger host arena therefore waits for unavailable
+workers. The owned adapter now executes process/export in `tbb::task_arena(2)`
+while retaining the persistent global two-worker cap. This changes no upstream
+source or calibration behavior; its targeted runtime check is pending.
+The failed job reached its 45-second watchdog, retained all inputs/diagnostics,
+and cleared its exact process/container with runtime clear.
 
 If native execution returns a failed status after leaving G-code (including a
 post-export processor rejection), the transport still retains a mandatory
