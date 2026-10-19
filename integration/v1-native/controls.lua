@@ -28,7 +28,7 @@ local function v1_draw_draft(id)
         v1_set(id..'_'..key..'_value',text)
     end
     if id=='flow_ratio_yolo' then
-        v1_set('flow_samples',p.pass==1 and 'Fixed additive offsets: -0.05 to +0.05 in 0.01 steps.' or 'Fixed additive offsets: -0.04 to +0.035 in 0.005 steps.')
+        v1_set('flow_samples',p.pass==1 and '11 samples; fixed additive offsets: -0.05 to +0.05 in 0.01 steps.' or '16 samples; fixed additive offsets: -0.04 to +0.035 in 0.005 steps.')
     end
 end
 local function v1_prepare_draft(id)

@@ -181,6 +181,7 @@ class CoordinatorReview:
         saved=self.saved() or {}
         # Preserve native event bytes semantically; never synthesize a request.
         atomic_json(self.channel.directory/'native.json',saved)
+        transport_native=read_json(self.channel.directory/'native.json')
         self.tick(self.runtime,self.storage,self.channel)
         for event in ('context','status','ack'):
             path=self.channel.directory/(event+'.json')
@@ -199,8 +200,8 @@ class CoordinatorReview:
             if journal.exists():
                 retained=read_json(journal)
                 trace=dict(schema='helix-orca-v1-parameter-trace/v1',native_request=request,
-                    transport_request=saved.get('request'),coordinator_request=retained.get('request'),
-                    native_sha256=digest(request),coordinator_sha256=digest(retained.get('request')),
+                    transport_request=transport_native.get('request'),coordinator_request=retained.get('request'),
+                    native_sha256=digest(request),transport_sha256=digest(transport_native.get('request')),coordinator_sha256=digest(retained.get('request')),
                     phase=retained['phase'],message=retained['message'],prepared=retained['prepared'],
                     generator_dispatched=(self.runtime.root/'jobs'/request['request_id']).exists(),
                     physical_adapter_enabled=False)
@@ -267,6 +268,7 @@ def serve(record_path,seconds):
                 elif route=='/api/review-state':
                     saved=fixture.saved() or {};phase=saved.get('phase','idle')
                     self._json(dict(version=version,state={'printing':2,'complete':3,'delivered':4}.get(phase,0),phase=phase,synthetic_only=True))
+                elif route=='/api/status':self._json(q.ctl(container,'current'))
                 elif route=='/api/geometry':
                     query=parse_qs(urlparse(self.path).query)
                     name=query.get('name',[''])[0]
