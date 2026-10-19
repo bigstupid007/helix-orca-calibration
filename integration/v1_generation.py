@@ -179,7 +179,12 @@ def _flow(request, snapshot, destination, config, profiles):
     # retained native references, avoiding guessed selection.scale semantics.
     if nozzle != 0.4 or _numeric(effective, 'initial_layer_print_height') != 0.2:
         _blocked('flow_geometry', 'YOLO recipe currently supports 0.4 mm nozzle and 0.2 mm first layer; native-scaled geometry for other cases is pending.')
-    asset = config.get('flow_asset', {})
+    pass_number = request['parameters']['pass']
+    asset_key = 'flow_asset' if pass_number == 1 else 'flow_fine_asset'
+    asset = config.get(asset_key)
+    if not asset:
+        _blocked('flow_asset', 'Native YOLO ' + ('Recommended' if pass_number == 1 else 'Perfectionist') +
+                 ' requires its separate pinned ' + asset_key + '.')
     if asset.get('source_commit') != config['source_commit']:
         _blocked('flow_asset', 'Native YOLO asset source pin does not match the engine.')
     source = _checked_file(asset)
@@ -197,7 +202,9 @@ def _flow(request, snapshot, destination, config, profiles):
     max_volume = _numeric(effective, 'filament_max_volumetric_speed')
     if flow <= 0 or max_volume <= 0:
         _blocked('flow_speed', 'YOLO flow ratio and volumetric limit must be positive.')
-    max_speed = max_volume / (area * (flow + 0.05) / flow)
+    # CalibUtils.cpp:209 uses the variant's largest positive additive offset.
+    max_modifier = 0.05 if pass_number == 1 else 0.035
+    max_speed = max_volume / (area * (flow + max_modifier) / flow)
     speeds = {key: str(math.floor(min(_numeric(effective, key), max_speed))) for key in ('internal_solid_infill_speed', 'top_surface_speed')}
     settings = {
         'wall_loops': '1', 'only_one_wall_top': '1', 'thick_internal_bridges': '0',
@@ -222,11 +229,12 @@ def _flow(request, snapshot, destination, config, profiles):
         original_model = archive.read('3D/3dmodel.model')
         model = ET.fromstring(original_model)
         objects = model.findall('c:resources/c:object', namespace)
-        expected = {0.0} | {sign * i / 100 for i in range(1, 6) for sign in (-1, 1)}
+        patches = parity.yolo_patch_modifiers(pass_number)
+        expected = set(patches.values())
         seen = set()
         for obj in objects:
             name = obj.get('name', '')
-            if not name.startswith('flowrate_'):
+            if name not in patches:
                 _blocked('flow_asset', 'Unexpected YOLO object label.')
             try:
                 modifier = float(name[9:].replace('m', '-', 1))
@@ -236,9 +244,9 @@ def _flow(request, snapshot, destination, config, profiles):
             node = ET.SubElement(model_settings, 'object', {'id': obj.attrib['id']})
             for key, value in {'name': name, **settings, 'print_flow_ratio': repr((flow + f32(modifier)) / flow)}.items():
                 ET.SubElement(node, 'metadata', {'key': key, 'value': value})
-        if seen != expected or len(objects) != 11:
-            _blocked('flow_asset', 'YOLO requires all eleven native patches, without duplicates.')
-        centered_model, layout = _center_flow_build(original_model, snapshot)
+        if seen != expected or len(objects) != len(patches):
+            _blocked('flow_asset', 'YOLO requires all ' + str(len(patches)) + ' native variant patches, without duplicates.')
+        centered_model, layout = _center_flow_build(original_model, snapshot, len(patches))
         (destination / 'flow-layout.json').write_bytes(contract.canonical(layout))
         output = destination / 'model.3mf'
         with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as target:
@@ -278,7 +286,7 @@ def _flow_bed_center(snapshot):
     return [(low[i] + high[i]) / 2 for i in range(2)]
 
 
-def _center_flow_build(raw, snapshot):
+def _center_flow_build(raw, snapshot, patch_count=11):
     """Apply native group translation to build items, never mesh coordinates.
 
     The registered Oct15 CLI disables --center (PrintConfig.cpp12818), so its
@@ -297,7 +305,8 @@ def _center_flow_build(raw, snapshot):
             raise ValueError('units')
         objects = {obj.get('id'): obj for obj in model.findall('c:resources/c:object', ns)}
         items = model.findall('c:build/c:item', ns)
-        if len(objects) != 11 or len(items) != 11 or {item.get('objectid') for item in items} != set(objects):
+        if (patch_count not in (11, 16) or len(objects) != patch_count or len(items) != patch_count
+                or {item.get('objectid') for item in items} != set(objects)):
             raise ValueError('single build instance per patch required')
         translations, world_points = [], []
         for item in items:

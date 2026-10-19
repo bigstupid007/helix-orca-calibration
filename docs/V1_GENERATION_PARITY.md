@@ -59,8 +59,14 @@ The trusted local generator configuration contains:
   Existing optional `trimesh` / `mapbox-earcut` dependencies cut/cap/scale the
   requested standard range, retaining geometry provenance and explicit
   triangulation uncertainty. Missing geometry dependencies block;
-- Flow: `flow_asset` with `path`, `sha256`, `source_commit`, pointing to the exact
-  native `Orca-LinearFlow.3mf`;
+- Flow Recommended (`parameters: {pass:1}`): `flow_asset` with `path`, `sha256`,
+  `source_commit`, pointing to native `Orca-LinearFlow.3mf`, SHA-256
+  `c998359cef8c247c5c9c50ea0d07e778590be7cdaa1d21beaf84abccea7840ca`;
+- Flow Perfectionist (`parameters: {pass:2}`): a separate `flow_fine_asset` with
+  the same record fields, pointing to native `Orca-LinearFlow_fine.3mf`, SHA-256
+  `15f3e750122e466389932c0c4242299ef26d8a416dc4ac0673b8864960c151dd`.
+  Neither variant falls back to the other's asset. Both retain Archimedean
+  Chords; traditional percentage-based Pass 1/Pass 2 remain outside this ID;
 - optional `native_reference`: `manifest` and `gcode`, each `path`/`sha256`;
 - optional `timeout_seconds` (capped at 300). A trusted in-process
   `runner(argv, output_dir) -> returncode` may provide OS/container confinement;
@@ -765,3 +771,32 @@ only the bounded summary. Qualification applies to these exact inputs, not all
 profiles or parameters. The accepted physical start-macro ABI does not match
 this context: `hardware_abi_qualified`, `physical_readiness` and `physical_actions`
 remain false. No upload, physical Start or printer action occurred.
+
+## Functional YOLO mode contract
+
+The exact October 15 dialog dispatch (`calib_dlg.cpp:1790–1791`, `1872–1883`)
+sets `is_linear=true` for both YOLO choices: Recommended maps to native pass 1,
+Perfectionist to native pass 2. The shared request keeps exactly `{pass:1}` or
+`{pass:2}`; adding Perfectionist does not rewrite the existing Recommended
+request-independent generation inputs or retained qualified R8 report.
+
+The native assets differ materially. Recommended has eleven labeled offsets
+from −0.05 through +0.05 by 0.01. Perfectionist has sixteen from −0.04 through
++0.035 by 0.005, including its asymmetric negative tail. These are additive to
+the retained original filament flow ratio, not percentage multipliers. Native
+`Plater.cpp:17260–17283` selects the two separate public assets, while
+`17136–17247` applies their shared settings and per-object additive ratios.
+`CalibUtils.cpp:184–220` uses the greatest positive modifier in its speed cap:
+0.05 for Recommended and 0.035 for Perfectionist. The generator retains native
+float conversion of patch modifiers and preserves each asset's geometry/layout;
+no synthetic replacement patch model is a product fallback.
+
+The recipe and parity harness require the matching complete eleven- or
+sixteen-patch set, including the fine −0.04 label and excluding fine +0.04.
+Independent native-reference provenance binds the exact parameters, so an
+existing Recommended reference cannot qualify Perfectionist. The existing
+Recommended actual Windows qualification remains scoped to its retained
+profiles and inputs. Perfectionist source/unit coverage establishes preparation
+support only: a real independently prepared matching Windows native reference
+and actual generated-artifact comparison remain required. Synthetic test meshes
+and runner output are explicitly fixtures and never qualification evidence.

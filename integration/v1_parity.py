@@ -42,6 +42,23 @@ def executable(text):
     return [code for raw in text.splitlines() if (code := raw.split(';', 1)[0].strip())]
 
 
+def yolo_patch_modifiers(pass_number):
+    """Exact Oct15 linear assets; traditional percentage Pass 2 is excluded.
+
+    calib_dlg.cpp:1872–1883 selects linear=true for both YOLO variants.
+    Orca-LinearFlow_fine.3mf has an asymmetric negative tail, not +/-0.035.
+    """
+    if type(pass_number) is not int or pass_number not in (1, 2):
+        raise ValueError('unknown native YOLO variant')
+    if pass_number == 1:
+        return {'flowrate_0': 0.0, **{
+            f'flowrate_{sign}0.0{i}': factor * i / 100
+            for sign, factor in (('', 1), ('m', -1)) for i in range(1, 6)}}
+    return {'flowrate_0': 0.0, **{
+        'flowrate_' + ('m' if i < 0 else '') + format(abs(i) / 200, '.3f').rstrip('0'): i / 200
+        for i in range(-8, 8) if i}}
+
+
 def analyze(text):
     """Track real deposition, E mode, heater state and feed without recipe tags."""
     xyz = dict.fromkeys('XYZ', 0.0)
@@ -453,9 +470,9 @@ def invariants(text, inputs):
             if not all(any(h['op'] == op and h['target'] == 0 and h['line'] > d['moves'][-1]['line'] for h in d['heaters']) for op in ('M104', 'M140')):
                 raise ValueError('missing final heater shutdown')
     elif kind == 'flow_ratio_yolo':
-        expected = {'flowrate_0'} | {f'flowrate_{sign}0.0{i}' for sign in ('', 'm') for i in range(1, 6)}
+        expected = set(yolo_patch_modifiers(p['pass']))
         names = {re.sub(r'\s+id.*$', '', n) for n in d['objects']}
-        if names != expected or p != {'pass': 1} or ';TYPE:Top surface' not in text:
+        if names != expected or ';TYPE:Top surface' not in text:
             raise ValueError('missing native YOLO labeled patches or top surfaces')
     elif kind == 'retraction':
         calibration_semantics = _retraction_invariants(text, inputs, d)

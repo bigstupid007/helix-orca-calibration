@@ -382,6 +382,47 @@ class NativeCalibrationSchedules(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'visible waits'):
             parity.invariants(text.replace('M109 S220\n', ''), inputs)
 
+    def test_yolo_perfectionist_requires_its_exact_asymmetric_patch_set(self):
+        names = ['flowrate_0', 'flowrate_0.005', 'flowrate_0.01', 'flowrate_0.015',
+                 'flowrate_0.02', 'flowrate_0.025', 'flowrate_0.03', 'flowrate_0.035',
+                 'flowrate_m0.005', 'flowrate_m0.01', 'flowrate_m0.015', 'flowrate_m0.02',
+                 'flowrate_m0.025', 'flowrate_m0.03', 'flowrate_m0.035', 'flowrate_m0.04']
+        inputs = self.inputs('flow_ratio_yolo', {'pass':2})
+        lines = self.header() + [';LAYER_CHANGE','G1 Z0.2',';TYPE:Top surface']
+        for name in names:
+            lines += [f'; printing object {name} id:0 copy 0','G1 X1 Y1 E1 F1800','G1 X2 Y2 E1',
+                      f'; stop printing object {name} id:0 copy 0']
+        text = '\n'.join(lines+['PRINT_END'])
+        self.assertEqual(len(parity.invariants(text,inputs)['objects']),16)
+        for broken in (text.replace('flowrate_m0.04','flowrate_0.04'),
+                       text.replace('flowrate_m0.04','flowrate_m0.035'),
+                       text.replace(';TYPE:Top surface','')):
+            with self.assertRaisesRegex(ValueError,'YOLO'):
+                parity.invariants(broken,inputs)
+        with self.assertRaisesRegex(ValueError,'YOLO'):
+            parity.invariants(text,self.inputs('flow_ratio_yolo',{'pass':1}))
+        self.assertEqual(set(parity.yolo_patch_modifiers(2)),set(names))
+        for invalid in (True,0,3,'2'):
+            with self.assertRaises(ValueError):
+                parity.yolo_patch_modifiers(invalid)
+
+    def test_yolo_reference_provenance_is_bound_to_recommended_or_perfectionist(self):
+        # Deliberately synthetic bytes: this checks provenance refusal, not qualification.
+        recommended = self.inputs('flow_ratio_yolo',{'pass':1})
+        perfectionist = self.inputs('flow_ratio_yolo',{'pass':2})
+        for inputs in (recommended,perfectionist):
+            inputs['runtime'] = parity.PINS[inputs['source_commit']]
+        with tempfile.TemporaryDirectory() as root:
+            candidate,native = Path(root)/'candidate.gcode',Path(root)/'native.gcode'
+            candidate.write_text('G90\n');native.write_text('G90\n')
+            manifest = dict(schema='helix-orca-v1-native-reference/v1',method='native_orca_ui',
+                            imported_candidate=False,inputs_sha256=parity.digest(recommended),
+                            source_commit=recommended['source_commit'],runtime=recommended['runtime'],
+                            artifact=parity.file_record(native),evidence=[])
+            report = parity.evaluate(candidate,native,manifest,perfectionist)
+            self.assertFalse(report['qualified'])
+            self.assertIn('exact inputs',report['reason'])
+
     def test_yolo_exposes_generic_accepted_macro_semantics(self):
         inputs = self.inputs('flow_ratio_yolo', {'pass': 1})
         lines = self.header() + [';LAYER_CHANGE', 'G1 Z0.2', ';TYPE:Top surface']

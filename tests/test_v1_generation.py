@@ -213,6 +213,66 @@ class StockGeneration(unittest.TestCase):
         self.snapshot['effective']['printable_area'] = '0x0,300x0,0x200'
         self.assertEqual(generation._flow_bed_center(self.snapshot), [150,100])
 
+    def _perfectionist_asset(self, names=None):
+        # Synthetic labeled meshes test staging, not real slicing or qualification.
+        names = names or ['flowrate_0', 'flowrate_0.005', 'flowrate_0.01', 'flowrate_0.015',
+                          'flowrate_0.02', 'flowrate_0.025', 'flowrate_0.03', 'flowrate_0.035',
+                          'flowrate_m0.005', 'flowrate_m0.01', 'flowrate_m0.015', 'flowrate_m0.02',
+                          'flowrate_m0.025', 'flowrate_m0.03', 'flowrate_m0.035', 'flowrate_m0.04']
+        ns = 'http://schemas.microsoft.com/3dmanufacturing/core/2015/02'
+        model = ET.Element('model', xmlns=ns)
+        resources, build = ET.SubElement(model, 'resources'), ET.SubElement(model, 'build')
+        for index, name in enumerate(names):
+            obj = ET.SubElement(resources, 'object', id=str(index+1), name=name)
+            vertices = ET.SubElement(ET.SubElement(obj, 'mesh'), 'vertices')
+            for x,y,z in ((0,0,0),(30,0,0),(0,30,2)):
+                ET.SubElement(vertices, 'vertex', x=str(x), y=str(y), z=str(z))
+            ET.SubElement(build, 'item', objectid=str(index+1),
+                          transform=f'1 0 0 0 1 0 0 0 1 {index%4*31} {index//4*32} 0')
+        asset = self.root/'Orca-LinearFlow_fine.3mf'
+        with zipfile.ZipFile(asset,'w') as archive:
+            archive.writestr('3D/3dmodel.model',ET.tostring(model))
+        self.request.update(calibration='flow_ratio_yolo',parameters={'pass':2})
+        self.config['flow_fine_asset'] = dict(path=str(asset),sha256=hashlib.sha256(asset.read_bytes()).hexdigest(),
+                                              source_commit=self.pin)
+
+    def test_perfectionist_stages_sixteen_native_offsets_with_its_own_speed_cap(self):
+        self._perfectionist_asset()
+        self.snapshot['effective'].update(top_surface_speed='1000',internal_solid_infill_speed='1000')
+        self.request['context_sha256'] = contract.digest(self.snapshot)
+        original = copy.deepcopy(self.snapshot)
+        result = self.run_generation()
+        with zipfile.ZipFile(self.root/'job/model.3mf') as archive:
+            cfg = ET.fromstring(archive.read('Metadata/model_settings.config'))
+        objects = [{m.get('key'):m.get('value') for m in obj.findall('metadata')} for obj in cfg.findall('object')]
+        by_name = {item['name']:item for item in objects}
+        self.assertEqual(len(objects),16)
+        self.assertIn('flowrate_m0.04',by_name)
+        self.assertNotIn('flowrate_0.04',by_name)
+        self.assertAlmostEqual(float(by_name['flowrate_0.005']['print_flow_ratio']),1.0049999998882413)
+        self.assertAlmostEqual(float(by_name['flowrate_m0.04']['print_flow_ratio']),0.9600000008940697)
+        # Native CalibUtils .035 ceiling yields142; Recommended .05 would yield140.
+        self.assertEqual({item['top_surface_speed'] for item in objects},{'142'})
+        self.assertTrue(all(item['top_surface_pattern']=='archimedeanchords' for item in objects))
+        self.assertEqual(original,self.snapshot)
+        self.assertEqual(result['parameters'],{'pass':2})
+        self.assertFalse(result['parity']['qualified'])
+        self.assertEqual(json.loads((self.root/'job/inputs.json').read_text())['parameters'],{'pass':2})
+
+    def test_perfectionist_never_falls_back_to_recommended_asset(self):
+        self._perfectionist_asset()
+        self.config['flow_asset'] = self.config.pop('flow_fine_asset')
+        with self.assertRaisesRegex(generation.GenerationBlocked,'flow_fine_asset'):
+            self.run_generation()
+        self.assertFalse((self.root/'job/invocation.json').exists())
+
+    def test_perfectionist_rejects_missing_duplicate_or_wrong_native_patch(self):
+        for names in (['flowrate_0']*16,['flowrate_0','flowrate_0.04'],['flowrate_0']):
+            with self.subTest(names=names), tempfile.TemporaryDirectory() as output:
+                self._perfectionist_asset(names)
+                with self.assertRaises(generation.GenerationBlocked):
+                    generation.prepare_inputs(self.request,self.snapshot,Path(output)/'job',self.config)
+
     def test_yolo_build_translation_changes_only_build_xml_and_blocks_unsupported_transforms(self):
         objects=''.join(f'<object id="{i}"><mesh><vertices><vertex x="{i}" y="0" z="0"/><vertex x="{i+1}" y="1" z="2"/></vertices></mesh></object>' for i in range(1,12))
         items=''.join(f'<item objectid="{i}"/>' for i in range(1,12))
