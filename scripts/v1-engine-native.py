@@ -85,6 +85,11 @@ def compile_offline():
     os.environ['CC'] = str(tools/'cc')
     os.environ['CXX'] = str(tools/'c++')
     os.environ['CMAKE_BUILD_PARALLEL_LEVEL'] = '4'
+    # FFmpeg configure executes its compiler probes. Keep /tmp noexec and use
+    # the already declared executable build root for those owned probe files.
+    temporary = Path('/build/configure-tmp')
+    temporary.mkdir(mode=0o700,exist_ok=True)
+    os.environ['TMPDIR'] = str(temporary)
     os.environ['PATH'] = '/build/bootstrap-prefix/bin:' + os.environ['PATH']
     for item in lock.get('bootstrap_sources', []):
         name = item['target'].removeprefix('dep_')
