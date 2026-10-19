@@ -13,12 +13,12 @@ end
 for _,name in ipairs({'printer','profiles','context_note','message','calibration','phase','parameters','artifact','qualification','evaluation_note','returned','result_heading','result_note','monitor','offer_printer','offer_profiles','offer_note'}) do string_subject(name) end
 string_subject('tile','Ready')
 for _,name in ipairs({'resume_on','confirm_on','start_on','cancel_on','evaluate_on','evaluation_idx','monitor_on'}) do int_subject(name) end
-local v1_indices={}
+local v1_drafts={}
 for id,entry in pairs(V1_CATALOG) do
     string_subject('availability_'..id,'Waiting for Orca companion')
-    v1_indices[id]={}
-    for key,_ in pairs(entry.parameters) do v1_indices[id][key]=int_subject(id..'_'..key..'_idx') end
+    for key,_ in pairs(entry.parameters) do string_subject(id..'_'..key..'_value') end
 end
+for _,name in ipairs({'keypad_title','keypad_value','keypad_error','keypad_limits','flow_samples','pa_defaults_note'}) do string_subject(name) end
 local v1_settings={temperature='nozzle_temperature',flow_ratio_yolo='filament_flow_ratio',pressure_advance_pattern='pressure_advance',retraction='filament_retraction_length',max_volumetric_speed='filament_max_volumetric_speed'}
 local v1_offer=nil
 local v1_session=nil
@@ -47,10 +47,23 @@ local function v1_exact(t,fields)
     for k,_ in pairs(t) do if not allowed[k] then return false end end
     return true
 end
+local function v1_valid_field(rule,value)
+    if rule.kind=='fixed' then return value==rule.value and math.type(value)==math.type(rule.value) end
+    if rule.kind=='boolean' then return type(value)=='boolean' end
+    if rule.kind=='choice' then
+        for _,v in ipairs(rule.values) do if value==v and math.type(value)==math.type(v) then return true end end
+        return false
+    end
+    return v1_number(value) and value>=rule.min and value<=rule.max
+        and (not rule.integer or math.type(value)=='integer') and (not rule.multiple or value%rule.multiple==0)
+end
 local function v1_valid_parameters(id,p)
-    if id=='flow_ratio_yolo' then return p.pass==1 end
-    if not v1_number(p.start) or not v1_number(p['end']) or not v1_number(p.step) then return false end
-    if id=='temperature' then return p.start>=p['end']+5 and p.step==5 and (p.start-p['end'])%5==0 end
+    local entry=V1_CATALOG[id]
+    if not entry or type(p)~='table' then return false end
+    for key,_ in pairs(p) do if not entry.parameters[key] then return false end end
+    for key,rule in pairs(entry.parameters) do if not v1_valid_field(rule,p[key]) then return false end end
+    if id=='flow_ratio_yolo' then return true end
+    if id=='temperature' then return p.start>=p['end']+5 end
     return p['end']>=p.start+p.step and (p['end']-p.start)/p.step<=1000
 end
 local function v1_identity(data)
@@ -67,6 +80,7 @@ local function v1_persist()
     end
     return ok
 end
+-- V1_PARAMETER_CONTROLS
 local function v1_options()
     local out={}
     local e=v1_session and v1_session.evaluation
@@ -183,7 +197,7 @@ local function v1_capability(offer,id)
     for _,c in ipairs(offer.capabilities) do if c.id==id then return c end end
 end
 local function v1_receive_offer(_,o)
-    if not v1_exact(o,'schema origin_id request_id context_sha256 printer process filament nozzle_mm capabilities defaults created_at expires_at') or o.schema~='helix-orca-v1-offer/v1'
+    if not v1_exact(o,'schema origin_id request_id context_sha256 printer process filament nozzle_mm capabilities defaults created_at expires_at extruder_type') or o.schema~='helix-orca-v1-offer/v1'
         or not v1_hex(o.origin_id,32) or not v1_hex(o.request_id,32) or not v1_hex(o.context_sha256,64)
         or not v1_text(o.printer,128) or not v1_text(o.process,128) or not v1_text(o.filament,128)
         or not v1_number(o.nozzle_mm) or o.nozzle_mm<=0 or o.nozzle_mm>2
@@ -194,13 +208,9 @@ local function v1_receive_offer(_,o)
         if type(c)~='table' or not V1_CATALOG[c.id] or seen[c.id] or type(c.available)~='boolean' or not v1_text(c.reason,512) then return end
         seen[c.id]=true
     end
-    for id,entry in pairs(V1_CATALOG) do
-        if type(o.defaults[id])~='table' then return end
-        for key,values in pairs(entry.parameters) do
-            local supported=false
-            for _,value in ipairs(values) do if value==o.defaults[id][key] then supported=true end end
-            if not supported then return end
-        end
+    if o.extruder_type~=nil and o.extruder_type~='direct_drive' and o.extruder_type~='bowden' and o.extruder_type~='unavailable' then return end
+    for id,_ in pairs(V1_CATALOG) do
+        if not v1_valid_parameters(id,o.defaults[id]) then return end
     end
     v1_offer=o;v1_offer_context(o)
     for id,_ in pairs(V1_CATALOG) do
@@ -216,11 +226,7 @@ helix.ui.on('v1_choose',function(id)
     if v1_session and not v1_session.receipt and v1_session.phase~='blocked' and v1_session.phase~='failed' and v1_session.phase~='cancelled' then
         v1_set('message','Finish or return the active calibration before starting another.');v1_open_job();return
     end
-    local defaults=v1_offer and v1_offer.defaults[id]
-    for key,subject in pairs(v1_indices[id]) do
-        local values=V1_CATALOG[id].parameters[key]
-        for i,v in ipairs(values) do if defaults and defaults[key]==v then subject:set(i-1) end end
-    end
+    v1_prepare_draft(id)
     local handle
     handle=helix.ui.overlay('orcacal__v1_'..id,{on_close=function()
         if v1_detail_handle==handle then v1_detail_handle=nil end
@@ -229,16 +235,15 @@ helix.ui.on('v1_choose',function(id)
 end)
 helix.ui.on('v1_generate',function(id)
     local c=v1_capability(v1_offer,id)
-    if not c or not c.available then v1_set('message',c and ('Generation blocked · '..c.reason) or 'Waiting for Orca context');return end
+    if not c then v1_set('message','Waiting for Orca context');return end
     if v1_session and v1_session.request.request_id==v1_offer.request_id then v1_set('message','This request was already submitted. Open the active calibration.');return end
     if v1_session and not v1_session.receipt and v1_session.phase~='blocked' and v1_session.phase~='failed' and v1_session.phase~='cancelled' then return end
+    local draft=v1_prepare_draft(id)
     local parameters={}
-    for key,subject in pairs(v1_indices[id]) do
-        local value=V1_CATALOG[id].parameters[key][subject:get()+1]
-        if value==nil then return end
-        parameters[key]=value
+    for key,value in pairs(draft) do parameters[key]=value end
+    if not v1_valid_parameters(id,parameters) then
+        v1_set('message',id=='temperature' and 'Use whole temperatures in steps of 5, with start at least 5 above end.' or 'End must be at least start plus step, with at most 1000 increments.');return
     end
-    if not v1_valid_parameters(id,parameters) then v1_set('message','Choose a valid range: end and increment must describe at least two samples.');return end
     local request={schema='helix-orca-v1-request/v1',request_id=v1_offer.request_id,origin_id=v1_offer.origin_id,
         context_sha256=v1_offer.context_sha256,calibration=id,parameters=parameters,
         created_at=v1_offer.created_at,expires_at=v1_offer.expires_at,not_applied=true}

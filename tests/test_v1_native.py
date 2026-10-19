@@ -19,7 +19,12 @@ class V1NativeTests(unittest.TestCase):
         for id,defaults in contract.DEFAULTS.items():
             offered=builder.CATALOG[id]['parameters']
             self.assertEqual(set(defaults),set(offered))
-            for key,value in defaults.items():self.assertIn(value,offered[key])
+            for key,value in defaults.items():
+                rule=offered[key]
+                if rule['kind']=='number':self.assertTrue(rule['min']<=value<=rule['max'])
+                elif rule['kind']=='choice':self.assertIn(value,rule['values'])
+                elif rule['kind']=='fixed':self.assertEqual(value,rule['value'])
+                else:self.assertIs(type(value),bool)
             self.assertEqual(contract.validate_parameters(id,defaults),defaults)
     def test_derivative_preserves_hash_locked_base_and_storage_only_identity(self):
         base=builder.load_base();before=base.verify_baseline()
@@ -89,8 +94,8 @@ class V1NativeTests(unittest.TestCase):
         doc=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_flow_ratio_yolo.xml')
         self.assertEqual(doc.findall('.//lv_dropdown'),[])
         labels=' '.join(node.attrib.get('text','') for node in doc.iter())
-        self.assertIn('YOLO (recommended)',labels);self.assertIn('Archimedean Chords',labels)
-        self.assertEqual(builder.CATALOG['flow_ratio_yolo']['parameters'],{'pass':[1]})
+        self.assertIn('Recommended',labels);self.assertIn('Perfectionist',labels);self.assertIn('Archimedean Chords',labels)
+        self.assertEqual(builder.CATALOG['flow_ratio_yolo']['parameters'],{'pass':{'kind':'choice','values':[1,2]}})
     def test_automatic_view_preserves_original_bindings_and_return_callbacks(self):
         with tempfile.TemporaryDirectory() as name:
             output=Path(name)/'plugin';builder.generate(output)

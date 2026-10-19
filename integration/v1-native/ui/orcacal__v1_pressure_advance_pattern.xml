@@ -8,15 +8,33 @@
         <text_small width="100%" bind_text="orcacal__v1_offer_profiles" long_mode="wrap" />
         <text_xs width="100%" bind_text="orcacal__v1_offer_note" long_mode="wrap" />
       </ui_card>
-      <text_heading width="100%" text="Pattern" long_mode="wrap" />
-      <text_small width="100%" text="Compare the pattern lines and select the cleanest transition after successful completion." long_mode="wrap" />
-      <text_small width="100%" bind_text="orcacal__v1_availability_pressure_advance_pattern" long_mode="wrap" />
-      <text_small width="100%" text="Starting PA" long_mode="wrap" />
-      <lv_dropdown name="orcacal__v1_pressure_advance_pattern_start" width="100%" options="0&#10;0.01&#10;0.02&#10;0.03" bind_value="orcacal__v1_pressure_advance_pattern_start_idx" />
-      <text_small width="100%" text="Ending PA" long_mode="wrap" />
-      <lv_dropdown name="orcacal__v1_pressure_advance_pattern_end" width="100%" options="0.08&#10;0.1&#10;0.15&#10;0.2&#10;0.3" bind_value="orcacal__v1_pressure_advance_pattern_end_idx" />
-      <text_small width="100%" text="PA increment" long_mode="wrap" />
-      <lv_dropdown name="orcacal__v1_pressure_advance_pattern_step" width="100%" options="0.002&#10;0.005&#10;0.01" bind_value="orcacal__v1_pressure_advance_pattern_step_idx" />
+      <text_heading width="100%" long_mode="wrap" text="Pattern" />
+      <text_small width="100%" long_mode="wrap" text="Compare the pattern lines and select the cleanest transition after successful completion." />
+      <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_availability_pressure_advance_pattern" />
+      <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_pa_defaults_note" />
+      <lv_button name="orcacal__v1_pa_direct_drive" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_pa_defaults:direct_drive" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Use Direct Drive defaults" />
+      </lv_button>
+      <lv_button name="orcacal__v1_pa_bowden" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_pa_defaults:bowden" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Use Bowden defaults" />
+      </lv_button>
+      <text_small width="100%" long_mode="wrap" text="Starting PA" />
+      <lv_button name="orcacal__v1_pressure_advance_pattern_start" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:pressure_advance_pattern:start" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_pressure_advance_pattern_start_value" />
+      </lv_button>
+      <text_small width="100%" long_mode="wrap" text="Ending PA" />
+      <lv_button name="orcacal__v1_pressure_advance_pattern_end" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:pressure_advance_pattern:end" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_pressure_advance_pattern_end_value" />
+      </lv_button>
+      <text_small width="100%" long_mode="wrap" text="PA increment" />
+      <lv_button name="orcacal__v1_pressure_advance_pattern_step" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:pressure_advance_pattern:step" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_pressure_advance_pattern_step_value" />
+      </lv_button>
       <text_small width="100%" text="Preparation does not start a print. Review the prepared job before confirming." long_mode="wrap" />
       <lv_button name="orcacal__v1_generate_pressure_advance_pattern" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_generate:pressure_advance_pattern" />

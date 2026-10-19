@@ -24,12 +24,16 @@ or enforce wall-clock expiration. The coordinator owns these checks. Restart
 locks all unverified actions; a retained selection stays immutable until the exact
 originating receipt. No event alone authorizes a physical action.
 
-`catalog.json` contains offered native parameter dropdown values and labels,
-including the shared defaults. Values outside this bounded UI envelope remain
-unsupported by this derivative. Availability means generation can be attempted;
-it never means parity qualified. Blocked generators explain their reason and
-cannot expose Confirm/Start. The UI has no user-entered hash, receipt or technical
-qualification requirement.
+`catalog.json` declares numeric control bounds and fixed/choice fields, checked
+against shared Python limits by the builder. Native value buttons open an owned
+numeric keypad. Temperature Step5 is read-only; Flow selects Recommended or
+Perfectionist fixed samples; PA has deliberate Direct Drive/Bowden default actions.
+Drafts survive reopen and offer updates; Generate copies scalars into the immutable
+request, including for known blocked capabilities so the actual coordinator retains
+numbers and reports its real blocker. Missing context blocks locally. See
+`docs/V1_NATIVE_PARAMETERS.md` for this functional correction and pending focused
+independent800×480 operator/real-Coordinator proof. Historical396-frame fixture
+proof does not qualify the changed controls.
 
 The native capture tool uses pinned beta.9, Docker `--test --network none`,
 read-only plugin/runtime mounts and private native pointer controls. Every offered
@@ -49,10 +53,9 @@ now omits saved span overrides, asks the host to use the manifest defaults, and
 asserts the native home API reports `w=1,h=1`. Every icon/identity/status child
 must fit inside that tile and their vertical bounds must not overlap.
 
-Flow Ratio explains **YOLO (recommended)** and Orca's **Archimedean Chords**
-surface. The one-choice implementation-only pass dropdown is removed. The
-request contract still retains `pass: 1` internally; no new generator API or
-parameter is introduced.
+Flow Ratio uses Orca's Archimedean Chords surface and the fixed Recommended
+(`pass:1`) or Perfectionist(`pass:2`) additive sample sets. The mode buttons do not
+expose editable offsets or write an Orca profile.
 
 Temperature preserves the accepted immediate automatic result presentation,
 through the documented beta.9 `helix.ui.overlay()` adapter. A distinct owned
@@ -76,7 +79,7 @@ originating receipt stay immutable and NOT APPLIED across recovery. The isolated
 `presentation.lua` adapter can adopt a future supported queued API without
 changing these completion/result rules.
 
-The revised qualifier adds planned native checks for logical compact bounds,
+The historical qualifier/capture added native checks for logical compact bounds,
 automatic Temperature presentation on Home/Print Status/Controls, preserved
 native dismissal, duplicate suppression, manual reopening, restart and a lost
 claim. Recovery restarts only the exact existing ManagedRun-owned synthetic
@@ -86,8 +89,9 @@ with five explicit Confirmed/Start frames added: **36 frames per viewport, 396
 across all eleven targets**. The Temperature evaluation frame shows the
 automatic view. Raw tile
 geometry and presentation transitions are also retained in each private capture.
-These source changes require a new complete eleven-size capture before promotion;
-the prior 341-frame checkpoint remains evidence of its exact earlier source.
+Those completed396-frame sources remain historical; the current parameter
+correction uses the focused800×480 gate authorized in
+`docs/V1_PARAMETER_CORRECTION.md`, without relabeling the old fixture evidence.
 No capture, build, physical action or deployment was performed for this source
 correction while the shared heavy-work slot was owned elsewhere.
 

@@ -8,9 +8,20 @@
         <text_small width="100%" bind_text="orcacal__v1_offer_profiles" long_mode="wrap" />
         <text_xs width="100%" bind_text="orcacal__v1_offer_note" long_mode="wrap" />
       </ui_card>
-      <text_heading width="100%" text="YOLO (recommended)" long_mode="wrap" />
-      <text_small width="100%" text="Uses Orca's Archimedean Chords surface pattern. Compare the printed patches and choose the smoothest surface after successful completion." long_mode="wrap" />
-      <text_small width="100%" bind_text="orcacal__v1_availability_flow_ratio_yolo" long_mode="wrap" />
+      <text_small width="100%" long_mode="wrap" text="YOLO" />
+      <text_small width="100%" long_mode="wrap" text="Uses Orca's Archimedean Chords surface pattern. Compare the printed patches and choose the smoothest surface after successful completion." />
+      <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_availability_flow_ratio_yolo" />
+      <text_small width="100%" long_mode="wrap" text="Selected mode" />
+      <text_body width="100%" long_mode="wrap" bind_text="orcacal__v1_flow_ratio_yolo_pass_value" />
+      <lv_button name="orcacal__v1_flow_recommended" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_flow_mode:1" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Recommended" />
+      </lv_button>
+      <lv_button name="orcacal__v1_flow_perfectionist" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_flow_mode:2" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Perfectionist" />
+      </lv_button>
+      <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_flow_samples" />
       <text_small width="100%" text="Preparation does not start a print. Review the prepared job before confirming." long_mode="wrap" />
       <lv_button name="orcacal__v1_generate_flow_ratio_yolo" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_generate:flow_ratio_yolo" />

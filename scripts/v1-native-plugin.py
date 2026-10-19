@@ -9,9 +9,12 @@ import os
 import re
 from pathlib import Path
 import shutil
+import sys
 from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0,str(ROOT))
+from integration.v1_contract import DEFAULTS, PARAMETER_LIMITS, PA_DEFAULTS, validate_parameters
 SOURCE = ROOT / 'integration/v1-native'
 ORDER = ('temperature','flow_ratio_yolo','pressure_advance_pattern','retraction','max_volumetric_speed')
 CATALOG = json.loads((SOURCE / 'catalog.json').read_text())
@@ -28,6 +31,13 @@ def load_base():
     return module
 
 def generate(output: Path):
+    # Fail the build rather than silently publishing controls with different limits.
+    for ident,bounds in PARAMETER_LIMITS.items():
+        for key,(minimum,maximum) in bounds.items():
+            rule=CATALOG[ident]['parameters'][key]
+            if rule.get('kind')!='number' or (rule.get('min'),rule.get('max'))!=(minimum,maximum):
+                raise ValueError('Native control limits differ from shared contract')
+    for ident,defaults in DEFAULTS.items():validate_parameters(ident,defaults)
     base = load_base()
     baseline = base.verify_baseline()
     if hash_file(ACCEPTED_TILE) != ACCEPTED_TILE_SHA256:
@@ -41,17 +51,14 @@ def generate(output: Path):
     output.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(base.BASE, output)
     main = (base.BASE/'main.lua').read_text()
-    # Values are JSON scalar literals, also valid Lua after false/true conversion.
-    catalog = []
-    for ident in ORDER:
-        entry = CATALOG[ident]
-        params = []
-        for key, values in entry['parameters'].items():
-            params.append('[%s]={%s}' % (json.dumps(key), ','.join(json.dumps(v) for v in values)))
-        catalog.append('[%s]={name=%s,parameters={%s}}' % (json.dumps(ident), json.dumps(entry['name']), ','.join(params)))
-    main += '\nlocal V1_CATALOG = {' + ','.join(catalog) + '}\n'
+    def lua(value):
+        if isinstance(value,dict):return '{'+','.join('['+json.dumps(key)+']='+lua(item) for key,item in value.items())+'}'
+        if isinstance(value,list):return '{'+','.join(lua(item) for item in value)+'}'
+        return json.dumps(value,ensure_ascii=False)
+    main += '\nlocal V1_CATALOG = '+lua(CATALOG)+'\nlocal V1_DEFAULTS = '+lua(DEFAULTS)+'\nlocal V1_PA_DEFAULTS = '+lua(PA_DEFAULTS)+'\n'
     main += (SOURCE/'presentation.lua').read_text() + '\n'
-    main += (SOURCE/'main.lua').read_text()
+    native=(SOURCE/'main.lua').read_text().replace('-- V1_PARAMETER_CONTROLS',(SOURCE/'controls.lua').read_text())
+    main += native
     (output/'main.lua').write_text(main)
     for path in (SOURCE/'ui').glob('*.xml'):
         shutil.copyfile(path, output/'ui'/path.name)

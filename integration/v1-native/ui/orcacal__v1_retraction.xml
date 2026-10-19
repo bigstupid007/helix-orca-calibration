@@ -8,15 +8,24 @@
         <text_small width="100%" bind_text="orcacal__v1_offer_profiles" long_mode="wrap" />
         <text_xs width="100%" bind_text="orcacal__v1_offer_note" long_mode="wrap" />
       </ui_card>
-      <text_heading width="100%" text="Tower" long_mode="wrap" />
-      <text_small width="100%" text="Compare stringing between tower levels after successful completion." long_mode="wrap" />
-      <text_small width="100%" bind_text="orcacal__v1_availability_retraction" long_mode="wrap" />
-      <text_small width="100%" text="Starting retraction (mm)" long_mode="wrap" />
-      <lv_dropdown name="orcacal__v1_retraction_start" width="100%" options="0&#10;0.2&#10;0.4&#10;0.6&#10;1" bind_value="orcacal__v1_retraction_start_idx" />
-      <text_small width="100%" text="Ending retraction (mm)" long_mode="wrap" />
-      <lv_dropdown name="orcacal__v1_retraction_end" width="100%" options="2&#10;1&#10;3&#10;4&#10;5" bind_value="orcacal__v1_retraction_end_idx" />
-      <text_small width="100%" text="Retraction increment (mm)" long_mode="wrap" />
-      <lv_dropdown name="orcacal__v1_retraction_step" width="100%" options="0.1&#10;0.2&#10;0.5" bind_value="orcacal__v1_retraction_step_idx" />
+      <text_heading width="100%" long_mode="wrap" text="Tower" />
+      <text_small width="100%" long_mode="wrap" text="Compare stringing between tower levels after successful completion." />
+      <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_availability_retraction" />
+      <text_small width="100%" long_mode="wrap" text="Starting retraction (mm)" />
+      <lv_button name="orcacal__v1_retraction_start" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:retraction:start" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_retraction_start_value" />
+      </lv_button>
+      <text_small width="100%" long_mode="wrap" text="Ending retraction (mm)" />
+      <lv_button name="orcacal__v1_retraction_end" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:retraction:end" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_retraction_end_value" />
+      </lv_button>
+      <text_small width="100%" long_mode="wrap" text="Retraction increment (mm)" />
+      <lv_button name="orcacal__v1_retraction_step" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:retraction:step" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_retraction_step_value" />
+      </lv_button>
       <text_small width="100%" text="Preparation does not start a print. Review the prepared job before confirming." long_mode="wrap" />
       <lv_button name="orcacal__v1_generate_retraction" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_generate:retraction" />
