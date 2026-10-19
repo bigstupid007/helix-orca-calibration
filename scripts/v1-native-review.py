@@ -220,6 +220,13 @@ def html(token):
     text=text.replace("finish.disabled=v.state!==2;", "finish.disabled=true;")
     text=text.replace("'Use native Start, then finish the simulation here.'", "'Edit native parameters and request preparation. The actual coordinator reports unavailable generators.'")
     text=text.replace('Use native Start, then finish the simulation here.', 'Native controls → actual offline coordinator. Physical execution disabled.')
+    # The inherited viewer did not await image decoding, so its polling could
+    # replace a still-loading src. Keep native input independent but serialize
+    # read-only frame refreshes and wait for their real load/error boundary.
+    text=text.replace('async function update(){if(busy)return;try{',
+        'let refreshing=false;async function update(){if(busy||refreshing)return;refreshing=true;try{')
+    text=text.replace("frame.src='/frame.png?t='+Date.now();}catch(e){message.textContent=e.message;}}",
+        "await new Promise((resolve,reject)=>{const timer=setTimeout(()=>finish(Error('Native frame timed out')),5000);function finish(error){clearTimeout(timer);frame.onload=null;frame.onerror=null;error?reject(error):resolve();}frame.onload=()=>finish();frame.onerror=()=>finish(Error('Native frame unavailable'));frame.src='/frame.png?t='+Date.now();});}catch(e){message.textContent=e.message;}finally{refreshing=false;}}")
     return text
 
 def authorized_http(headers,post=False,token=None):
