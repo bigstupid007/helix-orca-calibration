@@ -3,8 +3,12 @@
 // https://github.com/OrcaSlicer/OrcaSlicer/blob/6a7763f08d1a175a464a00ce13f0b5a815662fc4/LICENSE.txt
 // Separate, source-pinned adapter. No Orca application source is modified.
 // Experimental until compiled and independently compared with native UI output.
-#if !defined(__linux__) || !defined(__x86_64__)
-#error This registered V1 native build target requires Linux x86_64; other platforms need their own audited build registration.
+#if defined(__linux__) && defined(__x86_64__)
+#define HELIX_NATIVE_LINUX_X64 1
+#elif defined(_WIN64) && (defined(_M_X64) || defined(__x86_64__))
+#define HELIX_NATIVE_WINDOWS_X64 1
+#else
+#error This registered V1 native build target requires Linux x86_64 or Windows AMD64; other targets need their own audited registration.
 #endif
 // Match the upstream headless profile validator: define these implementations
 // before native headers can include NanoSVG's guarded declarations.
@@ -30,8 +34,10 @@
 #include <cmath>
 #include <cstdlib>
 #include <csignal>
+#if defined(HELIX_NATIVE_LINUX_X64)
 #include <execinfo.h>
 #include <unistd.h>
+#endif
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -47,11 +53,22 @@ static void diagnostic(const std::string &stage)
 {
     if(std::getenv("HELIX_NATIVE_DIAGNOSTICS")) std::cerr<<"native-stage: "<<stage<<std::endl;
 }
+#if defined(HELIX_NATIVE_LINUX_X64)
 static void diagnostic_stack(int)
 {
     void *frames[40];
     const int count=backtrace(frames,40);
     backtrace_symbols_fd(frames,count,STDERR_FILENO);
+}
+#endif
+
+static json registered_target()
+{
+#if defined(HELIX_NATIVE_WINDOWS_X64)
+    return {{"system","Windows"},{"architecture","x86_64"},{"format","PE32+-LE-AMD64"}};
+#else
+    return {{"system","Linux"},{"architecture","x86_64"},{"format","ELF64-LE-EM_X86_64"}};
+#endif
 }
 
 static json read_json(const fs::path &path)
@@ -346,12 +363,14 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
 int main(int argc,char **argv)
 {
     try {
+#if defined(HELIX_NATIVE_LINUX_X64)
         if(std::getenv("HELIX_NATIVE_DIAGNOSTICS")) {
             // Load the unwinder before a diagnostic signal can interrupt native
             // code. Only our explicitly enabled development process handles it.
             void *frame[1];backtrace(frame,1);
             std::signal(SIGUSR1,diagnostic_stack);
         }
+#endif
         // Keep the guard alive through Print destruction: an environment hint
         // does not bound oneTBB's scheduler.
         tbb::global_control scheduler_limit(tbb::global_control::max_allowed_parallelism,2);
@@ -364,7 +383,7 @@ int main(int argc,char **argv)
             std::sort(keys.begin(),keys.end());
             std::cout<<json{{"schema","helix-orca-v1-native-capabilities/v1"},
                 {"source_commit",source_commit},{"required_effective_keys",keys},
-                {"target",{{"system","Linux"},{"architecture","x86_64"},{"format","ELF64-LE-EM_X86_64"}}},
+                {"target",registered_target()},
                 {"max_parallelism",2},
                 {"routes",{"temperature","pressure_advance_pattern","retraction","max_volumetric_speed"}}}.dump()<<'\n';
             return 0;
