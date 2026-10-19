@@ -122,6 +122,7 @@ class NativeTransport(unittest.TestCase):
                     self.generate()
                 self.assertEqual(caught.exception.code, 'native_platform')
                 self.assertFalse(any(row['available'] for row in engine.capabilities(self.config)))
+                self.assertTrue(all('compatible audited build' in row['reason'] for row in engine.capabilities()))
                 self.assertFalse(self.called)
         self.exe.write_bytes(b'MZ' + b'not an ELF target' * 10)
         self.config['native_executable'] = self.record(self.exe)

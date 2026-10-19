@@ -58,6 +58,8 @@ class NativeSourceError(ValueError):
 def capabilities(config=None):
     """Return fresh capability data, never a source-derived permission to execute."""
     backend, failure = None, "Native adapter is not built or qualified. "
+    if not _compatible_host():
+        failure = "Native Linux x86_64 target is unavailable on this host; a compatible audited build is required. "
     if config:
         try:
             backend = _backend(config)
@@ -95,6 +97,10 @@ _ROOT = Path(__file__).resolve().parents[1]
 _TARGET = {"system": "Linux", "architecture": "x86_64", "format": "ELF64-LE-EM_X86_64"}
 
 
+def _compatible_host():
+    return platform.system() == "Linux" and platform.machine().lower() in ("x86_64", "amd64")
+
+
 def _sha_file(path):
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -116,6 +122,8 @@ def _checked(record, maximum):
 
 def _backend(config):
     """Trusted process configuration, never fields accepted from a UI request."""
+    if not _compatible_host():
+        raise NativeEngineBlocked("Native Linux x86_64 target is unavailable on this host; a compatible audited build is required", "native_platform")
     receipt_path = _checked(config["build_receipt"], 1048576)
     inputs_path = _checked(config["build_inputs"], 1048576)
     receipt = json.loads(receipt_path.read_text())
@@ -138,8 +146,7 @@ def _backend(config):
             or receipt["adapter"]["size"] != executable.stat().st_size or not os.access(executable, os.X_OK)):
         raise NativeEngineBlocked("Actual built executable differs", "native_executable")
     caps = receipt["capabilities"]
-    if (receipt.get("target") != _TARGET or caps.get("target") != _TARGET
-            or platform.system() != "Linux" or platform.machine().lower() not in ("x86_64", "amd64")):
+    if receipt.get("target") != _TARGET or caps.get("target") != _TARGET:
         raise NativeEngineBlocked("Native backend requires an actual compatible Linux x86_64 build; Windows and other targets are unavailable", "native_platform")
     with executable.open("rb") as stream:
         header = stream.read(64)
