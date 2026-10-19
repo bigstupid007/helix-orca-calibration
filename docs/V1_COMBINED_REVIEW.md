@@ -334,3 +334,19 @@ Clang22.1.3/VS18 versus candidate MSVC19.44; aligning that recipe is justified,
 while no geometry/seed/TBB/FP workaround is supported. Current source changes
 still require a new actual package and full harness; historical successful PA
 parity does not automatically qualify the next compiler/build.
+
+
+The bounded compiler-alignment recheck uses the actual retained GUI/dependency
+job logs, not a compiler assumption. Independent review found two concrete
+receipt/checker issues before launch: raw Windows CRLF probe bytes disagreed
+with runtime LF reconstruction, and the initial runtime check inferred `/MD`
+without positive evidence. Both are corrected. Shared canonical probe hashing
+has a meaningful CRLF input/receipt roundtrip regression; Release/runtime checks
+positively require observed optimization/NDEBUG/dynamic CRT and reject `/MDd`,
+`/MT` and fast-math. The reviewer independently passed 29 focused compiler,
+backend and cache checks and found no remaining material source defect.
+Actual compiler probe, full package and all-four strict parity remain required.
+
+The combined integrated boundary passes 568 tests with six documented host skips.
+The accepted control/request preservation gate and `git diff --check` pass. No
+broad native UI recapture is repeated for these causal generator/build changes.

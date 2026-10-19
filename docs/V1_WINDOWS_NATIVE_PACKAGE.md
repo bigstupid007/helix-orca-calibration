@@ -12,6 +12,46 @@ candidate aligns that verified recipe rather than changing geometry or parity.
 [Exact results and causal evidence](V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections).
 
 
+## Compiler-aligned build contract (v2)
+
+The new workflow selects GitHub's documented [`windows-2025-vs2026` label](https://docs.github.com/en/actions/reference/runners/github-hosted-runners), matching the
+retained GUI's actual image family. The builder requires preinstalled VS18
+clang-cl 22.1.3, MSVC headers 14.51.36231 and Windows SDK 10.0.26100.0. There is no
+compiler/version fallback or toolchain installation on SPARE. Both dependencies
+and engine use absolute compiler paths, Ninja Multi-Config and `--config Release`.
+A tiny owned C/CXX CMake probe has a 90-second deadline and runs before expensive
+dependencies. It discovers the actual compiler/linker selection, verifies exact
+identity and positive `/O2`, `/DNDEBUG` and dynamic Release runtime evidence,
+and records actual tool hashes. Both real configure boundaries repeat these
+checks. Upstream floating-point settings remain unchanged; static/debug CRT or
+added fast-math flags are rejected.
+
+The strict `helix-orca-v1-windows-builder/v2` receipt records compiler recipe and
+eight actual tool identities: clang-cl, CMake-selected linker, separately named
+MSVC cl/link, CMake, Ninja, Perl and MSBuild. The selected linker may be the actual
+VS18 LLD 22.1.3 or MSVC 14.51 linker; its path/version/hash must agree with the real
+CMake probe and configure results. The probe digest uses shared canonical JSON,
+independent of CRLF file encoding. Runtime validation rebinds that probe and
+all eight identities. Legacy MSVC v1 evidence is validated separately and never
+relabeled as the Clang recipe.
+
+Clang's global `CL`/`_CL_` inputs are explicitly empty. Only the upstream
+MSVC-based CPython/OpenSSL tasks append `/MP1`; the per-target environments,
+OCCT-four-job override and all other two-job scheduling are recorded in the
+exact dependency contract. New builder/workflow/module bytes invalidate the old
+MSVC checkpoint, so this compiler change starts a fresh dependency build. The
+same disk/deadline guards apply. No actual Clang build/parity is claimed before
+its complete receipts and retained-reference comparisons pass.
+
+Focused source review corrected a Windows CRLF probe-digest mismatch and required
+positive runtime evidence before launch. The meaningful CRLF roundtrip preserves
+valid dispatch and rejects a modified probe. Independent final review passed
+29 compiler/backend/cache checks. The integrated boundary passes 568 tests with
+six host skips; accepted control preservation and whitespace checks pass. This
+is source/checker evidence, not Windows generator qualification.
+
+## Retained MSVC v1 packaging and repairs
+
 The clean Windows runner exposed an upstream Expat discovery conflict after all
 25 dependencies built: failed system discovery created an `expat` fallback in
 the root, then `deps_src/expat` created the same target again. The Windows-only

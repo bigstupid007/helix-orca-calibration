@@ -11,6 +11,11 @@ used Clang 22.1.3 / VS2026; the retained adapter used MSVC 19.44. The next
 candidate aligns that verified recipe rather than changing geometry or parity.
 [Exact results and causal evidence](V1_GENERATOR_BLOCKER_CHECKPOINT.md#actual-windows-results-and-shared-causal-corrections).
 
+The shared runtime accepts separately validated historical MSVC v1 and compiler-aligned
+Clang v2 build receipts. A new v2 package still requires actual Windows PE/DLL
+execution and its own unchanged whole-harness comparison for every exact input.
+Changing receipt schema or compiler never inherits an old qualification flag.
+
 
 `scripts/v1-windows-native-qualify.py` is a separate acceptance driver for PA
 Pattern, Retraction, Max Volumetric Speed and native Temperature. It invokes the

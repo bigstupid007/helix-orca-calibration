@@ -279,3 +279,15 @@ geometry probes. Both qualified YOLO modes, functional control proof and accepte
 physical Temperature evidence remain untouched. No print, deployment, writeback,
 firmware/configuration change or merge occurred. No intermediate Founder review
 is requested.
+
+
+The integrated compiler-aligned source now uses a separate strict v2 receipt,
+a guarded actual C/CXX compiler/linker preflight before dependencies, and the
+same checks after both real configurations. Native and dependency builds select
+Ninja Multi-Config Release. Clang flag inputs are empty; only real MSVC helper
+builds append `/MP1`, with all per-target environments recorded. Canonical probe
+hashing has a Windows CRLF roundtrip regression and dynamic Release runtime has
+positive checks. Independent review passes; the integrated suite passes 568
+tests with six host skips, control preservation and whitespace checks pass.
+Actual Clang build/package and complete four-route parity remain pending. No
+old cache publisher or old generator qualification is relabeled for this recipe.
