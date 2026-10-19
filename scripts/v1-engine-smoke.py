@@ -111,6 +111,12 @@ def main():
                 'build_receipt_sha256':config['build_receipt']['sha256'],'not_applied':True,
                 'physical_test':False,'results':rows},indent=2)+'\n')
         print('CHECKPOINT '+str(run.directory),flush=True)
+        if not rows[-1]['generated']:
+            # Native startup/configuration is shared. Preserve the first exact
+            # failure and clear its runtime before investigating it; never spend
+            # four deadlines repeating a blocked common pipeline.
+            print('GROUP STOPPED: shared native generation gate requires diagnosis',flush=True)
+            break
 
 
 if __name__=='__main__':main()

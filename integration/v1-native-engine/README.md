@@ -20,7 +20,9 @@ The registered executable target is Linux x86_64 ELF64. Its receipt is
 unavailable on Windows; Windows needs its own real compatible audited build.
 All 25 native dependencies and the real static engine/adapter now build. Actual
 grouped generation exposed a shared enum-default deserialization crash before
-G-code. Its source-backed fresh dynamic-config repair awaits runtime validation.
+G-code. Its source-backed fresh dynamic-config repair now passes full config
+and model preparation. A subsequent native wait after model prep is being
+localized with bounded phase diagnostics; no G-code has been generated yet.
 Native export
 also retains and checks processor errors/warnings, and a persistent TBB control
 limits generation to two workers. Exact source/build receipts and actual failed

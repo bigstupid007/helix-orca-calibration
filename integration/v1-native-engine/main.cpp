@@ -375,26 +375,41 @@ int main(int argc,char **argv)
         diagnostic("model-ready");
         const auto area=config.option<ConfigOptionPoints>("printable_area")->values;
         const double height=config.opt_float("printable_height");
+        diagnostic("bed-inputs-ready");
         if(calibration!="pressure_advance_pattern") model.center_instances_around_point(get_extents(area).center());
+        diagnostic("placement-ready");
         BuildVolume bed(area,height,{area},{height});
+        diagnostic("bed-ready");
         if(model.update_print_volume_state(bed)!=model.objects.size())
             throw std::runtime_error("Native model exceeds build volume");
+        diagnostic("volume-ready");
         model.curr_plate_index=0;
+        diagnostic("print-constructor-start");
         Print print;
+        diagnostic("print-ready");
         print.set_status_callback([](const PrintBase::SlicingStatus &status){
             if(status.warning_step!=-1 && status.message_type!=PrintStateBase::SlicingDefaultNotification)
                 throw std::runtime_error("Native slicing warning: "+status.text);
         });
-        print.apply(model,config);print.set_calib_params(params);
+        diagnostic("apply-start");
+        print.apply(model,config);
+        diagnostic("apply-ready");
+        print.set_calib_params(params);
+        diagnostic("params-ready");
         std::vector<StringObjectException> warnings;
+        diagnostic("validate-start");
         const auto error=print.validate(&warnings);
+        diagnostic("validate-ready");
         if(!error.string.empty()||!warnings.empty())
             throw std::runtime_error("Native validation rejected preparation: "+error.string);
         if(print.empty()) throw std::runtime_error("Native print is empty");
         Model::setExtruderParams(config,1);Model::setPrintSpeedTable(config,print.config());
+        diagnostic("process-start");
         print.process();
+        diagnostic("process-ready");
         GCodeProcessorResult processed;
         print.export_gcode(gcode.string(),&processed,nullptr);
+        diagnostic("export-ready");
         json processing={{"error_code",processed.gcode_check_result.error_code},{"warnings",json::array()}};
         for(const auto &warning:processed.warnings)
             processing["warnings"].push_back({{"level",warning.level},{"message",warning.msg},

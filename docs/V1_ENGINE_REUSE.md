@@ -3,8 +3,10 @@
 Build Program #14 owns this investigation. Baseline:
 `6a7763f08d1a175a464a00ce13f0b5a815662fc4`, the accepted October 15 Orca nightly.
 The real Linux x86_64 native adapter and its capability command now build.
-Actual generation remains blocked on a shared native enum-default startup
-failure; its source-backed repair is awaiting an incremental build/smoke.
+The native enum-default startup repair passes actual retained-configuration
+loading and Temperature model preparation. Generation remains blocked on a
+subsequent native wait after model preparation; phase diagnostics are ready
+for the next bounded single-job check.
 No native calibration is qualified by this document. All five independent
 native Windows references are retained separately; they do not change the
 adapter's generation status. The accepted physical Temperature milestone and
@@ -392,4 +394,13 @@ the correct native map (`Config.cpp:322–338`, `1721–1741`). The downstream r
 uses full defaults only to inventory mandatory keys and fills a fresh dynamic
 configuration from every retained serialized effective value. It changes no
 upstream source or profile value, and introduces no missing-value fallback.
-That repair remains pending actual incremental runtime verification.
+Run `90612e0187fd46dca9ea5eb5d7f51c06` built that repair. Actual retained-context
+job `dca51e5594b44f1fbfcf7a9cdee9b356` passed every effective key and native
+Temperature model preparation, then waited in native code after `model-ready`
+(two futex-waiting threads, no G-code). The exact owned grouped driver received
+a validated pidfd/SIGINT; its existing lifecycle handler stopped the foreground
+and exact container, preserving all evidence with runtime clear. Remaining
+cases were not launched to repeat this shared gate. The smoke now stops after
+its first failed generation, and more precise bed/volume/Print/apply/process
+phase diagnostics are prepared. No calibration artifact or parity success is
+claimed from this intermediate progress.
