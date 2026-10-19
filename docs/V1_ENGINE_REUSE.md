@@ -297,7 +297,7 @@ result identities. Every actual artifact gets a shared parity report: absent
 native reference stays unqualified; a retained independent native reference is
 evaluated for exact inputs, executable commands and calibration invariants.
 
-Ten adversarial transport tests use conspicuously synthetic build receipts,
+Eleven adversarial transport tests use conspicuously synthetic build receipts,
 resources, executable runners and UI evidence to test the checker only. They
 prove substituted executable/source/assets, incomplete context, active hooks
 and forged result qualification cannot bypass the gate. Their synthetic
@@ -412,3 +412,11 @@ are unchanged. The next shared-wait check uses one PA case with at most
 and an optional `SIGUSR1` stack dump for their exact owned process; no debugger
 attachment, elevated container capability or network endpoint is required.
 Ordinary native execution installs no diagnostic signal handler.
+
+If native execution returns a failed status after leaving G-code (including a
+post-export processor rejection), the transport still retains a mandatory
+unqualified harness disposition for those exact bytes and never creates a
+Prepared job. A successful exit seeds the same false disposition before its
+result identity/processor validation, so a malformed or warning-bearing result
+cannot leave an undisposed candidate. An ineligible artifact instead retains
+an explicit parity blocker; it cannot qualify.

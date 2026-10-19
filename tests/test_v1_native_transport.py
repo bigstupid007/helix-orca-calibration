@@ -141,7 +141,7 @@ class NativeTransport(unittest.TestCase):
         self.assertIn('reference unavailable', result['parity']['reason'])
         self.assertTrue((self.root/'job/parity.json').is_file())
 
-    def test_post_export_warning_cannot_reach_parity_or_ready(self):
+    def test_post_export_warning_retains_false_parity_and_cannot_be_ready(self):
         def warning_runner(argv, out):
             self.runner(argv, out)
             report = json.loads((out/'native-generation.json').read_text())
@@ -152,6 +152,20 @@ class NativeTransport(unittest.TestCase):
         with self.assertRaises(engine.NativeEngineBlocked) as caught:
             self.generate()
         self.assertEqual(caught.exception.code, 'native_result')
+        self.assertFalse((self.root/'job/prepared.json').exists())
+        self.assertFalse(json.loads((self.root/'job/parity.json').read_text())['qualified'])
+
+    def test_failed_native_process_cannot_hide_actual_artifact_from_parity(self):
+        def failed_runner(argv, out):
+            self.runner(argv, out)
+            return 2
+        self.config['runner'] = failed_runner
+        with self.assertRaises(engine.NativeEngineBlocked) as caught:
+            self.generate()
+        self.assertEqual(caught.exception.code, 'native_failed')
+        report = json.loads((self.root/'job/parity.json').read_text())
+        self.assertFalse(report['qualified'])
+        self.assertEqual(report['candidate'], parity.file_record(self.root/'job/native-calibration.gcode'))
         self.assertFalse((self.root/'job/prepared.json').exists())
 
     def test_executable_receipt_and_owned_source_substitution_stop_before_runner(self):

@@ -213,6 +213,16 @@ def generate(request, snapshot, output_dir, config):
     (destination / "invocation.json").write_bytes(contract.canonical({"argv": argv,
         "source_commit": ORCA_SOURCE, "executable_sha256": backend["receipt"]["adapter"]["sha256"],
         "build_receipt_sha256": backend["receipt_sha256"], "build_inputs_sha256": backend["inputs_sha256"]}))
+    artifact = destination / "native-calibration.gcode"
+    def retain_unqualified(reason):
+        if artifact.is_file() and not artifact.is_symlink():
+            try:
+                disposition = parity.unqualified(artifact, inputs, reason)
+                (destination / "parity.json").write_bytes(contract.canonical(disposition))
+            except (OSError, ValueError) as exc:
+                (destination / "native-parity-blocker.json").write_bytes(contract.canonical({
+                    "qualified": False, "reason": str(exc), "native_failure": reason,
+                    "request_sha256": contract.digest(request), "source_commit": ORCA_SOURCE}))
     runner = config.get("runner")
     if runner:
         code = runner(argv, destination)
@@ -227,14 +237,16 @@ def generate(request, snapshot, output_dir, config):
                     stdout=log, stderr=subprocess.STDOUT, timeout=min(config.get("timeout_seconds", 180), 300),
                     env=environment, check=False)
             except subprocess.TimeoutExpired as exc:
+                retain_unqualified("Native generation exceeded its deadline; any retained G-code is incomplete and unqualified.")
                 raise NativeEngineBlocked("Native generation exceeded its deadline", "native_timeout") from exc
         code = result.returncode
     if code != 0:
+        retain_unqualified("Native generation or post-export validation failed; retained artifact is unqualified.")
         raise NativeEngineBlocked("Native generation failed; retained native.log has diagnostics", "native_failed")
-    artifact = destination / "native-calibration.gcode"
     if artifact.is_symlink() or list(destination.glob("*.gcode")) != [artifact]:
         raise NativeEngineBlocked("Expected exactly one native artifact", "native_artifact")
     record = parity.file_record(artifact)
+    retain_unqualified("Native artifact exists but its exact request/result/processor validation has not passed.")
     native_path = destination / "native-generation.json"
     if native_path.is_symlink() or native_path.stat().st_size > 1048576:
         raise NativeEngineBlocked("Bounded native result required", "native_result")
