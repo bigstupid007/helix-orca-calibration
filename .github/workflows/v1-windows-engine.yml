@@ -20,7 +20,9 @@ jobs:
     timeout-minutes: 130
     steps:
       - name: Preserve exact source line endings in this disposable runner
-        run: git config --global core.autocrlf false
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}

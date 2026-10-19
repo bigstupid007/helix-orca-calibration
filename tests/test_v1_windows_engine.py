@@ -121,6 +121,30 @@ class WindowsNativeGuards(unittest.TestCase):
         with self.assertRaises(ValueError):
             pe.inspect(self.exe)
 
+    def test_source_byte_diagnostic_retains_crlf_mismatch_without_normalizing(self):
+        import hashlib
+        import json
+        spec = importlib.util.spec_from_file_location('windows_builder_source', engine._ROOT/'scripts/v1-engine-windows.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        expected, actual = b'a\nb\n', b'a\r\nb\r\n'
+        name = 'public-source.hpp'
+        source = self.root/'source'
+        source.mkdir()
+        evidence = self.root/'evidence'
+        evidence.mkdir()
+        (source/name).write_bytes(actual)
+        with patch.object(engine, 'SOURCE_HASHES', {name:hashlib.sha256(expected).hexdigest()}):
+            with self.assertRaises(engine.NativeSourceError):
+                module.audit_source(source, evidence)
+            row = json.loads((evidence/'source-byte-inventory.json').read_text())['files'][name]
+            self.assertEqual(row['actual_sha256'], hashlib.sha256(actual).hexdigest())
+            self.assertEqual(row['expected_sha256'], hashlib.sha256(expected).hexdigest())
+            self.assertEqual((row['size'], row['lf_count'], row['crlf_count']), (6, 2, 2))
+            self.assertEqual((source/name).read_bytes(), actual)
+            (source/name).write_bytes(expected)
+            self.assertTrue(module.audit_source(source, evidence)['source_verified'])
+
     def test_msvc_environment_call_uses_owned_batch_without_nested_command_quotes(self):
         spec = importlib.util.spec_from_file_location('windows_builder_env', engine._ROOT/'scripts/v1-engine-windows.py')
         module = importlib.util.module_from_spec(spec)

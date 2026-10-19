@@ -15,7 +15,10 @@ profile, retained context, reference G-code or printer information to GitHub.
 No software is installed on SPARE by the builder.
 
 The workflow checks out the exact upstream commit with recursive submodules
-and LF source bytes. The existing eleven-file source audit must pass. It builds
+and LF source bytes. Its disposable Git configuration sets both
+`core.autocrlf=false` and `core.eol=lf` before checkout, while explicit upstream
+`.gitattributes` rules still apply. A public size/hash/newline-count inventory is
+retained before the unchanged strict eleven-file source audit must pass. It builds
 the same 25 headless dependency targets and the adapter, without GUI/CAD. The
 Windows dependency lock records upstream's SHA-bound prebuilt FFmpeg download
 and exact in-tree Windows GMP/MPFR files rather than pretending the Linux

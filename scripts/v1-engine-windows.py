@@ -36,6 +36,25 @@ def save(path, value):
     path.write_text(json.dumps(value, sort_keys=True, indent=2)+'\n', encoding='utf-8')
 
 
+def audit_source(source, evidence):
+    """Retain exact public byte diagnostics before the unchanged strict audit."""
+    sources, inventory = {}, {}
+    for name, expected in engine.SOURCE_HASHES.items():
+        try:
+            data = (source/name).read_bytes()
+        except OSError:
+            inventory[name] = {'expected_sha256': expected, 'state': 'unavailable'}
+            continue
+        sources[name] = data
+        inventory[name] = {'expected_sha256': expected, 'actual_sha256': hashlib.sha256(data).hexdigest(),
+                           'size': len(data), 'lf_count': data.count(b'\n'),
+                           'crlf_count': data.count(b'\r\n'), 'cr_count': data.count(b'\r')}
+    save(evidence/'source-byte-inventory.json', {
+        'schema': 'helix-orca-v1-windows-source-bytes/v1', 'source_commit': engine.ORCA_SOURCE,
+        'files': inventory})
+    return engine.verify_source_bytes(sources)
+
+
 class Build:
     def __init__(self, source, work):
         if (sys.platform != 'win32' or os.environ.get('GITHUB_ACTIONS') != 'true'
@@ -150,7 +169,7 @@ class Build:
         modules = subprocess.check_output(['git', '-C', str(source), 'submodule', 'status', '--recursive'], text=True)
         if any(not row.startswith(' ') for row in modules.splitlines()):
             raise ValueError('Exact initialized recursive submodules required')
-        source_report = engine.verify_source_bytes({name:(source/name).read_bytes() for name in engine.SOURCE_HASHES})
+        source_report = audit_source(source, self.evidence)
         lock = json.loads((ROOT/'integration/v1-native-windows-dependencies.json').read_text())
         for name, expected in lock['in_tree_files'].items():
             if sha(source/name) != expected:
