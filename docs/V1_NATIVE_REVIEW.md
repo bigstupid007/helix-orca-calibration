@@ -47,8 +47,9 @@ No broad signals or name-based deletion are used. Ctrl-C remains subject to the
 same ManagedRun ownership and teardown controls.
 
 The wrapper reuses the accepted pixel viewer HTML and source-verified private
-beta.9 input socket, without changing the accepted harness. It verifies pinned
-runtime/fixture/source inventories; mounts runtime/plugin read-only; uses
+beta.9 input socket, without changing the accepted harness. It verifies the reviewed shared ManagedRun helper (4a42a94; SHA-256
+`8a2cb48220f14c8f4ca5c2cc9f6fcdcdf28fa436fe4b7dd50cf6489178ba6fcc`)
+before importing it, and retains it with pinned runtime/fixture/source inventories; mounts runtime/plugin read-only; uses
 `--test`, Docker `--network none`, no published container ports, a private
 control socket, 2 CPU, 512 MiB RAM, 128 PIDs and bounded logs. ManagedRun requires
 5 GiB disk reserve plus a 512 MiB peak and 512 MiB margin. The new session,
@@ -62,7 +63,7 @@ RPC, G-code, profile/configuration update or production activation endpoint.
 Malformed input fails closed. Deployment authorization and the ordinary Windows
 coordinator remain separate, default-off product/runtime work.
 
-Seven focused dependency-free checks pass. Actual viewer lifecycle/browser
+Nine focused dependency-free checks pass. Actual viewer lifecycle/browser
 qualification must follow the frozen full native matrix and the queued engine
 diagnostic; no listener was started while the matrix was active. This document
 will be updated with the resulting managed proof before claiming that check.

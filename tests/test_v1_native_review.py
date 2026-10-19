@@ -10,6 +10,15 @@ spec=importlib.util.spec_from_file_location('v1_native_review_test',ROOT/'script
 r=importlib.util.module_from_spec(spec);spec.loader.exec_module(r)
 
 class NativeReviewTests(unittest.TestCase):
+    def test_shared_helper_is_verified_before_import(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'helper.py';path.write_text("raise AssertionError('must not execute')")
+            with self.assertRaisesRegex(r.ContractError,'Shared ManagedRun helper differs'):r.load_helper(path)
+        self.assertEqual(r.sources()['shared/resource_lifecycle.py'],r.HELPER_SHA256)
+    def test_fixture_emits_initial_offer_at_native_initialization(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=r.q.fixture(Path(tmp)/'plugins')
+            self.assertTrue((root/'orcacal/main.lua').read_text().rstrip().endswith('fixture_offer()'))
     def test_native_input_is_bounded_and_typed(self):
         for body in ({'x':0,'y':0},{'x':799,'y':479}):self.assertEqual(r.payload('/api/tap',body),body)
         for body in ({'x':True,'y':1},{'x':800,'y':1},{'x':1,'y':480},{'x':1,'y':1,'rpc':'start'},{'x':'1','y':1}):

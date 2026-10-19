@@ -25,7 +25,13 @@ def load(name,path):
     spec=importlib.util.spec_from_file_location(name,path);module=importlib.util.module_from_spec(spec)
     sys.modules[name]=module;spec.loader.exec_module(module);return module
 q=load('v1_native_review_capture',ROOT/'scripts/v1-native-qualify.py')
-resource=load('v1_native_review_resources',Path('/home/dev/Projects/system/100-day-development-system/scripts/resource_lifecycle.py'))
+HELPER=Path('/home/dev/Projects/system/100-day-development-system/scripts/resource_lifecycle.py')
+HELPER_SHA256='8a2cb48220f14c8f4ca5c2cc9f6fcdcdf28fa436fe4b7dd50cf6489178ba6fcc'
+def load_helper(path):
+    if hashlib.sha256(Path(path).read_bytes()).hexdigest()!=HELPER_SHA256:
+        raise ContractError('Shared ManagedRun helper differs from reviewed4a42a94')
+    return load('v1_native_review_resources',path)
+resource=load_helper(HELPER)
 LAN='192.168.1.114'
 PORT=8540
 DEFAULT_SECONDS=900
@@ -39,7 +45,7 @@ def require(value,message):
     if not value:raise ContractError(message)
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def sources():
-    return dict(q.hashes(),**{'scripts/v1-native-review.py':sha(__file__),'scripts/temperature-viewer.html':sha(ROOT/'scripts/temperature-viewer.html')})
+    return dict(q.hashes(),**{'scripts/v1-native-review.py':sha(__file__),'scripts/temperature-viewer.html':sha(ROOT/'scripts/temperature-viewer.html'),'shared/resource_lifecycle.py':sha(HELPER)})
 def session(path=CURRENT):
     record=read_json(private_file(Path(path).absolute()))
     require(record.get('schema')==SCHEMA and record.get('app')==APP,'Not a V1 review session')
