@@ -137,7 +137,7 @@ time/executable/command line. Synthetic storage contained no calibration context
 or request. Every invocation used the default offline channel, supplied no
 deployment authorization, and reported physical actions disabled.
 
-Two source-bound stages separate component behavior from the final routed entry:
+Two historical source-bound stages separated component behavior from the then-current routed entry:
 
 | Stage | Actual Windows checks |
 | --- | --- |
@@ -151,16 +151,16 @@ changed no ACL. The tested validator source is identical in both stages.
 
 The qualified wrapper SHA-256 is
 `271f34ab005856368507061580f5a7192e1fa600cbdf332d1f79ebb63c5babee`.
-The final routed CLI SHA-256 is
+The historical routed CLI SHA-256 was
 `72be0f52730699b79f07996d94cda759a02c977f388f63285421378b1e617c54`.
-The verified final runtime closure fingerprint is
+The historical routed runtime closure fingerprint was
 `fa31bf21a2186eadf5906013cbe28ef4782cc083bee1bca2e54d2efc01a1b3d0`.
 The final curated source ZIP SHA-256 is
 `08cfa5be91297dcbd0975958631874464afa108f04d334d4b729e0eb6d69c88c`;
 the component-stage ZIP SHA-256 is
 `3f6984f28141acae7753fc8c95d9db32e47647daebfc4c88ddc35ea7f50fa772`.
 
-Exact final staged source inventory (all entries were rehashed on Windows after
+Historical staged source inventory (all entries were rehashed on Windows after
 shutdown and matched the retained ZIP manifest):
 
 | Relative source | SHA-256 |
@@ -205,3 +205,28 @@ or paths-with-spaces launcher cycle was qualified. These remain explicit
 validation limits. No startup registration, install, physical test,
 profile/configuration mutation or printer connection occurred. Original
 settings, Temperature evidence and rollback material remain preserved.
+
+## Current integrated closure — qualification-044ff4216374
+
+The later integrated runtime was requalified on actual Windows using the same
+existing Python 3.13.9 and PowerShell 5.1, default offline transport and new
+synthetic storage. The review-only plan registered nothing. Detached Start
+reported healthy with no test-worker dependency; duplicate Start retained the
+same run and process identities. Existing private-file acceptance and shared-file
+refusal passed without an ACL change. Graceful Stop returned stopped / exit 0.
+All staged source hashes matched afterward; no owned process or error log
+remained, and the marked Orca GUI retained its exact identity. No deployment
+authorization or physical adapter was supplied.
+
+Current CLI SHA-256:
+`31e75a9fe94ae05030f7cd16a6de00a89aae40fb2e33193ca85493819ca85426`.
+Current complete Python runtime fingerprint:
+`ddd6132628c88603461f69a0cb9832c45d1ad78b07e670bdd60239373ffa3dd8`.
+Source-only ZIP SHA-256:
+`146674089eb13797919e74ecc9296b4c0a8438970d4f2a89c3bc98faa1c2f2e2`.
+The wrapper remains the hash-qualified `271f34ab…` source.
+[The bounded current inventory](evidence/issue-14/windows-runtime-current.json)
+retains every source-file digest and the check outcomes without private paths,
+profile payloads, owner SID or process command lines. This stage supersedes
+the older closure checks for these exact bytes; it does not prove physical
+transport security, printer execution or a Windows-native engine build.
