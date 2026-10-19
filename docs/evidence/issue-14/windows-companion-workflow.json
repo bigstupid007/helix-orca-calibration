@@ -25,10 +25,28 @@
     "schema": "helix-orca-v1-windows-companion-preparation/v1"
   },
   "companion_sha256": "3c03e972706431469700d801ba3177d588d3e0e094bde73f8d04ed10f6bcda6a",
+  "hardened_optimized_readback": {
+    "new_synthetic_completion_written": false,
+    "optimized_native_readback": {
+      "committed_before_receipt": true,
+      "current_context_sha256": "6383f960de4f2b044899ff75ff566fa3f6ac5114245f24f9201aa1da45072280",
+      "not_applied": true,
+      "origin_bound": true,
+      "original_context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+      "physical_actions": false,
+      "physical_readiness": false,
+      "result_sha256": "e26b10496ebe5d6042d7f7f518c7432f367aaa2f76039e67839e28cf2b14b78d",
+      "schema": "helix-orca-v1-windows-companion-readback/v1",
+      "synthetic_completion": true
+    },
+    "optimized_wrong_root_refused": true,
+    "physical_actions": false,
+    "source_sha256": "8d829f66990701a503e575f041b35ba1701abe1a5a773558d1efdc7da2c4736b"
+  },
   "isolated_selection_and_values_restored": true,
   "physical_actions": false,
   "physical_readiness": false,
-  "qualification_driver_sha256": "ceb422fd0b9d273698f030982605084e95a35bbeef76bd852211bde70a9ee621",
+  "qualification_driver_historical_sha256": "ceb422fd0b9d273698f030982605084e95a35bbeef76bd852211bde70a9ee621",
   "schema": "helix-orca-v1-windows-companion-workflow/v1",
   "screenshots": {
     "actual-preparation": "7948806d17999b7ab97d42b4b8dd86e17a22c8acfc992d8564ddb3f60f3d8f6b",

@@ -206,7 +206,7 @@ validation limits. No startup registration, install, physical test,
 profile/configuration mutation or printer connection occurred. Original
 settings, Temperature evidence and rollback material remain preserved.
 
-## Current integrated closure — qualification-044ff4216374
+## Integrated correction closure — qualification-044ff4216374
 
 The later integrated runtime was requalified on actual Windows using the same
 existing Python 3.13.9 and PowerShell 5.1, default offline transport and new
@@ -220,7 +220,7 @@ authorization or physical adapter was supplied.
 
 Current CLI SHA-256:
 `31e75a9fe94ae05030f7cd16a6de00a89aae40fb2e33193ca85493819ca85426`.
-Current complete Python runtime fingerprint:
+That stage complete Python runtime fingerprint:
 `ddd6132628c88603461f69a0cb9832c45d1ad78b07e670bdd60239373ffa3dd8`.
 Source-only ZIP SHA-256:
 `146674089eb13797919e74ecc9296b4c0a8438970d4f2a89c3bc98faa1c2f2e2`.
@@ -230,3 +230,26 @@ retains every source-file digest and the check outcomes without private paths,
 profile payloads, owner SID or process command lines. This stage supersedes
 the older closure checks for these exact bytes; it does not prove physical
 transport security, printer execution or a Windows-native engine build.
+
+## Current final Python closure — qualification-3a9d39f754ab
+
+Mandatory false-parity retention for rejected native artifacts changed the
+Python runtime closure after the previous stage. The complete source was staged
+and requalified again: parse clean; no startup registration; detached Start and
+healthy status; duplicate Start retained the same instance; owner-private file
+accepted/shared file refused; graceful Stop and final stopped record / exit 0;
+all source hashes matched; no owned processes or error logs remained. The
+isolated Orca GUI retained its identity. Both deployment authorization and
+physical actions remained disabled.
+
+The current runtime fingerprint is
+`3c2165baca2c058958e99c1e9f0533af70577fed3746ccb671cf69ff7a244f09`;
+source-only ZIP is
+`f50ff84716977aca2646a6ad1c347b0658e331a882991bb5f18bad2ab2955a3b`.
+CLI and wrapper bytes remain `31e75a9f…` and `271f34ab…`, respectively.
+The [current public inventory](evidence/issue-14/windows-runtime-current.json)
+contains the exact complete Python source list. The earlier correction stage
+is [retained separately](evidence/issue-14/windows-runtime-044ff4216374.json).
+The transient Stop response could precede the supervisor's record update; final
+Status and the exact-process/source audit establish stopped / exit 0. No
+ambiguous transient value was treated as successful cleanup.

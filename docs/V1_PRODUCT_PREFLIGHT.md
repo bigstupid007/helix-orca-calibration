@@ -62,3 +62,28 @@ Screenshots and profile identifiers remain private; their hashes and bounded
 workflow observations are recorded in the Windows inventory. Final Helix review
 still requires fresh complete native evidence after the actual smallest-layout
 scrolling correction.
+
+## Fresh compact Helix correction recheck
+
+The fresh `480x272` smoke passed all 36 frames and native lifecycle assertions
+at source digest `e5dc3aff82501ed6f507d00e3bb34b692187c971b37a4173a13a0afdad81820a`.
+The cold reviewer inspected all 36 frames: font-safe ranges, separate Confirmed
+Start, progress/elapsed feedback, completion-only evaluation, compact result /
+NOT APPLIED / Done, destructive cancellation and cancelled-state evaluation
+removal all resolved the initial findings. Vertical scrolling remains necessary
+for some configuration/evaluation content; native reachability was exercised.
+
+The separate fresh `272x480` portrait smoke also passed all 36 frames. A bounded
+cold check of Home, Chooser, Temperature Confirmed/Monitor/Returned, Flow
+Returned, cancellation confirmation and Cancelled found a healthy visible flow.
+Strict logical 1×1/child bounds passed in both orientations. Two apparent header
+clipping reports were preview-rendering artifacts: SHA-bound original saved PNG
+inspection by the lead and isolated rechecks showed complete headers/back
+controls, and the reviewer fully retracted both. No speculative product change
+was made. Full-frame original evidence is authoritative.
+
+Small low-emphasis metadata and scroll discoverability remain limitations;
+keyboard, screen reader, contrast and motor accessibility are not qualified by
+these stills. The complete eleven-size capture and interactive review remain
+separate final gates. No physical lifecycle or generation qualification is
+inferred from the synthetic native flows.

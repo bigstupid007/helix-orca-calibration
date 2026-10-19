@@ -198,15 +198,30 @@ SHA-256 `41100c88a1cc27e23747ecb9db25a91c621a04b3dc359a5f64e0df5b8d6a9c19`,
 matching the immutable pre-V1 baseline. Accepted printer behavior/configuration,
 physical Temperature evidence, normal profiles and rollback were untouched.
 
-The source for this bounded qualification is retained as
-`scripts/v1-windows-companion-qualify.py` (SHA-256
-`ceb422fd0b9d273698f030982605084e95a35bbeef76bd852211bde70a9ee621`).
-It is **testing infrastructure**, not the product runtime. `prepare` requires
-the exact retained context, a fresh workflow directory and no existing job/result;
-it calls the real offline CLI twice. `result-simulation` explicitly requires an
-actual changed current context and writes only a labeled synthetic result fixture
-below the marker-verified isolated companion storage. `readback` verifies the
-native plugin's exact origin-bound commit and receipt. It cannot contact a
-printer and supplies no job adapter or physical intent. The helper refuses to
-reuse its original prepare stage; retain the existing run instead of rerunning it
-against an already populated review environment.
+The original R8 qualification driver (SHA-256
+`ceb422fd0b9d273698f030982605084e95a35bbeef76bd852211bde70a9ee621`)
+is retained with the private run. Its actual invocation used isolated Python
+without optimization; its then-current checks executed. Independent review later
+found those test-only checks used `assert`, so optimization could remove them.
+The committed `scripts/v1-windows-companion-qualify.py` now uses explicit
+`require` gates, exact isolation-marker identity, local-root/checkout/storage
+ancestry and reparse/symlink refusal, pre-import source hashing, bounded local
+reads/writes, no-reuse and exact result/receipt validation.
+
+The hardened source SHA-256 is
+`8d829f66990701a503e575f041b35ba1701abe1a5a773558d1efdc7da2c4736b`.
+Actual Windows `-I -S -O` readback passed against the existing native commit and
+receipt, and an optimized wrong-root invocation was refused before payload writes.
+No new synthetic completion was written. Two dependency-free `python -O`
+negative tests separately prove wrong-marker and linked-ancestor rejection
+without modifying an unrelated view/inbox. The independent reviewer rechecked
+and resolved this finding.
+
+This helper is **testing infrastructure**, not the product runtime. `prepare`
+requires the exact original context, fresh workflow directory and no existing
+job/result, then calls the real offline CLI twice. `result-simulation` requires
+a changed current context and no existing result before writing only a labeled
+synthetic fixture below the marker-verified isolated host storage. `readback`
+checks the native plugin's exact original-context commit and receipt. It cannot
+contact a printer and supplies no job adapter or physical intent. Retain the
+existing run rather than replaying preparation in populated review storage.

@@ -1,5 +1,5 @@
 {
-  "bundle_sha256": "146674089eb13797919e74ecc9296b4c0a8438970d4f2a89c3bc98faa1c2f2e2",
+  "bundle_sha256": "f50ff84716977aca2646a6ad1c347b0658e331a882991bb5f18bad2ab2955a3b",
   "deployment_authorization_supplied": false,
   "detached_start_healthy": true,
   "duplicate_same_instance": true,
@@ -11,14 +11,14 @@
   "private_file_accepted": true,
   "python_version": "3.13.9",
   "remaining_owned_processes": 0,
-  "runtime_fingerprint": "ddd6132628c88603461f69a0cb9832c45d1ad78b07e670bdd60239373ffa3dd8",
+  "runtime_fingerprint": "3c2165baca2c058958e99c1e9f0533af70577fed3746ccb671cf69ff7a244f09",
   "schema": "helix-orca-v1-windows-runtime-qualified-source/v1",
   "shared_file_refused": true,
   "source_files": {
     "integration/v1-native-build-tools.py": "6a1cb112a9b091715907c17af06d769af1947b15dd6927a4ae0b2dbd27897b30",
     "integration/v1_contract.py": "27fab88b4b501777fc4a8a8282802538f986584582ec86acecabab8e7034d75d",
     "integration/v1_deployment.py": "c4d1e9134404f3c02d9d55a96f62e63302c4b8a40279ad6db96fcfce7013c1aa",
-    "integration/v1_engine.py": "009122fc0ae6c16d60891fd5da12e41b69c4b463de593a0951832690d46448f7",
+    "integration/v1_engine.py": "a23b47a74c3ae3e43c044a4501baf53178a6d73bc72a7f2ad92ffeb1fa477716",
     "integration/v1_generation.py": "fdc468630effd01c9250689b066bc2c40fe5870bb503f4a3f9a03b4d748b0846",
     "integration/v1_jobs.py": "df163afaab1c83636d94fffab98ec8c31d0e373e9749ac2f24ed1995dbe81766",
     "integration/v1_orca_extension.py": "05603b74cd1881e9db55cc56be59df764a804d5ec36e6f6d0554357858be47b8",
@@ -32,7 +32,7 @@
     "scripts/v1-runtime.py": "31e75a9fe94ae05030f7cd16a6de00a89aae40fb2e33193ca85493819ca85426"
   },
   "source_inventory_matches": true,
-  "stage": "qualification-044ff4216374",
+  "stage": "qualification-3a9d39f754ab",
   "startup_plan_registered": false,
   "stop_exit_code": 0,
   "stop_state": "stopped",

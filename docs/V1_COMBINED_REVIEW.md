@@ -52,3 +52,25 @@ outcomes, complete final native captures and any new interactive-review wrapper
 remain separately identified qualification gates. The lead's combined suite
 then passed 418 tests, with two Windows-only skips on Linux. Accepted Issue #2,
 #8 and #12 source-bound offline evidence checks also passed unchanged.
+
+## Qualification infrastructure and rejected-artifact corrections
+
+A later P2 in the test-only Windows companion qualifier used optimization-
+removable `assert` gates. It was replaced with explicit persistent validation,
+exact marker/root identity and local path/source checks. Two optimized negative
+tests and actual optimized Windows receipt readback/wrong-root rejection passed;
+the same reviewer resolved the finding. Existing R8 proof and the original
+driver remain retained rather than relabeled as hardened-source execution.
+
+The native adapter now retains a mandatory false-parity disposition whenever
+a rejected/failed process leaves actual G-code, and before successful-process
+result validation. Rejected or invalid artifacts cannot become Prepared. The
+reviewer independently passed 11 native-transport tests and the two optimized
+qualifier tests. No new material finding remained in those corrections.
+
+The new interactive viewer received bounded review before any listener launch.
+Corrections cover lazy portable/pinned lifecycle loading, source closure for its
+privacy validator, authoritative helper-root lookup, private first-launch state,
+frame denial and conservative pointer release after lost replies. Actual viewer
+qualification and the final correction verdict remain pending. These changes
+affect review infrastructure, not the frozen native product/capture source.
