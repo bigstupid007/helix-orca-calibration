@@ -95,3 +95,10 @@ reviewer checked both against pinned GUI/Plater source and found no material
 issue. All five owned native build inputs now exactly match the successful
 actual build receipt; no prior differing integration bytes are relabeled built.
 The complete native UI 396 matrix remains unchanged by these engine-only deltas.
+
+
+Exact-head CI caught one unit check reading the devbox's cached runtime settings
+template. The check now supplies its own isolated upstream template while
+exercising the real seed transformation. All geometry/style assertions remain;
+no runtime/product/capture source changed, and the complete native evidence
+still verifies. The failed CI run is retained rather than relabeled successful.

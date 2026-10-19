@@ -60,7 +60,15 @@ class V1NativeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as name:
             output=Path(name)/'plugin';builder.generate(output)
             self.assertEqual((output/'ui/orcacal__tile.xml').read_text(),expected)
-            config=Path(name)/'config';qualifier.settings(config)
+            # Unit checks supply the upstream settings template explicitly;
+            # only actual native capture requires the verified runtime cache.
+            cache=Path(name)/'isolated-cache'
+            template=cache/'runtime/helixscreen/config/settings.json.template'
+            template.parent.mkdir(parents=True)
+            template.write_text(json.dumps({'plugins':{},'printers':{},'dark_mode':False}))
+            config=Path(name)/'config'
+            with patch.object(qualifier.q.beta9,'cache_root',return_value=cache):
+                qualifier.settings(config)
             widgets=json.loads((config/'settings-test.json').read_text())['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']
             home=json.loads((config/'settings-test.json').read_text())['printers']['default']['panel_widgets']['home']
             self.assertNotIn('grid',home);self.assertNotIn('parked_grids',home)
