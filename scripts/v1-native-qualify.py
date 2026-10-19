@@ -24,7 +24,8 @@ q=load('v1_native_q',ROOT/'scripts/temperature-communication-qualify.py')
 a=q.accepted
 builder=load('v1_native_builder',ROOT/'scripts/v1-native-plugin.py')
 contract=load('v1_native_contract',ROOT/'integration/v1_contract.py')
-ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block','native-two-step-owned-job-cancellation','logical-one-cell-home-tile-child-bounds-and-nonoverlap','verified-result-automatic-home-print-status-controls','automatic-dismiss-preserves-native-page-and-does-not-repeat','automatic-result-uses-original-return-handler','conservative-restart-and-lost-claim-manual-recovery','actual-coordinator-republishes-review-confirmed-complete-after-native-restart']
+ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block','native-two-step-owned-job-cancellation','logical-one-cell-home-tile-child-bounds-and-nonoverlap','verified-result-automatic-home-print-status-controls','automatic-dismiss-preserves-native-page-and-does-not-repeat','automatic-result-uses-original-return-handler','conservative-restart-and-lost-claim-manual-recovery','actual-coordinator-republishes-review-confirmed-complete-after-native-restart','same-job-progress-is-read-only-and-nullable','terminal-outcomes-hide-evaluation','explicit-return-shows-readable-result-with-manual-dismiss','next-offer-display-is-distinct-from-immutable-job-context']
+FRAMES={'home.png','chooser.png','blocked.png','cancel-confirm.png','cancel-kept.png','cancelled.png'}|{id+'-'+phase+'.png' for id in contract.CALIBRATIONS for phase in ('configure','review','confirmed','monitor','evaluate','returned')}
 def hashes():
     paths=[ROOT/'scripts/v1-native-plugin.py',ROOT/'scripts/v1-native-qualify.py',ROOT/'integration/v1_contract.py',ROOT/'integration/v1_runtime.py',ROOT/'scripts/temperature-communication-plugin.py',ROOT/'scripts/temperature-communication-qualify.py',ROOT/'scripts/helix-beta9-qualify.py',ROOT/'scripts/helix_dev.py',builder.ACCEPTED_TILE]+list((ROOT/'integration/v1-native').rglob('*'))
     return {str(p.relative_to(ROOT)):q.sha256(p) for p in sorted(paths) if p.is_file()}
@@ -44,6 +45,7 @@ def recovery_fixtures():
         def start(self,request,prepared,*_):
             return dict(job_id='synthetic-recovery-job',file_sha256=prepared['artifact']['sha256'],
                         request_id=request['request_id'],origin_id=request['origin_id'])
+        def monitor(self,*_):return dict(elapsed_s=120,progress=.25)
         def observe(self,job):
             return dict(job_id=job['job_id'],file_sha256=job['file_sha256'],
                         print_state='complete' if self.done else 'printing',history_state='completed' if self.done else None,
@@ -112,17 +114,18 @@ local fixture_serial=v1_session and tonumber(v1_session.request.request_id:sub(-
 local fixture_signal=helix.subject.int('v1_fixture_signal',0)
 local fixture_defaults=helix.json.decode([==[DEFAULTS]==])
 local fixture_recovery=helix.json.decode([==[RECOVERY]==])
-local function fixture_offer()
+local function fixture_offer(changed)
  fixture_serial=fixture_serial+1
  local capabilities={}
  for id,_ in pairs(V1_CATALOG) do capabilities[#capabilities+1]={id=id,available=true,reason='Synthetic UI fixture only'} end
- v1_receive_offer('fixture',{schema='helix-orca-v1-offer/v1',request_id=string.format('%032x',fixture_serial),origin_id=string.rep('a',32),context_sha256=string.rep('b',64),printer='Synthetic printer',process='Synthetic process',filament='Synthetic PLA',nozzle_mm=0.4,capabilities=capabilities,defaults=fixture_defaults,created_at=1000,expires_at=4600})
+ v1_receive_offer('fixture',{schema='helix-orca-v1-offer/v1',request_id=string.format('%032x',fixture_serial),origin_id=string.rep('a',32),context_sha256=string.rep(changed and '8' or 'b',64),printer=changed and 'Synthetic next printer' or 'Synthetic printer',process='Synthetic process',filament='Synthetic PLA',nozzle_mm=0.4,capabilities=capabilities,defaults=fixture_defaults,created_at=1000,expires_at=4600})
 end
 local function fixture_status(phase)
  local r=v1_session.request
  local p={schema='helix-orca-v1-prepared/v1',request_id=r.request_id,origin_id=r.origin_id,context_sha256=r.context_sha256,request_sha256=string.rep('c',64),calibration=r.calibration,parameters=r.parameters,artifact={name='synthetic-calibration.gcode',size=12345,sha256=string.rep('d',64)},generator={build='synthetic-only',route='synthetic-ui'},parity={qualified=true,report_sha256=string.rep('e',64),reason='SYNTHETIC UI parity fixture · not generator qualification'},not_applied=true}
- local d={schema='helix-orca-v1-status/v1',request_id=r.request_id,origin_id=r.origin_id,sequence=v1_session.sequence+1,phase=phase,message='Synthetic UI fixture · '..phase,prepared=p,prepared_sha256=string.rep('f',64)}
+ local d={schema='helix-orca-v1-status/v1',request_id=r.request_id,origin_id=r.origin_id,sequence=v1_session.sequence+1,phase=phase,message='Synthetic UI fixture · '..phase,prepared=p,prepared_sha256=string.rep('f',64),monitor=nil}
  if phase=='printing' or phase=='verifying' or phase=='complete' then d.job_id='synthetic-job-'..r.request_id end
+ if phase=='printing' then d.monitor={elapsed_s=120,progress=0.25} end
  if phase=='complete' then
   local settings={temperature='nozzle_temperature',flow_ratio_yolo='filament_flow_ratio',pressure_advance_pattern='pressure_advance',retraction='filament_retraction_length',max_volumetric_speed='filament_max_volumetric_speed'}
   local values={temperature={230,225,220},flow_ratio_yolo={0.98,1,1.02},pressure_advance_pattern={0.02,0.025,0.03},retraction={0.5,0.6,0.7},max_volumetric_speed={15,16,17}}
@@ -141,7 +144,22 @@ fixture_signal:observe(function(value)
   if v1_session.phase=='review' then error('Mismatched preparation accepted') end
   v1_receive_status('fixture',fixture_status('review'))
  elseif code==4 then v1_receive_status('fixture',fixture_status('confirmed'))
- elseif code==5 then v1_receive_status('fixture',fixture_status('printing'))
+ elseif code==5 then
+  local sequence=v1_session.sequence
+  for _,monitor in ipairs({{elapsed_s=-1,progress=0.25},{elapsed_s=2678401,progress=0.25},{elapsed_s=120,progress=1.1},{elapsed_s=120,progress=0/0},{elapsed_s='120',progress=0.25},{elapsed_s=120,progress=0.25,unexpected=true}}) do
+   local d=fixture_status('printing');d.monitor=monitor;v1_receive_status('fixture',d)
+   if v1_session.sequence~=sequence then error('Malformed monitor accepted') end
+  end
+  local d=fixture_status('printing');d.monitor=nil;v1_receive_status('fixture',d)
+  if v1_subjects.monitor:get()~='Progress unavailable' then error('Missing monitor invented progress') end
+  d=fixture_status('printing');d.monitor={elapsed_s=120};v1_receive_status('fixture',d)
+  if v1_subjects.monitor:get()~='Progress unavailable · 2m elapsed' then error('Elapsed-only monitor misrepresented') end
+  d=fixture_status('printing');d.monitor={progress=0.25};v1_receive_status('fixture',d)
+  if v1_subjects.monitor:get()~='25% · Elapsed unavailable' then error('Progress-only monitor misrepresented') end
+  d=fixture_status('printing');d.monitor={elapsed_s=120,progress=1};v1_receive_status('fixture',d)
+  if v1_subjects.evaluate_on:get()~=0 then error('100 percent progress unlocked evaluation') end
+  v1_receive_status('fixture',fixture_status('printing'))
+  if v1_subjects.monitor:get()~='25% · 2m elapsed' or v1_subjects.evaluate_on:get()~=0 then error('Monitor changed authority or formatting') end
  elseif code==6 then
   local d=fixture_status('complete');d.completion_sha256=nil;v1_receive_status('fixture',d)
   if v1_session.phase=='complete' then error('Unverified completion accepted') end
@@ -187,6 +205,8 @@ fixture_signal:observe(function(value)
   end
  elseif code==12 then v1_receive_status('fixture',fixture_status('complete'))
  elseif code==11 then v1_receive_status('fixture',fixture_status('cancelled'))
+ elseif code==14 then v1_receive_status('fixture',fixture_status('failed'))
+ elseif code==15 then fixture_offer(true)
  elseif code==10 then
   local d=fixture_status('blocked');d.prepared.parity.qualified=false;d.prepared.artifact=nil;d.message='Synthetic blocked generator: native parity unavailable';v1_receive_status('fixture',d)
  end
@@ -200,7 +220,11 @@ def settings(path):
     q.seed_settings(path)
     s=json.loads((path/'settings-test.json').read_text())
     s['plugins']['enabled']['orcacal']['version']='1.0.0-v1-candidate'
-    widgets=s['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']
+    home=s['printers']['default']['panel_widgets']['home']
+    # New synthetic layout: a stamped landscape grid would make native
+    # switch_to_grid reproject 1x1 to 1x2 on portrait. Adopt measured grid.
+    home.pop('grid',None);home.pop('parked_grids',None)
+    widgets=home['pages'][0]['widgets']
     widgets[:]=[w for w in widgets if w['id']=='orcacal__tile' or not w['enabled']]
     for widget in widgets:
         if widget['id']=='orcacal__tile':
@@ -246,12 +270,18 @@ def stored_when(work,predicate,message):
 def navigation(name):
     state=ctl(name,'current')
     return {key:state[key] for key in ('panel','overlays')}
+def native_hidden(name,widget):
+    state=ctl(name,'state',widget)
+    # Native state may descend to a control. Assert the named section's flag,
+    # not only its picker's flag, so heading/explanation cannot remain visible.
+    return state.get('target',state)['flags']['hidden'] is True
 def compact_tile_proof(name,work,w,h):
     a._wait_visible_landing(name,w,h)
     home=ctl(name,'home','list')
     placed=[item for page in home['pages'] for item in page['widgets'] if item['id']=='orcacal__tile']
-    require(len(placed)==1 and placed[0]['w']==1 and placed[0]['h']==1,'Home tile is not logical1x1')
     geometry=ctl(name,'geom','orcacal__tile','8')
+    a.json_write(work/'tile-geometry.json',dict(home=home,geometry=geometry))
+    require(len(placed)==1 and placed[0]['w']==1 and placed[0]['h']==1,'Home tile is not logical1x1')
     assert_compact_bounds(geometry,w,h)
     require(value(name,'tile')=='Ready','Compact tile lacks initial status')
     a.json_write(work/'tile-geometry.json',dict(home=home,geometry=geometry))
@@ -264,13 +294,13 @@ def assert_compact_bounds(geometry,w,h):
                 and item['y']+item['h']<=root['y']+root['h'],'Compact tile clips '+child)
     icon,identity,status=(children[k] for k in ('orcacal__tile_icon','orcacal__tile_identity','orcacal__tile_status'))
     require(icon['y']+icon['h']<=identity['y'] and identity['y']+identity['h']<=status['y'],'Compact tile children overlap')
-def reopen_job(name,w,h,work):
+def reopen_job(name,w,h,work,result=False):
     # Accepted helper only pops overlays; a preserved native panel is still
     # selected. Follow the accepted Temperature proof's deliberate Home action.
     q.back_to_home(name);ctl(name,'navigate','home');ctl(name,'wait_idle')
     require(not navigation(name)['overlays'],'Native Home navigation left overlays')
     tap(name,'orcacal__tile',w,h,work);tap(name,'orcacal__v1_resume',w,h,work)
-    a._assert_overlay(navigation(name),['orcacal__wizard','orcacal__v1_job'])
+    a._assert_overlay(navigation(name),['orcacal__wizard','orcacal__v1_result' if result else 'orcacal__v1_job'])
 def restart_owned(name,work,snapshot=None):
     # Restart the exact ManagedRun-owned container, never create/remove another.
     a.run(['docker','stop','--time','2',name],capture=True)
@@ -297,8 +327,19 @@ def temperature_native_page_proof(name,w,h,work,page):
     proof=dict(page=page,before=before,presented=after,dismissed=dismissed)
     a.json_write(work/('native-page-'+page+'-navigation.json'),proof)
     reopen_job(name,w,h,work);require(value(name,'evaluate_on')==1,'Pending Temperature result cannot be manually reopened')
-    ctl(name,'set_value','orcacal__v1_evaluation','1');tap(name,'orcacal__v1_return',w,h,work);signal(name,7)
-    proof.update(manual_reopened=navigation(name),manual_return=True)
+    proof['manual_reopened']=navigation(name)
+    ctl(name,'set_value','orcacal__v1_evaluation','1');tap(name,'orcacal__v1_return',w,h,work)
+    if page=='controls':
+        ctl(name,'go_back');ctl(name,'navigate','controls');ctl(name,'wait_idle');ack_before=navigation(name)
+        signal(name,7)
+        require(navigation(name)==ack_before,'Receipt covered an unrelated native page')
+        proof['receipt_preserved_native_page']=ack_before
+        reopen_job(name,w,h,work,result=True)
+        require(value(name,'result_heading')=='Returned','Manual receipt recovery missing')
+        a._visible_widget_geometry(ctl(name,'geom','orcacal__v1_result_heading','0'),'orcacal__v1_result_heading',w,h)
+        tap(name,'orcacal__v1_result_done',w,h,work)
+    else:signal(name,7)
+    proof.update(manual_return=True)
     a.json_write(work/('native-page-'+page+'-navigation.json'),proof)
     return proof
 def pending_temperature_recovery(name,w,h,work):
@@ -361,9 +402,13 @@ def drive(entry,name,work):
         tap(name,'orcacal__v1_confirm',w,h,work)
         require(value(name,'start_on')==0,'Confirm started printing')
         signal(name,4);require(value(name,'start_on')==1,'Confirmed job lacks deliberate Start')
+        ctl(name,'scroll','orcacal__v1_start')
+        a._visible_widget_geometry(ctl(name,'geom','orcacal__v1_start','0'),'orcacal__v1_start',w,h)
+        a._screenshot(name,work,id+'-confirmed.png')
         tap(name,'orcacal__v1_start',w,h,work);require(value(name,'start_on')==0,'Start repeated')
         signal(name,5);require(value(name,'evaluate_on')==0,'Printing unlocked evaluation')
-        ctl(name,'scroll','orcacal__v1_job_message');a._screenshot(name,work,id+'-monitor.png')
+        require(value(name,'monitor')=='25% · 2m elapsed','Same-job monitor not rendered')
+        ctl(name,'scroll','orcacal__v1_job_monitor');a._screenshot(name,work,id+'-monitor.png')
         if id=='temperature':q.back_to_home(name)
         before=navigation(name)
         signal(name,6);require(value(name,'evaluate_on')==1,'Successful exact-job completion did not unlock evaluation')
@@ -382,9 +427,15 @@ def drive(entry,name,work):
         # Both native views share the original immutable return/NOT APPLIED handler.
         ctl(name,'set_value',selector,'1')
         tap(name,return_button,w,h,work);require(value(name,'evaluate_on')==0,'Returned result editable')
+        a._assert_overlay(navigation(name),['orcacal__v1_result'])
+        require(value(name,'result_heading')=='Returning result' and 'NOT APPLIED' in value(name,'returned'),'Return did not show a concise completion view')
+        a._visible_widget_geometry(ctl(name,'geom','orcacal__v1_result_heading','0'),'orcacal__v1_result_heading',w,h)
+        a._assert_horizontal_fit(ctl(name,'geom','orcacal__v1_result_content','8'),w)
         signal(name,8);signal(name,7)
-        require('Returned to original Orca' in value(name,'returned'),'Exact receipt not shown')
-        ctl(name,'scroll',returned);a._screenshot(name,work,id+'-returned.png')
+        require(value(name,'result_heading')=='Returned' and 'NOT APPLIED' in value(name,'returned'),'Exact receipt not shown')
+        a._screenshot(name,work,id+'-returned.png')
+        tap(name,'orcacal__v1_result_done',w,h,work)
+        require(not navigation(name)['overlays'],'Done did not dismiss owned completion view')
         presentation['contexts'].append(dict(calibration=id,before=before,presented=after))
         deadline=time.monotonic()+5
         while True:
@@ -395,6 +446,14 @@ def drive(entry,name,work):
         contract.validate_request(saved['request'],now=1001)
         require(saved['result']['value']==saved['evaluation']['options'][1],'Wrong native selection returned')
         require(saved['result']['context_sha256']=='b'*64,'Original context changed')
+    signal(name,15)
+    require(value(name,'offer_printer').startswith('Synthetic next printer') and value(name,'printer').startswith('Synthetic printer'),'Next offer mislabeled immutable job context')
+    q.back_to_home(name);tap(name,'orcacal__tile',w,h,work);tap(name,'orcacal__v1_choose_temperature',w,h,work)
+    require(storage(work)['result']['context_sha256']=='b'*64,'Next configuration replaced original returned result')
+    reopen_job(name,w,h,work,result=True)
+    require(value(name,'result_heading')=='Returned' and value(name,'printer').startswith('Synthetic printer'),'Retained result lost original context')
+    tap(name,'orcacal__v1_result_done',w,h,work)
+    presentation['distinct_offer_original_context']=True
     presentation['pending_temperature_recovery']=pending_temperature_recovery(name,w,h,work)
     presentation['native_temperature_pages']=[temperature_native_page_proof(name,w,h,work,page) for page in ('print-status','controls')]
     q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
@@ -414,12 +473,14 @@ def drive(entry,name,work):
         if time.monotonic()>deadline:raise ValueError('Confirmed cancellation was not durable')
         time.sleep(.05)
     signal(name,11);require(value(name,'evaluate_on')==0,'Cancelled print unlocked evaluation')
+    require(native_hidden(name,'orcacal__v1_evaluation_section'),'Cancelled print still shows evaluation')
     cancelled=navigation(name);signal(name,12);require(navigation(name)==cancelled and not storage(work).get('auto_presentation_claim'),'Cancelled print presented a result')
     a._screenshot(name,work,'cancelled.png')
     q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
     tap(name,'orcacal__v1_choose_temperature',w,h,work);tap(name,'orcacal__v1_generate_temperature',w,h,work);signal(name,10)
     require(value(name,'confirm_on')==0 and value(name,'start_on')==0,'Blocked generation unlocked execution')
     a._screenshot(name,work,'blocked.png')
+
     blocked_request=storage(work)['request']['request_id']
     q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
     tap(name,'orcacal__v1_choose_flow_ratio_yolo',w,h,work);tap(name,'orcacal__v1_generate_flow_ratio_yolo',w,h,work)
@@ -432,6 +493,9 @@ def drive(entry,name,work):
         if time.monotonic()>deadline:raise ValueError('Fresh request was not durable')
         time.sleep(.1)
     require(next_request['calibration']=='flow_ratio_yolo' and next_request['context_sha256']=='b'*64,'Next calibration retargeted context')
+    signal(name,14)
+    stored_when(work,lambda s:s.get('phase')=='failed','Failed calibration was not retained')
+    require(value(name,'evaluate_on')==0 and native_hidden(name,'orcacal__v1_evaluation_section'),'Failed calibration still shows evaluation')
     logs=a.run(['docker','logs',name],capture=True,check=False)
     (work/'runtime.log').write_text(logs.stdout+logs.stderr)
     require('[plugin orcacal]' not in logs.stdout+logs.stderr,'Native runtime error')
@@ -481,7 +545,7 @@ def verify(output):
     require(r['synthetic_only'] and r['physical_actions']==0 and r['container_network']=='none','Isolation differs')
     require([v['label'] for v in r['results']]==[v[0] for v in a.VIEWPORTS],'All eleven viewports required')
     for row in r['results']:require(row['assertions']==ASSERTIONS and row['calibrations']==list(contract.CALIBRATIONS) and row['result']=='PASS','Incomplete workflow proof')
-    require(len(r['screenshots'])==11*31,'Incomplete screenshots')
+    require(set(r['screenshots'])=={label+'/'+frame for label,*_ in a.VIEWPORTS for frame in FRAMES},'Incomplete or unexpected screenshots')
     for name,digest in r['screenshots'].items():require(q.sha256(output/name)==digest,'Screenshot differs')
     for item in r['managed_runs']:
         manifest=json.loads(Path(item['manifest']).read_text());require(manifest['state']=='complete' and manifest['verification']['runtime_clear'],'Managed run incomplete')

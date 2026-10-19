@@ -47,3 +47,8 @@ function v1_completion_presentation.open(options)
     -- remain manually reachable through the accepted home tile/native wizard.
     return ok
 end
+
+function v1_completion_presentation.close()
+    local handle=v1_presentation_handle;v1_presentation_handle=nil
+    if handle then pcall(handle.close) end
+end

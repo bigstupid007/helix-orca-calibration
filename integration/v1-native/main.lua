@@ -10,9 +10,9 @@ local function int_subject(name,value)
     local s=helix.subject.int('v1_'..name,value or 0)
     v1_subjects[name]=s; return s
 end
-for _,name in ipairs({'printer','profiles','context_note','message','calibration','phase','parameters','artifact','qualification','evaluation_note','returned'}) do string_subject(name) end
+for _,name in ipairs({'printer','profiles','context_note','message','calibration','phase','parameters','artifact','qualification','evaluation_note','returned','result_heading','result_note','monitor','offer_printer','offer_profiles','offer_note'}) do string_subject(name) end
 string_subject('tile','Ready')
-for _,name in ipairs({'resume_on','confirm_on','start_on','cancel_on','evaluate_on','evaluation_idx'}) do int_subject(name) end
+for _,name in ipairs({'resume_on','confirm_on','start_on','cancel_on','evaluate_on','evaluation_idx','monitor_on'}) do int_subject(name) end
 local v1_indices={}
 for id,entry in pairs(V1_CATALOG) do
     string_subject('availability_'..id,'Waiting for Orca companion')
@@ -23,6 +23,8 @@ local v1_settings={temperature='nozzle_temperature',flow_ratio_yolo='filament_fl
 local v1_offer=nil
 local v1_session=nil
 local v1_job_handle=nil
+local v1_result_handle=nil
+local v1_refresh_result=false
 local v1_wizard_handle=nil
 local v1_detail_handle=nil
 local v1_cancel_handle=nil
@@ -72,9 +74,11 @@ local function v1_options()
     return #out>0 and table.concat(out,'\n') or 'Unavailable'
 end
 local v1_open_job
+local v1_open_result
 local v1_refresh_job=false
 v1_open_job=function()
     if not v1_session then return end
+    if v1_session.result then v1_open_result();return end
     if v1_job_handle then
         local old=v1_job_handle;v1_job_handle=nil;v1_refresh_job=true;pcall(old.close);return
     end
@@ -95,6 +99,30 @@ local function v1_retire_preparation_views()
     if detail then pcall(detail.close) end
     if wizard then pcall(wizard.close) end
 end
+-- Only an explicit Return click or manual Resume calls this. ACK/status only
+-- update subjects, so an unrelated native page can never be covered on receipt.
+v1_open_result=function()
+    if not v1_session or not v1_session.result then return end
+    if v1_result_handle then
+        v1_refresh_result=true;local old=v1_result_handle;v1_result_handle=nil;pcall(old.close);return
+    end
+    local handle
+    handle=helix.ui.overlay('orcacal__v1_result',{on_close=function()
+        if v1_result_handle==handle then v1_result_handle=nil end
+        if v1_refresh_result then v1_refresh_result=false;v1_open_result() end
+    end})
+    v1_result_handle=handle
+end
+helix.ui.on('v1_result_close',function()
+    v1_refresh_result=false
+    if v1_result_handle then local h=v1_result_handle;v1_result_handle=nil;pcall(h.close) end
+end)
+local function v1_monitor_text(m)
+    if not m or (m.progress==nil and m.elapsed_s==nil) then return 'Progress unavailable' end
+    local progress=m.progress~=nil and (tostring(math.floor(m.progress*100+0.5))..'%') or 'Progress unavailable'
+    local elapsed=m.elapsed_s~=nil and (tostring(math.floor(m.elapsed_s/60))..'m elapsed') or 'Elapsed unavailable'
+    return progress..' · '..elapsed
+end
 local function v1_open_wizard()
     local handle
     handle=helix.ui.overlay('orcacal__wizard',{on_close=function()
@@ -107,7 +135,13 @@ local function v1_context(o)
     v1_set('profiles',o and (o.filament..' · '..o.process) or 'Open the V1 companion in Orca')
     v1_set('context_note','Original profiles preserved · results NOT APPLIED')
 end
+local function v1_offer_context(o)
+    v1_set('offer_printer',o and (o.printer..' · '..tostring(o.nozzle_mm)..' mm') or 'No Orca context')
+    v1_set('offer_profiles',o and (o.filament..' · '..o.process) or 'Open the V1 companion in Orca')
+    v1_set('offer_note','Selected Orca profiles · results NOT APPLIED')
+end
 local function v1_render()
+    v1_offer_context(v1_offer)
     if not v1_session then
         v1_context(v1_offer);v1_set('message','Choose a calibration and configure its parameters.')
         return
@@ -116,13 +150,14 @@ local function v1_render()
     v1_context(s.offer)
     v1_set('resume_on',1);v1_set('calibration',V1_CATALOG[s.request.calibration].name)
     local labels={requested='Preparation requested',preparing='Preparing print',blocked='Preparation unavailable',review='Review your print',confirmed='Ready to start',starting='Starting print',printing='Printing',verifying='Checking completion',complete='Ready to evaluate',cancelled='Print cancelled',failed='Print did not complete',uncertain='Check printer connection',returning='Returning your result',delivered='Result returned'}
-    v1_set('phase',labels[s.phase] or 'Status unavailable');v1_set('tile',s.result and (s.receipt and 'Done' or 'Send') or (s.phase=='complete' and 'Pick' or s.phase=='printing' and 'Print' or s.phase=='blocked' and 'Check' or 'Active'))
+    local tiles={complete='Pick',printing='Print',blocked='Check',cancelled='Stop',failed='Check'}
+    v1_set('phase',labels[s.phase] or 'Status unavailable');v1_set('tile',s.result and (s.receipt and 'Done' or 'Send') or tiles[s.phase] or 'Active')
     v1_set('message',s.message or '')
     local p=s.request.parameters
     local kind=s.request.calibration
     local unit=kind=='temperature' and '°C' or kind=='retraction' and 'mm' or kind=='max_volumetric_speed' and 'mm³/s' or 's'
     local summary=kind=='flow_ratio_yolo' and 'YOLO recommended · Archimedean surface' or
-        (tostring(p.start)..' → '..tostring(p['end'])..' '..unit..' · '..tostring(p.step)..' '..unit..' increments')
+        (tostring(p.start)..' to '..tostring(p['end'])..' '..unit..' · '..tostring(p.step)..' '..unit..' increments')
     if kind=='temperature' then summary=summary..(p.scale and ' · Scaled for nozzle' or ' · Original tower size') end
     v1_set('parameters',summary)
     local prepared=s.prepared
@@ -134,8 +169,14 @@ local function v1_render()
     v1_set('start_on',s.phase=='confirmed' and qualified and s.intent and s.intent.action=='confirm' and 1 or 0)
     v1_set('cancel_on',(s.phase=='printing' and s.intent and s.intent.action=='start') and 1 or 0)
     v1_set('evaluate_on',s.phase=='complete' and s.evaluation and not s.result and 1 or 0)
-    v1_set('evaluation_note',s.phase=='complete' and 'Choose the best result from the completed calibration.' or 'Evaluate after this print completes successfully.')
-    v1_set('returned',s.result and (tostring(s.result.value)..' · '..(s.receipt and 'Returned to original Orca · NOT APPLIED' or 'Returning · waiting for original Orca receipt · NOT APPLIED')) or '')
+    v1_set('evaluation_note',s.phase=='complete' and 'Choose the best result from the completed calibration.' or '')
+    v1_set('monitor_on',(s.phase=='starting' or s.phase=='printing' or s.phase=='verifying' or s.phase=='uncertain') and 1 or 0)
+    v1_set('monitor',v1_monitor_text(s.monitor))
+    local units={temperature='°C',flow_ratio_yolo='',pressure_advance_pattern='s',retraction='mm',max_volumetric_speed='mm³/s'}
+    local result_unit=units[s.request.calibration]
+    v1_set('returned',s.result and (tostring(s.result.value)..(result_unit~='' and (' '..result_unit) or '')..' · NOT APPLIED') or '')
+    v1_set('result_heading',s.receipt and 'Returned' or 'Returning result')
+    v1_set('result_note',s.receipt and 'Received by original Orca.' or 'Waiting for original Orca.')
 end
 local function v1_capability(offer,id)
     if not offer then return nil end
@@ -161,7 +202,7 @@ local function v1_receive_offer(_,o)
             if not supported then return end
         end
     end
-    v1_offer=o
+    v1_offer=o;v1_offer_context(o)
     for id,_ in pairs(V1_CATALOG) do
         local c=v1_capability(o,id)
         v1_set('availability_'..id,(c.available and 'Preparation available · ' or 'Blocked · ')..c.reason)
@@ -219,8 +260,14 @@ local function v1_prepared(p,digest)
 end
 local v1_phases={requested=true,preparing=true,blocked=true,review=true,confirmed=true,starting=true,printing=true,verifying=true,complete=true,cancelled=true,failed=true,uncertain=true,returning=true,delivered=true}
 local function v1_receive_status(_,d)
-    if not v1_exact(d,'schema request_id origin_id sequence phase message prepared job_id prepared_sha256 completion_sha256 evaluation') or not v1_identity(d) or d.schema~='helix-orca-v1-status/v1' or not v1_phases[d.phase]
+    if not v1_exact(d,'schema request_id origin_id sequence phase message prepared job_id prepared_sha256 completion_sha256 evaluation monitor') or not v1_identity(d) or d.schema~='helix-orca-v1-status/v1' or not v1_phases[d.phase]
         or not v1_number(d.sequence) or d.sequence%1~=0 or d.sequence<=v1_session.sequence or not v1_text(d.message,768) then return end
+    if d.monitor~=nil then
+        local m=d.monitor
+        if not v1_exact(m,'elapsed_s progress')
+            or (m.elapsed_s~=nil and (not v1_number(m.elapsed_s) or m.elapsed_s<0 or m.elapsed_s>2678400))
+            or (m.progress~=nil and (not v1_number(m.progress) or m.progress<0 or m.progress>1)) then return end
+    end
     local s=v1_session
     local transitions={requested={requested=true,preparing=true,blocked=true,review=true,failed=true,uncertain=true},
         preparing={preparing=true,blocked=true,review=true,failed=true,uncertain=true},
@@ -262,7 +309,7 @@ local function v1_receive_status(_,d)
     if d.phase=='failed' or d.phase=='cancelled' or d.phase=='uncertain' or d.phase=='blocked' then
         v1_completion_presentation.disarm()
     elseif d.phase=='printing' then v1_completion_presentation.arm(s) end
-    s.sequence=d.sequence;s.phase=d.phase;s.message=d.message;s.recovery_required=nil
+    s.sequence=d.sequence;s.phase=d.phase;s.message=d.message;s.recovery_required=nil;s.monitor=d.monitor
     if d.prepared then s.prepared=d.prepared;s.prepared_sha256=d.prepared_sha256 end
     if d.job_id then s.job_id=d.job_id end
     local present=d.phase=='complete' and v1_completion_presentation.claim(s)
@@ -280,7 +327,7 @@ local function v1_intent(action)
     local serial=action=='confirm' and 1 or action=='start' and 2 or 3
     s.intent={schema='helix-orca-v1-intent/v1',request_id=s.request.request_id,origin_id=s.request.origin_id,
         prepared_sha256=s.prepared_sha256,action=action,intent_id=s.request.request_id:sub(1,24)..string.format('%08x',serial)}
-    if action=='start' then s.phase='starting';s.message='Start requested · physical action adapter disabled in this candidate'
+    if action=='start' then s.phase='starting';s.message='Start requested · waiting for coordinator'
     elseif action=='cancel' then s.message='Cancellation requested · waiting for verified status'
     else s.message='Confirmation sent · waiting for coordinator' end
     if v1_persist() then
@@ -311,7 +358,10 @@ helix.ui.on('v1_return',function()
         context_sha256=s.request.context_sha256,prepared_sha256=s.prepared_sha256,job_id=s.job_id,
         completion_sha256=s.completion_sha256,setting=s.evaluation.setting,value=value,not_applied=true}
     s.phase='returning';s.message='Result committed locally · waiting for original Orca receipt'
-    if v1_persist() then v1_render() end
+    if v1_persist() then
+        v1_render();v1_open_result()
+        v1_completion_presentation.close();v1_retire_preparation_views()
+    end
 end)
 local function v1_receive_ack(_,d)
     if not v1_exact(d,'schema request_id origin_id result_sha256 result not_applied') or not v1_identity(d) or d.schema~='helix-orca-v1-ack/v1' or d.not_applied~=true
@@ -340,6 +390,7 @@ local function v1_restore(s)
         or s.intent.prepared_sha256~=s.prepared_sha256 or not v1_hex(s.intent.intent_id,32)
         or (s.intent.action~='confirm' and s.intent.action~='start' and s.intent.action~='cancel')) then v1_session=nil;return false end
     v1_completion_presentation.recover(s)
+    s.monitor=nil -- retained telemetry is not a fresh read of the owned job
     if s.result then
         local r=s.result
         if not v1_exact(r,'schema request_id origin_id context_sha256 prepared_sha256 job_id completion_sha256 setting value not_applied')

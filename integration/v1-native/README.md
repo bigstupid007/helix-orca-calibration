@@ -81,8 +81,10 @@ automatic Temperature presentation on Home/Print Status/Controls, preserved
 native dismissal, duplicate suppression, manual reopening, restart and a lost
 claim. Recovery restarts only the exact existing ManagedRun-owned synthetic
 container; it creates no replacement container and preserves the retained state.
-All inputs remain synthetic and network-none. Existing 31-frame names are kept,
-with the Temperature evaluation frame showing the automatic view. Raw tile
+All inputs remain synthetic and network-none. Existing workflow frames are kept,
+with five explicit Confirmed/Start frames added: **36 frames per viewport, 396
+across all eleven targets**. The Temperature evaluation frame shows the
+automatic view. Raw tile
 geometry and presentation transitions are also retained in each private capture.
 These source changes require a new complete eleven-size capture before promotion;
 the prior 341-frame checkpoint remains evidence of its exact earlier source.
@@ -123,3 +125,60 @@ never derive freshness from the native session's sequence or the ordinary mock
 status helper. The fixture inventory includes the exact coordinator source hash.
 Python tests check these real transitions and deterministic fixture bytes; native
 Lua execution still requires the new complete managed capture before promotion.
+
+## Compact-screen product audit corrections
+
+Parameter ranges use the native-font-safe word **to**. The evaluation heading,
+explanation, picker and Return button are one hidden section until exact
+successful completion enables selection. Failed and Cancelled retain their
+terminal outcome without evaluation or an Active tile label. The monitor no
+longer claims printing is unavailable unconditionally: a disabled Start is
+reported by the coordinator's actual blocker.
+
+A Return click replaces the explicitly operated owned view with a compact result
+view at a readable initial position: Returning result or Returned, the selected
+value, **NOT APPLIED**, delivery status, and Done. It uses only native overlays
+and exact owned-handle closure. ACK changes subjects and never opens or replaces
+an overlay over an unrelated native page. Manual Resume can reopen the immutable
+result. Temperature's earlier automatic completion and conservative restart
+suppression remain unchanged. Beta.9 has no supported plugin scroll/visibility
+API; no such API, timer or queued-modal capability is invented.
+
+Cancel confirmation separates **Keep printing** with the native secondary
+surface from **Cancel this print** with the native danger surface. The pinned
+native `print_cancel_confirm_modal` and `modal_button_row` establish the danger
+and secondary variants; these same host theme colors style the derivative's
+existing permissionless buttons. Nothing dispatches cancellation before the
+separate destructive confirmation.
+
+Status may carry nullable display-only `monitor: {elapsed_s, progress}`. Native
+accepts finite elapsed seconds from 0 through 2,678,400 (31 days) and progress
+from 0 through 1; malformed fields are rejected. Each field is displayed
+independently, for example `25% · 2m elapsed`, `25% · Elapsed unavailable`, or
+`Progress unavailable · 2m elapsed`. Both missing displays Progress unavailable.
+Retained telemetry is cleared on restart. No elapsed/progress value, including
+100%, can enable Confirm, Start, cancellation, evaluation or result return;
+these still require their existing exact lifecycle and completion proof.
+
+The failed portrait tile check was caused by the synthetic seed's inherited
+`grid: 12x8` landscape stamp. The pinned host's `PanelWidgetConfig::switch_to_grid`
+reprojects positioned entries to a different measured grid; this stretched the
+1×1 logical tile to 1×2 on the 272×480 target. A new V1 test layout now omits the
+stamp and parked grids so native adopts its actual grid without reprojection.
+Manifest 1×1, accepted tile bytes, actual home span and every child/nonoverlap
+assertion remain mandatory. Bounds are recorded even when the assertion fails.
+No existing user, printer, accepted or physical layout is migrated or changed.
+
+The qualifier adds source-bound Confirmed/Start screenshots for all five
+calibrations, nullable/malformed monitor cases, 100%-progress evaluation lock,
+terminal evaluation visibility, readable Return/receipt/Done, and receipt arrival
+while Controls remains visible. The portable verifier requires the exact shared
+36-frame inventory for every target; older 341-frame checkpoints remain bound
+to their historical source and do not establish these new behaviors. A fresh
+complete eleven-size managed capture remains required before promotion.
+
+Chooser/configuration cards bind separately to the latest validated Orca offer;
+job/result cards keep the immutable session's original profile identity. A fresh
+offer after a returned/blocked session cannot mislabel the next configuration or
+replace its earlier result. The native fixture explicitly changes the next
+printer display and verifies the retained original result stays unchanged.

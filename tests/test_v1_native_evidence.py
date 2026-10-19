@@ -28,6 +28,7 @@ class NativePortableEvidenceTests(unittest.TestCase):
             for name in ('../frame.png','/etc/passwd','missing.png','link.png'):
                 with self.assertRaises(ValueError):module.safe_file(root,name)
     def test_expected_frame_set_covers_five_full_workflows(self):
-        self.assertEqual(len(module.FRAMES),31)
+        self.assertEqual(len(module.FRAMES),36)
         for id in module.q.contract.CALIBRATIONS:
             self.assertIn(id+'-returned.png',module.FRAMES)
+            self.assertIn(id+'-confirmed.png',module.FRAMES)

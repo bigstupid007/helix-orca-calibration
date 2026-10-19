@@ -17,7 +17,7 @@ q=load()
 SCHEMA='helix-orca-v1-native-portable-evidence/v1'
 HEX32=re.compile(r'[a-f0-9]{32}')
 HEX64=re.compile(r'[a-f0-9]{64}')
-FRAMES={'home.png','chooser.png','blocked.png','cancel-confirm.png','cancel-kept.png','cancelled.png'}|{id+'-'+phase+'.png' for id in q.contract.CALIBRATIONS for phase in ('configure','review','monitor','evaluate','returned')}
+FRAMES=q.FRAMES
 def require(ok,message):
     if not ok:raise ValueError(message)
 def file_hash(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -102,7 +102,7 @@ def verify(root,private_capture=None):
         require(file_hash(private_capture/'report.json')==report['capture_report_sha256'],'Private capture report differs')
         expected=[lifecycle_summary(i,original['sources']) for i in original['managed_runs']]
         require(expected==report['managed_runs'],'Private lifecycle records differ')
-    print('PASS: portable source-bound synthetic native matrix (11 targets, 5 calibrations, 341 frames)'+('; private lifecycle records verified' if private_capture else '; private inventories not required'))
+    print('PASS: portable source-bound synthetic native matrix (11 targets, 5 calibrations, 396 frames)'+('; private lifecycle records verified' if private_capture else '; private inventories not required'))
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('op',choices=['build','verify']);p.add_argument('root',type=Path);p.add_argument('--output',type=Path);p.add_argument('--verify-managed',type=Path);x=p.parse_args()

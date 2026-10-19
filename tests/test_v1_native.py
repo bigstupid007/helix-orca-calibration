@@ -62,6 +62,8 @@ class V1NativeTests(unittest.TestCase):
             self.assertEqual((output/'ui/orcacal__tile.xml').read_text(),expected)
             config=Path(name)/'config';qualifier.settings(config)
             widgets=json.loads((config/'settings-test.json').read_text())['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']
+            home=json.loads((config/'settings-test.json').read_text())['printers']['default']['panel_widgets']['home']
+            self.assertNotIn('grid',home);self.assertNotIn('parked_grids',home)
             tile=next(w for w in widgets if w['id']=='orcacal__tile')
             self.assertNotIn('colspan',tile);self.assertNotIn('rowspan',tile)
     def test_compact_geometry_rejects_clipping_and_overlap(self):
@@ -143,3 +145,49 @@ class V1NativeTests(unittest.TestCase):
             qualifier.reopen_job('owned',800,480,Path('/synthetic'))
         self.assertLess(calls.index(('pop','owned')),calls.index(('owned','navigate','home')))
         self.assertLess(calls.index(('owned','navigate','home')),calls.index(('tap','orcacal__tile')))
+
+    def test_terminal_evaluation_is_one_hidden_section_and_cancel_has_native_danger_style(self):
+        doc=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_job.xml')
+        section=next(n for n in doc.iter() if n.attrib.get('name')=='orcacal__v1_evaluation_section')
+        self.assertEqual(section.find('bind_flag_if_eq').attrib,dict(subject='orcacal__v1_evaluate_on',flag='hidden',ref_value='0'))
+        self.assertTrue(section.findall('.//lv_dropdown'))
+        self.assertTrue(any(n.attrib.get('text')=='EVALUATION' for n in section.iter()))
+        self.assertNotIn('Printing is unavailable',ET.tostring(doc.getroot(),encoding='unicode'))
+        cancel=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_cancel_confirm.xml')
+        colors={n.attrib['name']:n.attrib['style_bg_color'] for n in cancel.iter('lv_button')}
+        self.assertEqual(colors,dict(orcacal__v1_cancel_keep='#secondary',orcacal__v1_cancel_yes='#danger'))
+    def test_monitor_and_result_view_have_no_new_action_authority_or_ack_popup(self):
+        source=(ROOT/'integration/v1-native/main.lua').read_text()
+        self.assertNotIn('→',source)
+        self.assertIn("..' to '..",source)
+        self.assertIn("s.monitor=nil -- retained telemetry",source)
+        self.assertIn('m.elapsed_s>2678400',source)
+        self.assertIn("'Progress unavailable'",source)
+        self.assertIn("'Elapsed unavailable'",source)
+        ack=source[source.index('local function v1_receive_ack'):source.index("helix.moonraker.on_agent_event")]
+        self.assertNotIn('v1_open_result',ack)
+        self.assertNotIn('overlay(',ack)
+        for line in source.splitlines():
+            if any("v1_set('"+name+"'" in line for name in ('evaluate_on','confirm_on','start_on','cancel_on')):
+                self.assertNotIn('monitor',line)
+        doc=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_result.xml')
+        self.assertEqual(doc.find('view').attrib['extends'],'overlay_panel')
+        self.assertTrue(any(n.attrib.get('bind_text')=='orcacal__v1_result_heading' for n in doc.iter()))
+        self.assertTrue(any(n.attrib.get('user_data')=='orcacal__v1_result_close' for n in doc.iter('event_cb')))
+        self.assertTrue(any(n.attrib.get('text')=='Done' for n in doc.iter()))
+
+    def test_native_terminal_visibility_checks_named_section_even_when_control_descended(self):
+        with patch.object(qualifier,'ctl',return_value=dict(flags=dict(hidden=True),target=dict(flags=dict(hidden=False)))):
+            self.assertFalse(qualifier.native_hidden('owned','evaluation_section'))
+        with patch.object(qualifier,'ctl',return_value=dict(flags=dict(hidden=False),target=dict(flags=dict(hidden=True)))):
+            self.assertTrue(qualifier.native_hidden('owned','evaluation_section'))
+
+    def test_next_offer_context_is_distinct_from_immutable_job_and_result(self):
+        for name in ('orcacal__wizard','orcacal__v1_temperature','orcacal__v1_flow_ratio_yolo','orcacal__v1_pressure_advance_pattern','orcacal__v1_retraction','orcacal__v1_max_volumetric_speed'):
+            xml=(ROOT/'integration/v1-native/ui'/ (name+'.xml')).read_text()
+            self.assertIn('bind_text="orcacal__v1_offer_printer"',xml)
+            self.assertNotIn('bind_text="orcacal__v1_printer"',xml)
+        for name in ('orcacal__v1_job','orcacal__v1_result'):
+            xml=(ROOT/'integration/v1-native/ui'/ (name+'.xml')).read_text()
+            self.assertIn('bind_text="orcacal__v1_printer"',xml)
+            self.assertNotIn('bind_text="orcacal__v1_offer_printer"',xml)
