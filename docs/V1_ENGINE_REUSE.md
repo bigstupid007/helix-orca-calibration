@@ -329,3 +329,13 @@ warnings, including executable build-volume failures; successful slicing alone
 cannot bypass Orca's post-export checks. Missing, malformed or substituted local
 reference material retains an unqualified parity report for the generated
 artifact. Remote qualification flags are never accepted.
+
+Incremental run `56f3cf91fab64d53a02dc9ed114dc40d` built Blosc, OpenEXR and
+OpenVDB successfully and reused the earlier 21 targets. Root configuration now
+finds OpenVDB, then stops because `src/CMakeLists.txt:320` unconditionally calls
+the Linux shared-library packaging helper, whose `CMakeLists.txt:1151` copy
+requires the bundled FFmpeg shared libraries even with GUI disabled. The lock
+therefore also retains the exact upstream `deps/FFMPEG/FFMPEG.cmake` n7.0.3
+source URL and SHA-256. No placeholder shared libraries or configure bypass
+are used. The failed configure run retained its logs, peaked at 1,257,209,856
+bytes/31 PIDs with no OOM, and removed its exact container with runtime clear.

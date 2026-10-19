@@ -23,7 +23,10 @@ The actual build checkpoint passed 21 dependencies, then root configuration
 failed on missing OpenVDB/IlmBase. The three source-pinned supporting dependency
 targets are now retained in the lock for the next bounded build. Native export
 also retains and checks processor errors/warnings, and a persistent TBB control
-limits generation to two workers. None of these source changes is a build proof.
+limits generation to two workers. The next incremental checkpoint built all
+three OpenVDB prerequisites, then hit the root's unconditional FFmpeg packaging
+copy; the exact upstream FFmpeg source target is now pinned too. None of these
+source changes is a build proof.
 
 Use `-DCMAKE_PROJECT_OrcaSlicer_INCLUDE=/absolute/path/add-target.cmake` on a
 pinned Orca source root to add target `helix_orca_native` without editing that
