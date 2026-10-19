@@ -642,14 +642,13 @@ printable-area bounding-box center. The original public YOLO model bounds are
 X[−37,86], Y[34,128] mm; its fixed relative patch layout is intentional.
 
 The old stock route instead forced `--arrange 1`, repacking individual patches.
-The corrected YOLO route uses `--center <effective printable-area bbox center>
---arrange 0`; pinned `OrcaSlicer.cpp` 4919–4937 invokes the **same** native Model
-centering helper and 4945–4950 disables subsequent arrangement. Temperature's
-single-model route is unchanged. Missing/malformed/degenerate effective bed
+The corrected YOLO route applies the native uniform translation to job-local
+3MF build instances and uses only the registered `--arrange 0` to prevent
+repacking. Temperature's single-model route is unchanged. Missing/malformed/degenerate effective bed
 geometry blocks preparation rather than using a CLI/profile default.
 `prepare_inputs` now exposes its exact `layout_arguments` so another caller
 does not recreate stale shared CLI arguments. Tests verify those arguments,
-asymmetric/triangular bed-center math, unchanged model/build transforms and
+asymmetric/triangular bed-center math, unchanged mesh coordinates/relative build transforms and
 unavailable-layout failure before execution. No tolerance or parity policy was
 changed to address the layout error.
 
@@ -676,3 +675,44 @@ commands, full coordinates, names, hooks or profile payload. A successful slice
 still needs exact executable parity; physical/hardware readiness remains false.
 The corrected actual Windows run is pending and must receive its own artifact,
 request, source and report fingerprints rather than replacing historical proof.
+
+The first corrected-layout Windows R7 attempt failed before slicing: the exact
+log was `Invalid option --center`, retained with SHA-256
+`ef45215323ed66118bd37a920c6e9b0b9fc765d1a67ec192b443e03b773fa98c`.
+The implementation branch in `OrcaSlicer.cpp` 4919 exists but its registration
+is commented out in `CLITransformConfigDef`, `PrintConfig.cpp` 12818–12821.
+The active `arrange` definition is at 12823–12828. The earlier source check
+missed that registration boundary; the unsupported flag is now removed rather
+than retried or advertised as a usable route. The failed R7 source archive,
+request, log and case directory remain unchanged.
+
+The replacement changes only `<build><item transform>` attributes in a copy of
+the public model XML. It computes the world-space group bounds from native
+float32 mesh coordinates plus original instance translations, subtracts their
+center from the effective printable-area bounding-box center, and adds that
+same XY offset to every build instance. Vertex/resource XML bytes, object/build
+ordering, each identity linear transform, relative patch positions and Z remain
+unchanged. The currently supported asset has eleven directly meshed patches,
+one identity/translation-only build instance per patch, millimetre units and
+patches resting on the bed; other layouts fail instead of being approximated.
+
+This uses the actual importer: `Model.cpp` 463–468 calls `load_bbs_3mf`, whose
+build-item handler at `bbs_3mf.cpp` 4111–4124 deserializes the instance transform
+and `_apply_transform` at 4455–4462 applies it. The apparent transform-to-float-
+mesh baking branch at 5323–5332 is explicitly commented out in this importer.
+The unrelated generic 3MF importer is not the CLI path. No fictitious native
+export/version metadata is inserted to influence that decision.
+
+An in-memory check of the exact public asset confirmed bounds
+X[−37,86], Y[34,128], Z[0,2] mm and uniform XY translation [125.5,69] mm for
+the retained 300 mm bed. Original model XML SHA-256 is
+`3ab79a84504ee2c3c567467aba2281c80b3ca840acf0f4d19addcec45666d7e1`;
+centered model XML is
+`6b1a2bb130bc9b21e2a5eb29ae68ce54a5bdb964192c7c0ac94353578e039956`.
+The unchanged resource XML digest is
+`661048e87c7cdd84afc6e49ceaa0a8bbf36fcb089788195387d784721c76b9f6`.
+This check did not slice, compile, contact Windows/printer services or create a
+new private transfer bundle. New local generation retains `flow-layout.json`
+and binds that file plus the staged 3MF hash in generation provenance and the
+sanitized summary. Actual executable parity is still pending; these preparation
+hashes do not establish a pass or waive downstream differences.

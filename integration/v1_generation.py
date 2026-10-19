@@ -219,7 +219,8 @@ def _flow(request, snapshot, destination, config, profiles):
     with zipfile.ZipFile(source) as archive:
         if sum(i.file_size for i in archive.infolist()) > parity.MAX_GCODE_BYTES:
             _blocked('flow_asset', 'Oversized native asset archive.')
-        model = ET.fromstring(archive.read('3D/3dmodel.model'))
+        original_model = archive.read('3D/3dmodel.model')
+        model = ET.fromstring(original_model)
         objects = model.findall('c:resources/c:object', namespace)
         expected = {0.0} | {sign * i / 100 for i in range(1, 6) for sign in (-1, 1)}
         seen = set()
@@ -237,10 +238,14 @@ def _flow(request, snapshot, destination, config, profiles):
                 ET.SubElement(node, 'metadata', {'key': key, 'value': value})
         if seen != expected or len(objects) != 11:
             _blocked('flow_asset', 'YOLO requires all eleven native patches, without duplicates.')
+        centered_model, layout = _center_flow_build(original_model, snapshot)
+        (destination / 'flow-layout.json').write_bytes(contract.canonical(layout))
         output = destination / 'model.3mf'
         with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as target:
             for info in archive.infolist():
-                if info.filename != 'Metadata/model_settings.config':
+                if info.filename == '3D/3dmodel.model':
+                    target.writestr(info.filename, centered_model)
+                elif info.filename != 'Metadata/model_settings.config':
                     target.writestr(info.filename, archive.read(info))
             target.writestr('Metadata/model_settings.config', ET.tostring(model_settings, encoding='utf-8', xml_declaration=True))
     profiles['machine']['resonance_avoidance'] = '0'
@@ -250,13 +255,8 @@ def _flow(request, snapshot, destination, config, profiles):
     return output
 
 
-def _flow_layout_arguments(snapshot):
-    """Match native GUI 3MF import: preserve layout, center the whole group.
-
-    Plater.cpp10004–10006 and OrcaSlicer.cpp4919–4937 call the same Model
-    helper. BuildVolume::bed_center is the printable-area bounding-box center.
-    Forced auto-arrangement changes labeled patch placement and print ordering.
-    """
+def _flow_bed_center(snapshot):
+    """BuildVolume::bed_center is the printable-area bounding-box center."""
     raw = snapshot['effective'].get('printable_area')
     if not isinstance(raw, str):
         _blocked('flow_layout', 'YOLO needs explicit effective printable_area for native group centering.')
@@ -275,8 +275,83 @@ def _flow_layout_arguments(snapshot):
     high = [max(p[i] for p in points) for i in range(2)]
     if any(low[i] >= high[i] for i in range(2)):
         _blocked('flow_layout', 'YOLO printable-area extent is degenerate.')
-    center = ','.join(format((low[i] + high[i]) / 2, '.17g') for i in range(2))
-    return ['--center', center, '--arrange', '0']
+    return [(low[i] + high[i]) / 2 for i in range(2)]
+
+
+def _center_flow_build(raw, snapshot):
+    """Apply native group translation to build items, never mesh coordinates.
+
+    The registered Oct15 CLI disables --center (PrintConfig.cpp12818), so its
+    dead transform branch cannot be used. Actual BBS import keeps build-item
+    instance transforms and explicitly does not bake them into float meshes.
+    Preserve resources/vertex XML bytes and all item ordering/linear/Z values.
+    """
+    center = _flow_bed_center(snapshot)
+    ns = {'c': 'http://schemas.microsoft.com/3dmanufacturing/core/2015/02'}
+    try:
+        text = raw.decode('utf-8')
+        if '<!DOCTYPE' in text or '<!ENTITY' in text:
+            raise ValueError('entities')
+        model = ET.fromstring(raw)
+        if model.get('unit', 'millimeter') != 'millimeter':
+            raise ValueError('units')
+        objects = {obj.get('id'): obj for obj in model.findall('c:resources/c:object', ns)}
+        items = model.findall('c:build/c:item', ns)
+        if len(objects) != 11 or len(items) != 11 or {item.get('objectid') for item in items} != set(objects):
+            raise ValueError('single build instance per patch required')
+        translations, world_points = [], []
+        for item in items:
+            transform = [float(value) for value in item.get('transform', '1 0 0 0 1 0 0 0 1 0 0 0').split()]
+            if (len(transform) != 12 or any(not math.isfinite(value) or abs(value) > 10000 for value in transform)
+                    or transform[:9] != [1,0,0,0,1,0,0,0,1]):
+                raise ValueError('only original identity/translation transforms supported')
+            obj = objects[item.get('objectid')]
+            vertices = obj.findall('c:mesh/c:vertices/c:vertex', ns)
+            if not vertices or len(vertices) > 200000 or obj.find('c:components', ns) is not None:
+                raise ValueError('direct bounded mesh vertices required')
+            points = []
+            for vertex in vertices:
+                point = [struct.unpack('f', struct.pack('f', float(vertex.get(axis))))[0] for axis in 'xyz']
+                if any(not math.isfinite(value) or abs(value) > 10000 for value in point):
+                    raise ValueError('bounded finite float vertices required')
+                points.append([point[i] + transform[9+i] for i in range(3)])
+            if abs(min(point[2] for point in points)) > .000001:
+                raise ValueError('original native patches must already rest on bed')
+            translations.append(transform)
+            world_points.extend(points)
+        low = [min(point[i] for point in world_points) for i in range(3)]
+        high = [max(point[i] for point in world_points) for i in range(3)]
+        shift = [center[i] - (low[i]+high[i])/2 for i in range(2)]
+        builds = list(re.finditer(r'<build\b[^>]*>(.*?)</build\s*>', text, re.S))
+        resources = list(re.finditer(r'<resources\b[^>]*>.*?</resources\s*>', text, re.S))
+        if len(builds) != 1 or len(resources) != 1:
+            raise ValueError('original unprefixed core XML layout required')
+        transforms = iter(translations)
+        count = 0
+        def translate(match):
+            nonlocal count
+            original = match[0]
+            values = list(next(transforms)); values[9] += shift[0]; values[10] += shift[1]
+            value = ' '.join(format(number,'.17g') for number in values)
+            attribute = ' transform="' + value + '"'
+            count += 1
+            if re.search(r'\s+transform\s*=', original):
+                return re.sub(r'\s+transform\s*=\s*([\"\']).*?\1', attribute, original, count=1, flags=re.S)
+            return re.sub(r'\s*/>$', attribute + '/>', original)
+        replacement = re.sub(r'<item\b[^>]*?/>', translate, builds[0][0], flags=re.S)
+        if count != len(items):
+            raise ValueError('original self-closing core build items required')
+        centered = (text[:builds[0].start()] + replacement + text[builds[0].end():]).encode('utf-8')
+        unchanged_resources = re.search(rb'<resources\b[^>]*>.*?</resources\s*>', centered, re.S)[0]
+        if unchanged_resources != resources[0][0].encode('utf-8'):
+            raise ValueError('resource mesh XML changed')
+    except (ValueError, TypeError, KeyError, OverflowError, ET.ParseError, UnicodeError, StopIteration):
+        _blocked('flow_layout', 'Unsupported or malformed YOLO asset build layout; no geometry or transform approximation is permitted.')
+    return centered, {'policy':'native-group-build-translation-v1', 'source_model_xml_sha256':hashlib.sha256(raw).hexdigest(),
+        'centered_model_xml_sha256':hashlib.sha256(centered).hexdigest(),
+        'unchanged_resources_xml_sha256':hashlib.sha256(unchanged_resources).hexdigest(),
+        'native_float_group_bounds_mm':[low,high], 'bed_center_mm':center, 'uniform_translation_xy_mm':shift,
+        'build_instances':len(items), 'mesh_coordinates_changed':False, 'cli_arguments':['--arrange','0']}
 
 
 def prepare_inputs(request, snapshot, output_dir, config):
@@ -304,7 +379,9 @@ def prepare_inputs(request, snapshot, output_dir, config):
         _blocked('output_exists', 'Generation requires a new empty job directory.')
     destination.mkdir(parents=True, exist_ok=True)
     profiles = _configs(snapshot)
-    layout_arguments = _flow_layout_arguments(snapshot) if kind == 'flow_ratio_yolo' else ['--arrange', '1']
+    layout_arguments = ['--arrange', '0' if kind == 'flow_ratio_yolo' else '1']
+    if kind == 'flow_ratio_yolo':
+        _flow_bed_center(snapshot)  # Explicit geometry required before asset preparation.
     model = (_temperature if kind == 'temperature' else _flow)(request, snapshot, destination, config, profiles)
     for role, value in profiles.items():
         (destination / (role + '.json')).write_bytes(contract.canonical(value))

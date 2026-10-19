@@ -161,12 +161,17 @@ class StockGeneration(unittest.TestCase):
         resources = ET.SubElement(model, '{' + ns + '}resources')
         names = ['flowrate_0'] + [f'flowrate_{sign}0.0{i}' for sign in ('', 'm') for i in range(1, 6)]
         for index, name in enumerate(names):
-            ET.SubElement(resources, '{' + ns + '}object', {'id': str(index+1), 'name': name})
+            obj = ET.SubElement(resources, '{' + ns + '}object', {'id': str(index+1), 'name': name})
+            mesh = ET.SubElement(obj, '{' + ns + '}mesh')
+            vertices = ET.SubElement(mesh, '{' + ns + '}vertices')
+            for x,y,z in ((0,0,0),(30,0,0),(0,30,2)):
+                ET.SubElement(vertices, '{' + ns + '}vertex', {'x':str(x),'y':str(y),'z':str(z)})
         build = ET.SubElement(model, '{' + ns + '}build')
         for index in range(len(names)):
             ET.SubElement(build, '{' + ns + '}item', {'objectid':str(index+1),
                          'transform':f'1 0 0 0 1 0 0 0 1 {index*31} {index%3*32} 0'})
-        original_model = ET.tostring(model)
+        # Preserve ordinary public-asset default-core namespace serialization.
+        original_model = ET.tostring(model).replace(b'ns0:',b'').replace(b'xmlns:ns0=',b'xmlns=')
         with zipfile.ZipFile(asset, 'w') as archive:
             archive.writestr('3D/3dmodel.model', original_model)
         self.request.update(calibration='flow_ratio_yolo', parameters={'pass': 1})
@@ -175,7 +180,19 @@ class StockGeneration(unittest.TestCase):
         self.assertFalse(result['parity']['qualified'])
         with zipfile.ZipFile(self.root / 'job/model.3mf') as archive:
             config = ET.fromstring(archive.read('Metadata/model_settings.config'))
-            self.assertEqual(archive.read('3D/3dmodel.model'), original_model)
+            centered_model = archive.read('3D/3dmodel.model')
+        original_tree, centered_tree = ET.fromstring(original_model), ET.fromstring(centered_model)
+        self.assertEqual(ET.tostring(original_tree.find('{'+ns+'}resources')),
+                         ET.tostring(centered_tree.find('{'+ns+'}resources')))
+        old_items, new_items = (tree.findall('{'+ns+'}build/{'+ns+'}item') for tree in (original_tree,centered_tree))
+        self.assertEqual([item.get('objectid') for item in old_items],[item.get('objectid') for item in new_items])
+        layout = json.loads((self.root/'job/flow-layout.json').read_text())
+        for old,new in zip(old_items,new_items):
+            before,after = ([float(value) for value in item.get('transform').split()] for item in (old,new))
+            self.assertEqual(before[:9],after[:9]);self.assertEqual(before[11],after[11])
+            for axis in range(2):self.assertAlmostEqual(after[9+axis]-before[9+axis],layout['uniform_translation_xy_mm'][axis])
+        self.assertEqual(layout['bed_center_mm'],[150,150])
+        self.assertFalse(layout['mesh_coordinates_changed'])
         objects = [{m.attrib['key']: m.attrib['value'] for m in obj.findall('metadata')} for obj in config.findall('object')]
         self.assertEqual({x['name'] for x in objects}, set(names))
         self.assertEqual(len({x['print_flow_ratio'] for x in objects}), 11)
@@ -187,14 +204,30 @@ class StockGeneration(unittest.TestCase):
         self.assertEqual(float(process['layer_height']), 0.20000000298023224)
         invocation = json.loads((self.root/'job/invocation.json').read_text())['argv']
         self.assertEqual(invocation[invocation.index('--arrange')+1], '0')
-        self.assertEqual(invocation[invocation.index('--center')+1], '150,150')
+        self.assertNotIn('--center',invocation)
 
     def test_yolo_group_center_uses_explicit_native_bounding_box_center(self):
         self.snapshot['effective']['printable_area'] = '-20x10,280x10,280x210,-20x210'
-        self.assertEqual(generation._flow_layout_arguments(self.snapshot), ['--center','130,110','--arrange','0'])
+        self.assertEqual(generation._flow_bed_center(self.snapshot), [130,110])
         # Native get_extents uses bounds, not the polygon vertex average.
         self.snapshot['effective']['printable_area'] = '0x0,300x0,0x200'
-        self.assertEqual(generation._flow_layout_arguments(self.snapshot), ['--center','150,100','--arrange','0'])
+        self.assertEqual(generation._flow_bed_center(self.snapshot), [150,100])
+
+    def test_yolo_build_translation_changes_only_build_xml_and_blocks_unsupported_transforms(self):
+        objects=''.join(f'<object id="{i}"><mesh><vertices><vertex x="{i}" y="0" z="0"/><vertex x="{i+1}" y="1" z="2"/></vertices></mesh></object>' for i in range(1,12))
+        items=''.join(f'<item objectid="{i}"/>' for i in range(1,12))
+        source=('<model xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" unit="millimeter"><resources>'+objects+'</resources><build>'+items+'</build></model>').encode()
+        centered,layout=generation._center_flow_build(source,self.snapshot)
+        self.assertEqual(source.split(b'<build>')[0],centered.split(b'<build>')[0])
+        self.assertEqual(layout['uniform_translation_xy_mm'],[143.5,149.5])
+        self.assertEqual(layout['native_float_group_bounds_mm'],[[1.,0.,0.],[12.,1.,2.]])
+        self.assertEqual(layout['build_instances'],11)
+        self.assertEqual(layout['cli_arguments'],['--arrange','0'])
+        invalid=(source.replace(b'<item objectid="1"/>',b'<item objectid="1" transform="0 -1 0 1 0 0 0 0 1 0 0 0"/>'),
+                 source.replace(b'<item objectid="1"/>',b'<item objectid="1" transform="1 0 0 0 1 0 0 0 1 nan 0 0"/>'),
+                 source.replace(b'<item objectid="1"/>',b''),source.replace(b'unit="millimeter"',b'unit="inch"'))
+        for raw in invalid:
+            with self.assertRaises(generation.GenerationBlocked):generation._center_flow_build(raw,self.snapshot)
 
     def test_yolo_missing_or_malformed_layout_never_uses_profile_or_cli_default(self):
         self.request.update(calibration='flow_ratio_yolo', parameters={'pass':1})

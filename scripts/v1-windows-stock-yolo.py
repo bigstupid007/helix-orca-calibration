@@ -107,9 +107,13 @@ def run(args):
         request_sha256=c.digest(request),inputs_sha256=c.digest(inputs),context_sha256=c.digest(context),
         executable_sha256=EXE_SHA,public_asset_sha256=ASSET_SHA,native_sha256=NATIVE_SHA,
         native_manifest_sha256=c.digest(manifest),prepared_sha256=c.digest(prepared),report_sha256=c.digest(report),
-        invocation_sha256=sha(args.output_dir/'job/invocation.json'),physical_actions=False,physical_readiness=False)
+        invocation_sha256=sha(args.output_dir/'job/invocation.json'),
+        flow_layout_sha256=sha(args.output_dir/'job/flow-layout.json'),model_3mf_sha256=sha(args.output_dir/'job/model.3mf'),
+        physical_actions=False,physical_readiness=False)
     write_json(args.output_dir/'generation-provenance.json',provenance)
     summary['generation_provenance_sha256'] = c.digest(provenance)
+    summary['flow_layout_sha256'] = provenance['flow_layout_sha256']
+    summary['model_3mf_sha256'] = provenance['model_3mf_sha256']
     if len(c.canonical(summary)) > 65536:
         raise Refused('summary_too_large')
     write_json(args.output_dir/'summary.json',summary)

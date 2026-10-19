@@ -60,6 +60,8 @@ class WindowsStockYolo(unittest.TestCase):
         (out/'parity.json').write_bytes(c.canonical(report))
         (out/'prepared.json').write_bytes(c.canonical(prepared))
         (out/'invocation.json').write_bytes(c.canonical({'argv':['SECRET_LOCAL_PATH']}))
+        (out/'flow-layout.json').write_bytes(c.canonical({'private_fixture':'SECRET_PRIVATE_LAYOUT'}))
+        (out/'model.3mf').write_bytes(b'SYNTHETIC JOB-LOCAL MODEL; NEVER SLICED')
         return prepared
 
     def test_fresh_nonce_real_entrypoint_config_and_private_local_provenance(self):
