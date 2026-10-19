@@ -86,3 +86,15 @@ class ParameterBridge(unittest.TestCase):
     def test_recipe_config_cannot_be_swapped_under_an_existing_offer(self):
         with self.assertRaisesRegex(bridge.Refused,'configuration_changed'):
             self.execute('consume',self.session(),config={'routes':{'flow_ratio_yolo':'native-engine'}})
+
+    def test_private_config_refuses_clock_runner_and_unpinned_executable(self):
+        path = Path(self.temp.name)/'config.json'
+        good = dict(source_commit=bridge.PIN,runtime=bridge.parity.PINS[bridge.PIN],
+                    executable_sha256=bridge.EXE_SHA,timeout_seconds=45)
+        path.write_bytes(canonical(good))
+        self.assertEqual(bridge.generator_config(path),good)
+        for change in ({'now':100},{'runner':'not-a-real-runner'},{'executable_sha256':'f'*64},
+                       {'native_engine':{'timeout_seconds':46}}, {'native_engine':{'now':100}}):
+            path.write_bytes(canonical(dict(good,**change)))
+            with self.subTest(change=change),self.assertRaises(bridge.Refused):
+                bridge.generator_config(path)
