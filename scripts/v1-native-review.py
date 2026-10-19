@@ -31,7 +31,11 @@ def load_helper(path):
     if hashlib.sha256(Path(path).read_bytes()).hexdigest()!=HELPER_SHA256:
         raise ContractError('Shared ManagedRun helper differs from reviewed4a42a94')
     return load('v1_native_review_resources',path)
-resource=load_helper(HELPER)
+resource=None
+def get_resource():
+    global resource
+    if resource is None:resource=load_helper(HELPER)
+    return resource
 LAN='192.168.1.114'
 PORT=8540
 DEFAULT_SECONDS=900
@@ -39,14 +43,15 @@ APP='helix-orca-v1-native-review'
 SCHEMA='helix-orca-v1-native-review-session/v1'
 STOP_SCHEMA='helix-orca-v1-native-review-stop/v1'
 CURRENT=Path(os.environ.get('XDG_STATE_HOME',Path.home()/'.local/state'))/'helix-orca-calibration/v1-native-review/current.json'
-MANAGED_ROOT=resource.ROOT
+MANAGED_ROOT=Path(os.environ.get('XDG_STATE_HOME',Path.home()/'.local/state'))/'100day-dev'
 
 def require(value,message):
     if not value:raise ContractError(message)
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def sources():
-    return dict(q.hashes(),**{'scripts/v1-native-review.py':sha(__file__),'scripts/temperature-viewer.html':sha(ROOT/'scripts/temperature-viewer.html'),'shared/resource_lifecycle.py':sha(HELPER)})
+    return dict(q.hashes(),**{'scripts/v1-native-review.py':sha(__file__),'scripts/temperature-viewer.html':sha(ROOT/'scripts/temperature-viewer.html'),'shared/resource_lifecycle.py':HELPER_SHA256})
 def session(path=CURRENT):
+    resource=get_resource()
     record=read_json(private_file(Path(path).absolute()))
     require(record.get('schema')==SCHEMA and record.get('app')==APP,'Not a V1 review session')
     run_id=record.get('run_id','')
@@ -196,6 +201,7 @@ def serve(record_path,seconds):
     finally:server.server_close()
 
 def launch(seconds):
+    resource=get_resource()
     seconds=duration(seconds);before=sources()
     q.q.beta9.verify_cache();q.q.beta9.configure_accepted_harness();a=q.a
     cache=q.builder.default_output().parent;cache.mkdir(parents=True,exist_ok=True)

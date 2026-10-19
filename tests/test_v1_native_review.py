@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -10,6 +11,19 @@ spec=importlib.util.spec_from_file_location('v1_native_review_test',ROOT/'script
 r=importlib.util.module_from_spec(spec);spec.loader.exec_module(r)
 
 class NativeReviewTests(unittest.TestCase):
+    def test_import_and_pure_controls_without_devbox_helper(self):
+        original=Path.read_bytes
+        def unavailable(path):
+            if str(path)==str(r.HELPER):raise FileNotFoundError('No devbox on CI')
+            return original(path)
+        with patch.object(Path,'read_bytes',unavailable):
+            spec=importlib.util.spec_from_file_location('portable_review_import',ROOT/'scripts/v1-native-review.py')
+            module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+            self.assertIsNone(module.resource)
+            self.assertEqual(module.duration(60),60)
+            self.assertEqual(module.payload('/api/back',{}),{})
+            self.assertIn('SYNTHETIC ONLY',module.html('local-token'))
+            with self.assertRaises(FileNotFoundError):module.get_resource()
     def test_shared_helper_is_verified_before_import(self):
         with tempfile.TemporaryDirectory() as tmp:
             path=Path(tmp)/'helper.py';path.write_text("raise AssertionError('must not execute')")
@@ -78,9 +92,10 @@ class NativeReviewTests(unittest.TestCase):
             root=Path(tmp);run_id='b'*32;directory=root/'runs'/run_id
             artifacts=directory/'artifacts';artifacts.mkdir(parents=True)
             record=dict(schema=r.SCHEMA,app=r.APP,run_id=run_id,container='c'*64,work=str(artifacts/'view'),stop_file=str(artifacts/'review-stop.json'))
-            manifest=dict(run_id=run_id,app=r.APP,repo=str(r.ROOT.resolve()),owner=r.os.getuid(),artifacts=r.resource.identity(artifacts),containers={'c'*64:dict(labels={r.resource.LABEL:run_id})})
+            helper=SimpleNamespace(identity=lambda path:[Path(path).stat().st_dev,Path(path).stat().st_ino],LABEL='io.100day.lifecycle.run')
+            manifest=dict(run_id=run_id,app=r.APP,repo=str(r.ROOT.resolve()),owner=r.os.getuid(),artifacts=helper.identity(artifacts),containers={'c'*64:dict(labels={helper.LABEL:run_id})})
             r.atomic_json(directory/'manifest.json',manifest);r.atomic_json(root/'current.json',record)
-            with patch.object(r,'MANAGED_ROOT',root):
+            with patch.object(r,'MANAGED_ROOT',root),patch.object(r,'resource',helper):
                 self.assertEqual(r.session(root/'current.json')[0],record)
                 manifest['app']='different';r.atomic_json(directory/'manifest.json',manifest)
                 with self.assertRaises(r.ContractError):r.session(root/'current.json')
