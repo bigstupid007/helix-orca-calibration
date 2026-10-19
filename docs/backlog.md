@@ -18,8 +18,8 @@ strict native-reference parity, a durable external runtime and a per-user Window
 lifecycle. Exact retained YOLO inputs pass actual Windows production parity;
 Temperature remains blocked by unexplained differences. The grouped Linux engine
 builds but currently stalls after model preparation; Windows engine packaging is
-unavailable. Full native matrix and interactive review qualification are the
-remaining evidence gates. See the [integrated Founder review](V1_FOUNDER_REVIEW.md)
+unavailable. The full native matrix passed all eleven targets and 396 frames; interactive
+review qualification and the final bounded engine diagnostic remain open. See the [integrated Founder review](V1_FOUNDER_REVIEW.md)
 for exact scope and limitations. Acceptance/merge/physical activation remain open.
 
 

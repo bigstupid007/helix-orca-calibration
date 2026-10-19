@@ -52,9 +52,9 @@ deployment grant or action-enabled adapter was created.
 The combined independent source review and correction rechecks are retained in
 [V1 combined review](V1_COMBINED_REVIEW.md). The fresh native/Windows visual
 findings and remaining small-text, scrolling and accessibility limits are in
-[AI Product Preflight](V1_PRODUCT_PREFLIGHT.md). The source-bound eleven-size
-matrix and live viewer lifecycle are separate verification gates; their exact
-final outcomes must be recorded before calling this review package complete.
+[AI Product Preflight](V1_PRODUCT_PREFLIGHT.md). The complete source-bound eleven-size matrix passed all 396 frames and verifies
+against the eleven original private ManagedRun records. The live viewer lifecycle
+remains a separate verification gate before this review package is complete.
 
 The candidate does not qualify hardware, deploy to the printer or authorize a
 new physical test. Confirm and Start remain separate; default review Start

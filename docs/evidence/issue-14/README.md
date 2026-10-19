@@ -1,34 +1,41 @@
 # Issue #14 V1 candidate evidence
 
-`native/` currently retains the historical beta.9 matrix for its exact recorded
-sources: all eleven pinned targets, all five calibration workflows, 341 frames.
-It does not qualify the current corrected candidate. Its replacement is a
-frozen 396-frame matrix; only a complete passing source-bound capture may be
-promoted. The historical report and hashes remain unchanged until that promotion. Every context,
-capability, prepared artifact, parity flag, printer status, completion proof and
-receipt in this capture is **synthetic test input**. It proves real native UI
-behavior and interaction, not generator parity, Windows operation or printing.
-No physical actions occurred. The revised matrix also verifies a separate
-request-bound Cancel confirmation: opening the dialog sends no cancel intent,
-Keep printing preserves the job, and only the second confirmation persists Cancel.
-Human-readable parameter/status copy and the original-context review are included.
-The earlier complete 308-frame capture remains retained in private state and Git history.
+`native/` is the complete, source-bound corrected beta.9 native UI matrix:
+all eleven pinned targets, all five calibration workflows, **396 frames**
+(36 per target). It includes separate Confirmed/Start views, same-job nullable
+progress, terminal evaluation visibility, explicit Return/receipt/Done,
+confirmed cancellation, logical 1×1 tile child bounds/nonoverlap and conservative
+restart recovery using actual Coordinator-derived fixtures. Native Home, Print
+Status and Controls navigation remain owned by Helix.
 
-Verify the portable source/runtime/geometry/frame/lifecycle summary bindings:
+Every context, generator capability, prepared artifact, parity flag, printer
+status, completion proof and receipt is **synthetic test input**. These captures
+prove actual pinned native UI behavior and interaction; they do not qualify
+generator parity, Windows operation or a physical print. Docker used network
+none, read-only runtime/plugin mounts and no physical action route. Historical
+308- and 341-frame captures remain retained in private state and Git history;
+failed/interrupted later captures were never promoted.
 
-```
+Verify current portable source/runtime/geometry/frame/lifecycle bindings:
+
+```sh
 python3 scripts/v1-native-evidence.py verify docs/evidence/issue-14/native
 ```
 
-The exact complete private capture and all eleven full ManagedRun records remain
-in XDG state. They were independently checked before promotion: each command
-exited zero, each exact owned container was removed, runtime_clear is true and
-no Docker baseline drift/errors were reported. The portable report retains
-sanitized limits/outcomes and full-manifest hashes, excluding private host and
-unrelated Docker inventories. Optional `--verify-managed /private/capture` checks
-those original records as well.
+The frozen native source digest is
+`e5dc3aff82501ed6f507d00e3bb34b692187c971b37a4173a13a0afdad81820a`.
+The complete private capture is retained in XDG state at
+`helix-orca-calibration/v1-native/f6198a7-full-audited-20261019`.
+All eleven ManagedRuns exited zero, removed only their exact owned container,
+reported runtime clear and had no verification errors/baseline drift. These
+full records were independently verified before promotion. The portable report
+retains sanitized limits/outcomes and full-manifest hashes; host inventories
+remain private. Optional `--verify-managed /absolute/current-private-capture`
+rechecks those same matching final private records, without bypassing source
+or frame validation.
 
-Actual Windows/native-reference and generator-parity evidence is retained
-separately while qualification proceeds. No V1 generator is qualified by these
-UI fixture screenshots. Accepted Issue #12 physical and synthetic proof remains
-unchanged in its original evidence directories.
+Actual Windows/native-reference, generator-parity and interactive browser
+lifecycle evidence are separate inventories. No generator is qualified by UI
+fixture screenshots. Accepted Issue #12 physical and synthetic proof remains
+unchanged in its original evidence directories. See the
+[integrated review guide](../../V1_FOUNDER_REVIEW.md) for proof levels and limits.

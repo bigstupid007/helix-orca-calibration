@@ -1,6 +1,7 @@
 # V1 AI Product Preflight
 
-Status: corrections integrated; final target-native recheck pending. This is an
+Status: corrections integrated and fresh compact/Windows rechecks completed;
+full eleven-target native interaction matrix passed. This is an
 independent product review, not Founder acceptance or generator qualification.
 
 A fresh-context independent Codex reviewer inspected this program's
@@ -12,17 +13,17 @@ audit inspected the actual isolated October 15 R6 companion screenshot, SHA-256
 `41446ade94b7a76531c5fd0d2790090c51145072c30f4315ac7102c479f06cc9`.
 Windows screenshots contain original profile names and remain private.
 
-| Observed issue | Integrated correction | Remaining target check |
+| Observed issue | Integrated correction | Verification |
 | --- | --- | --- |
-| Unsupported arrow glyph in compact Helix labels | Font-safe “to” labels | Fresh smallest/portrait capture |
-| Cancelled state still offered evaluation | Terminal outcome hides evaluation | Fresh cancellation frame |
-| Returned result remained an unfinished scrolled job view | Deliberate Return/manual reopen presents compact Returned / NOT APPLIED / Done overlay; ACK only updates state | Fresh returned frames and native navigation |
-| Destructive cancellation matched ordinary blue buttons | Danger cancellation and secondary Keep printing styling | Fresh smallest view |
-| Monitoring showed weak feedback and unconditional printing-unavailable copy | Independently nullable elapsed/progress; missing values explicit; redundant unavailable copy removed | Native populated/missing/invalid values; 100% still cannot unlock evaluation |
-| No explicit Start screen in the captured set | Five Confirmed frames added, one per calibration | Complete new 36-frame × eleven-size matrix |
-| Orca heading said “Ready at the printer” while status said “Waiting for Helix” | Heading and badge now follow the same phase; waiting/blocked use attention styling | Fresh native Windows candidate |
-| “Refresh profiles” could imply preset mutation | “Refresh selection” names its read-only effect | Fresh native Windows candidate |
-| Retained health could sound like a live response | “Last reported running” / “stopped” wording | Actual Windows lifecycle and companion state |
+| Unsupported arrow glyph in compact Helix labels | Font-safe “to” labels | Fresh smallest/portrait captures passed and reviewed |
+| Cancelled state still offered evaluation | Terminal outcome hides evaluation | Fresh cancellation frame passed and reviewed |
+| Returned result remained an unfinished scrolled job view | Deliberate Return/manual reopen presents compact Returned / NOT APPLIED / Done overlay; ACK only updates state | Fresh returned frames reviewed; native navigation assertions passed |
+| Destructive cancellation matched ordinary blue buttons | Danger cancellation and secondary Keep printing styling | Fresh smallest view passed and reviewed |
+| Monitoring showed weak feedback and unconditional printing-unavailable copy | Independently nullable elapsed/progress; missing values explicit; redundant unavailable copy removed | All eleven targets passed populated/missing/invalid checks and 100%-progress evaluation lock |
+| No explicit Start screen in the captured set | Five Confirmed frames added, one per calibration | Complete 36-frame × eleven-size matrix passed |
+| Orca heading said “Ready at the printer” while status said “Waiting for Helix” | Heading and badge now follow the same phase; waiting/blocked use attention styling | Fresh actual Windows R7 recheck passed |
+| “Refresh profiles” could imply preset mutation | “Refresh selection” names its read-only effect | Fresh actual Windows R7 recheck passed |
+| Retained health could sound like a live response | “Last reported running” / “stopped” wording | Actual Windows lifecycle passed; current-source native waiting view reviewed |
 
 The portrait test also exposed a test-seed grid-stamp mismatch before this final
 capture: an inherited landscape grid caused Helix to reproject the logical 1×1
@@ -59,9 +60,8 @@ qualification visible when presenting result evidence (use full frames). Narrow
 dock content needs vertical scrolling. Exact contrast, keyboard/screen-reader
 behavior, Windows scaling/high contrast and focus/scroll order remain unverified.
 Screenshots and profile identifiers remain private; their hashes and bounded
-workflow observations are recorded in the Windows inventory. Final Helix review
-still requires fresh complete native evidence after the actual smallest-layout
-scrolling correction.
+workflow observations are recorded in the Windows inventory. The corrected full Helix matrix has now passed all eleven targets and 396
+frames, including the smallest-layout scrolling correction.
 
 ## Fresh compact Helix correction recheck
 
@@ -81,6 +81,12 @@ clipping reports were preview-rendering artifacts: SHA-bound original saved PNG
 inspection by the lead and isolated rechecks showed complete headers/back
 controls, and the reviewer fully retracted both. No speculative product change
 was made. Full-frame original evidence is authoritative.
+
+The complete corrected matrix is promoted beneath
+`docs/evidence/issue-14/native` and verifies against all eleven original private
+ManagedRun records. The lead also inspected the saved phone PA Confirmed and
+tall Flow Returned frames at original resolution. These bounded visual checks
+do not claim independent visual inspection of every matrix frame.
 
 Small low-emphasis metadata and scroll discoverability remain limitations;
 keyboard, screen reader, contrast and motor accessibility are not qualified by

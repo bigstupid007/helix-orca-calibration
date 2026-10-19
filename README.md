@@ -17,8 +17,9 @@ unqualified. All five independent native Windows references pass their calibrati
 invariants. The grouped native engine has compiled and linked on Linux x86_64;
 actual calibration-generation checks are underway, and Windows native build tools
 are absent. Linux availability does not enable the Windows route.
-The prior native UI matrix contains 341 historical frames; refreshed 396-frame
-qualification follows the integrated product review corrections.
+The complete corrected native UI matrix passes all eleven sizes and 396 frames,
+with exact source/runtime/frame bindings and verified owned-runtime teardown.
+Interactive browser review and the final native-engine diagnostic remain open.
 The direct coordinator keeps physical actions disabled. Its owned-job path uses
 bounded HTTP fixtures, and actual Windows lifecycle checks are component-scoped.
 Normal Orca's 1429 settings/profile files match the pre-V1 fingerprint. No
