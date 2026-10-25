@@ -18,10 +18,12 @@ class V1NativeTests(unittest.TestCase):
         self.assertEqual(set(builder.CATALOG),set(contract.CALIBRATIONS))
         for id,defaults in contract.DEFAULTS.items():
             offered=builder.CATALOG[id]['parameters']
-            self.assertEqual(set(defaults),set(offered))
+            self.assertLessEqual(set(defaults),set(offered))
             for key,value in defaults.items():
                 rule=offered[key]
-                if rule['kind']=='number':self.assertTrue(rule['min']<=value<=rule['max'])
+                if rule['kind']=='number':
+                    self.assertGreaterEqual(value,rule['min'])
+                    if 'max' in rule:self.assertLessEqual(value,rule['max'])
                 elif rule['kind']=='choice':self.assertIn(value,rule['values'])
                 elif rule['kind']=='fixed':self.assertEqual(value,rule['value'])
                 else:self.assertIs(type(value),bool)
@@ -40,6 +42,38 @@ class V1NativeTests(unittest.TestCase):
                 self.assertNotIn(forbidden,source)
             self.assertNotIn('fixture_signal',source)
             for xml in (out/'ui').glob('*.xml'):ET.parse(xml)
+    def test_derivative_is_exactly_pinned_to_beta12(self):
+        self.assertEqual(qualifier.beta12.SOURCE_COMMIT,'00a9fe6030c37d56748b2122b41fd36de1fdf831')
+        self.assertEqual(qualifier.beta12.ACTIONS_BINARY_SHA256,'1ae6d052ec14d0148a300caaa049cb4b5ca8a5048390b9426814f48227adb04a')
+        self.assertEqual(qualifier.beta12.RELEASE_BINARY_SHA256,'3811d962d76d1d652602c5cc465fd7487db76bd1f00fceb343d10c52111a93db')
+        self.assertEqual(len(qualifier.beta12.SUBMODULES),14)
+        self.assertNotEqual(qualifier.beta12.ACTIONS_BINARY_SHA256,qualifier.beta12.RELEASE_BINARY_SHA256)
+        with tempfile.TemporaryDirectory() as d:
+            out=Path(d)/'orcacal';builder.generate(out)
+            manifest=json.loads((out/'manifest.json').read_text())
+            generated=json.loads((out/'.helix-orca-v1-generated.json').read_text())
+            self.assertEqual(manifest['helix_version'],'>=1.1.0-beta.12')
+            self.assertEqual(manifest['version'],'1.1.0-v1-beta12')
+            self.assertEqual(generated['helix_source_commit'],qualifier.beta12.SOURCE_COMMIT)
+            self.assertEqual(generated['native_adapter_schema'],'helix-orca-v1-native-adapter/v2')
+    def test_v2_adapter_is_parallel_to_legacy_wire_objects(self):
+        source=(ROOT/'integration/v1-native/main.lua').read_text()
+        for schema in ('helix-orca-v1-request/v2','helix-orca-v1-prepared/v2','helix-orca-v1-result/v2',
+                       'helix-orca-v1-native-warning-decision/v2','helix-orca-v1-application-retry/v2'):
+            self.assertIn(schema,source)
+        self.assertIn("v1_exact(p.generator,'source_commit route executable_sha256 qualification_sha256')",source)
+        self.assertIn("v1_exact(p.processing,'error_code warnings status')",source)
+        self.assertIn("d.dirty~=true or d.unsaved~=true",source)
+        self.assertIn("application.state='failed'",source)
+        self.assertIn("helix.moonraker.on_agent_event('helix_orca_v1.warning.v2'",source)
+        self.assertIn('warning_sha256=warning.warning_sha256',source)
+        self.assertNotIn('acknowledged_at=0',source)
+        self.assertIn('v1_session.application_retry=nil',source)
+        self.assertIn('if not v1_text(transaction_id,128) then transaction_id=d.application_sha256 end',source)
+        cancel=source[source.index("if action=='cancel' then",source.index('local function v1_warning_decision')):
+                      source.index("warning.decision=",source.index('local function v1_warning_decision'))]
+        self.assertIn("v1_intent('cancel')",cancel)
+        self.assertNotIn('warning.decision=',cancel)
     def test_refuses_overwrite_symlink_and_repository_destinations(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);out=root/'orcacal';out.mkdir();(out/'keep').write_text('preserved')
@@ -52,9 +86,14 @@ class V1NativeTests(unittest.TestCase):
         for path in (ROOT/'integration/v1-native/ui').glob('*.xml'):
             doc=ET.parse(path);view=doc.find('view')
             if path.name.endswith('__tile.xml'):continue
-            self.assertEqual(view.attrib['extends'],'overlay_panel')
-            content=view.find('lv_obj');self.assertEqual(content.attrib['scrollable'],'true')
-            self.assertEqual(content.attrib['width'],'100%')
+            if path.name in ('orcacal__v1_result_picker.xml','orcacal__v1_warning.xml'):
+                self.assertEqual(view.attrib['extends'],'ui_dialog')
+                self.assertIsNotNone(view.find('modal_header'))
+                self.assertIsNotNone(view.find('modal_button_row'))
+            else:
+                self.assertEqual(view.attrib['extends'],'overlay_panel')
+                content=view.find('lv_obj');self.assertEqual(content.attrib['scrollable'],'true')
+                self.assertEqual(content.attrib['width'],'100%')
             for node in doc.iter():
                 if node.tag=='event_cb':self.assertEqual(node.attrib['callback'],'plugin_event')
                 self.assertNotIn('on_header_back_clicked',node.attrib.values())
@@ -72,7 +111,7 @@ class V1NativeTests(unittest.TestCase):
             template.parent.mkdir(parents=True)
             template.write_text(json.dumps({'plugins':{},'printers':{},'dark_mode':False}))
             config=Path(name)/'config'
-            with patch.object(qualifier.q.beta9,'cache_root',return_value=cache):
+            with patch.object(qualifier.beta12,'cache_root',return_value=cache):
                 qualifier.settings(config)
             widgets=json.loads((config/'settings-test.json').read_text())['printers']['default']['panel_widgets']['home']['pages'][0]['widgets']
             home=json.loads((config/'settings-test.json').read_text())['printers']['default']['panel_widgets']['home']
@@ -95,21 +134,22 @@ class V1NativeTests(unittest.TestCase):
         self.assertEqual(doc.findall('.//lv_dropdown'),[])
         labels=' '.join(node.attrib.get('text','') for node in doc.iter())
         self.assertIn('Recommended',labels);self.assertIn('Perfectionist',labels);self.assertIn('Archimedean Chords',labels)
-        self.assertEqual(builder.CATALOG['flow_ratio_yolo']['parameters'],{'pass':{'kind':'choice','values':[1,2]}})
-    def test_automatic_view_preserves_original_bindings_and_return_callbacks(self):
+        self.assertEqual(builder.CATALOG['flow_ratio_yolo']['parameters']['pass'],{'kind':'choice','values':[1,2]})
+        self.assertEqual(builder.CATALOG['flow_ratio_yolo']['parameters']['pattern'],
+                         {'kind':'choice','values':['archimedean_chords','monotonic']})
+    def test_beta12_result_picker_is_a_distinct_queued_native_dialog(self):
         with tempfile.TemporaryDirectory() as name:
             output=Path(name)/'plugin';builder.generate(output)
-            manual=ET.parse(output/'ui/orcacal__v1_job.xml').getroot()
-            automatic=ET.parse(output/'ui/orcacal__v1_auto_result.xml').getroot()
-            self.assertNotEqual(manual.find('view').attrib['name'],automatic.find('view').attrib['name'])
-            for left,right in zip(manual.iter(),automatic.iter()):
-                self.assertEqual(left.tag,right.tag)
-                self.assertEqual({k:v for k,v in left.attrib.items() if k!='name'},
-                                 {k:v for k,v in right.attrib.items() if k!='name'})
-            self.assertEqual(len(list(manual.iter())),len(list(automatic.iter())))
-            auto_names={n.attrib['name'] for n in automatic.iter() if 'name' in n.attrib}
-            self.assertIn('orcacal__v1_auto_evaluation',auto_names)
-            self.assertIn('orcacal__v1_auto_return',auto_names)
+            picker=ET.parse(output/'ui/orcacal__v1_result_picker.xml').getroot()
+            view=picker.find('view');self.assertEqual(view.attrib['extends'],'ui_dialog')
+            self.assertIsNotNone(view.find('modal_header'))
+            row=view.find('modal_button_row')
+            self.assertEqual(row.attrib['primary_user_data'],'orcacal__v1_return')
+            self.assertEqual(row.attrib['secondary_user_data'],'orcacal__v1_result_later')
+            source=(output/'main.lua').read_text()
+            self.assertIn("helix.ui.dialog('orcacal__v1_result_picker'",source)
+            self.assertIn("schema='helix-orca-v1-presentation-claim/v2'",source)
+            self.assertNotIn('orcacal__v1_auto_result',source)
 
     def test_recovery_fixtures_use_real_coordinator_transitions_and_durable_republish(self):
         cases=qualifier.recovery_fixtures()
@@ -167,9 +207,9 @@ class V1NativeTests(unittest.TestCase):
             node=next(n for n in content if n.attrib.get('name')=='orcacal__v1_'+key)
             self.assertEqual(node.find('bind_flag_if_eq').attrib,dict(subject='orcacal__v1_evaluate_on',flag='hidden',ref_value='0'))
         self.assertNotIn('Printing is unavailable',ET.tostring(doc.getroot(),encoding='unicode'))
-        cancel=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_cancel_confirm.xml')
-        colors={n.attrib['name']:n.attrib['style_bg_color'] for n in cancel.iter('lv_button')}
-        self.assertEqual(colors,dict(orcacal__v1_cancel_keep='#secondary',orcacal__v1_cancel_yes='#danger'))
+        source=(ROOT/'integration/v1-native/main.lua').read_text()
+        self.assertIn("pcall(helix.ui.confirm,'Cancel this calibration print?'",source)
+        self.assertIn("severity='warning',confirm_text='Cancel print'",source)
     def test_monitor_and_result_view_have_no_new_action_authority_or_ack_popup(self):
         source=(ROOT/'integration/v1-native/main.lua').read_text()
         self.assertNotIn('→',source)

@@ -101,7 +101,7 @@ def _pointer_send(work,events,attempt=lambda *_:None,ack=lambda *_:None):
     finally:os.close(directory)
 
 def pointer(work,events):
-    # A socket disconnect does not release beta.9's process-wide pointer state.
+    # A socket disconnect does not release beta.12's process-wide pointer state.
     state=dict(held=False,x=0,y=0)
     def attempted(method,x,y):
         state.update(x=x,y=y)
@@ -138,9 +138,11 @@ helix.subject.string('v1_review_delivery',''):observe(function(raw)
  if frame.index~=frame.total then return end
  local decoded,value=pcall(helix.json.decode,table.concat(review_frames.parts));review_frames={id=nil,next=1,total=0,parts={}}
  if not decoded or type(value)~='table' then return end
- if value.event=='helix_orca_v1.context.v1' then v1_receive_offer('offline-review',value.data)
- elseif value.event=='helix_orca_v1.status.v1' then v1_receive_status('offline-review',value.data)
- elseif value.event=='helix_orca_v1.ack.v1' then v1_receive_ack('offline-review',value.data) end
+ if value.event=='helix_orca_v1.context.v1' or value.event=='helix_orca_v1.context.v2' then v1_receive_offer('offline-review',value.data)
+ elseif value.event=='helix_orca_v1.status.v1' or value.event=='helix_orca_v1.status.v2' then v1_receive_status('offline-review',value.data)
+ elseif value.event=='helix_orca_v1.ack.v1' or value.event=='helix_orca_v1.ack.v2' then v1_receive_ack('offline-review',value.data)
+ elseif value.event=='helix_orca_v1.warning.v2' then v1_receive_warning_v2('offline-review',value.data)
+ elseif value.event=='helix_orca_v1.application.v2' then v1_receive_application_v2('offline-review',value.data) end
 end)
 """)
     return root
@@ -153,7 +155,7 @@ def deliver(container,event,data):
     identity=secrets.token_hex(16)
     for index,part in enumerate(parts,1):
         frame=json.dumps(dict(id=identity,index=index,total=len(parts),part=part),separators=(',',':'))
-        require(len(frame.encode())<1023,'Review fragment exceeds beta.9 subject capacity')
+        require(len(frame.encode())<1023,'Review fragment exceeds beta.12 subject capacity')
         q.ctl(container,'set','orcacal__v1_review_delivery',frame)
 
 
@@ -185,12 +187,13 @@ class CoordinatorReview:
         atomic_json(self.channel.directory/'native.json',saved)
         transport_native=read_json(self.channel.directory/'native.json')
         self.tick(self.runtime,self.storage,self.channel)
-        for event in ('context','status','ack'):
+        for event in ('context','status','warning','application','ack'):
             path=self.channel.directory/(event+'.json')
             if not path.exists():continue
             data=read_json(path);fingerprint=digest(data)
             if self.delivered.get(event)==fingerprint:continue
-            deliver(self.container,'helix_orca_v1.'+event+'.v1',data)
+            version='.v2' if data.get('schema','').endswith('/v2') else '.v1'
+            deliver(self.container,'helix_orca_v1.'+event+version,data)
             self.delivered[event]=fingerprint
         state=self.runtime.state;request=state.get('request')
         # tick archives terminal requests before offering a fresh nonce. Bind the
@@ -259,7 +262,7 @@ def serve(record_path,seconds):
             and os.environ.get('RUN_ARTIFACTS')==str(work.parent),'Only the active managed owner may serve')
     require(record['sources']==sources(),'Review sources changed')
     require(q.q.file_hashes(Path(record['fixture_root'])/'orcacal')==record['fixture_files'],'Review fixture changed')
-    q.q.beta9.configure_accepted_harness();a=q.a
+    q.configure_harness();a=q.a
     a.CONTAINER=container;a.state_root=lambda:work
     q.q.wait_ready(container)
     version=digest(record['sources']);token=secrets.token_hex(32);document=html(token)
@@ -333,7 +336,7 @@ def launch(seconds,context=None):
     resource=get_resource()
     seconds=duration(seconds);before=sources()
     resource.private_dir(CURRENT.parent)
-    q.q.beta9.verify_cache();q.q.beta9.configure_accepted_harness();a=q.a
+    q.beta12.verify_cache();q.configure_harness();a=q.a
     cache=q.builder.default_output().parent;cache.mkdir(parents=True,exist_ok=True)
     plugins=transport_fixture(cache/('review-fixture-'+uuid.uuid4().hex));fixture_files=q.q.file_hashes(plugins/'orcacal')
     a.PLUGIN_ROOT=plugins

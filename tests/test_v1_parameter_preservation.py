@@ -33,13 +33,18 @@ class ParameterPreservationTests(unittest.TestCase):
         paths, _ = preserve.current_equivalence_paths(self.report)
         self.copy(destination, [*paths, "scripts/v1-windows-parameter-operator.cjs"])
 
-    def test_current_generator_only_candidate_retains_control_boundary(self):
+    def test_accepted_parameter_proof_remains_historical_after_beta12_amendment(self):
         self.assertNotEqual(
             preserve.sha(ROOT / "integration/v1_engine.py"),
             self.report["sources"]["integration/v1_engine.py"],
         )
-        preserve.verify_current_equivalence(ROOT, self.report)
-        preserve.verify(ROOT)
+        # The Founder amendment deliberately changes the native controls and
+        # wire boundary. Keep the accepted beta.9 proof immutable, but never
+        # relabel it as qualification of this beta.12 candidate.
+        with self.assertRaisesRegex(ValueError, "native UI/catalog inventory changed"):
+            preserve.verify_current_equivalence(ROOT, self.report)
+        preserve.verify_historical_matrix(ROOT, self.report)
+        preserve.verify_accepted_semantics(self.report, self.operator, self.parity)
 
     def test_any_accepted_blob_change_is_rejected(self):
         with tempfile.TemporaryDirectory() as raw:

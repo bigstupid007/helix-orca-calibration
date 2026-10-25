@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component>
+  <api>
+    <prop name="evaluation_options" type="string" default="Unavailable" />
+  </api>
+  <consts>
+    <px name="orcacal__v1_pick_w_small" value="200" />
+    <px name="orcacal__v1_pick_w_medium" value="260" />
+    <px name="orcacal__v1_pick_w_large" value="320" />
+  </consts>
+  <view name="orcacal__v1_result_picker" extends="ui_dialog" width="content" height="content" align="center" flex_flow="column" style_pad_gap="0">
+    <modal_header title="Which result is best?" icon_name="orcacal__v1_pick_icon" title_name="orcacal__v1_pick_title" close_name="orcacal__v1_pick_close" />
+    <lv_obj name="orcacal__v1_pick_body" width="content" height="content" flex_flow="column" style_pad_all="#space_lg" style_pad_gap="#space_sm" style_bg_opa="0" style_border_width="0" scrollable="false">
+      <text_small width="100%" bind_text="orcacal__v1_calibration" style_text_color="#text_muted" />
+      <text_small width="100%" text="Choose the observed sample. Orca will show the preset change before you save it." long_mode="wrap" />
+      <lv_dropdown name="orcacal__v1_pick" width="#orcacal__v1_pick_w" options="$evaluation_options" bind_value="orcacal__v1_evaluation_idx" />
+    </lv_obj>
+    <modal_button_row primary_text="Use in Orca" primary_callback="plugin_event" primary_user_data="orcacal__v1_return"
+                      secondary_text="Later" secondary_callback="plugin_event" secondary_user_data="orcacal__v1_result_later"
+                      primary_name="orcacal__v1_pick_use" secondary_name="orcacal__v1_pick_later"
+                      tertiary_name="orcacal__v1_pick_t" quaternary_name="orcacal__v1_pick_q"
+                      tertiary_divider_name="orcacal__v1_pick_dt" quaternary_divider_name="orcacal__v1_pick_dq" />
+  </view>
+</component>

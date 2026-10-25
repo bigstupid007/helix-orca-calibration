@@ -50,7 +50,12 @@
       <lv_button name="orcacal__v1_return" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
         <bind_flag_if_eq subject="orcacal__v1_evaluate_on" flag="hidden" ref_value="0" />
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_return" />
-        <lv_label width="100%" text="Return result to Orca" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+        <lv_label width="100%" text="Use result in Orca" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+      </lv_button>
+      <lv_button name="orcacal__v1_warning_reopen" width="100%" height="#button_height" style_bg_color="#warning" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <bind_flag_if_eq subject="orcacal__v1_warning_on" flag="hidden" ref_value="0" />
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_warning_reopen" />
+        <lv_label width="100%" text="Review Orca warning" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" />
       </lv_button>
       <text_small width="100%" bind_text="orcacal__v1_returned" long_mode="wrap" name="orcacal__v1_returned_status" />
     </lv_obj>

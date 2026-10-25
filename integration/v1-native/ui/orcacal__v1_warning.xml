@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component>
+  <view name="orcacal__v1_warning" extends="ui_dialog" width="content" height="content" align="center" flex_flow="column" style_pad_gap="0">
+    <modal_header title="Orca warning" icon_name="orcacal__v1_warning_icon" title_name="orcacal__v1_warning_title" close_name="orcacal__v1_warning_close" />
+    <lv_obj name="orcacal__v1_warning_body" width="320" height="content" flex_flow="column" style_pad_all="#space_lg" style_pad_gap="#space_sm" style_bg_opa="0" style_border_width="0" scrollable="false">
+      <text_body width="100%" bind_text="orcacal__v1_warning_heading" long_mode="wrap" />
+      <text_small width="100%" bind_text="orcacal__v1_warning_message" long_mode="wrap" />
+      <text_xs width="100%" text="Continuing asks Orca to proceed with this exact warning. It does not start a print." long_mode="wrap" />
+    </lv_obj>
+    <modal_button_row primary_text="Continue" primary_callback="plugin_event" primary_user_data="orcacal__v1_warning_continue"
+                      secondary_text="Cancel" secondary_callback="plugin_event" secondary_user_data="orcacal__v1_warning_cancel"
+                      primary_name="orcacal__v1_warning_continue" secondary_name="orcacal__v1_warning_cancel"
+                      tertiary_name="orcacal__v1_warning_t" quaternary_name="orcacal__v1_warning_q"
+                      tertiary_divider_name="orcacal__v1_warning_dt" quaternary_divider_name="orcacal__v1_warning_dq" />
+  </view>
+</component>

@@ -5,11 +5,17 @@
       <text_heading name="orcacal__v1_result_heading" width="100%" bind_text="orcacal__v1_result_heading" long_mode="wrap" />
       <text_body name="orcacal__v1_result_summary" width="100%" bind_text="orcacal__v1_returned" long_mode="wrap" />
       <text_small width="100%" bind_text="orcacal__v1_result_note" long_mode="wrap" />
+      <text_small name="orcacal__v1_application_note" width="100%" bind_text="orcacal__v1_application_note" long_mode="wrap" />
+      <lv_button name="orcacal__v1_application_retry" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <bind_flag_if_eq subject="orcacal__v1_retry_on" flag="hidden" ref_value="0" />
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_application_retry" />
+        <lv_label width="100%" text="Retry in Orca" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
+      </lv_button>
       <lv_button name="orcacal__v1_result_done" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_result_close" />
         <lv_label width="100%" text="Done" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text_on_primary" />
       </lv_button>
-      <text_small width="100%" text="Original profiles preserved" long_mode="wrap" />
+      <text_small width="100%" text="Orca owns this preset transaction. Save there only after reviewing it." long_mode="wrap" />
       <text_small width="100%" bind_text="orcacal__v1_printer" long_mode="wrap" />
       <text_small width="100%" bind_text="orcacal__v1_profiles" long_mode="wrap" />
     </lv_obj>

@@ -14,7 +14,7 @@ def load():
     spec=importlib.util.spec_from_file_location('portable_v1_native_capture',ROOT/'scripts/v1-native-qualify.py')
     module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=module;spec.loader.exec_module(module);return module
 q=load()
-SCHEMA='helix-orca-v1-native-portable-evidence/v1'
+SCHEMA='helix-orca-v1-native-portable-evidence/v2'
 HEX32=re.compile(r'[a-f0-9]{32}')
 HEX64=re.compile(r'[a-f0-9]{64}')
 FRAMES=q.FRAMES
@@ -57,12 +57,14 @@ def check_summary(item):
 def verify_content(root,report):
     require(report['sources']==q.hashes(),'Captured native sources differ from candidate')
     require(report['synthetic_only'] is True and type(report['physical_actions']) is int and report['physical_actions']==0 and report['container_network']=='none','Isolation claim differs')
-    require(report['synthetic_inputs']==['context','generator availability','prepared artifact','parity','print status','completion proof','receipt'],'Synthetic fixture disclosure differs')
-    beta=q.q.beta9
-    pins={'tag':beta.TAG,'source_commit':beta.SOURCE_COMMIT,'tag_object':beta.TAG_OBJECT,'artifact_id':beta.ARTIFACT_ID,
-          'artifact_name':beta.ARTIFACT_NAME,'build_run':beta.BUILD_RUN,'binary_sha256':beta.ARTIFACT_BINARY_SHA256,
-          'artifact_archive_sha256':beta.ARTIFACT_ARCHIVE_SHA256,'release_sha256':beta.RELEASE_SHA256}
+    require(report['synthetic_inputs']==['context','generator availability','prepared artifact','build qualification','processor warning','print status','completion proof','result application','receipt'],'Synthetic fixture disclosure differs')
+    beta=q.beta12
+    pins={'tag':beta.TAG,'source_commit':beta.SOURCE_COMMIT,'tag_object':beta.TAG_OBJECT,
+          'release_asset_id':beta.RELEASE_ASSET_ID,'release_name':beta.RELEASE_NAME,
+          'release_sha256':beta.RELEASE_SHA256,
+          'release_binary_sha256':beta.RELEASE_BINARY_SHA256}
     for key,value in pins.items():require(report['runtime'][key]==value,'Pinned native runtime differs: '+key)
+    beta.validate_metadata(report['runtime'])
     expected=[]
     for label,w,h,layout,dpi in q.a.VIEWPORTS:
         expected.append(dict(label=label,viewport=f'{w}x{h}',layout=layout,dpi=dpi,result='PASS',calibrations=list(q.contract.CALIBRATIONS),assertions=q.ASSERTIONS))
@@ -77,7 +79,7 @@ def verify_content(root,report):
 
 def build(capture,output):
     original=read(capture/'report.json')
-    require(original['schema']=='helix-orca-v1-native-evidence/v1','Not a native capture report')
+    require(original['schema']=='helix-orca-v1-native-evidence/v2','Not a beta.12 native capture report')
     verify_content(capture,original)
     require(len(original['managed_runs'])==11,'Incomplete private lifecycle proof')
     summaries=[lifecycle_summary(item,original['sources']) for item in original['managed_runs']]
@@ -92,7 +94,7 @@ def build(capture,output):
 
 def verify(root,private_capture=None):
     report=read(root/'report.json')
-    require(report['schema']==SCHEMA and report['capture_schema']=='helix-orca-v1-native-evidence/v1','Unknown portable evidence schema')
+    require(report['schema']==SCHEMA and report['capture_schema']=='helix-orca-v1-native-evidence/v2','Unknown portable evidence schema')
     require(HEX64.fullmatch(report['capture_report_sha256']) and report['verifier_sha256']==file_hash(__file__),'Portable verifier/provenance differs')
     verify_content(root,report)
     require(len(report['managed_runs'])==11 and len({i['run_id'] for i in report['managed_runs']})==11,'Incomplete lifecycle summaries')
@@ -102,7 +104,7 @@ def verify(root,private_capture=None):
         require(file_hash(private_capture/'report.json')==report['capture_report_sha256'],'Private capture report differs')
         expected=[lifecycle_summary(i,original['sources']) for i in original['managed_runs']]
         require(expected==report['managed_runs'],'Private lifecycle records differ')
-    print('PASS: portable source-bound synthetic native matrix (11 targets, 5 calibrations, 396 frames)'+('; private lifecycle records verified' if private_capture else '; private inventories not required'))
+    print('PASS: portable source-bound synthetic beta.12 native matrix (11 targets, 5 calibrations)'+('; private lifecycle records verified' if private_capture else '; private inventories not required'))
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('op',choices=['build','verify']);p.add_argument('root',type=Path);p.add_argument('--output',type=Path);p.add_argument('--verify-managed',type=Path);x=p.parse_args()

@@ -6,7 +6,6 @@ import hashlib
 import importlib.util
 import json
 import os
-import re
 from pathlib import Path
 import shutil
 import sys
@@ -20,6 +19,8 @@ ORDER = ('temperature','flow_ratio_yolo','pressure_advance_pattern','retraction'
 CATALOG = json.loads((SOURCE / 'catalog.json').read_text())
 ACCEPTED_TILE = ROOT/'integration/temperature-print/ui/orcacal__tile.xml'
 ACCEPTED_TILE_SHA256 = '821b112f6ba3e3fe334caf8bbe83ac41a76c731b1f4f19fa8e07f510a9c10b61'
+HELIX_TAG = 'v1.1.0-beta.12'
+HELIX_SOURCE_COMMIT = '00a9fe6030c37d56748b2122b41fd36de1fdf831'
 
 def hash_file(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -31,12 +32,23 @@ def load_base():
     return module
 
 def generate(output: Path):
-    # Fail the build rather than silently publishing controls with different limits.
-    for ident,bounds in PARAMETER_LIMITS.items():
+    # Temperature is bounded by Orca. Current PA/Retraction/MVS dialogs have
+    # lower/order constraints but no product maximum; do not silently reapply
+    # historical V1 resource maxima to current V2 controls.
+    exact_numbers={
+        'temperature':{'start':(160,500),'end':(155,495)},
+        'pressure_advance_pattern':{'start':(0,None),'end':(0,None),'step':(.001,None)},
+        'retraction':{'start':(0,None),'end':(0,None),'step':(.001,None)},
+        'max_volumetric_speed':{'start':(.01,None),'end':(.01,None),'step':(.001,None)},
+    }
+    for ident,bounds in exact_numbers.items():
         for key,(minimum,maximum) in bounds.items():
             rule=CATALOG[ident]['parameters'][key]
-            if rule.get('kind')!='number' or (rule.get('min'),rule.get('max'))!=(minimum,maximum):
-                raise ValueError('Native control limits differ from shared contract')
+            if rule.get('kind')!='number' or rule.get('min')!=minimum or rule.get('max')!=maximum:
+                raise ValueError('Native control domain differs from pinned Orca')
+    for key in ('accelerations','speeds'):
+        if CATALOG['pressure_advance_pattern']['parameters'][key] != {'kind':'positive_int_list','max_items':64}:
+            raise ValueError('Native PA list domain differs from pinned Orca')
     for ident,defaults in DEFAULTS.items():validate_parameters(ident,defaults)
     base = load_base()
     baseline = base.verify_baseline()
@@ -62,18 +74,12 @@ def generate(output: Path):
     (output/'main.lua').write_text(main)
     for path in (SOURCE/'ui').glob('*.xml'):
         shutil.copyfile(path, output/'ui'/path.name)
-    # The accepted beta.9 pattern uses a distinct overlay identity: a buried
-    # manual view must not turn automatic presentation into the host's no-op.
-    automatic = re.sub(r'name="orcacal__v1_', 'name="orcacal__v1_auto_',
-                       (SOURCE/'ui/orcacal__v1_job.xml').read_text())
-    automatic = automatic.replace('name="orcacal__v1_auto_job"', 'name="orcacal__v1_auto_result"')
-    (output/'ui/orcacal__v1_auto_result.xml').write_text(automatic)
     manifest = json.loads((base.BASE/'manifest.json').read_text())
-    manifest.update(version='1.0.0-v1-candidate', helix_version='>=1.1.0-beta.9', permissions=['storage'],
-                    description='Native V1 calibration workflow; no physical action adapter enabled.')
+    manifest.update(version='1.1.0-v1-beta12', helix_version='>=1.1.0-beta.12', permissions=['storage'],
+                    description='Native V1 calibration workflow for beta.12 queued dialogs; coordinator owns physical actions.')
     manifest['widgets'][0].update(colspan=1, rowspan=1)
     (output/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-    (output/'.helix-orca-v1-generated.json').write_text(json.dumps({'schema':'helix-orca-v1-native-generated/v1','accepted_baseline':baseline,'accepted_compact_tile_sha256':ACCEPTED_TILE_SHA256,'physical_adapter_enabled':False},indent=2)+'\n')
+    (output/'.helix-orca-v1-generated.json').write_text(json.dumps({'schema':'helix-orca-v1-native-generated/v2','accepted_baseline':baseline,'accepted_compact_tile_sha256':ACCEPTED_TILE_SHA256,'helix_tag':HELIX_TAG,'helix_source_commit':HELIX_SOURCE_COMMIT,'native_adapter_schema':'helix-orca-v1-native-adapter/v2','physical_adapter_enabled':False},indent=2)+'\n')
     return {str(p.relative_to(output)):hash_file(p) for p in sorted(output.rglob('*')) if p.is_file()}
 
 def default_output():

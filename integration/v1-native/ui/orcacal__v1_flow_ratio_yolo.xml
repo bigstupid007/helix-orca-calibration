@@ -22,6 +22,16 @@
         <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Perfectionist" />
       </lv_button>
       <text_small width="100%" long_mode="wrap" bind_text="orcacal__v1_flow_samples" />
+      <text_small width="100%" long_mode="wrap" text="Orca surface pattern" />
+      <text_body width="100%" long_mode="wrap" bind_text="orcacal__v1_flow_ratio_yolo_pattern_value" />
+      <lv_button name="orcacal__v1_flow_archimedean" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_flow_pattern:archimedean_chords" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Archimedean Chords" />
+      </lv_button>
+      <lv_button name="orcacal__v1_flow_monotonic" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_flow_pattern:monotonic" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" text="Monotonic" />
+      </lv_button>
       <text_small width="100%" text="Preparation does not start a print. Review the prepared job before confirming." long_mode="wrap" />
       <lv_button name="orcacal__v1_generate_flow_ratio_yolo" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_generate:flow_ratio_yolo" />

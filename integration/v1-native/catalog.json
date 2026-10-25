@@ -36,7 +36,7 @@
   "flow_ratio_yolo": {
     "name": "Flow Ratio",
     "kind": "YOLO",
-    "help": "Uses Orca's Archimedean Chords surface pattern. Compare the printed patches and choose the smoothest surface after successful completion.",
+    "help": "Uses an Orca-native Flow Ratio surface pattern. Compare the printed patches and choose the smoothest surface after successful completion.",
     "parameters": {
       "pass": {
         "kind": "choice",
@@ -44,10 +44,18 @@
           1,
           2
         ]
+      },
+      "pattern": {
+        "kind": "choice",
+        "values": [
+          "archimedean_chords",
+          "monotonic"
+        ]
       }
     },
     "labels": {
-      "pass": "YOLO pass"
+      "pass": "YOLO pass",
+      "pattern": "Surface pattern"
     }
   },
   "pressure_advance_pattern": {
@@ -57,24 +65,31 @@
     "parameters": {
       "start": {
         "kind": "number",
-        "min": 0,
-        "max": 5
+        "min": 0
       },
       "end": {
         "kind": "number",
-        "min": 0,
-        "max": 5
+        "min": 0
       },
       "step": {
         "kind": "number",
-        "min": 0.001,
-        "max": 5
+        "min": 0.001
+      },
+      "accelerations": {
+        "kind": "positive_int_list",
+        "max_items": 64
+      },
+      "speeds": {
+        "kind": "positive_int_list",
+        "max_items": 64
       }
     },
     "labels": {
       "start": "Starting PA",
       "end": "Ending PA",
-      "step": "PA increment"
+      "step": "PA increment",
+      "accelerations": "Printing accelerations (comma-separated)",
+      "speeds": "Printing speeds (comma-separated)"
     }
   },
   "retraction": {
@@ -84,18 +99,15 @@
     "parameters": {
       "start": {
         "kind": "number",
-        "min": 0,
-        "max": 20
+        "min": 0
       },
       "end": {
         "kind": "number",
-        "min": 0,
-        "max": 20
+        "min": 0
       },
       "step": {
         "kind": "number",
-        "min": 0.001,
-        "max": 20
+        "min": 0.001
       }
     },
     "labels": {
@@ -111,18 +123,15 @@
     "parameters": {
       "start": {
         "kind": "number",
-        "min": 0.01,
-        "max": 200
+        "min": 0.01
       },
       "end": {
         "kind": "number",
-        "min": 0.01,
-        "max": 200
+        "min": 0.01
       },
       "step": {
         "kind": "number",
-        "min": 0.001,
-        "max": 200
+        "min": 0.001
       }
     },
     "labels": {

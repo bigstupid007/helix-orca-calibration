@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Source-bound synthetic V1 beta.9 matrix. No hardware or generator parity claims."""
+"""Source-bound synthetic V1 beta.12 matrix. No hardware or generator parity claims."""
 from __future__ import annotations
 import argparse
 import copy
@@ -22,12 +22,26 @@ def load(name,path):
     s=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(s);sys.modules[name]=m;s.loader.exec_module(m);return m
 q=load('v1_native_q',ROOT/'scripts/temperature-communication-qualify.py')
 a=q.accepted
+beta12=load('v1_native_beta12',ROOT/'scripts/helix-beta12-qualify.py')
 builder=load('v1_native_builder',ROOT/'scripts/v1-native-plugin.py')
 contract=load('v1_native_contract',ROOT/'integration/v1_contract.py')
-ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block','native-two-step-owned-job-cancellation','logical-one-cell-home-tile-child-bounds-and-nonoverlap','verified-result-automatic-home-print-status-controls','automatic-dismiss-preserves-native-page-and-does-not-repeat','automatic-result-uses-original-return-handler','conservative-restart-and-lost-claim-manual-recovery','actual-coordinator-republishes-review-confirmed-complete-after-native-restart','same-job-progress-is-read-only-and-nullable','terminal-outcomes-hide-evaluation','explicit-return-shows-readable-result-with-manual-dismiss','next-offer-display-is-distinct-from-immutable-job-context']
-FRAMES={'home.png','chooser.png','blocked.png','cancel-confirm.png','cancel-kept.png','cancelled.png'}|{id+'-'+phase+'.png' for id in contract.CALIBRATIONS for phase in ('configure','review','confirmed','monitor','evaluate','returned')}
+def configure_harness():
+    """Bind the qualifier's accepted harness instance to the beta.12 cache."""
+    beta12.configure_accepted_harness()
+    root=beta12.cache_root()
+    # temperature-communication-qualify and the beta.12 adapter load separate
+    # module instances.  Bind this qualifier's instance explicitly so image
+    # labels/manifests cannot retain the historical beta.4 provenance while
+    # executing a beta.12 binary.
+    a.HELIX_SOURCE_COMMIT=beta12.SOURCE_COMMIT
+    a.DOCKERFILE=beta12.RUNTIME_DOCKERFILE
+    a.IMAGE=beta12.RUNTIME_IMAGE
+    a.binary_path=lambda:root/'binary/helix-screen'
+    a.runtime_path=lambda:root/'runtime/helixscreen'
+ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','beta12-native-number-editor-and-precise-fallback','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block','beta12-queued-owned-job-cancellation','logical-one-cell-home-tile-child-bounds-and-nonoverlap','verified-result-automatic-all-five-calibrations','automatic-dismiss-preserves-native-page-and-does-not-repeat','beta12-dialog-result-uses-original-return-handler','conservative-restart-and-lost-claim-manual-recovery','actual-coordinator-republishes-review-confirmed-complete-after-native-restart','same-job-progress-is-read-only-and-nullable','terminal-outcomes-hide-evaluation','application-pending-success-failure-retry-states','next-offer-display-is-distinct-from-immutable-job-context']
+FRAMES={'home.png','chooser.png','blocked.png','warning.png','application-failed.png','application-applied.png','cancel-confirm.png','cancel-kept.png','cancelled.png'}|{id+'-'+phase+'.png' for id in contract.CALIBRATIONS for phase in ('configure','review','confirmed','monitor','evaluate','returned')}
 def hashes():
-    paths=[ROOT/'scripts/v1-native-plugin.py',ROOT/'scripts/v1-native-qualify.py',ROOT/'integration/v1_contract.py',ROOT/'integration/v1_runtime.py',ROOT/'scripts/temperature-communication-plugin.py',ROOT/'scripts/temperature-communication-qualify.py',ROOT/'scripts/helix-beta9-qualify.py',ROOT/'scripts/helix_dev.py',builder.ACCEPTED_TILE]+list((ROOT/'integration/v1-native').rglob('*'))
+    paths=[ROOT/'scripts/v1-native-plugin.py',ROOT/'scripts/v1-native-qualify.py',ROOT/'integration/v1_contract.py',ROOT/'integration/v1_runtime.py',ROOT/'scripts/temperature-communication-plugin.py',ROOT/'scripts/temperature-communication-qualify.py',ROOT/'scripts/helix-beta12-qualify.py',ROOT/'scripts/helix-beta9-qualify.py',ROOT/'scripts/helix_dev.py',builder.ACCEPTED_TILE]+list((ROOT/'integration/v1-native').rglob('*'))
     return {str(p.relative_to(ROOT)):q.sha256(p) for p in sorted(paths) if p.is_file()}
 def require(value,message):
     if not value:raise ValueError(message)
@@ -207,6 +221,28 @@ fixture_signal:observe(function(value)
  elseif code==11 then v1_receive_status('fixture',fixture_status('cancelled'))
  elseif code==14 then v1_receive_status('fixture',fixture_status('failed'))
  elseif code==15 then fixture_offer(true)
+ elseif code==16 then
+  local adapter=v1_v2(v1_session)
+  adapter.warning={schema='helix-orca-v1-native-warning/v2',request_id=v1_session.request.request_id,
+   origin_id=v1_session.request.origin_id,prepared_sha256=v1_session.prepared_sha256,
+   warning_codes={'1000C001'},title='Orca material warning',
+   message='Bed temperature is above the filament vitrification temperature.'}
+  v1_persist();v1_render();v1_open_warning()
+ elseif code==17 or code==18 or code==19 then
+  local states={[17]='failed',[18]='applying',[19]='applied'};local state=states[code]
+  local adapter=v1_v2(v1_session)
+  v1_receive_application_v2('fixture',{schema='helix-orca-v1-application/v2',request_id=v1_session.request.request_id,
+   origin_id=v1_session.request.origin_id,sequence=(adapter.application_sequence or 0)+1,state=state,
+   message=state=='failed' and 'Synthetic transaction refused; nothing applied.' or state=='applied' and 'Synthetic official preset transaction applied; unsaved.' or 'Synthetic official preset transaction in progress.',
+   result_sha256=string.rep('2',64),result=v1_session.result,transaction_id=state=='applied' and 'synthetic-transaction' or '',
+   dirty=state=='applied',unsaved=state=='applied',
+   retry_authorization=state=='failed' and {schema='helix-orca-v1-application-retry/v2',request_id=v1_session.request.request_id,
+    origin_id=v1_session.request.origin_id,result_sha256=string.rep('2',64),failed_application_sha256=string.rep('4',64),
+    attempt=2,token=string.rep('5',32),authorized_at=1001} or nil})
+  if code==19 then
+   adapter.application.state='applied';adapter.application.dirty=true;adapter.application.unsaved=true
+   v1_persist();v1_render()
+  end
  elseif code==10 then
   local d=fixture_status('blocked');d.prepared.parity.qualified=false;d.prepared.artifact=nil;d.message='Synthetic blocked generator: native parity unavailable';v1_receive_status('fixture',d)
  end
@@ -217,9 +253,9 @@ fixture_offer()
     return root
 
 def settings(path):
-    q.seed_settings(path)
+    with patch.object(q.beta9,'cache_root',beta12.cache_root):q.seed_settings(path)
     s=json.loads((path/'settings-test.json').read_text())
-    s['plugins']['enabled']['orcacal']['version']='1.0.0-v1-candidate'
+    s['plugins']['enabled']['orcacal']['version']='1.1.0-v1-beta12'
     home=s['printers']['default']['panel_widgets']['home']
     # New synthetic layout: a stamped landscape grid would make native
     # switch_to_grid reproject 1x1 to 1x2 on portrait. Adopt measured grid.
@@ -256,6 +292,26 @@ def tap(name,widget,w,h,work):
                 reply=json.loads(stream.readline(65537));require(reply.get('id')==n and 'error' not in reply,'Native pointer failed')
         finally:stream.close()
     ctl(name,'wait_idle');time.sleep(.35)
+def edit_parameter(name,ident,key,new_value,w,h,work,native):
+    """Exercise the operator-facing editor and verify its retained subject."""
+    button='orcacal__v1_'+ident+'_'+key
+    tap(name,button,w,h,work)
+    if native:
+        # edit_number queues the application keypad. Clear its existing value,
+        # type the replacement through native keys, then use the keypad's Set.
+        for _ in range(16):tap(name,'btn_backspace',w,h,work)
+        for char in new_value:
+            tap(name,'btn_dot' if char=='.' else 'btn_'+char,w,h,work)
+        tap(name,'action_button',w,h,work)
+    else:
+        # Source-faithful unbounded Orca domains use the owned precise fallback.
+        tap(name,'orcacal__v1_key_clear',w,h,work)
+        for char in new_value:
+            widget={'.':'dot',',':'comma'}.get(char,char)
+            tap(name,'orcacal__v1_key_'+widget,w,h,work)
+        tap(name,'orcacal__v1_key_set',w,h,work)
+    require(value(name,ident+'_'+key+'_value')==new_value,
+            'Operator editor did not retain '+ident+'.'+key)
 def storage(work):
     path=work/'config/plugin-data/orcacal.json';deadline=time.monotonic()+5
     while time.monotonic()<deadline:
@@ -274,6 +330,11 @@ def stored_when(work,predicate,message):
 def navigation(name):
     state=ctl(name,'current')
     return {key:state[key] for key in ('panel','overlays')}
+def visible_widget(name,widget,w,h):
+    geometry=a.ctl(name,'geom',widget,'0',check=False)
+    if geometry is None:return False
+    try:a._visible_widget_geometry(geometry,widget,w,h);return True
+    except Exception:return False
 def native_hidden(name,widget):
     state=ctl(name,'state',widget)
     # Native state may descend to a control. Assert the named section's flag,
@@ -324,12 +385,12 @@ def temperature_native_page_proof(name,w,h,work,page):
     if page=='print-status':require(any('print_status' in str(item) for item in before['overlays']),'Actual Print Status is not open')
     else:require('controls' in str(before['panel']),'Actual Controls is not open')
     signal(name,6);after=navigation(name)
-    owned={'orcacal__wizard','orcacal__v1_temperature','orcacal__v1_job','orcacal__v1_cancel_confirm'}
-    native_stack=[key for key in before['overlays'] if key not in owned]
-    require(after==dict(panel=before['panel'],overlays=native_stack+['orcacal__v1_auto_result']),'Automatic Temperature result hid native page or retained stale preparation views')
-    ctl(name,'go_back');ctl(name,'wait_idle');dismissed=dict(panel=before['panel'],overlays=native_stack)
-    require(navigation(name)==dismissed,'Dismiss did not restore underlying native page')
-    signal(name,12);require(navigation(name)==dismissed,'Duplicate reopened dismissed Temperature result')
+    # beta.12 dialogs use ModalStack rather than NavigationManager. Assert the
+    # modal widget and the unchanged underlying page independently.
+    require(after==before and visible_widget(name,'orcacal__v1_pick_use',w,h),'Queued result dialog did not preserve the native page and owned flow')
+    tap(name,'orcacal__v1_pick_later',w,h,work);dismissed=before
+    require(navigation(name)==dismissed and not visible_widget(name,'orcacal__v1_pick_use',w,h),'Dismiss did not restore underlying native page')
+    signal(name,12);require(navigation(name)==dismissed and not visible_widget(name,'orcacal__v1_pick_use',w,h),'Duplicate reopened dismissed Temperature result')
     proof=dict(page=page,before=before,presented=after,dismissed=dismissed)
     a.json_write(work/('native-page-'+page+'-navigation.json'),proof)
     reopen_job(name,w,h,work);require(value(name,'evaluate_on')==1,'Pending Temperature result cannot be manually reopened')
@@ -395,14 +456,25 @@ def drive(entry,name,work):
         tap(name,'orcacal__v1_choose_'+id,w,h,work)
         a._assert_horizontal_fit(ctl(name,'geom','orcacal__v1_v1_'+id+'_content','8'),w)
         a._screenshot(name,work,id+'-configure.png')
-        parameter='start' if id=='temperature' else 'end'
-        if id!='flow_ratio_yolo':
-            ctl(name,'set_value','orcacal__v1_'+id+'_'+parameter,'1')
-            require(value(name,id+'_'+parameter+'_idx')==1,'Native parameter binding failed')
+        edits={
+            'temperature':('start','225',True),
+            'pressure_advance_pattern':('end','0.09',False),
+            'retraction':('end','2.1',False),
+            'max_volumetric_speed':('end','21',False),
+        }
+        if id in edits:
+            parameter,replacement,native=edits[id]
+            edit_parameter(name,id,parameter,replacement,w,h,work,native)
         tap(name,'orcacal__v1_generate_'+id,w,h,work)
         require(value(name,'confirm_on')==0 and value(name,'start_on')==0,'Generate unlocked execution')
         signal(name,2);signal(name,9);signal(name,3)
         require(value(name,'confirm_on')==1 and value(name,'start_on')==0,'Review controls invalid')
+        if i==0:
+            signal(name,16);require(value(name,'confirm_on')==0 and value(name,'warning_on')==1,'Warning did not lock confirmation')
+            a._visible_widget_geometry(ctl(name,'geom','orcacal__v1_warning_continue','0'),'orcacal__v1_warning_continue',w,h)
+            a._screenshot(name,work,'warning.png')
+            tap(name,'orcacal__v1_warning_continue',w,h,work)
+            require(value(name,'confirm_on')==1 and storage(work)['v2']['warning']['decision']['action']=='continue','Warning continuation was not retained')
         a._assert_horizontal_fit(ctl(name,'geom','orcacal__v1_v1_job_content','8'),w)
         ctl(name,'scroll','orcacal__v1_confirm');a._screenshot(name,work,id+'-review.png')
         tap(name,'orcacal__v1_confirm',w,h,work)
@@ -419,28 +491,32 @@ def drive(entry,name,work):
         before=navigation(name)
         signal(name,6);require(value(name,'evaluate_on')==1,'Successful exact-job completion did not unlock evaluation')
         after=navigation(name)
-        if id=='temperature':
-            require(after==dict(panel=before['panel'],overlays=['orcacal__v1_auto_result']),'Automatic Temperature result did not preserve native home')
-            claim=stored_when(work,lambda s:s.get('phase')=='complete' and s.get('auto_presentation_claim'),'Automatic Temperature claim not retained')['auto_presentation_claim']
-            require(claim['reason']=='automatic-attempt' and claim['job_id']==storage(work)['job_id'] and claim['prepared_sha256']=='f'*64
-                    and claim['completion_sha256']=='1'*64,'Automatic attempt lost exact prepared/job/completion identity')
-            selector='orcacal__v1_auto_evaluation';return_button='orcacal__v1_auto_return';returned='orcacal__v1_auto_returned_status'
-        else:
-            require(after==before and not storage(work).get('auto_presentation_claim'),'Automatic presentation expanded beyond Temperature')
-            selector='orcacal__v1_evaluation';return_button='orcacal__v1_return';returned='orcacal__v1_returned_status'
+        require(after==before and visible_widget(name,'orcacal__v1_pick_use',w,h),'Automatic result dialog did not preserve native navigation')
+        claim=stored_when(work,lambda s:s.get('phase')=='complete' and s.get('auto_presentation_claim'),'Automatic result claim not retained')['auto_presentation_claim']
+        require(claim['reason']=='beta12-queued-automatic-attempt' and claim['calibration']==id and claim['job_id']==storage(work)['job_id'] and claim['prepared_sha256']=='f'*64
+                and claim['completion_sha256']=='1'*64,'Automatic attempt lost exact prepared/job/completion identity')
+        selector='orcacal__v1_pick';return_button='orcacal__v1_pick_use';returned='orcacal__v1_returned_status'
         ctl(name,'scroll',selector)
         a._visible_widget_geometry(ctl(name,'geom',selector,'0'),selector,w,h)
         a._screenshot(name,work,id+'-evaluate.png')
-        signal(name,12);require(navigation(name)==after,'Duplicate completion changed navigation')
-        # Both native views share the original immutable return/NOT APPLIED handler.
+        signal(name,12);require(navigation(name)==after and visible_widget(name,'orcacal__v1_pick_use',w,h),'Duplicate completion changed presentation')
+        # Every queued picker shares the same immutable result/application path.
         ctl(name,'set_value',selector,'1')
         tap(name,return_button,w,h,work);require(value(name,'evaluate_on')==0,'Returned result editable')
         a._assert_overlay(navigation(name),['orcacal__v1_result'])
-        require(value(name,'result_heading')=='Returning result' and 'NOT APPLIED' in value(name,'returned'),'Return did not show a concise completion view')
+        require(value(name,'result_heading')=='Ready for Orca' and 'APPLICATION PENDING' in value(name,'returned'),'Result did not enter pending application')
         a._visible_widget_geometry(ctl(name,'geom','orcacal__v1_result_heading','0'),'orcacal__v1_result_heading',w,h)
         a._assert_horizontal_fit(ctl(name,'geom','orcacal__v1_result_content','8'),w)
         signal(name,8);signal(name,7)
         require(value(name,'result_heading')=='Returned' and 'NOT APPLIED' in value(name,'returned'),'Exact receipt not shown')
+        if i==0:
+            signal(name,17);require(value(name,'retry_on')==1 and value(name,'result_heading')=='Application needs attention','Application failure not shown')
+            a._screenshot(name,work,'application-failed.png')
+            tap(name,'orcacal__v1_application_retry',w,h,work)
+            require(value(name,'retry_on')==0 and storage(work)['v2']['application_retry']['schema']=='helix-orca-v1-application-retry/v2','Application retry was not retained')
+            signal(name,18);signal(name,19)
+            require(value(name,'result_heading')=='Applied in Orca' and 'APPLIED · UNSAVED' in value(name,'returned'),'Application success was not shown as unsaved')
+            a._screenshot(name,work,'application-applied.png')
         a._screenshot(name,work,id+'-returned.png')
         tap(name,'orcacal__v1_result_done',w,h,work)
         require(not navigation(name)['overlays'],'Done did not dismiss owned completion view')
@@ -470,12 +546,12 @@ def drive(entry,name,work):
     tap(name,'orcacal__v1_start',w,h,work);signal(name,5)
     tap(name,'orcacal__v1_cancel',w,h,work)
     require(storage(work)['intent']['action']=='start','Opening cancellation dispatched an intent')
-    a._assert_horizontal_fit(ctl(name,'geom','orcacal__v1_cancel_content','8'),w)
+    a._visible_widget_geometry(ctl(name,'geom','btn_primary','0'),'btn_primary',w,h)
     a._screenshot(name,work,'cancel-confirm.png')
-    tap(name,'orcacal__v1_cancel_keep',w,h,work)
+    tap(name,'btn_secondary',w,h,work)
     require(storage(work)['intent']['action']=='start','Keep printing dispatched cancellation')
     a._screenshot(name,work,'cancel-kept.png')
-    tap(name,'orcacal__v1_cancel',w,h,work);tap(name,'orcacal__v1_cancel_yes',w,h,work)
+    tap(name,'orcacal__v1_cancel',w,h,work);tap(name,'btn_primary',w,h,work)
     deadline=time.monotonic()+5
     while storage(work)['intent']['action']!='cancel':
         if time.monotonic()>deadline:raise ValueError('Confirmed cancellation was not durable')
@@ -512,7 +588,7 @@ def drive(entry,name,work):
     return {'label':label,'viewport':f'{w}x{h}','layout':layout,'dpi':dpi,'result':'PASS','calibrations':list(contract.CALIBRATIONS),'assertions':ASSERTIONS}
 
 def capture(output,only=None):
-    before=hashes();runtime=q.beta9.verify_cache();q.beta9.configure_accepted_harness()
+    before=hashes();runtime=beta12.verify_cache();configure_harness()
     require(not output.exists(),'Refusing to overwrite evidence');output.mkdir(parents=True)
     resource=load('v1_resource_lifecycle',Path('/home/dev/Projects/system/100-day-development-system/scripts/resource_lifecycle.py'))
     cache=builder.default_output().parent;cache.mkdir(parents=True,exist_ok=True)
@@ -544,12 +620,12 @@ def capture(output,only=None):
         rows.append(json.loads((work/'row.json').read_text()));runs.append({'run_id':run.data['run_id'],'manifest':str(run.directory/'manifest.json'),'containers':list(run.data['containers']),'runtime_clear':run.data['verification']['runtime_clear']})
         print('PASS '+label,flush=True)
     require(q.file_hashes(plugins/'orcacal')==fixture_hashes,'Fixture changed')
-    report={'schema':'helix-orca-v1-native-evidence/v1','sources':before,'runtime':runtime,'container_network':'none','physical_actions':0,'synthetic_only':True,'synthetic_inputs':['context','generator availability','prepared artifact','parity','print status','completion proof','receipt'],'fixture_files':fixture_hashes,'results':rows,'managed_runs':runs,'screenshots':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.rglob('*.png'))}}
+    report={'schema':'helix-orca-v1-native-evidence/v2','sources':before,'runtime':runtime,'container_network':'none','physical_actions':0,'synthetic_only':True,'synthetic_inputs':['context','generator availability','prepared artifact','build qualification','processor warning','print status','completion proof','result application','receipt'],'fixture_files':fixture_hashes,'results':rows,'managed_runs':runs,'screenshots':{str(p.relative_to(output)):q.sha256(p) for p in sorted(output.rglob('*.png'))}}
     a.json_write(output/'report.json',report)
 
 def verify(output):
     r=json.loads((output/'report.json').read_text())
-    require(r['sources']==hashes(),'Sources differ');require(r['runtime']==q.beta9.verify_cache(),'Runtime differs')
+    require(r['sources']==hashes(),'Sources differ');require(r['runtime']==beta12.verify_cache(),'Runtime differs')
     require(r['synthetic_only'] and r['physical_actions']==0 and r['container_network']=='none','Isolation differs')
     require([v['label'] for v in r['results']]==[v[0] for v in a.VIEWPORTS],'All eleven viewports required')
     for row in r['results']:require(row['assertions']==ASSERTIONS and row['calibrations']==list(contract.CALIBRATIONS) and row['result']=='PASS','Incomplete workflow proof')
@@ -557,7 +633,7 @@ def verify(output):
     for name,digest in r['screenshots'].items():require(q.sha256(output/name)==digest,'Screenshot differs')
     for item in r['managed_runs']:
         manifest=json.loads(Path(item['manifest']).read_text());require(manifest['state']=='complete' and manifest['verification']['runtime_clear'],'Managed run incomplete')
-    print('PASS: source-bound synthetic V1 beta.9 eleven-target/five-calibration matrix')
+    print('PASS: source-bound synthetic V1 beta.12 eleven-target/five-calibration matrix')
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('op',choices=['capture','verify','_drive']);p.add_argument('output',type=Path,nargs='?');p.add_argument('--viewport');p.add_argument('--container');x=p.parse_args()
@@ -565,5 +641,5 @@ if __name__=='__main__':
     if x.op=='capture':capture(output,x.viewport)
     elif x.op=='verify':verify(output)
     else:
-        q.beta9.configure_accepted_harness();entry=next(e for e in a.VIEWPORTS if e[0]==x.viewport)
+        configure_harness();entry=next(e for e in a.VIEWPORTS if e[0]==x.viewport)
         row=drive(entry,x.container,output);a.json_write(output/'row.json',row)

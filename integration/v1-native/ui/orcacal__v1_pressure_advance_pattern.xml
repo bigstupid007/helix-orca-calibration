@@ -35,6 +35,16 @@
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:pressure_advance_pattern:step" />
         <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_pressure_advance_pattern_step_value" />
       </lv_button>
+      <text_small width="100%" long_mode="wrap" text="Printing accelerations (optional comma-separated positive integers)" />
+      <lv_button name="orcacal__v1_pressure_advance_pattern_accelerations" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:pressure_advance_pattern:accelerations" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_pressure_advance_pattern_accelerations_value" />
+      </lv_button>
+      <text_small width="100%" long_mode="wrap" text="Printing speeds (optional comma-separated positive integers)" />
+      <lv_button name="orcacal__v1_pressure_advance_pattern_speeds" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_edit:pressure_advance_pattern:speeds" />
+        <lv_label width="100%" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" bind_text="orcacal__v1_pressure_advance_pattern_speeds_value" />
+      </lv_button>
       <text_small width="100%" text="Preparation does not start a print. Review the prepared job before confirming." long_mode="wrap" />
       <lv_button name="orcacal__v1_generate_pressure_advance_pattern" width="100%" height="#button_height" style_bg_color="#primary" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
         <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_generate:pressure_advance_pattern" />
