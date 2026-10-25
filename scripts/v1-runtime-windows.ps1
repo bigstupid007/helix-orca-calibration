@@ -1,17 +1,20 @@
 #Requires -Version 5.1
 <#
-V1 per-user lifecycle wrapper. It never installs startup entries, services or listeners.
-The internal supervisor starts only the fixed repository coordinator with typed paths.
+V1 per-user package and lifecycle wrapper. It creates only an owner-private,
+versioned LocalAppData installation. It never creates services, listeners,
+firewall rules, accounts, credentials, scheduled tasks or machine-wide state.
 #>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory=$true)][ValidateSet('start','status','stop','plan','supervise')][string]$Action,
+    [Parameter(Mandatory=$true)][ValidateSet('install','start','status','stop','restart','rollback','uninstall','plan','supervise')][string]$Action,
     [Parameter(Mandatory=$true)][string]$RuntimeRoot,
     [string]$PythonExe,
     [string]$RepoRoot,
     [string]$Storage,
     [string]$Config,
     [string]$DeploymentAuthorization,
+    [string]$PackageRoot,
+    [string]$Manifest,
     [switch]$MoonrakerEvents,
     [ValidateRange(1,30)][int]$WaitSeconds=10,
     [ValidatePattern('^[a-f0-9]{32}$')][string]$RunId
@@ -112,6 +115,185 @@ function Write-Control([string]$Path,$Value) {
         if ([IO.File]::Exists($temporary)) { [IO.File]::Delete($temporary) }
         if ($replaced -and [IO.File]::Exists($backup)) { [IO.File]::Delete($backup) }
     }
+}
+function Get-InstallationPath { return (Join-Path $script:Root 'installation.json') }
+function Get-RuntimeManifest([string]$Path,[string]$SourceRoot) {
+    $manifestPath=Get-ExistingPath $Path $false
+    $source=Get-ExistingPath $SourceRoot $true
+    if ((Get-Item -LiteralPath $manifestPath).Length -gt 1048576) { throw 'Runtime manifest exceeds 1MiB.' }
+    $value=([IO.File]::ReadAllText($manifestPath,$script:Utf8) | ConvertFrom-Json)
+    $names=@($value.PSObject.Properties.Name | Sort-Object)
+    if (($names -join ',') -cne 'candidate_sha256,files,schema' -or
+        $value.schema -ne 'helix-orca-v1-runtime-manifest/v1' -or
+        $value.candidate_sha256 -notmatch '^[a-f0-9]{64}$' -or
+        $null -eq $value.files -or $value.files.Count -lt 1 -or $value.files.Count -gt 4096) {
+        throw 'Runtime manifest is malformed.'
+    }
+    $seen=@{}
+    foreach ($item in $value.files) {
+        $itemNames=@($item.PSObject.Properties.Name | Sort-Object)
+        if (($itemNames -join ',') -cne 'path,sha256,size' -or
+            $item.path -notmatch '^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*$' -or
+            ($item.path -split '/') -contains '..' -or $seen.ContainsKey($item.path) -or
+            $item.sha256 -notmatch '^[a-f0-9]{64}$' -or $item.size -lt 0 -or $item.size -gt 500000000) {
+            throw 'Runtime manifest file inventory is unsafe.'
+        }
+        $seen[$item.path]=$true
+        $file=Get-ExistingPath (Join-Path $source ($item.path.Replace('/','\'))) $false
+        if ((Get-Item -LiteralPath $file).Length -ne [int64]$item.size -or
+            (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant() -cne $item.sha256) {
+            throw 'Runtime manifest file differs from the exact package.'
+        }
+    }
+    if (-not $seen.ContainsKey('scripts/v1-runtime.py')) { throw 'Runtime manifest omits scripts/v1-runtime.py.' }
+    return $value
+}
+function Get-InstalledVersion([string]$Candidate) {
+    if ($Candidate -notmatch '^[a-f0-9]{64}$') { throw 'Installed candidate identity is malformed.' }
+    $path=Join-Path (Join-Path $script:Root 'versions') $Candidate
+    Assert-NoReparse $path
+    return $path
+}
+function Assert-InstalledVersion([string]$Candidate,[string]$ManifestHash) {
+    $path=Get-InstalledVersion $Candidate
+    $manifestPath=Join-Path $path 'runtime-manifest.json'
+    $value=Get-RuntimeManifest $manifestPath $path
+    if ($value.candidate_sha256 -cne $Candidate -or
+        (Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant() -cne $ManifestHash) {
+        throw 'Installed candidate manifest identity differs.'
+    }
+    $listed=@{}; $allowedDirectories=@{}
+    foreach ($item in $value.files) {
+        $relative=$item.path.Replace('/','\'); $listed[$relative]=$true
+        $parent=[IO.Path]::GetDirectoryName($relative)
+        while (-not [string]::IsNullOrEmpty($parent)) {
+            $allowedDirectories[$parent]=$true
+            $parent=[IO.Path]::GetDirectoryName($parent)
+        }
+    }
+    $entries=@(Get-ChildItem -LiteralPath $path -Force -Recurse)
+    foreach ($item in $entries) {
+        if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw 'Installed candidate contains a reparse point.'
+        }
+    }
+    $actualFiles=@($entries | Where-Object { -not $_.PSIsContainer } | ForEach-Object {
+        $_.FullName.Substring($path.Length+1) } | Where-Object { $_ -cne 'runtime-manifest.json' })
+    $actualDirectories=@($entries | Where-Object { $_.PSIsContainer } | ForEach-Object {
+        $_.FullName.Substring($path.Length+1) })
+    if ($actualFiles.Count -ne $listed.Count -or $actualDirectories.Count -ne $allowedDirectories.Count) {
+        throw 'Installed candidate contains an unlisted or missing path.'
+    }
+    foreach ($relative in $actualFiles) { if (-not $listed.ContainsKey($relative)) { throw 'Installed candidate contains an unlisted file.' } }
+    foreach ($relative in $actualDirectories) { if (-not $allowedDirectories.ContainsKey($relative)) { throw 'Installed candidate contains an unlisted directory.' } }
+    return $path
+}
+function Read-Installation {
+    $path=Get-InstallationPath
+    if (-not [IO.File]::Exists($path)) { return $null }
+    $record=Read-Control $path
+    if ($record.schema -ne 'helix-orca-v1-windows-installation/v1' -or
+        $record.owner_sid -ne $script:Sid.Value -or $record.active_candidate -notmatch '^[a-f0-9]{64}$' -or
+        $record.active_manifest_sha256 -notmatch '^[a-f0-9]{64}$') {
+        throw 'Installed runtime selector is malformed or foreign.'
+    }
+    return $record
+}
+function Install-RuntimePackage {
+    $source=Get-ExistingPath $PackageRoot $true
+    $manifestPath=Get-ExistingPath $Manifest $false
+    $value=Get-RuntimeManifest $manifestPath $source
+    $sourceManifestHash=(Get-FileHash -LiteralPath $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    $versions=Join-Path $script:Root 'versions'; Assert-NoReparse $versions
+    if (-not [IO.Directory]::Exists($versions)) { [void][IO.Directory]::CreateDirectory($versions) }
+    $destination=Get-InstalledVersion $value.candidate_sha256
+    $existingManifest=Join-Path $destination 'runtime-manifest.json'
+    if ([IO.File]::Exists($existingManifest)) {
+        $existingHash=(Get-FileHash -LiteralPath (Get-ExistingPath $existingManifest $false) -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($existingHash -cne $sourceManifestHash) { throw 'Installed candidate differs from the exact requested manifest.' }
+        [void](Assert-InstalledVersion $value.candidate_sha256 $existingHash)
+    } else {
+        # A power loss before the manifest is published leaves a resumable
+        # partial candidate. Only exact manifest paths may already exist.
+        if (-not [IO.Directory]::Exists($destination)) { [void][IO.Directory]::CreateDirectory($destination) }
+        $listed=@{}; $allowedDirectories=@{}
+        foreach ($item in $value.files) {
+            $relative=$item.path.Replace('/','\'); $listed[$relative]=$item
+            $parent=[IO.Path]::GetDirectoryName($relative)
+            while (-not [string]::IsNullOrEmpty($parent)) {
+                $allowedDirectories[$parent]=$true; $parent=[IO.Path]::GetDirectoryName($parent)
+            }
+        }
+        foreach ($existing in @(Get-ChildItem -LiteralPath $destination -Force -Recurse)) {
+            if (($existing.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw 'Partial installed candidate contains a reparse point.' }
+            $relative=$existing.FullName.Substring($destination.Length+1)
+            if ($existing.PSIsContainer) {
+                if (-not $allowedDirectories.ContainsKey($relative)) { throw 'Partial installed candidate contains an unlisted directory.' }
+            } elseif (-not $listed.ContainsKey($relative)) {
+                throw 'Partial installed candidate contains an unlisted file.'
+            }
+        }
+        foreach ($item in $value.files) {
+            $sourceFile=Get-ExistingPath (Join-Path $source ($item.path.Replace('/','\'))) $false
+            $target=Join-Path $destination ($item.path.Replace('/','\'))
+            $parent=[IO.Path]::GetDirectoryName($target)
+            if (-not [IO.Directory]::Exists($parent)) { [void][IO.Directory]::CreateDirectory($parent) }
+            if ([IO.File]::Exists($target)) {
+                if ((Get-Item -LiteralPath $target).Length -ne [int64]$item.size -or
+                    (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() -cne $item.sha256) {
+                    throw 'Partial installed candidate file differs from the exact manifest.'
+                }
+            } else { [IO.File]::Copy($sourceFile,$target,$false) }
+            [IO.File]::SetAttributes($target,[IO.FileAttributes]::ReadOnly)
+        }
+        $installedManifest=Join-Path $destination 'runtime-manifest.json'
+        [IO.File]::Copy($manifestPath,$installedManifest,$false)
+        [IO.File]::SetAttributes($installedManifest,[IO.FileAttributes]::ReadOnly)
+    }
+    $installedManifest=Join-Path $destination 'runtime-manifest.json'
+    $manifestHash=(Get-FileHash -LiteralPath $installedManifest -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($manifestHash -cne $sourceManifestHash) { throw 'Installed manifest changed during installation.' }
+    [void](Assert-InstalledVersion $value.candidate_sha256 $manifestHash)
+    $python=Get-ExistingPath $PythonExe $false
+    $storagePath=Get-ExistingPath $Storage $true
+    $configPath=Get-ExistingPath $Config $false
+    if ([IO.Path]::GetFileName($python) -notin @('python.exe','python3.exe')) { throw 'An explicit installed Python executable is required.' }
+    $authorizationPath=$null; $authorizationHash=$null
+    if ($PSBoundParameters.ContainsKey('DeploymentAuthorization')) {
+        $authorizationPath=Get-PrivateAuthorization $DeploymentAuthorization
+        $authorizationHash=(Get-FileHash -LiteralPath $authorizationPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+    $prior=Read-Installation
+    $installed=@($value.candidate_sha256)
+    $previous=$null; $previousHash=$null
+    if ($null -ne $prior) {
+        $previous=$prior.active_candidate; $previousHash=$prior.active_manifest_sha256
+        $installed=@($prior.installed_candidates)+@($value.candidate_sha256) | Select-Object -Unique
+    }
+    $record=[ordered]@{ schema='helix-orca-v1-windows-installation/v1'; owner_sid=$script:Sid.Value;
+        active_candidate=$value.candidate_sha256; active_manifest_sha256=$manifestHash;
+        previous_candidate=$previous; previous_manifest_sha256=$previousHash;
+        installed_candidates=@($installed); python_exe=$python; storage=$storagePath; config=$configPath;
+        deployment_authorization=$authorizationPath; deployment_authorization_sha256=$authorizationHash;
+        moonraker_events=[bool]$MoonrakerEvents }
+    Write-Control (Get-InstallationPath) $record
+    return $record
+}
+function Remove-InstalledVersion([string]$Candidate,[string]$ManifestHash) {
+    $path=Assert-InstalledVersion $Candidate $ManifestHash
+    $manifestPath=Join-Path $path 'runtime-manifest.json'
+    $value=Get-RuntimeManifest $manifestPath $path
+    $directories=@{}
+    foreach ($item in $value.files) {
+        $target=Join-Path $path ($item.path.Replace('/','\'))
+        [IO.File]::SetAttributes($target,[IO.FileAttributes]::Normal)
+        [IO.File]::Delete($target)
+        $parent=[IO.Path]::GetDirectoryName($target)
+        while ($parent.StartsWith($path+'\',[StringComparison]::OrdinalIgnoreCase)) { $directories[$parent.Length.ToString('D8')+'|'+$parent]=$parent; $parent=[IO.Path]::GetDirectoryName($parent) }
+    }
+    [IO.File]::SetAttributes($manifestPath,[IO.FileAttributes]::Normal); [IO.File]::Delete($manifestPath)
+    foreach ($key in @($directories.Keys | Sort-Object -Descending)) { [IO.Directory]::Delete($directories[$key],$false) }
+    [IO.Directory]::Delete($path,$false)
 }
 function Open-ControlLock {
     $path=Join-Path $script:Root 'control.lock'
@@ -247,12 +429,20 @@ function Test-StopRequest($Record) {
     return $true
 }
 function Get-Status {
-    if (-not [IO.File]::Exists((Get-RecordPath))) { return [ordered]@{ state='not-started'; actions_enabled=$false; test_worker_required=$false } }
+    $installation=Read-Installation
+    if (-not [IO.File]::Exists((Get-RecordPath))) { return [ordered]@{
+        state='not-started'; installed=($null -ne $installation);
+        active_candidate=if ($null -ne $installation) { $installation.active_candidate } else { $null };
+        rollback_available=($null -ne $installation -and $null -ne $installation.previous_candidate);
+        actions_enabled=$false; test_worker_required=$false } }
     $record=Read-Control (Get-RecordPath); Assert-Record $record
     $pythonAlive=Test-Identity $record.python
     $supervisorAlive=Test-Identity $record.supervisor
     $state=if ($pythonAlive) { if (Test-StopRequest $record) { 'stopping' } else { 'running' } } elseif ($supervisorAlive) { if (Test-StopRequest $record) { 'stopping' } elseif ($null -ne $record.python) { 'finishing' } else { 'starting' } } elseif ($record.state -eq 'attention-required') { 'attention-required' } else { 'stopped' }
-    return [ordered]@{ state=$state; run_id=$record.run_id; python_pid=if ($pythonAlive) { $record.python.pid } else { $null }; supervisor_pid=if ($supervisorAlive) { $record.supervisor.pid } else { $null }; last_recorded_state=$record.state; exit_code=$record.exit_code; actions_enabled=if ($null -eq (Get-AuthorizationPath $record)) { $false } else { $null }; deployment_authorization_supplied=($null -ne (Get-AuthorizationPath $record)); test_worker_required=$false; logs=Join-Path $script:Root 'stdout.log' }
+    return [ordered]@{ state=$state; installed=($null -ne $installation);
+        active_candidate=if ($null -ne $installation) { $installation.active_candidate } else { $null };
+        rollback_available=($null -ne $installation -and $null -ne $installation.previous_candidate);
+        run_id=$record.run_id; python_pid=if ($pythonAlive) { $record.python.pid } else { $null }; supervisor_pid=if ($supervisorAlive) { $record.supervisor.pid } else { $null }; last_recorded_state=$record.state; exit_code=$record.exit_code; actions_enabled=if ($null -eq (Get-AuthorizationPath $record)) { $false } else { $null }; deployment_authorization_supplied=($null -ne (Get-AuthorizationPath $record)); test_worker_required=$false; logs=Join-Path $script:Root 'stdout.log' }
 }
 function Write-BoundedLog([string]$Name,[string]$Text) {
     if ($Name -notin @('stdout','stderr','supervisor')) { throw 'Unknown owned log.' }
@@ -271,7 +461,7 @@ function Write-BoundedLog([string]$Name,[string]$Text) {
     try { $stream.Write($data,0,$data.Length) } finally { $stream.Dispose() }
 }
 function Get-PythonArguments($Record) {
-    $arguments=@('-u',$Record.entry,'--storage',$Record.storage,'--config',$Record.config,'--state',$Record.coordinator_state,'--run-id',$Record.run_id,'--stop-file',$Record.stop_file)
+    $arguments=@('-B','-u',$Record.entry,'--storage',$Record.storage,'--config',$Record.config,'--state',$Record.coordinator_state,'--run-id',$Record.run_id,'--stop-file',$Record.stop_file)
     if ($Record.moonraker_events) { $arguments+='--moonraker-events' }
     $authorization=Get-AuthorizationPath $Record
     if ($null -ne $authorization) { $arguments+=@('--deployment-authorization',$authorization) }
@@ -296,6 +486,10 @@ function Invoke-Supervisor {
             if ($record.supervisor.pid -ne $PID) { throw 'This supervisor does not own the recorded process.' }
             $fixedEntry=Get-ExistingPath (Join-Path (Get-ExistingPath $record.repo $true) 'scripts\v1-runtime.py') $false
             if ($record.entry -cne $fixedEntry -or $record.coordinator_state -cne (Join-Path $script:Root 'coordinator')) { throw 'Only the fixed repository coordinator and owned journal path may run.' }
+            if ($record.PSObject.Properties.Name -contains 'candidate_sha256') {
+                $installed=Assert-InstalledVersion $record.candidate_sha256 $record.manifest_sha256
+                if ($record.repo -cne $installed) { throw 'Supervisor installed candidate path differs.' }
+            }
             [void](Get-ExistingPath $record.python_exe $false); [void](Get-ExistingPath $record.storage $true); [void](Get-ExistingPath $record.config $false)
             if ($record.entry_sha256 -cne (Get-FileHash -LiteralPath $record.entry -Algorithm SHA256).Hash.ToLowerInvariant() -or $record.config_sha256 -cne (Get-FileHash -LiteralPath $record.config -Algorithm SHA256).Hash.ToLowerInvariant()) { throw 'Reviewed launch inputs changed before start.' }
             $authorization=Get-AuthorizationPath $record
@@ -353,36 +547,107 @@ function Invoke-Supervisor {
         if ($null -ne $process) { $process.Dispose() }
     }
 }
-
-$script:Root=Get-FullLocalPath $RuntimeRoot
-if (-not (Assert-PrivateRoot ($Action -in @('start','plan')))) {
-    if ($Action -eq 'status' -or $Action -eq 'stop') { [ordered]@{ state='not-started'; actions_enabled=$false } | ConvertTo-Json; exit 0 }
-    throw 'A private runtime directory is required.'
-}
-if ($Action -eq 'supervise') { if ([string]::IsNullOrEmpty($RunId)) { throw 'Supervisor requires its recorded run id.' }; Invoke-Supervisor; exit 0 }
-if ($Action -eq 'status') { Get-Status | ConvertTo-Json -Depth 8; exit 0 }
-if ($Action -eq 'stop') {
+function Request-RuntimeStop {
     $lock=Open-ControlLock
     try {
         $status=Get-Status
-        if ($status.state -eq 'stopped' -or $status.state -eq 'not-started') { $status | ConvertTo-Json -Depth 8; exit 0 }
+        if ($status.state -eq 'stopped' -or $status.state -eq 'not-started') { return $status }
         $record=Read-Control (Get-RecordPath); Assert-Record $record
         if (-not (Test-StopRequest $record)) { Write-Control $record.stop_file ([ordered]@{ schema='helix-orca-v1-stop/v1'; run_id=$record.run_id }) }
     } finally { $lock.Dispose() }
     $until=[DateTime]::UtcNow.AddSeconds($WaitSeconds)
     do { $status=Get-Status; if ($status.state -eq 'stopped') { break }; Start-Sleep -Milliseconds 200 } while ([DateTime]::UtcNow -lt $until)
-    $status | ConvertTo-Json -Depth 8
-    exit 0
+    return $status
 }
-$python=Get-ExistingPath $PythonExe $false
-$repo=Get-ExistingPath $RepoRoot $true
-$storagePath=Get-ExistingPath $Storage $true
-$configPath=Get-ExistingPath $Config $false
+
+$script:Root=Get-FullLocalPath $RuntimeRoot
+if (-not (Assert-PrivateRoot ($Action -in @('install','start','plan')))) {
+    if ($Action -eq 'status' -or $Action -eq 'stop') { [ordered]@{ state='not-started'; actions_enabled=$false } | ConvertTo-Json; exit 0 }
+    throw 'A private runtime directory is required.'
+}
+if ($Action -eq 'supervise') { if ([string]::IsNullOrEmpty($RunId)) { throw 'Supervisor requires its recorded run id.' }; Invoke-Supervisor; exit 0 }
+if ($Action -eq 'install') {
+    $operationLock=Open-ControlLock
+    try {
+        $status=Get-Status
+        if ($status.state -notin @('not-started','stopped')) { throw 'Stop the exact owned runtime before installing another candidate.' }
+        $result=Install-RuntimePackage
+    } finally { $operationLock.Dispose() }
+    $result | ConvertTo-Json -Depth 8; exit 0
+}
+if ($Action -eq 'status') { Get-Status | ConvertTo-Json -Depth 8; exit 0 }
+if ($Action -eq 'stop') {
+    (Request-RuntimeStop) | ConvertTo-Json -Depth 8; exit 0
+}
+if ($Action -eq 'restart') {
+    $status=Request-RuntimeStop
+    if ($status.state -ne 'stopped' -and $status.state -ne 'not-started') { throw 'Exact runtime did not stop; restart refused.' }
+    $Action='start'
+}
+if ($Action -eq 'rollback') {
+    $operationLock=Open-ControlLock
+    try {
+        $status=Get-Status
+        if ($status.state -notin @('not-started','stopped')) { throw 'Stop the exact owned runtime before rollback.' }
+        $installation=Read-Installation
+        if ($null -eq $installation -or $null -eq $installation.previous_candidate) { throw 'No previous installed candidate is available.' }
+        [void](Assert-InstalledVersion $installation.active_candidate $installation.active_manifest_sha256)
+        [void](Assert-InstalledVersion $installation.previous_candidate $installation.previous_manifest_sha256)
+        $candidate=$installation.active_candidate; $hash=$installation.active_manifest_sha256
+        $installation.active_candidate=$installation.previous_candidate; $installation.active_manifest_sha256=$installation.previous_manifest_sha256
+        $installation.previous_candidate=$candidate; $installation.previous_manifest_sha256=$hash
+        Write-Control (Get-InstallationPath) $installation
+    } finally { $operationLock.Dispose() }
+    $installation | ConvertTo-Json -Depth 8; exit 0
+}
+if ($Action -eq 'uninstall') {
+    $operationLock=Open-ControlLock
+    try {
+        $status=Get-Status
+        if ($status.state -notin @('not-started','stopped')) { throw 'Stop the exact owned runtime before uninstall.' }
+        $installation=Read-Installation
+        if ($null -eq $installation) { $result=[ordered]@{ state='not-installed' } }
+        else {
+            foreach ($candidate in @($installation.installed_candidates)) {
+                $manifestPath=Join-Path (Get-InstalledVersion $candidate) 'runtime-manifest.json'
+                $hash=(Get-FileHash -LiteralPath (Get-ExistingPath $manifestPath $false) -Algorithm SHA256).Hash.ToLowerInvariant()
+                Remove-InstalledVersion $candidate $hash
+            }
+            [IO.File]::Delete((Get-InstallationPath))
+            $versions=Join-Path $script:Root 'versions'
+            if ([IO.Directory]::Exists($versions)) { [IO.Directory]::Delete($versions,$false) }
+            $result=[ordered]@{ state='uninstalled'; journals_retained=$true }
+        }
+    } finally { $operationLock.Dispose() }
+    $result | ConvertTo-Json; exit 0
+}
+$installation=Read-Installation
+$candidateSha=$null; $manifestSha=$null
+if ($null -ne $installation) {
+    $repo=Assert-InstalledVersion $installation.active_candidate $installation.active_manifest_sha256
+    $candidateSha=$installation.active_candidate; $manifestSha=$installation.active_manifest_sha256
+    $python=Get-ExistingPath $installation.python_exe $false
+    $storagePath=Get-ExistingPath $installation.storage $true
+    $configPath=Get-ExistingPath $installation.config $false
+    $authorizationPath=$installation.deployment_authorization
+    $authorizationHash=$installation.deployment_authorization_sha256
+    $MoonrakerEvents=[bool]$installation.moonraker_events
+    if ($PSBoundParameters.ContainsKey('RepoRoot') -and (Get-FullLocalPath $RepoRoot) -cne $repo) { throw 'RepoRoot differs from active installed candidate.' }
+} else {
+    $python=Get-ExistingPath $PythonExe $false
+    $repo=Get-ExistingPath $RepoRoot $true
+    $storagePath=Get-ExistingPath $Storage $true
+    $configPath=Get-ExistingPath $Config $false
+    $authorizationPath=$null; $authorizationHash=$null
+    if ($PSBoundParameters.ContainsKey('DeploymentAuthorization')) {
+        $authorizationPath=Get-PrivateAuthorization $DeploymentAuthorization
+        $authorizationHash=(Get-FileHash -LiteralPath $authorizationPath -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+}
 $entry=Get-ExistingPath (Join-Path $repo 'scripts\v1-runtime.py') $false
-$authorizationPath=$null; $authorizationHash=$null
-if ($PSBoundParameters.ContainsKey('DeploymentAuthorization')) {
-    $authorizationPath=Get-PrivateAuthorization $DeploymentAuthorization
-    $authorizationHash=(Get-FileHash -LiteralPath $authorizationPath -Algorithm SHA256).Hash.ToLowerInvariant()
+if ($null -ne $authorizationPath) {
+    $checked=Get-PrivateAuthorization $authorizationPath
+    if ($checked -cne $authorizationPath -or (Get-FileHash -LiteralPath $checked -Algorithm SHA256).Hash.ToLowerInvariant() -cne $authorizationHash) { throw 'Installed deployment authorization changed.' }
 }
 if ([IO.Path]::GetFileName($python) -notin @('python.exe','python3.exe')) { throw 'An explicit installed Python executable is required.' }
 $hostExe=Get-ExistingPath (Join-Path $PSHOME ([IO.Path]::GetFileName([Diagnostics.Process]::GetCurrentProcess().MainModule.FileName))) $false
@@ -400,13 +665,19 @@ try {
     $status=Get-Status
     if ($status.state -in @('running','starting','stopping','finishing')) { $status | ConvertTo-Json -Depth 8; exit 0 }
     if ($status.state -eq 'attention-required') { throw 'Previous ambiguous instance requires review; no replacement was launched.' }
+    $selected=Read-Installation
+    if (($null -eq $selected) -ne ($null -eq $candidateSha) -or
+        $null -ne $selected -and ($selected.active_candidate -cne $candidateSha -or
+                                  $selected.active_manifest_sha256 -cne $manifestSha)) {
+        throw 'Installed candidate changed while Start was being prepared.'
+    }
     if ([IO.File]::Exists((Get-RecordPath))) {
         $previous=Read-Control (Get-RecordPath); Assert-Record $previous
         Write-Control (Join-Path $script:Root 'previous.json') $previous
         if (Test-StopRequest $previous) { [IO.File]::Delete($previous.stop_file) }
     }
     $id=[Guid]::NewGuid().ToString('N')
-    $record=[ordered]@{ schema='helix-orca-v1-windows-runtime/v1'; run_id=$id; owner_sid=$script:Sid.Value; state='starting'; exit_code=$null; message='Starting fixed local coordinator'; python=$null; supervisor=$null; python_exe=$python; repo=$repo; entry=$entry; storage=$storagePath; config=$configPath; deployment_authorization=$authorizationPath; deployment_authorization_sha256=$authorizationHash; coordinator_state=(Join-Path $script:Root 'coordinator'); stop_file=(Join-Path $script:Root ('stop.'+$id+'.json')); moonraker_events=[bool]$MoonrakerEvents; launcher_sha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant(); entry_sha256=(Get-FileHash -LiteralPath $entry -Algorithm SHA256).Hash.ToLowerInvariant(); config_sha256=(Get-FileHash -LiteralPath $configPath -Algorithm SHA256).Hash.ToLowerInvariant() }
+    $record=[ordered]@{ schema='helix-orca-v1-windows-runtime/v1'; run_id=$id; owner_sid=$script:Sid.Value; state='starting'; exit_code=$null; message='Starting fixed local coordinator'; python=$null; supervisor=$null; python_exe=$python; repo=$repo; entry=$entry; storage=$storagePath; config=$configPath; deployment_authorization=$authorizationPath; deployment_authorization_sha256=$authorizationHash; candidate_sha256=$candidateSha; manifest_sha256=$manifestSha; coordinator_state=(Join-Path $script:Root 'coordinator'); stop_file=(Join-Path $script:Root ('stop.'+$id+'.json')); moonraker_events=[bool]$MoonrakerEvents; launcher_sha256=(Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant(); entry_sha256=(Get-FileHash -LiteralPath $entry -Algorithm SHA256).Hash.ToLowerInvariant(); config_sha256=(Get-FileHash -LiteralPath $configPath -Algorithm SHA256).Hash.ToLowerInvariant() }
     Write-Control (Get-RecordPath) $record
     $start=New-Object Diagnostics.ProcessStartInfo
     $start.FileName=$hostExe; $start.Arguments=Join-Arguments @('-NoProfile','-NonInteractive','-File',$PSCommandPath,'-Action','supervise','-RuntimeRoot',$script:Root,'-RunId',$id)

@@ -21,160 +21,106 @@ from urllib.parse import quote, urlparse
 from urllib.request import Request, ProxyHandler, build_opener
 
 from integration.v1_contract import ContractError, canonical, digest, exact, hex_value, text, validate_prepared, validate_request
+from integration.v1_fit import (FILE_ANALYSIS_SCHEMA, FIT_CHECK_VERSION, HELIXPRINT_VERSION,
+    HELIXSCREEN_COMMIT, analysis_record, authorize_findings, check_fit, fit_file,
+    machine_limits, require_machine_limits, validate_helix_status, warning_binding)
 from integration.v1_runtime import Coordinator, InstanceLock, atomic_json, read_json
 from integration.v1_transport import NoRedirect
 
 MAX_BYTES = 20_000_000
 JOB_ID = re.compile(r"[0-9A-Fa-f]{6,64}")
 OWNED_FILE = re.compile(r"helix-orca-v1-[a-f0-9]{32}-[a-f0-9]{32}\.gcode")
-BUILTINS = frozenset(('G0 G1 G4 G21 G28 G90 G91 G92 M82 M83 M84 M104 M106 M107 M109 M117 M118 M140 M190 '
-    'M201 M203 M204 M205 M220 M221 M73 M400 M900 SET_PRESSURE_ADVANCE SET_VELOCITY_LIMIT '
-    'EXCLUDE_OBJECT_DEFINE EXCLUDE_OBJECT_START EXCLUDE_OBJECT_END SET_GCODE_OFFSET '
-    'BED_MESH_CALIBRATE BED_MESH_PROFILE BED_MESH_CLEAR QUAD_GANTRY_LEVEL Z_TILT_ADJUST '
-    'STATUS GET_POSITION TEMPERATURE_WAIT SET_HEATER_TEMPERATURE SET_FAN_SPEED TURN_OFF_HEATERS '
-    'SET_IDLE_TIMEOUT SAVE_GCODE_STATE RESTORE_GCODE_STATE RESPOND QUERY_ENDSTOPS '
-    'SET_INPUT_SHAPER SET_SKEW SKEW_PROFILE SET_STEPPER_ENABLE').split())
-ARTIFACT_BUILTINS = frozenset(('G0 G1 G4 G21 G28 G90 G91 G92 M82 M83 M84 M104 M106 M107 M109 M117 M118 M140 M190 '
-    'M201 M203 M204 M205 M220 M221 M73 M400 M900 SET_PRESSURE_ADVANCE SET_VELOCITY_LIMIT '
-    'EXCLUDE_OBJECT_DEFINE EXCLUDE_OBJECT_START EXCLUDE_OBJECT_END').split())
-NUMBER = r'[-+]?(?:\d+(?:\.\d*)?|\.\d+)'
+IDENTITY_V1 = "mcu-network/v1"
+IDENTITY_V2 = "multi-mcu-network/v2"
 
 
-def _macro_inventory(config):
-    """Static, conservative call inventory; no Jinja or macro is executed."""
-    sections = {key[len('gcode_macro '):].upper(): value for key, value in config.items()
-                if isinstance(key, str) and key.lower().startswith('gcode_macro ')}
-    hashes, graph = {}, {}
-    for name, section in sections.items():
-        if re.fullmatch(r'[A-Z_][A-Z_0-9]*', name) is None or not isinstance(section, dict) or not isinstance(section.get('gcode'), str):
-            raise ContractError('Actual custom macro source unavailable')
-        hashes[name] = digest(section)
-        calls, resolved = set(), True
-        for raw in section['gcode'].splitlines():
-            code = raw.split(';', 1)[0].split('#', 1)[0].strip()
-            if not code:
+def physical_identity(config, system, algorithm):
+    """Versioned physical identity; v1 preserves accepted Temperature evidence."""
+    network = system.get("network") if isinstance(system, dict) else None
+    macs = sorted({item.get("mac_address") for item in (network or {}).values()
+                   if isinstance(item, dict) and isinstance(item.get("mac_address"), str)
+                   and item.get("mac_address").strip()})
+    if not macs:
+        raise ContractError("Physical printer network identity unavailable")
+    if algorithm == IDENTITY_V1:
+        mcu = config.get("mcu", {})
+        kind = "serial" if mcu.get("serial") else "canbus_uuid"
+        identity = mcu.get(kind)
+        if not isinstance(identity, str) or not identity.strip():
+            raise ContractError("Historical physical printer MCU identity unavailable")
+        value = dict(mcu_kind=kind, mcu_identity=identity, macs=macs)
+    elif algorithm == IDENTITY_V2:
+        mcus = []
+        for section, options in config.items():
+            if section != "mcu" and not section.startswith("mcu "):
                 continue
-            if re.fullmatch(r'\{%\s*(?:if|elif|else|endif|set|for|endfor)\b[^{}]*%\}', code):
-                continue
-            if re.fullmatch(r'\{\s*action_(?:respond_info|raise_error)\([^{}]*\)\s*\}', code):
-                continue
-            match = re.match(r'([A-Za-z_][A-Za-z_0-9]*)(?:\s|$)', code)
-            op = match[1].upper() if match else None
-            if op in sections:
-                calls.add(op)
-            elif op not in BUILTINS:
-                resolved = False
-        graph[name] = dict(calls=sorted(calls), resolved=resolved)
-    start = sections.get('PRINT_START', {}).get('gcode', '')
-    arguments = sorted(set(re.findall(r'\bparams\.([A-Za-z_][A-Za-z_0-9]*)', start)))
-    return hashes, graph, arguments
+            if not isinstance(options, dict):
+                raise ContractError("Physical printer MCU configuration unavailable")
+            kind = "serial" if options.get("serial") else "canbus_uuid"
+            identity = options.get(kind)
+            if not isinstance(identity, str) or not identity.strip():
+                raise ContractError("Physical printer MCU identity unavailable")
+            mcus.append(dict(section=section, kind=kind, identity=identity))
+        if not mcus:
+            raise ContractError("Physical printer MCU inventory unavailable")
+        value = dict(schema="helix-orca-physical-identity/v2",
+                     mcus=sorted(mcus, key=lambda item: item["section"]), macs=macs)
+    else:
+        raise ContractError("Unknown physical identity algorithm")
+    return _hash(json.dumps(value, sort_keys=True, separators=(",", ":")).encode())
 
 
 def _qualification(value, transport, machine):
-    exact(value, 'schema physical_identity configuration_sha256 orca_machine_sha256 moonraker_version macro_sources_sha256 start_required_arguments macro_safety_reviewed printer_safety_reviewed review_reference motion_bounds filament_range_c nozzle_range_c bed_range_c', 'reviewed physical target qualification')
-    if value['schema'] != 'helix-orca-v1-physical-target-qualification/v1' or value['macro_safety_reviewed'] is not True or value['printer_safety_reviewed'] is not True:
-        raise ContractError('Explicit physical printer/macro safety review required')
-    for key, expected in (('physical_identity', transport.identity), ('configuration_sha256', transport.configuration), ('orca_machine_sha256', machine)):
+    exact(value, "schema target_id deployment_mode identity_algorithm physical_identity configuration_sha256 orca_machine_sha256 moonraker_version helixscreen_commit helixprint_version file_analysis_schema fit_checker_version printer_safety_reviewed review_reference", "reviewed printer target qualification")
+    if (value["schema"] != "helix-orca-v1-printer-target-qualification/v2"
+            or value["deployment_mode"] != "physical" or value["printer_safety_reviewed"] is not True):
+        raise ContractError("Explicit physical printer safety review required")
+    text(value["target_id"], "printer target ID", 128)
+    for key, expected in (("physical_identity", transport.identity),
+                          ("configuration_sha256", transport.configuration),
+                          ("orca_machine_sha256", machine)):
         if hex_value(value[key]) != expected:
-            raise ContractError('Physical qualification target/configuration/machine binding differs')
-    if value['moonraker_version'] != transport.version:
-        raise ContractError('Physical qualification Moonraker version differs')
-    text(value['review_reference'], 'physical safety review reference', 512)
-    if value['start_required_arguments'] != ['BED_TEMP', 'EXTRUDER_TEMP']:
-        raise ContractError('Reviewed PRINT_START arguments must be exactly BED_TEMP/EXTRUDER_TEMP')
-    sources = value['macro_sources_sha256']
-    if not isinstance(sources, dict) or not 2 <= len(sources) <= 128 or not {'PRINT_START', 'PRINT_END'} <= set(sources):
-        raise ContractError('Reviewed custom macro source inventory unavailable')
-    for name, source in sources.items():
-        if not isinstance(name, str) or re.fullmatch(r'[A-Z_][A-Z_0-9]*', name) is None:
-            raise ContractError('Malformed reviewed macro name')
-        hex_value(source)
-    exact(value['motion_bounds'], 'X Y Z', 'reviewed motion envelope')
-    for label, bounds in [*value['motion_bounds'].items(), *((key, value[key]) for key in ('filament_range_c', 'nozzle_range_c', 'bed_range_c'))]:
-        if not isinstance(bounds, list) or len(bounds) != 2 or any(type(v) not in (int, float) or not math.isfinite(v) for v in bounds) or not -10000 <= bounds[0] < bounds[1] <= 10000:
-            raise ContractError('Reviewed finite ' + label + ' range required')
-        if label.endswith('_range_c') and not 0 <= bounds[0] < bounds[1] <= (150 if label == 'bed_range_c' else 600):
-            raise ContractError('Reviewed temperature range outside bounded qualification')
+            raise ContractError("Printer target qualification binding differs")
+    if (value["identity_algorithm"] != transport.identity_algorithm
+            or value["moonraker_version"] != transport.version
+            or value["helixscreen_commit"] != HELIXSCREEN_COMMIT
+            or value["helixprint_version"] != HELIXPRINT_VERSION
+            or value["file_analysis_schema"] != FILE_ANALYSIS_SCHEMA
+            or value["fit_checker_version"] != FIT_CHECK_VERSION):
+        raise ContractError("Printer target source/API qualification differs")
+    text(value["review_reference"], "printer safety review reference", 512)
     return copy.deepcopy(value)
 
 
-def _inspect_physical(data, qualification):
-    """Independently inspect all visible motion/targets, not only model moves."""
-    try:
-        body = data.decode('utf-8')
-    except UnicodeError as error:
-        raise ContractError('Qualified artifact must be UTF-8') from error
-    xyz = dict.fromkeys('XYZ'); absolute = True; relative_e = False; e = 0.
-    commands, starts, ends, depositions, nozzle_targets, bed_targets = set(), [], [], [], [], []
-    for line, raw in enumerate(body.splitlines(), 1):
-        code = raw.split(';', 1)[0].strip()
-        if not code:
-            continue
-        match = re.match(r'([A-Za-z_][A-Za-z_0-9]*)(?:\s|$)', code)
-        if match is None:
-            raise ContractError('Unparsed executable command in physical qualification')
-        op, rest = match[1].upper(), code[len(match[1]):]
-        commands.add(op)
-        if op not in ARTIFACT_BUILTINS and op not in qualification['macro_sources_sha256']:
-            raise ContractError('Custom command lacks reviewed source')
-        if op in qualification['macro_sources_sha256'] and op not in ('PRINT_START', 'PRINT_END') and rest.strip():
-            raise ContractError('Additional custom macro arguments require explicit separate qualification')
-        if op in ('G2', 'G3') or op == 'G92' and re.search('[XYZ]', rest):
-            raise ContractError('Arc or XYZ rebasing requires separate physical qualification')
-        fields = {}
-        if op in ('G0', 'G1', 'G92', 'M104', 'M109', 'M140', 'M190'):
-            if re.fullmatch(r'\s*(?:[A-Z]' + NUMBER + r'\s*)*', rest) is None:
-                raise ContractError('Malformed qualified motion/heater command')
-            pairs = re.findall(r'([A-Z])(' + NUMBER + ')', rest)
-            fields = {key: float(value) for key, value in pairs}
-            if len(fields) != len(pairs) or any(not math.isfinite(v) for v in fields.values()):
-                raise ContractError('Ambiguous or nonfinite qualified motion/heater value')
-        if op == 'PRINT_START':
-            pairs = re.findall(r'([A-Z_]+)=(' + NUMBER + ')', rest)
-            args = {key: float(value) for key, value in pairs}
-            if re.fullmatch(r'\s*(?:[A-Z_]+=' + NUMBER + r'\s*)*', rest) is None or len(args) != len(pairs) or set(args) != {'BED_TEMP', 'EXTRUDER_TEMP'}:
-                raise ContractError('Actual PRINT_START arguments differ from reviewed exact ABI')
-            starts.append((line, args)); nozzle_targets.append(args['EXTRUDER_TEMP']); bed_targets.append(args['BED_TEMP'])
-        if op == 'PRINT_END':
-            if rest.strip():
-                raise ContractError('PRINT_END arguments are unreviewed')
-            ends.append(line)
-        if op in ('M104', 'M109', 'M140', 'M190'):
-            if fields.get('T', 0) != 0:
-                raise ContractError('Multiple physical heater tools are unsupported')
-            target = fields.get('S', fields.get('R'))
-            if target is None:
-                raise ContractError('Actual heater target unavailable')
-            (nozzle_targets if op in ('M104', 'M109') else bed_targets).append(target)
-        if op in ('G90', 'G91'): absolute = op == 'G90'
-        if op in ('M82', 'M83'): relative_e = op == 'M83'
-        if op == 'G92': e = fields.get('E', e)
-        if op not in ('G0', 'G1'):
-            continue
-        for axis in xyz:
-            if axis in fields:
-                if not absolute and xyz[axis] is None:
-                    raise ContractError('Relative physical motion starts from unknown coordinate')
-                xyz[axis] = fields[axis] if absolute else xyz[axis] + fields[axis]
-            if xyz[axis] is not None and not qualification['motion_bounds'][axis][0] <= xyz[axis] <= qualification['motion_bounds'][axis][1]:
-                raise ContractError('Actual motion exceeds reviewed physical envelope')
-        delta = fields.get('E', 0.) if relative_e else fields.get('E', e) - e
-        if 'E' in fields: e += delta
-        if delta > 0 and ('X' in fields or 'Y' in fields):
-            if any(value is None for value in xyz.values()):
-                raise ContractError('Physical deposition coordinates are unavailable')
-            depositions.append(line)
-    if len(starts) != 1 or len(ends) != 1 or not depositions or not starts[0][0] < depositions[0] <= depositions[-1] < ends[0]:
-        raise ContractError('Reviewed start/end must surround actual visible deposition')
-    for target in nozzle_targets:
-        if target != 0 and any(not qualification[key][0] <= target <= qualification[key][1] for key in ('filament_range_c', 'nozzle_range_c')):
-            raise ContractError('Actual nozzle target exceeds reviewed filament/nozzle range')
-    for target in bed_targets:
-        if target != 0 and not qualification['bed_range_c'][0] <= target <= qualification['bed_range_c'][1]:
-            raise ContractError('Actual bed target exceeds reviewed range')
-    if starts[0][1]['EXTRUDER_TEMP'] <= 0 or starts[0][1]['BED_TEMP'] <= 0:
-        raise ContractError('Positive reviewed macro heater targets required')
-    return sorted(commands)
+def legacy_request_validator(request, now):
+    """Temporary v1 bridge; the shared-contract lane can inject its v2 validator."""
+    return validate_request(request, now)
+
+
+def legacy_candidate_verifier(request, prepared, directory, machine):
+    """Verify the pre-amendment prepared/parity envelope.
+
+    Printer target and fit authorization deliberately do not depend on this
+    shape. The build-qualification lane replaces only this callback when its v2
+    request/prepared fields freeze.
+    """
+    validate_prepared(prepared, request)
+    if prepared["parity"]["qualified"] is not True or prepared["artifact"] is None:
+        raise ContractError("Independent native parity qualification required")
+    Coordinator.verify_artifact(prepared, directory)
+    Coordinator.verify_parity(prepared, directory)
+    report = read_json(directory / "parity.json")
+    if digest(report) != prepared["parity"]["report_sha256"]:
+        raise ContractError("Independent generator qualification report differs")
+    inputs = report.get("inputs", {})
+    printer = inputs.get("profiles", {}).get("printer")
+    nozzle = inputs.get("nozzle_mm")
+    if (not isinstance(printer, dict) or not printer or type(nozzle) not in (int, float)
+            or not math.isfinite(nozzle) or not 0.05 <= nozzle <= 2):
+        raise ContractError("Immutable Orca machine/nozzle identity is unavailable")
+    if digest(dict(printer=printer, nozzle_mm=nozzle)) != machine:
+        raise ContractError("Orca machine/nozzle differs from the reviewed physical target; upload blocked")
+    return (directory / prepared["artifact"]["name"]).read_bytes()
 
 
 def _number(value, label):
@@ -200,7 +146,8 @@ class PinnedMoonraker:
     qualification. Ambient proxies and redirects are disabled, including reads.
     """
     def __init__(self, origin, expected_host, expected_version, physical_identity,
-                 configuration_sha256, *, trusted_lan=False, api_key=None, actions=False):
+                 configuration_sha256, *, identity_algorithm=IDENTITY_V2,
+                 trusted_lan=False, api_key=None, actions=False):
         text(origin, "private origin", 512)
         parsed = urlparse(origin)
         if parsed.port is not None and not 1 <= parsed.port <= 65535:
@@ -216,6 +163,9 @@ class PinnedMoonraker:
         self.version = text(expected_version, "pinned Moonraker version", 128)
         self.identity = hex_value(physical_identity)
         self.configuration = hex_value(configuration_sha256)
+        if identity_algorithm not in (IDENTITY_V1, IDENTITY_V2):
+            raise ContractError("Unknown physical identity algorithm")
+        self.identity_algorithm = identity_algorithm
         if api_key is not None:
             text(api_key, "existing API credential", 4096)
         self.api_key, self.actions = api_key, actions
@@ -254,18 +204,11 @@ class PinnedMoonraker:
             raise ContractError("Pinned Moonraker version/readiness differs")
         system = self._wire("/machine/system_info")["system_info"]
         config = self._wire("/printer/objects/query?configfile")["status"]["configfile"]["settings"]
-        # Preserve the accepted Temperature physical/config identity algorithms.
         config_hash = _hash(json.dumps(config, sort_keys=True, separators=(",", ":")).encode())
-        mcu = config.get("mcu", {})
-        kind = "serial" if mcu.get("serial") else "canbus_uuid"
-        serial = mcu.get(kind)
-        macs = sorted(x["mac_address"] for x in system["network"].values() if x.get("mac_address"))
-        if not isinstance(serial, str) or not serial.strip() or not macs:
-            raise ContractError("Physical printer identity unavailable")
-        physical = _hash(json.dumps(dict(mcu_kind=kind, mcu_identity=serial, macs=macs), sort_keys=True, separators=(",", ":")).encode())
+        physical = physical_identity(config, system, self.identity_algorithm)
         if config_hash != self.configuration or physical != self.identity:
             raise ContractError("Physical printer/configuration identity differs")
-        macro_sources, macro_calls, start_arguments = _macro_inventory(config)
+        fit_machine = require_machine_limits(machine_limits(config))
         queue = self._wire("/server/job_queue/status")
         if not isinstance(queue.get("queued_jobs"), list) or queue.get("queue_state") not in ("paused", "ready"):
             raise ContractError("Queue transition or unavailable queue")
@@ -291,8 +234,14 @@ class PinnedMoonraker:
             monitor=dict(elapsed_s=elapsed, progress=progress),
             job_id=metadata.get("job_id") if metadata else None, start_time=metadata.get("print_start_time") if metadata else None,
             queue_job_ids=tuple(j["job_id"] for j in queue["queued_jobs"]), physical_identity=physical,
-            configuration_sha256=config_hash, macro_sources_sha256=macro_sources,
-            macro_calls=macro_calls, start_required_arguments=start_arguments)
+            identity_algorithm=self.identity_algorithm, configuration_sha256=config_hash,
+            fit_machine=fit_machine)
+
+    def helix_status(self):
+        return self._wire("/server/helix/status")
+
+    def analysis(self, filename):
+        return self._wire("/server/helix/analysis?filename=" + quote(_filename(filename), safe=""))
 
     def metadata(self, filename):
         value = self._wire("/server/files/metadata?filename=" + quote(_filename(filename), safe=""), missing=True)
@@ -304,6 +253,10 @@ class PinnedMoonraker:
             raise ContractError("Malformed metadata job ID")
         if value.get("print_start_time") is not None:
             _number(value["print_start_time"], "metadata start time")
+        if value.get("size") is not None and (type(value["size"]) is not int or value["size"] <= 0):
+            raise ContractError("Malformed metadata file size")
+        if value.get("modified") is not None:
+            _number(value["modified"], "metadata modified time")
         return value
 
     def file(self, filename, *, missing=False):
@@ -370,13 +323,22 @@ class OwnedJobAdapter:
     local action gates, and notify confirm before calling start. Shipped CLI does
     not instantiate this class. No wire field may enable actions.
     """
-    def __init__(self, transport, root, *, orca_machine_sha256, physical_qualification=None, actions=False, now=time.time, monotonic=time.monotonic, sleep=time.sleep):
+    def __init__(self, transport, root, *, orca_machine_sha256, physical_qualification=None,
+                 candidate_verifier=None, request_validator=None, actions=False,
+                 warning_acknowledger=None,
+                 now=time.time, monotonic=time.monotonic, sleep=time.sleep):
         if type(actions) is not bool:
             raise ContractError("Actions must be a separate local boolean")
         self.machine = hex_value(orca_machine_sha256)
         self.qualification = _qualification(physical_qualification, transport, self.machine)
         self.qualification_sha256 = digest(self.qualification)
         self.transport, self.root, self.actions = transport, Path(root), actions
+        self.candidate_verifier = candidate_verifier or legacy_candidate_verifier
+        self.request_validator = request_validator or legacy_request_validator
+        self.warning_acknowledger = warning_acknowledger
+        if (not callable(self.candidate_verifier) or not callable(self.request_validator)
+                or warning_acknowledger is not None and not callable(warning_acknowledger)):
+            raise ContractError("Typed candidate/request validators required")
         self.now, self.monotonic, self.sleep = now, monotonic, sleep
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
         if self.root.is_symlink():
@@ -403,33 +365,11 @@ class OwnedJobAdapter:
     def _snapshot(self, record):
         sample = self.transport.snapshot()
         q = self.qualification
-        if sample.get('physical_identity') != q['physical_identity'] or sample.get('configuration_sha256') != q['configuration_sha256'] or sample.get('start_required_arguments') != q['start_required_arguments']:
-            raise ContractError('Live physical qualification identity/configuration/macro arguments differ')
-        sources, graph = sample.get('macro_sources_sha256'), sample.get('macro_calls')
-        if not isinstance(sources, dict) or not isinstance(graph, dict):
-            raise ContractError('Live custom macro sources/calls unavailable')
-        needed, visiting = set(), set()
-        def resolve(name):
-            if name in visiting:
-                raise ContractError('Recursive custom macro calls need separate safety qualification')
-            if name in needed:
-                return
-            if name not in sources or sources[name] != q['macro_sources_sha256'].get(name) or not isinstance(graph.get(name), dict) or graph[name].get('resolved') is not True:
-                raise ContractError('Custom macro source or transitive call is unreviewed/unresolved')
-            visiting.add(name)
-            calls = graph[name].get('calls')
-            if not isinstance(calls, list) or any(not isinstance(child, str) for child in calls):
-                raise ContractError('Transitive custom macro call inventory unavailable')
-            for child in calls:
-                resolve(child)
-            visiting.remove(name); needed.add(name)
-        for op in record['commands']:
-            if op in sources:
-                resolve(op)
-            elif op not in BUILTINS:
-                raise ContractError('Actual custom macro invocation has no live source')
-        if needed != set(q['macro_sources_sha256']):
-            raise ContractError('Reviewed custom macro inventory differs from exact transitive invocations')
+        if (sample.get("physical_identity") != q["physical_identity"]
+                or sample.get("identity_algorithm") != q["identity_algorithm"]
+                or sample.get("configuration_sha256") != q["configuration_sha256"]):
+            raise ContractError("Live printer target identity/configuration differs")
+        require_machine_limits(sample.get("fit_machine"))
         return sample
 
     @staticmethod
@@ -440,44 +380,60 @@ class OwnedJobAdapter:
         hex_value(intent["intent_id"], 32)
 
     def _candidate(self, request, prepared, directory):
-        validate_request(request, self.now())
-        validate_prepared(prepared, request)
-        if prepared["parity"]["qualified"] is not True or prepared["artifact"] is None:
-            raise ContractError("Independent native parity qualification required")
+        self.request_validator(request, self.now())
         directory = Path(directory)
         if directory.is_symlink() or directory.name != request["request_id"]:
             raise ContractError("Exact request-owned artifact directory required")
-        Coordinator.verify_artifact(prepared, directory)
-        Coordinator.verify_parity(prepared, directory)
-        report = read_json(directory / "parity.json")
-        semantics = report.get("candidate_invariants", {}).get("macro_semantics")
-        if digest(report) != prepared["parity"]["report_sha256"] or not isinstance(semantics, dict) or semantics.get("accepted_abi_signature") is not True:
-            raise ContractError("Accepted physical target macro signature is not verified; native command parity alone cannot authorize upload")
-        inputs = report.get("inputs", {})
-        printer = inputs.get("profiles", {}).get("printer")
-        nozzle = inputs.get("nozzle_mm")
-        if not isinstance(printer, dict) or not printer or type(nozzle) not in (int, float) or not math.isfinite(nozzle) or not 0.05 <= nozzle <= 2:
-            raise ContractError("Immutable Orca machine/nozzle identity is unavailable")
-        if digest(dict(printer=printer, nozzle_mm=nozzle)) != self.machine:
-            raise ContractError("Orca machine/nozzle differs from the reviewed physical target; upload blocked")
-        data = (directory / prepared["artifact"]["name"]).read_bytes()
-        if not 0 < len(data) <= MAX_BYTES:
+        data = self.candidate_verifier(request, prepared, directory, self.machine)
+        if not isinstance(data, bytes) or not 0 < len(data) <= MAX_BYTES:
             raise ContractError("Owned upload supports at most 20 MB")
-        return data, _inspect_physical(data, self.qualification)
+        return data, _hash(data)
+
+    def _fit_ready(self, filename, data, machine, request, prepared, intent):
+        """Require beta.12 analysis of the exact uploaded bytes, fail closed."""
+        validate_helix_status(self.transport.helix_status(), self.qualification)
+        deadline = self.monotonic() + 30
+        while True:
+            reply = self.transport.analysis(filename)
+            if isinstance(reply, dict) and reply.get("status") == "pending" and self.monotonic() < deadline:
+                self.sleep(0.25)
+                continue
+            metadata = self.transport.metadata(filename)
+            record = analysis_record(reply, filename, metadata)
+            if record["file_size"] != len(data):
+                raise ContractError("Analyzed file size differs from prepared artifact")
+            findings = check_fit(machine, fit_file(record))
+            binding = warning_binding(findings, target_id=self.qualification["target_id"],
+                request_id=request["request_id"], prepared_sha256=digest(prepared),
+                file_sha256=_hash(data))
+            acknowledgement = None
+            if (not any(item.get("severity") == "block" for item in findings)
+                    and any(item.get("severity") == "warn" for item in findings)
+                    and self.warning_acknowledger is not None):
+                acknowledgement = self.warning_acknowledger(copy.deepcopy(request),
+                    copy.deepcopy(prepared), copy.deepcopy(intent), copy.deepcopy(binding))
+            findings = authorize_findings(findings, acknowledgement, binding=binding)
+            return dict(schema="helix-orca-v1-fit-evidence/v1", filename=filename,
+                        analysis_sha256=digest(record), findings=findings,
+                        warning_acknowledgement_sha256=(digest(acknowledgement)
+                            if acknowledgement is not None else None))
 
     def confirm(self, request, prepared, directory, intent):
         self._intent(request, prepared, intent, "confirm")
-        _, commands = self._candidate(request, prepared, directory)
+        _, candidate_sha256 = self._candidate(request, prepared, directory)
         with InstanceLock(self.root / "adapter.lock"):
             if self._path(request["request_id"]).exists():
                 record = self._read(request["request_id"])
-                if record["request"] == request and record["prepared"] == prepared and record["confirm"] == intent and record["phase"] == "confirmed" and record.get('qualification_sha256') == self.qualification_sha256 and record.get('commands') == commands:
+                if record["request"] == request and record["prepared"] == prepared and record["confirm"] == intent and record["phase"] == "confirmed" and record.get("qualification_sha256") == self.qualification_sha256 and record.get("candidate_sha256") == candidate_sha256:
                     return
                 raise ContractError("Existing one-shot job cannot be replaced")
             record = dict(schema="helix-orca-v1-owned-job/v1", request=copy.deepcopy(request), prepared=copy.deepcopy(prepared),
                 confirm=copy.deepcopy(intent), filename="helix-orca-v1-" + request["request_id"] + "-" + secrets.token_hex(16) + ".gcode",
-                phase="confirmed", start=None, cancel=None, job=None, last_eventtime=None, baseline=None, ownership_confirmed=False)
-            record.update(qualification_sha256=self.qualification_sha256, commands=commands)
+                phase="confirmed", start=None, cancel=None, job=None, last_eventtime=None,
+                baseline=None, ownership_confirmed=False, fit_evidence=None,
+                target_id=self.qualification["target_id"])
+            record.update(qualification_sha256=self.qualification_sha256,
+                          candidate_sha256=candidate_sha256)
             self._save(record)
 
     def _enabled(self):
@@ -507,17 +463,22 @@ class OwnedJobAdapter:
         record["last_eventtime"] = stamp
 
     def _public_job(self, record):
-        return dict(job_id=record["job"]["job_id"], file_sha256=record["prepared"]["artifact"]["sha256"],
+        return dict(job_id=record["job"]["job_id"], file_sha256=record["candidate_sha256"],
             request_id=record["request"]["request_id"], origin_id=record["request"]["origin_id"])
 
     def start(self, request, prepared, directory, intent):
         self._enabled()
         self._intent(request, prepared, intent, "start")
-        data, commands = self._candidate(request, prepared, directory)
+        data, candidate_sha256 = self._candidate(request, prepared, directory)
         with InstanceLock(self.root / "adapter.lock"):
             record = self._read(request["request_id"])
             self._intent(request, prepared, record["confirm"], "confirm")
-            if record["request"] != request or record["prepared"] != prepared or record["phase"] != "confirmed" or intent["intent_id"] == record["confirm"]["intent_id"] or record.get('qualification_sha256') != self.qualification_sha256 or record.get('commands') != commands:
+            if (record["request"] != request or record["prepared"] != prepared
+                    or record["phase"] != "confirmed"
+                    or intent["intent_id"] == record["confirm"]["intent_id"]
+                    or record.get("qualification_sha256") != self.qualification_sha256
+                    or record.get("candidate_sha256") != candidate_sha256
+                    or record.get("target_id") != self.qualification["target_id"]):
                 raise ContractError("Start requires distinct retained native Confirm; retry prohibited")
             active_path = self.root / "active.json"
             if active_path.exists():
@@ -539,7 +500,12 @@ class OwnedJobAdapter:
                 if self.transport.file(filename) != data:
                     raise ContractError("Uploaded bytes differ from prepared artifact")
                 sample = self._snapshot(record); self._idle(sample); self._fresh(sample, record)
-                validate_request(request, self.now())
+                record["fit_evidence"] = self._fit_ready(filename, data, sample["fit_machine"],
+                    request, prepared, intent)
+                if self.transport.file(filename) != data:
+                    raise ContractError("Uploaded bytes changed during file-fit analysis")
+                sample = self._snapshot(record); self._idle(sample); self._fresh(sample, record)
+                self.request_validator(request, self.now())
                 record["phase"] = "start-intent"; self._save(record)
                 self.transport.start(filename)
                 deadline = self.monotonic() + 30
@@ -663,28 +629,47 @@ class OwnedJobAdapter:
 
 
 def from_config(config: dict, root: Path, *, deployment_authorized: bool = False,
-                api_key: str | None = None) -> OwnedJobAdapter | None:
-    """Future local deployment construction; configuration cannot authorize it.
+                api_key: str | None = None, candidate_verifier=None,
+                request_validator=None, warning_acknowledger=None) -> OwnedJobAdapter | None:
+    """Construct only an explicitly physical, locally authorized target.
 
     The caller must derive deployment_authorized from a separate explicit local
     deployment approval, never native requests, Orca exports, or inbound events.
-    Default invocation has no filesystem, network, process or action side effect.
+    A generation-only target is validated and always returns ``None`` before a
+    transport exists, so no later wire value can promote it to physical actions.
     """
     if not isinstance(config, dict) or type(deployment_authorized) is not bool:
         raise ContractError("Typed private configuration/local authorization required")
     value = config.get("owned_jobs")
     if value is None:
         return None
-    exact(value, "schema origin expected_host expected_version physical_identity configuration_sha256 orca_machine_sha256 physical_qualification existing_trusted_lan_ack actions_enabled", "private owned-job deployment")
-    if value["schema"] != "helix-orca-v1-job-deployment/v1" or type(value["existing_trusted_lan_ack"]) is not bool or type(value["actions_enabled"]) is not bool:
+    if not isinstance(value, dict) or value.get("schema") != "helix-orca-v1-job-deployment/v2":
+        raise ContractError("Malformed owned-job deployment schema")
+    mode = value.get("deployment_mode")
+    if mode == "generation-only":
+        exact(value, "schema target_id deployment_mode orca_machine_sha256 actions_enabled", "generation-only printer target")
+        text(value["target_id"], "printer target ID", 128)
+        hex_value(value["orca_machine_sha256"])
+        if value["actions_enabled"] is not False:
+            raise ContractError("Generation-only target can never enable physical actions")
+        return None
+    exact(value, "schema target_id deployment_mode origin expected_host expected_version physical_identity identity_algorithm configuration_sha256 orca_machine_sha256 physical_qualification existing_trusted_lan_ack actions_enabled", "private owned-job deployment")
+    if (mode != "physical" or type(value["existing_trusted_lan_ack"]) is not bool
+            or type(value["actions_enabled"]) is not bool):
         raise ContractError("Malformed owned-job deployment safety flags")
+    text(value["target_id"], "printer target ID", 128)
     machine = hex_value(value["orca_machine_sha256"])
     # Construction validates pins/origin but makes no request or filesystem write.
     transport = PinnedMoonraker(value["origin"], value["expected_host"], value["expected_version"],
-        value["physical_identity"], value["configuration_sha256"], trusted_lan=value["existing_trusted_lan_ack"],
-        api_key=api_key, actions=False)
+        value["physical_identity"], value["configuration_sha256"], identity_algorithm=value["identity_algorithm"],
+        trusted_lan=value["existing_trusted_lan_ack"], api_key=api_key, actions=False)
     qualification = _qualification(value['physical_qualification'], transport, machine)
+    if qualification["target_id"] != value["target_id"] or qualification["deployment_mode"] != mode:
+        raise ContractError("Deployment and target qualification differ")
     if not deployment_authorized or not value["actions_enabled"]:
         return None
     transport.actions = True
-    return OwnedJobAdapter(transport, root, orca_machine_sha256=machine, physical_qualification=qualification, actions=True)
+    return OwnedJobAdapter(transport, root, orca_machine_sha256=machine,
+        physical_qualification=qualification, candidate_verifier=candidate_verifier,
+        request_validator=request_validator, warning_acknowledger=warning_acknowledger,
+        actions=True)

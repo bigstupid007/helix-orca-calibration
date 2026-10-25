@@ -19,7 +19,8 @@ from urllib.parse import parse_qs, urlsplit
 from urllib.request import Request, build_opener, ProxyHandler
 
 from integration.v1_contract import ContractError, DEFAULTS, digest
-from integration.v1_jobs import OwnedJobAdapter, PinnedMoonraker, from_config
+from integration.v1_fit import HELIXPRINT_VERSION, HELIXSCREEN_COMMIT
+from integration.v1_jobs import IDENTITY_V2, OwnedJobAdapter, PinnedMoonraker, from_config
 from integration.v1_runtime import read_json
 from integration.v1_transport import NoRedirect
 
@@ -30,10 +31,19 @@ def sha(value):
 
 class PrinterFixture:
     def __init__(self):
-        self.config = {'mcu': {'serial': 'fixture-only-mcu'},
+        self.config = {'printer': {'kinematics': 'corexy'},
+                       'stepper_x': {'position_min': 0., 'position_max': 300.},
+                       'stepper_y': {'position_min': 0., 'position_max': 300.},
+                       'stepper_z': {'position_min': -5., 'position_max': 290.},
+                       'extruder': {'max_temp': 280., 'nozzle_diameter': .4},
+                       'heater_bed': {'max_temp': 110.},
+                       'mcu': {'serial': 'fixture-only-mcu'},
+                       'mcu toolhead': {'canbus_uuid': 'fixture-toolhead'},
                        'gcode_macro print_start': {'gcode': 'G28\nM190 S{params.BED_TEMP}\nM109 S{params.EXTRUDER_TEMP}'},
                        'gcode_macro print_end': {'gcode': 'M104 S0\nM140 S0\nM84'}}
-        self.identity = sha(dict(mcu_kind='serial', mcu_identity='fixture-only-mcu', macs=['fixture-mac']))
+        self.identity = sha(dict(schema='helix-orca-physical-identity/v2', mcus=[
+            dict(section='mcu', kind='serial', identity='fixture-only-mcu'),
+            dict(section='mcu toolhead', kind='canbus_uuid', identity='fixture-toolhead')], macs=['fixture-mac']))
         self.config_hash = sha(self.config)
         self.files = {}; self.filename = ''; self.state = 'standby'; self.event = 1
         self.job_id = 'ABC123'; self.start_time = 10; self.history_status = 'in_progress'
@@ -41,6 +51,8 @@ class PrinterFixture:
         self.posts = []; self.gets = []; self.upload_fields = None
         self.progress = .25; self.print_duration = 100; self.total_duration = 120; self.sd_path_override = None
         self.tamper = False; self.start_error = False; self.cancel_error = False; self.auto_queue = False
+        self.analysis_status = 'ready'; self.analysis_override = None; self.modified = 42.5
+        self.helix_version = HELIXPRINT_VERSION; self.file_analysis_available = True
         fixture = self
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, *_): pass
@@ -53,6 +65,22 @@ class PrinterFixture:
                 if self.path == '/server/info': return self.response(dict(moonraker_version='fixture-version', klippy_state='ready', failed_components=[]))
                 if self.path == '/machine/system_info': return self.response(dict(system_info=dict(network=dict(eth0=dict(mac_address='fixture-mac')))))
                 if self.path == '/printer/objects/query?configfile': return self.response(dict(status=dict(configfile=dict(settings=fixture.config))))
+                if self.path == '/server/helix/status':
+                    return self.response(dict(enabled=True, version=fixture.helix_version, api=2,
+                        features=dict(file_analysis=dict(version=1, available=fixture.file_analysis_available,
+                            enabled=fixture.file_analysis_available, reason=None if fixture.file_analysis_available else 'module_missing'))))
+                if p.path == '/server/helix/analysis':
+                    name = q['filename'][0]
+                    if fixture.analysis_status != 'ready': return self.response(dict(filename=name, status=fixture.analysis_status))
+                    if name not in fixture.files: return self.response({}, 404)
+                    record = fixture.analysis_override or dict(schema=1, filename=name,
+                        file_size=len(fixture.files[name]), file_mtime=fixture.modified,
+                        bounds=dict(print=dict(min=[1.,1.,.2], max=[20.,20.,5.]),
+                                    travel=dict(min=[0.,0.,.2], max=[50.,220.,5.]),
+                                    max_hotend_temp=230., max_bed_temp=60.),
+                        header=dict(printer_model='Fixture CoreXY', nozzle_diameters=[.4]),
+                        tools=[dict(tool=0)])
+                    return self.response(dict(filename=name, status='ready', analysis=record))
                 if self.path == '/server/job_queue/status': return self.response(dict(queued_jobs=fixture.queue, queue_state='ready'))
                 if self.path in ('/printer/objects/query?print_stats', '/printer/objects/query?print_stats&virtual_sdcard'):
                     fixture.event += 1
@@ -60,7 +88,9 @@ class PrinterFixture:
                 if p.path == '/server/files/metadata':
                     name = q['filename'][0]
                     if name not in fixture.files: return self.response({}, 404)
-                    return self.response(dict(job_id=fixture.job_id if fixture.started else None, print_start_time=fixture.start_time if fixture.started else None))
+                    return self.response(dict(job_id=fixture.job_id if fixture.started else None,
+                        print_start_time=fixture.start_time if fixture.started else None,
+                        size=len(fixture.files[name]), modified=fixture.modified))
                 if p.path.startswith('/server/files/gcodes/'):
                     name = p.path.rsplit('/', 1)[1]
                     if name not in fixture.files: return self.response({}, 404)
@@ -92,7 +122,8 @@ class PrinterFixture:
     def close(self):
         self.server.shutdown(); self.server.server_close(); self.thread.join(2)
     def transport(self, actions=True):
-        result = PinnedMoonraker('http://192.168.1.2', '192.168.1.2', 'fixture-version', self.identity, self.config_hash, trusted_lan=True, actions=actions)
+        result = PinnedMoonraker('http://192.168.1.2', '192.168.1.2', 'fixture-version', self.identity,
+            self.config_hash, identity_algorithm=IDENTITY_V2, trusted_lan=True, actions=actions)
         local = 'http://127.0.0.1:' + str(self.server.server_port)
         opener = build_opener(ProxyHandler({}), NoRedirect())
         class LoopbackOnly:
@@ -119,13 +150,13 @@ class OwnedJobsTests(unittest.TestCase):
             generator=dict(build='fixture', route='fixture'), parity=dict(qualified=True, report_sha256='4'*64, reason='Synthetic verifier injection only'), not_applied=True)
         self.machine_inputs = dict(printer=dict(saved=dict(name='Synthetic printer', config={'machine': 'fixture'}), edited=dict(name='Synthetic printer', config={'machine': 'fixture'})), nozzle_mm=0.4)
         self.machine = digest(self.machine_inputs)
-        self.qualification = dict(schema='helix-orca-v1-physical-target-qualification/v1',
+        self.qualification = dict(schema='helix-orca-v1-printer-target-qualification/v2',
+            target_id='fixture-voron', deployment_mode='physical', identity_algorithm=IDENTITY_V2,
             physical_identity=self.fixture.identity, configuration_sha256=self.fixture.config_hash,
             orca_machine_sha256=self.machine, moonraker_version='fixture-version',
-            macro_sources_sha256={name.upper(): digest(self.fixture.config['gcode_macro '+name]) for name in ('print_start', 'print_end')},
-            start_required_arguments=['BED_TEMP', 'EXTRUDER_TEMP'], macro_safety_reviewed=True, printer_safety_reviewed=True,
-            review_reference='SYNTHETIC HTTP FIXTURE ONLY; NOT A PHYSICAL QUALIFICATION',
-            motion_bounds=dict(X=[0,300], Y=[0,300], Z=[0,300]), filament_range_c=[190,250], nozzle_range_c=[0,280], bed_range_c=[0,110])
+            helixscreen_commit=HELIXSCREEN_COMMIT, helixprint_version=HELIXPRINT_VERSION,
+            file_analysis_schema=1, fit_checker_version=1, printer_safety_reviewed=True,
+            review_reference='SYNTHETIC HTTP FIXTURE ONLY; NOT A PHYSICAL QUALIFICATION')
         self.report = dict(synthetic_http_fixture_only=True, inputs=dict(profiles=dict(printer=self.machine_inputs['printer']), nozzle_mm=0.4), candidate_invariants=dict(
             macro_semantics=dict(accepted_abi_signature=True, hardware_abi_qualified=False, physical_readiness=False), physical_readiness=False))
         (self.directory/'parity.json').write_text(json.dumps(self.report))
@@ -282,7 +313,8 @@ class OwnedJobsTests(unittest.TestCase):
         with self.assertRaises(ContractError): self.start()
         self.assertEqual(len(self.fixture.posts), 2)
     def test_factory_is_default_off_and_requires_separate_typed_local_gate(self):
-        deployment = dict(schema='helix-orca-v1-job-deployment/v1', origin='http://192.168.1.2', expected_host='192.168.1.2',
+        deployment = dict(schema='helix-orca-v1-job-deployment/v2', target_id='fixture-voron', deployment_mode='physical',
+            origin='http://192.168.1.2', expected_host='192.168.1.2', identity_algorithm=IDENTITY_V2,
             expected_version='fixture-version', physical_identity=self.fixture.identity, configuration_sha256=self.fixture.config_hash, orca_machine_sha256=self.machine,
             physical_qualification=self.qualification,
             existing_trusted_lan_ack=True, actions_enabled=True)
@@ -297,6 +329,13 @@ class OwnedJobsTests(unittest.TestCase):
         with self.assertRaises(ContractError): from_config({'owned_jobs': deployment}, target, deployment_authorized='true')
         with self.assertRaises(ContractError): from_config({'owned_jobs': dict(deployment, injected_command='no')}, target)
 
+        ad5x = dict(schema='helix-orca-v1-job-deployment/v2', target_id='flashforge-ad5x-04',
+            deployment_mode='generation-only', orca_machine_sha256='a'*64, actions_enabled=False)
+        self.assertIsNone(from_config({'owned_jobs': ad5x}, self.root/'ad5x', deployment_authorized=True))
+        self.assertFalse((self.root/'ad5x').exists())
+        with self.assertRaisesRegex(ContractError, 'never enable'):
+            from_config({'owned_jobs': dict(ad5x, actions_enabled=True)}, self.root/'ad5x', deployment_authorized=True)
+
     def test_malformed_baseline_and_corrupt_confirm_fail_before_upload(self):
         self.confirm()
         self.fixture.baseline = [dict(job_id='ABCDEF', filename='old.gcode', start_time=True, status='completed')]
@@ -308,20 +347,46 @@ class OwnedJobsTests(unittest.TestCase):
         with self.assertRaises(ContractError): self.start()
         self.assertEqual(self.fixture.posts, [])
 
-    def test_native_only_or_missing_macro_abi_never_reaches_upload(self):
-        for signature in (False, None, 1):
-            report = copy.deepcopy(self.report)
-            report['candidate_invariants']['macro_semantics']['accepted_abi_signature'] = signature
-            self.prepared['parity']['report_sha256'] = digest(report)
-            (self.directory/'parity.json').write_text(json.dumps(report))
-            with self.assertRaisesRegex(ContractError, 'macro signature'): self.confirm()
-        report = dict(self.report, candidate_invariants=dict(macro_semantics=None))
-        self.prepared['parity']['report_sha256'] = digest(report)
-        (self.directory/'parity.json').write_text(json.dumps(report))
-        with self.assertRaisesRegex(ContractError, 'macro signature'): self.confirm()
-        self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
-        self.assertFalse(self.report['candidate_invariants']['macro_semantics']['hardware_abi_qualified'])
-        self.assertFalse(self.report['candidate_invariants']['physical_readiness'])
+    def test_no_voron_macro_abi_is_required_for_ad5x_shaped_gcode(self):
+        data = (b'; generated by OrcaSlicer\nM190 S60\nM109 S220\nG90\nM83\n'
+                b'G1 Z2 F6000\nG1 X50 Y220 Z0.25 F4800\nG1 X70 E3 F900\n'
+                b'G1 E-3 F3600\nG0 X50 Y50 F30000\nM104 S0\n')
+        (self.directory/'fixture.gcode').write_bytes(data)
+        self.prepared['artifact'].update(size=len(data), sha256=hashlib.sha256(data).hexdigest())
+        self.report['candidate_invariants'] = {'physical_readiness': False}
+        self.prepared['parity']['report_sha256'] = digest(self.report)
+        (self.directory/'parity.json').write_text(json.dumps(self.report))
+        self.confirm(); job = self.start()
+        self.assertEqual(job['file_sha256'], hashlib.sha256(data).hexdigest())
+        self.assertNotIn('PRINT_START', data.decode()); self.assertNotIn('PRINT_END', data.decode())
+
+    def test_shared_v2_contract_can_inject_request_and_candidate_validation(self):
+        request = dict(schema='synthetic-request-v2', request_id='a'*32,
+            origin_id='b'*32, expires_at=999)
+        prepared = dict(schema='synthetic-prepared-v2', request_id=request['request_id'],
+            build_qualification_sha256='c'*64)
+        directory = self.root/request['request_id']; directory.mkdir()
+        data = b'M190 S60\nM109 S220\nG90\nG1 X2 Y2 Z.2 E1\nM104 S0\n'
+        (directory/'v2.gcode').write_bytes(data)
+        calls=[]
+        def request_validator(value, now):
+            calls.append(('request',now)); self.assertIs(value,request)
+        def candidate_verifier(req, value, path, machine):
+            calls.append(('candidate',machine)); self.assertIs(req,request); self.assertIs(value,prepared)
+            return (path/'v2.gcode').read_bytes()
+        adapter=OwnedJobAdapter(self.fixture.transport(),self.root/'v2-journal',
+            orca_machine_sha256=self.machine,physical_qualification=self.qualification,
+            candidate_verifier=candidate_verifier,request_validator=request_validator,
+            actions=True,now=lambda:100)
+        def intent(action,token):
+            return dict(schema='helix-orca-v1-intent/v1',request_id=request['request_id'],
+                origin_id=request['origin_id'],prepared_sha256=digest(prepared),action=action,
+                intent_id=token*32)
+        adapter.confirm(request,prepared,directory,intent('confirm','5'))
+        job=adapter.start(request,prepared,directory,intent('start','6'))
+        self.assertEqual(job['file_sha256'],hashlib.sha256(data).hexdigest())
+        self.assertGreaterEqual(calls.count(('request',100)),3)
+        self.assertEqual(sum(1 for kind,_ in calls if kind=='candidate'),2)
 
     def test_changed_machine_configuration_or_nozzle_blocks_before_http(self):
         for alteration in ('nozzle', 'printer_config', 'printer_missing'):
@@ -334,12 +399,13 @@ class OwnedJobsTests(unittest.TestCase):
             with self.assertRaisesRegex(ContractError, 'machine/nozzle'): self.confirm()
         self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
 
-    def test_typed_physical_qualification_requires_all_reviews_and_exact_bindings(self):
+    def test_typed_target_qualification_requires_source_api_review_and_bindings(self):
         for key, bad in (('physical_identity', 'a'*64), ('configuration_sha256', 'b'*64),
-                         ('orca_machine_sha256', 'c'*64), ('macro_safety_reviewed', 1),
+                         ('orca_machine_sha256', 'c'*64), ('identity_algorithm', 'unknown/v9'),
                          ('printer_safety_reviewed', False), ('review_reference', ''),
-                         ('start_required_arguments', ['BED', 'EXTRUDER']),
-                         ('motion_bounds', dict(X=[0,300], Y=[0,300], Z=[0,float('inf')]))):
+                         ('helixscreen_commit', '0'*40), ('helixprint_version', '1.3.0'),
+                         ('file_analysis_schema', 2), ('fit_checker_version', 2),
+                         ('deployment_mode', 'generation-only')):
             value = copy.deepcopy(self.qualification); value[key] = bad
             with self.subTest(key=key), self.assertRaises(ContractError):
                 OwnedJobAdapter(self.fixture.transport(), self.root/'invalid', orca_machine_sha256=self.machine,
@@ -349,55 +415,99 @@ class OwnedJobsTests(unittest.TestCase):
         self.assertFalse((self.root/'invalid').exists())
         self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
 
-    def test_visible_motion_and_heaters_are_checked_independently_of_parity_abi_flag(self):
-        original = (self.directory/'fixture.gcode').read_text()
-        cases = (original.replace('X1 Y1', 'X301 Y1'),
-                 original.replace('M104 S230', 'M104 S290'),
-                 original.replace('M104 S230', 'M104 S180'),
-                 original.replace('BED_TEMP=60', 'BED_TEMP=120'),
-                 original.replace('G1 Z0.2', 'G92 Z0\nG1 Z0.2'),
-                 original.replace('M104 S230', 'SET_HEATER_TEMPERATURE HEATER=extruder TARGET=900'),
-                 original.replace('G1 Z0.2', 'SET_GCODE_OFFSET Z=500\nG1 Z0.2'))
-        for body in cases:
-            data = body.encode(); (self.directory/'fixture.gcode').write_bytes(data)
-            self.prepared['artifact'].update(size=len(data), sha256=hashlib.sha256(data).hexdigest())
-            with self.subTest(body=body), self.assertRaises(ContractError): self.confirm()
-        self.assertEqual(self.fixture.gets, []); self.assertEqual(self.fixture.posts, [])
+    def test_analysis_and_generic_fit_fail_closed_before_start(self):
+        cases = []
+        for status in ('failed', 'disabled'):
+            cases.append((status, None))
+        cases.extend([
+            ('ready', {'bounds': {'travel': {'min': [0.,0.,0.], 'max': [301.,2.,2.]},
+                                  'max_hotend_temp': 230., 'max_bed_temp': 60.}}),
+            ('ready', {'bounds': {'travel': {'min': [0.,0.,0.], 'max': [2.,2.,2.]},
+                                  'max_hotend_temp': 281., 'max_bed_temp': 60.}}),
+            ('ready', {'header': {'printer_model': 'AD5X', 'nozzle_diameters': [.6]}}),
+        ])
+        for index, (status, changes) in enumerate(cases):
+            self.fixture.analysis_status = status
+            if changes is not None:
+                base = dict(schema=1, filename='', file_size=0, file_mtime=self.fixture.modified,
+                    bounds=dict(print=dict(min=[0.,0.,0.], max=[2.,2.,2.]),
+                                travel=dict(min=[0.,0.,0.], max=[2.,2.,2.]),
+                                max_hotend_temp=230., max_bed_temp=60.),
+                    header=dict(printer_model='Fixture', nozzle_diameters=[.4]), tools=[dict(tool=0)])
+                for key, value in changes.items(): base[key] = value
+                self.fixture.analysis_override = base
+            self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/('fit-'+str(index)),
+                orca_machine_sha256=self.machine, physical_qualification=self.qualification,
+                actions=True, now=lambda:100)
+            self.adapter.confirm(self.request, self.prepared, self.directory, self.intent('confirm', '5'))
+            filename = read_json(self.root/('fit-'+str(index))/('1'*32+'.json'))['filename']
+            if self.fixture.analysis_override:
+                self.fixture.analysis_override.update(filename=filename,
+                    file_size=self.prepared['artifact']['size'])
+            with self.subTest(status=status, changes=changes), self.assertRaises(ContractError):
+                self.adapter.start(self.request, self.prepared, self.directory, self.intent('start', '6'))
+            self.assertEqual(sum(path.startswith('/printer/print/start?') for path in self.fixture.posts), 0)
+            self.fixture.files.clear(); self.fixture.posts.clear(); self.fixture.analysis_override = None
 
-    def test_live_macro_section_hash_and_actual_argument_names_are_required_before_upload(self):
-        self.qualification['macro_sources_sha256']['PRINT_START'] = 'a'*64
-        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine,
-                                       physical_qualification=self.qualification, actions=True, now=lambda:100)
-        self.confirm()
-        with self.assertRaisesRegex(ContractError, 'source'): self.start()
-        self.assertEqual(self.fixture.posts, [])
+    def test_analysis_record_must_match_remote_filename_size_and_mtime(self):
+        for field, value in (('filename', 'foreign.gcode'), ('file_size', 1), ('file_mtime', 99.)):
+            self.fixture.analysis_override = dict(schema=1, filename=value if field == 'filename' else '',
+                file_size=value if field == 'file_size' else self.prepared['artifact']['size'],
+                file_mtime=value if field == 'file_mtime' else self.fixture.modified,
+                bounds=dict(travel=dict(min=[0.,0.,0.], max=[2.,2.,2.]), print=None,
+                            max_hotend_temp=230., max_bed_temp=60.),
+                header=dict(nozzle_diameters=[.4], printer_model='Fixture'), tools=[dict(tool=0)])
+            self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/('identity-'+field),
+                orca_machine_sha256=self.machine, physical_qualification=self.qualification,
+                actions=True, now=lambda:100)
+            self.adapter.confirm(self.request, self.prepared, self.directory, self.intent('confirm', '5'))
+            filename = read_json(self.root/('identity-'+field)/('1'*32+'.json'))['filename']
+            if field != 'filename': self.fixture.analysis_override['filename'] = filename
+            with self.subTest(field=field), self.assertRaises(ContractError):
+                self.adapter.start(self.request, self.prepared, self.directory, self.intent('start', '6'))
+            self.assertEqual(sum(path.startswith('/printer/print/start?') for path in self.fixture.posts), 0)
+            self.fixture.files.clear(); self.fixture.posts.clear()
 
-    def test_transitive_custom_macro_inventory_is_exact_and_unresolved_calls_fail_closed(self):
-        self.fixture.config['gcode_macro print_start']['gcode'] = 'SAFE_PREP\nM190 S{params.BED_TEMP}\nM109 S{params.EXTRUDER_TEMP}'
-        self.fixture.config['gcode_macro safe_prep'] = {'gcode':'G28'}
-        self.fixture.config_hash = sha(self.fixture.config)
-        self.qualification['configuration_sha256'] = self.fixture.config_hash
-        self.qualification['macro_sources_sha256'] = {key[len('gcode_macro '):].upper(): digest(value)
-            for key,value in self.fixture.config.items() if key.startswith('gcode_macro ')}
-        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'journal', orca_machine_sha256=self.machine,
-                                       physical_qualification=self.qualification, actions=True, now=lambda:100)
-        self.confirm(); self.start()
-        self.assertEqual(len(self.fixture.posts), 2)
+    def test_injected_native_warning_acknowledgement_is_exactly_bound(self):
+        captured = []
+        def acknowledge(request, prepared, intent, binding):
+            captured.append((request, prepared, intent, binding))
+            return dict(binding, schema='helix-orca-v1-fit-warning-ack/v1',
+                action='acknowledge-fit-warnings')
+        self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/'warning-ack',
+            orca_machine_sha256=self.machine, physical_qualification=self.qualification,
+            warning_acknowledger=acknowledge, actions=True, now=lambda:100)
+        self.adapter.confirm(self.request, self.prepared, self.directory, self.intent('confirm', '5'))
+        filename = read_json(self.root/'warning-ack'/('1'*32+'.json'))['filename']
+        self.fixture.analysis_override = dict(schema=1, filename=filename,
+            file_size=self.prepared['artifact']['size'], file_mtime=self.fixture.modified,
+            bounds=dict(print=dict(min=[1.,1.,.2], max=[20.,20.,5.]),
+                        travel=dict(min=[0.,0.,.2], max=[50.,220.,5.]),
+                        max_hotend_temp=230., max_bed_temp=60.),
+            header=dict(printer_model='Fixture CoreXY', nozzle_diameters=[.6]),
+            tools=[dict(tool=0)])
+        job = self.adapter.start(self.request, self.prepared, self.directory,
+            self.intent('start', '6'))
+        self.assertEqual(job['file_sha256'], self.prepared['artifact']['sha256'])
+        self.assertEqual(len(captured), 1)
+        self.assertEqual(captured[0][2]['action'], 'start')
+        self.assertEqual(captured[0][3]['target_id'], self.qualification['target_id'])
+        self.assertEqual(captured[0][3]['warning_kinds'], ['nozzle_mismatch'])
+        self.assertIsNotNone(read_json(self.root/'warning-ack'/('1'*32+'.json'))
+            ['fit_evidence']['warning_acknowledgement_sha256'])
 
-    def test_unreviewed_transitive_or_dynamic_macro_and_old_start_arguments_block_upload(self):
-        for suffix in ('UNDEFINED_HELPER', '{params.COMMAND}', 'M109 S{params.EXTRUDER}'):
-            # Fresh journal, pinned actual source and reviewed top-level hashes;
-            # a top-level safety boolean cannot resolve the bad called source.
-            self.fixture.config['gcode_macro print_start']['gcode'] = 'M190 S{params.BED_TEMP}\nM109 S{params.EXTRUDER_TEMP}\n'+suffix
-            self.fixture.config_hash = sha(self.fixture.config)
-            value = copy.deepcopy(self.qualification)
-            value['configuration_sha256'] = self.fixture.config_hash
-            value['macro_sources_sha256']['PRINT_START'] = digest(self.fixture.config['gcode_macro print_start'])
-            self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/('case'+str(len(self.fixture.gets))),
-                orca_machine_sha256=self.machine, physical_qualification=value, actions=True, now=lambda:100)
-            self.confirm()
-            with self.assertRaises(ContractError): self.start()
-        self.assertEqual(self.fixture.posts, [])
+    def test_helixprint_status_is_exactly_pinned_and_available(self):
+        for attribute, value in (('helix_version', '1.3.0'), ('file_analysis_available', False)):
+            setattr(self.fixture, attribute, value)
+            self.adapter = OwnedJobAdapter(self.fixture.transport(), self.root/('status-'+attribute),
+                orca_machine_sha256=self.machine, physical_qualification=self.qualification,
+                actions=True, now=lambda:100)
+            self.adapter.confirm(self.request, self.prepared, self.directory, self.intent('confirm', '5'))
+            with self.assertRaises(ContractError):
+                self.adapter.start(self.request, self.prepared, self.directory, self.intent('start', '6'))
+            self.assertEqual(sum(path.startswith('/printer/print/start?') for path in self.fixture.posts), 0)
+            self.fixture.files.clear(); self.fixture.posts.clear()
+            setattr(self.fixture, attribute, HELIXPRINT_VERSION if attribute == 'helix_version' else True)
 
     def test_qualification_digest_cannot_change_between_confirm_and_start(self):
         self.confirm()

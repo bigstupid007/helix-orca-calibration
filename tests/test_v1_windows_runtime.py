@@ -11,7 +11,8 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
     def test_fixed_lifecycle_actions_and_nonce_stop_protocol(self):
         text=SOURCE.read_text()
         actions=re.search(r"\[ValidateSet\(([^)]+)\)\]\[string\]\$Action",text).group(1)
-        self.assertEqual(re.findall(r"'([^']+)'",actions),['start','status','stop','plan','supervise'])
+        self.assertEqual(re.findall(r"'([^']+)'",actions),
+            ['install','start','status','stop','restart','rollback','uninstall','plan','supervise'])
         self.assertIn("schema='helix-orca-v1-stop/v1'; run_id=$record.run_id",text)
         self.assertIn("'--run-id',$Record.run_id,'--stop-file',$Record.stop_file",text)
         self.assertIn("$Record.stop_file -cne $expected",text)
@@ -35,6 +36,36 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
         self.assertIn("$Name+'.1.log'",text)
         self.assertIn('review_only=$true; registered=$false',text)
         self.assertIn("'--moonraker-events'",text)
+        self.assertIn("@('-B','-u',$Record.entry",text)
+
+    def test_versioned_manifest_install_rollback_and_uninstall_are_bounded(self):
+        text=SOURCE.read_text()
+        for required in ("schema -ne 'helix-orca-v1-runtime-manifest/v1'",
+                         "'versions'", 'active_candidate', 'previous_candidate',
+                         'active_manifest_sha256', 'Assert-InstalledVersion',
+                         'Get-RuntimeManifest', "'scripts/v1-runtime.py'",
+                         'Installed candidate contains an unlisted file.',
+                         'Partial installed candidate contains an unlisted file.',
+                         'Partial installed candidate file differs from the exact manifest.',
+                         '[IO.File]::Copy($sourceFile,$target,$false)',
+                         '[IO.FileAttributes]::ReadOnly',
+                         "state='uninstalled'; journals_retained=$true",
+                         "Stop the exact owned runtime before rollback",
+                         "Stop the exact owned runtime before uninstall",
+                         'Installed candidate changed while Start was being prepared.'):
+            self.assertIn(required,text)
+        self.assertGreaterEqual(text.count('$operationLock=Open-ControlLock'),3)
+        self.assertIn("$Action='start'",text)
+        self.assertIn('Remove-InstalledVersion $candidate $hash',text)
+        self.assertNotIn('[IO.Directory]::Delete($script:Root',text)
+
+    def test_installation_is_per_user_and_creates_no_ambient_machine_state(self):
+        text=SOURCE.read_text()
+        self.assertIn("GetFolderPath('LocalApplicationData')",text)
+        self.assertIn("SetAccessRuleProtection($true,$false)",text)
+        for forbidden in ('New-LocalUser','net user','cmdkey','New-NetFirewallRule',
+                          'New-Service','Register-ScheduledTask','HttpListener','TcpListener'):
+            self.assertNotIn(forbidden,text)
     def test_optional_deployment_file_is_local_private_pinned_and_fixed_argument(self):
         text=SOURCE.read_text()
         for required in ('[string]$DeploymentAuthorization', 'function Get-PrivateAuthorization',
