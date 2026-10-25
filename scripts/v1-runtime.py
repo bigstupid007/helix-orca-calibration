@@ -15,7 +15,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from integration.v1_contract import ContractError, digest, exact, hex_value
+from integration.v1_contract import ContractError, digest, exact, hex_value, validate_request_v2
 from integration.v1_runtime import Coordinator, InstanceLock, atomic_json, read_json
 from integration.v1_transport import DirectoryEvents, MoonrakerEvents
 
@@ -146,12 +146,17 @@ def main():
     signal.signal(signal.SIGTERM, stop)
     with InstanceLock(args.storage / "coordinator.lock"), InstanceLock(root / "runtime.lock"):
         from integration.v1_deployment import authorized, require_native_channel
-        from integration.v1_jobs import from_config
+        from integration.v1_jobs import current_candidate_verifier, from_config
         deployment = authorized(args.deployment_authorization, config, Path(__file__))
         if deployment and config.get("owned_jobs", {}).get("actions_enabled") is True:
             require_native_channel(config, args.moonraker_events)
+        current = isinstance(config.get("build_qualification"), dict) and \
+            config["build_qualification"].get("schema") == "helix-orca-v1-build-qualification/v2"
         jobs = from_config(config, root / "owned-jobs", deployment_authorized=deployment,
-            api_key=os.environ.get(config.get("moonraker", {}).get("api_key_env", "HELIX_ORCA_MOONRAKER_API_KEY")))
+            api_key=os.environ.get(config.get("moonraker", {}).get("api_key_env", "HELIX_ORCA_MOONRAKER_API_KEY")),
+            candidate_verifier=(current_candidate_verifier(config["build_qualification"])
+                                if current else None),
+            request_validator=(validate_request_v2 if current else None))
         coordinator = Coordinator(root, generate, config, capabilities(config), job_adapter=jobs)
         while not stopped:
             if stop_file.exists():

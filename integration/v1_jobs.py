@@ -20,7 +20,9 @@ from urllib.error import HTTPError
 from urllib.parse import quote, urlparse
 from urllib.request import Request, ProxyHandler, build_opener
 
-from integration.v1_contract import ContractError, canonical, digest, exact, hex_value, text, validate_prepared, validate_request
+from integration.v1_contract import (ContractError, canonical, digest, exact,
+    hex_value, text, validate_build_qualification_v2, validate_prepared,
+    validate_prepared_v2, validate_request, validate_request_v2)
 from integration.v1_fit import (FILE_ANALYSIS_SCHEMA, FIT_CHECK_VERSION, HELIXPRINT_VERSION,
     HELIXSCREEN_COMMIT, analysis_record, authorize_findings, check_fit, fit_file,
     machine_limits, require_machine_limits, validate_helix_status, warning_binding)
@@ -121,6 +123,34 @@ def legacy_candidate_verifier(request, prepared, directory, machine):
     if digest(dict(printer=printer, nozzle_mm=nozzle)) != machine:
         raise ContractError("Orca machine/nozzle differs from the reviewed physical target; upload blocked")
     return (directory / prepared["artifact"]["name"]).read_bytes()
+
+
+def current_candidate_verifier(build_qualification):
+    """Bind current exact jobs to one independently qualified build and target.
+
+    The returned callback fits ``OwnedJobAdapter``'s narrow verification seam.
+    It revalidates every runtime-owned input and the exact artifact bytes, but
+    never consults the historical per-request parity catalog.
+    """
+    qualification = validate_build_qualification_v2(build_qualification)
+    qualification_sha256 = digest(qualification)
+
+    def verify(request, prepared, directory, machine):
+        request = validate_request_v2(request, now=request.get("created_at"))
+        prepared = validate_prepared_v2(prepared, request)
+        route = qualification["routes"][request["calibration"]]
+        if (prepared["generator"]["qualification_sha256"] != qualification_sha256
+                or prepared["generator"]["route"] != route["route_id"]
+                or route["qualified"] is not True):
+            raise ContractError("Prepared route differs from the exact build qualification")
+        if prepared["generator"]["machine_sha256"] != machine:
+            raise ContractError("Orca machine/nozzle differs from the reviewed physical target; upload blocked")
+        if prepared["processing"]["status"] != "ready":
+            raise ContractError("Only a processor-ready current job may reach physical execution")
+        Coordinator.verify_artifact(prepared, directory)
+        return (Path(directory) / prepared["artifact"]["name"]).read_bytes()
+
+    return verify
 
 
 def _number(value, label):
@@ -375,7 +405,10 @@ class OwnedJobAdapter:
     @staticmethod
     def _intent(request, prepared, intent, action):
         exact(intent, "schema request_id origin_id prepared_sha256 action intent_id", "native job intent")
-        if intent["schema"] != "helix-orca-v1-intent/v1" or intent["action"] != action or any(intent[k] != request[k] for k in ("request_id", "origin_id")) or intent["prepared_sha256"] != digest(prepared):
+        expected_schema = ("helix-orca-v1-intent/v2"
+                           if request.get("schema") == "helix-orca-v1-request/v2"
+                           else "helix-orca-v1-intent/v1")
+        if intent["schema"] != expected_schema or intent["action"] != action or any(intent[k] != request[k] for k in ("request_id", "origin_id")) or intent["prepared_sha256"] != digest(prepared):
             raise ContractError("Native intent differs from exact prepared job")
         hex_value(intent["intent_id"], 32)
 

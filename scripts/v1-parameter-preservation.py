@@ -58,7 +58,7 @@ AMENDMENT_CONTROL_BOUNDARY_SHA256 = {
     "integration/v1_routing.py": "a4419835275148d7c85f1d3773fb988ec3281833d7d8690269b2638cbe1b9667",
     "integration/v1_runtime.py": "3ada80331f9d5786bd7ca6d61c454a6c35f330a83e0d39a7380d7147f084e46e",
     "integration/v1_transport.py": "b5f1afc43d099cb58868d02247c4f6431e154e172891511af2abd6fec778067b",
-    "scripts/v1-runtime.py": "e563817f3858a00e71b0f1951702502ffda80a23ecd417ae31316ab8387e8b6a",
+    "scripts/v1-runtime.py": "43300756c8fee3002ea1adce61a2eb6ad49137f352ef6a825ed14336c0aa84df",
 }
 NATIVE_SOURCE_PREFIX = "integration/v1-native/"
 EXCLUDED_GENERATOR_SOURCES = frozenset({

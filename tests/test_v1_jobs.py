@@ -18,15 +18,46 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlsplit
 from urllib.request import Request, build_opener, ProxyHandler
 
-from integration.v1_contract import ContractError, DEFAULTS, digest
+from integration.v1_contract import (CALIBRATIONS, ORCA_ARCHIVE_SHA256_V2,
+    ORCA_EXECUTABLE_SHA256_V2, ORCA_RUNTIME_V2, ORCA_SOURCE_V2,
+    ORCA_UPSTREAM_JOBS_V2, ORCA_UPSTREAM_RUN_V2, V2_DEFAULTS,
+    V2_QUALIFICATION_CONTEXTS, V2_QUALIFICATION_PARAMETER_CASES,
+    ContractError, DEFAULTS, digest, validate_request_v2)
 from integration.v1_fit import HELIXPRINT_VERSION, HELIXSCREEN_COMMIT
-from integration.v1_jobs import IDENTITY_V2, OwnedJobAdapter, PinnedMoonraker, from_config
+from integration.v1_jobs import (IDENTITY_V2, OwnedJobAdapter, PinnedMoonraker,
+    current_candidate_verifier, from_config)
 from integration.v1_runtime import read_json
 from integration.v1_transport import NoRedirect
 
 
 def sha(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def current_build_qualification():
+    coverage = [dict(context=context, parameter_case=parameter_case,
+                     case_sha256=sha(context + ':' + parameter_case))
+                for context in V2_QUALIFICATION_CONTEXTS
+                for parameter_case in V2_QUALIFICATION_PARAMETER_CASES]
+    routes = {}
+    for calibration in CALIBRATIONS:
+        routes[calibration] = dict(qualified=True,
+            route_id=('stock-cli-recipe-v2' if calibration in ('temperature', 'flow_ratio_yolo')
+                      else 'native-engine-v2'),
+            case_count=len(coverage), cases_sha256=digest(coverage),
+            coverage=copy.deepcopy(coverage),
+            final_slice_path=['Print.process', 'Print.export_gcode'])
+    return dict(schema='helix-orca-v1-build-qualification/v2',
+        source_commit=ORCA_SOURCE_V2, runtime=ORCA_RUNTIME_V2,
+        platform='SYNTHETIC UNIT FIXTURE; NEVER QUALIFICATION',
+        distribution=dict(archive_sha256=ORCA_ARCHIVE_SHA256_V2,
+                          executable_sha256=ORCA_EXECUTABLE_SHA256_V2),
+        upstream=dict(run_id=ORCA_UPSTREAM_RUN_V2, overall_conclusion='failure',
+            sole_failed_job='build_macos_arch (arm64) / Check Cache',
+            exact_jobs={name: dict(job_id=job_id, conclusion='success')
+                        for name, job_id in ORCA_UPSTREAM_JOBS_V2.items()}),
+        adapter=dict(sha256='a' * 64), resources_sha256='b' * 64,
+        routes=routes, evidence_sha256='c' * 64, qualified=True)
 
 
 class PrinterFixture:
@@ -387,6 +418,50 @@ class OwnedJobsTests(unittest.TestCase):
         self.assertEqual(job['file_sha256'],hashlib.sha256(data).hexdigest())
         self.assertGreaterEqual(calls.count(('request',100)),3)
         self.assertEqual(sum(1 for kind,_ in calls if kind=='candidate'),2)
+
+    def test_current_v2_candidate_uses_build_route_and_reviewed_machine_without_parity(self):
+        build = current_build_qualification()
+        request = dict(schema='helix-orca-v1-request/v2', request_id='a'*32,
+            origin_id='b'*32, context_sha256='c'*64, calibration='retraction',
+            parameters=copy.deepcopy(V2_DEFAULTS['retraction']), created_at=100, expires_at=200)
+        directory = self.root/request['request_id']; directory.mkdir()
+        data = (b'; SYNTHETIC CURRENT CANDIDATE; NOT QUALIFICATION\nG90\nM83\n'
+                b'M190 S60\nM109 S220\nG1 X50 Y50 Z0.2 E1 F1200\nM104 S0\n')
+        artifact = directory/'current.gcode'; artifact.write_bytes(data)
+        prepared = {key: request[key] for key in
+                    ('request_id','origin_id','context_sha256','calibration','parameters')}
+        prepared.update(schema='helix-orca-v1-prepared/v2', request_sha256=digest(request),
+            artifact=dict(name=artifact.name,size=len(data),sha256=hashlib.sha256(data).hexdigest()),
+            generator=dict(source_commit=ORCA_SOURCE_V2,route='native-engine-v2',
+                executable_sha256=ORCA_EXECUTABLE_SHA256_V2,
+                qualification_sha256=digest(build),machine_sha256=self.machine),
+            processing=dict(error_code=0,warnings=[],status='ready'))
+        verifier = current_candidate_verifier(build)
+        adapter = OwnedJobAdapter(self.fixture.transport(),self.root/'v2-current-journal',
+            orca_machine_sha256=self.machine,physical_qualification=self.qualification,
+            candidate_verifier=verifier,
+            request_validator=validate_request_v2,
+            actions=True,now=lambda:100)
+        def intent(action,token):
+            return dict(schema='helix-orca-v1-intent/v2',request_id=request['request_id'],
+                origin_id=request['origin_id'],prepared_sha256=digest(prepared),action=action,
+                intent_id=token*32)
+        adapter.confirm(request,prepared,directory,intent('confirm','5'))
+        job=adapter.start(request,prepared,directory,intent('start','6'))
+        self.assertEqual(job['file_sha256'],hashlib.sha256(data).hexdigest())
+        self.assertFalse((directory/'parity.json').exists())
+
+        changed=copy.deepcopy(prepared);changed['generator']['machine_sha256']='d'*64
+        fresh=self.root/'wrong-machine';fresh.mkdir()
+        (fresh/artifact.name).write_bytes(data)
+        before=(list(self.fixture.gets),list(self.fixture.posts))
+        with self.assertRaisesRegex(ContractError,'machine/nozzle'):
+            verifier(request,changed,fresh,self.machine)
+        self.assertEqual(before,(self.fixture.gets,self.fixture.posts))
+
+        changed=copy.deepcopy(prepared);changed['generator']['route']='stock-cli-recipe-v2'
+        with self.assertRaisesRegex(ContractError,'route'):
+            verifier(request,changed,directory,self.machine)
 
     def test_changed_machine_configuration_or_nozzle_blocks_before_http(self):
         for alteration in ('nozzle', 'printer_config', 'printer_missing'):
