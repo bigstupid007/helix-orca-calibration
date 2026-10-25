@@ -22,6 +22,9 @@ def routes(config):
 def capabilities(config=None):
     config = config or {}
     chosen = routes(config)
+    qualification = None
+    if config.get('build_qualification') is not None:
+        qualification = contract.validate_build_qualification_v2(config['build_qualification'])
     stock_caps = {item['id']: item for item in stock.capabilities(config)}
     native_caps = {item['id']: item for item in native.capabilities(config.get('native_engine'))}
     result = []
@@ -29,7 +32,18 @@ def capabilities(config=None):
         source = stock_caps if chosen[kind] == 'stock-cli' else native_caps
         item = source.get(kind, dict(available=False, reason='This calibration has no supported native-engine route.'))
         reason = str(item['reason']).encode('utf-8')[:512].decode('utf-8', errors='ignore')
-        result.append(dict(id=kind, available=item['available'] is True, reason=reason))
+        build_qualified = qualification is not None and qualification['routes'][kind]['qualified'] is True
+        expected_route = 'stock-cli-recipe-v2' if chosen[kind] == 'stock-cli' else 'native-engine-v2'
+        build_qualified = build_qualified and qualification['routes'][kind]['route_id'] == expected_route if qualification is not None else False
+        available = item['available'] is True and (qualification is None or build_qualified)
+        if qualification is not None:
+            reason = (('Build-qualified ' + chosen[kind] + ' route; each exact job still validates context, '
+                       'processing, artifact and warning acknowledgement.') if available else
+                      ('Build-level route qualification/resource unavailable. ' + reason))
+        row = dict(id=kind, available=available, reason=reason)
+        if qualification is not None:
+            row['qualification_sha256'] = contract.digest(qualification)
+        result.append(row)
     return result
 
 
@@ -37,10 +51,16 @@ def generate(request, snapshot, output_dir, config):
     kind = request.get('calibration')
     if kind not in DEFAULT_ROUTES:
         raise contract.ContractError('Unknown calibration')
+    # Current V2 qualification is attached to a build/route matrix, never to
+    # one request's G-code catalog membership. Stock recipes and the adapter
+    # both finish through Orca's ordinary slicing/export path.
     selected = routes(config)[kind]
     if selected == 'native-engine':
         try:
-            return native.generate(request, snapshot, output_dir, config.get('native_engine', {}))
+            native_config = dict(config.get('native_engine', {}))
+            if request.get('schema') == 'helix-orca-v1-request/v2':
+                native_config['build_qualification'] = config.get('build_qualification')
+            return native.generate(request, snapshot, output_dir, native_config)
         except native.NativeEngineBlocked as exc:
             raise stock.GenerationBlocked(exc.code, exc.reason) from exc
     return stock.generate(request, snapshot, output_dir, config)

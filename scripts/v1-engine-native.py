@@ -169,7 +169,7 @@ def build(args):
     resource = load('native_engine_resource', HELPER)
     args.cache.mkdir(mode=0o700,parents=True,exist_ok=True)
     tree = args.cache / 'download-tree'
-    build_dir = args.cache/'build-6a7763f0'
+    build_dir = args.cache/'build-b5e9cb3c'
     build_dir.mkdir(mode=0o700,exist_ok=True)
     class NativeDocker(resource.DockerCLI):
         def create(self, run_id, image, command, memory, cpus, pids):
@@ -211,7 +211,7 @@ def build(args):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('operation',choices=['build','_compile','_follow'])
-    parser.add_argument('--source',type=Path,default=Path.home()/'.cache/helix-orca-calibration/v1-engine/source-6a7763f0')
+    parser.add_argument('--source',type=Path,default=Path.home()/'.cache/helix-orca-calibration/v1-engine/source-b5e9cb3c')
     parser.add_argument('--cache',type=Path,default=Path.home()/'.cache/helix-orca-calibration/v1-engine')
     parser.add_argument('--downloads',type=Path,default=Path.home()/'.cache/helix-orca-calibration/v1-engine/downloads')
     parser.add_argument('--container')

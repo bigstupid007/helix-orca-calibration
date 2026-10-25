@@ -194,6 +194,10 @@ class NativeParity(unittest.TestCase):
         with self.assertRaises(ValueError):
             parity.create_native_reference(self.native, context, 'temperature', self.inputs['parameters'],
                                             self.inputs['source_commit'], [])
+        with self.assertRaisesRegex(ValueError, 'source/runtime pin mismatch'):
+            parity.create_native_reference(
+                self.native, context, 'temperature', self.inputs['parameters'],
+                'b5e9cb3c5e7a925adf8379366ae580e4dabb1d03', evidence)
 
     def test_qualified_report_is_recomputed_from_retained_bytes(self):
         report = self.evaluate()

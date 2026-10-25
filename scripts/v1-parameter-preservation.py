@@ -2,9 +2,9 @@
 """Preserve the accepted parameter-control proof across generator-only changes.
 
 This verifier does not qualify the current generator implementation.  It freezes
-the accepted 66bfaf6 proof bytes and checks that the current native control,
-request, transport, coordinator, and review-observation boundary is unchanged.
-Generator dispositions retained in the old record remain historical.
+the accepted 66bfaf6 proof bytes and checks the explicitly reviewed amendment
+boundary independently.  Generator dispositions retained in the old record
+remain historical and cannot be relabelled as current-nightly qualification.
 """
 from __future__ import annotations
 
@@ -49,6 +49,17 @@ CONTROL_BOUNDARY = (
     "scripts/v1-native-review.py",
     "scripts/v1-runtime.py",
 )
+# The October 25 amendment intentionally changes only these entries in the
+# otherwise-retained control boundary.  Keeping the accepted manifest immutable
+# while pinning the replacement bytes makes the authority transition explicit;
+# it does not turn either record into build-qualification evidence.
+AMENDMENT_CONTROL_BOUNDARY_SHA256 = {
+    "integration/v1_contract.py": "4c8d163a6e76d0c3b81f2333ee09df87d92e70eb1e094650947022467c942fb4",
+    "integration/v1_routing.py": "a4419835275148d7c85f1d3773fb988ec3281833d7d8690269b2638cbe1b9667",
+    "integration/v1_runtime.py": "3ada80331f9d5786bd7ca6d61c454a6c35f330a83e0d39a7380d7147f084e46e",
+    "integration/v1_transport.py": "b5f1afc43d099cb58868d02247c4f6431e154e172891511af2abd6fec778067b",
+    "scripts/v1-runtime.py": "e563817f3858a00e71b0f1951702502ffda80a23ecd417ae31316ab8387e8b6a",
+}
 NATIVE_SOURCE_PREFIX = "integration/v1-native/"
 EXCLUDED_GENERATOR_SOURCES = frozenset({
     "integration/v1_deployment.py",
@@ -214,7 +225,8 @@ def verify_current_equivalence(root, report):
     for relative in expected:
         path = root / relative
         require(path.is_file() and not path.is_symlink(), f"Missing/unsafe current boundary source: {relative}")
-        require(sha(path) == report["sources"][relative],
+        expected_sha256 = AMENDMENT_CONTROL_BOUNDARY_SHA256.get(relative, report["sources"][relative])
+        require(sha(path) == expected_sha256,
                 f"Current control/request boundary changed: {relative}")
     driver = root / "scripts/v1-windows-parameter-operator.cjs"
     require(driver.is_file() and not driver.is_symlink() and sha(driver) == OPERATOR_DRIVER_SHA256,
@@ -227,7 +239,7 @@ def verify(root=ROOT):
     verify_accepted_semantics(report, operator, parity)
     verify_historical_matrix(root, report)
     verify_current_equivalence(root, report)
-    print("PASS: retained 66bfaf6 parameter-control/request proof; current generator qualification remains separate")
+    print("PASS: retained 66bfaf6 proof and exact amendment boundary; current build qualification remains separate")
 
 
 if __name__ == "__main__":

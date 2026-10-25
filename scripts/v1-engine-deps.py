@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / 'integration/v1-native-dependencies.json'
 HELPER = Path('/home/dev/Projects/system/100-day-development-system/scripts/resource_lifecycle.py')
 HELPER_SHA256 = '8a2cb48220f14c8f4ca5c2cc9f6fcdcdf28fa436fe4b7dd50cf6489178ba6fcc'
-SOURCE = '6a7763f08d1a175a464a00ce13f0b5a815662fc4'
+SOURCE = 'b5e9cb3c5e7a925adf8379366ae580e4dabb1d03'
 CAP = 2 * 1024**3
 
 

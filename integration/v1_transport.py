@@ -19,7 +19,9 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 class MoonrakerEvents:
-    EVENTS = frozenset(("helix_orca_v1.context.v1", "helix_orca_v1.status.v1", "helix_orca_v1.ack.v1"))
+    EVENTS = frozenset(("helix_orca_v1.context.v1", "helix_orca_v1.status.v1", "helix_orca_v1.ack.v1",
+                        "helix_orca_v1.context.v2", "helix_orca_v1.status.v2", "helix_orca_v1.ack.v2",
+                        "helix_orca_v1.warning.v2", "helix_orca_v1.application.v2"))
     STORAGE = "/server/files/config/helixscreen/plugin-data/orcacal.json"
 
     def __init__(self, origin, expected_host, expected_version, api_key=None, *, trusted_lan=False):

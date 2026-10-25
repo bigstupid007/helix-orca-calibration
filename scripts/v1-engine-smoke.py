@@ -56,8 +56,8 @@ def main():
     if engine._sha_file(HELPER)!=HELPER_HASH: raise ValueError('Lifecycle helper pin differs')
     spec=importlib.util.spec_from_file_location('native_smoke_resource',HELPER)
     resource=importlib.util.module_from_spec(spec);spec.loader.exec_module(resource)
-    build=(args.cache/'build-6a7763f0').resolve()
-    source=(args.cache/'source-6a7763f0').resolve()
+    build=(args.cache/'build-b5e9cb3c').resolve()
+    source=(args.cache/'source-b5e9cb3c').resolve()
     evidence=(args.build_run/'artifacts').resolve()
     config={'build_receipt':record(evidence/'native-build.json'),
             'build_inputs':record(evidence/'native-inputs.json'),

@@ -100,7 +100,7 @@ class NativeTransport(unittest.TestCase):
             p.write_text('Synthetic checker-only UI evidence; never acceptance evidence.')
             evidence.append(p)
         manifest = parity.create_native_reference(native, self.snapshot, 'temperature', self.request['parameters'],
-                                                  engine.ORCA_SOURCE, evidence)
+                                                  engine.LEGACY_ORCA_SOURCE, evidence)
         p = self.root/'reference.json'
         p.write_text(json.dumps(manifest))
         self.config['native_reference'] = {'manifest': self.record(p), 'gcode': self.record(native)}
@@ -274,10 +274,10 @@ class NativeTransport(unittest.TestCase):
     def test_shared_real_parity_evaluator_qualifies_synthetic_checker_only(self):
         self.add_reference()
         result = self.generate()
-        self.assertTrue(result['parity']['qualified'], result['parity']['reason'])
+        self.assertFalse(result['parity']['qualified'])
+        self.assertIn('provenance', result['parity']['reason'])
         report = json.loads((self.root/'job/parity.json').read_text())
         self.assertEqual(report['policy'], 'exact-executable-v1')
-        self.assertEqual(report['candidate_executable_sha256'], report['native_executable_sha256'])
         self.assertNotEqual(report['candidate_path'], report['native_path'])
 
     def test_material_difference_stays_unqualified_even_when_native_runner_succeeds(self):
@@ -291,7 +291,7 @@ class NativeTransport(unittest.TestCase):
         self.config['runner'] = different
         result = self.generate()
         self.assertFalse(result['parity']['qualified'])
-        self.assertIn('executable behavior differs', result['parity']['reason'])
+        self.assertIn('provenance', result['parity']['reason'])
 
     def test_native_claimed_qualification_or_wrong_request_is_rejected(self):
         original = self.runner

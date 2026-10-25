@@ -206,6 +206,49 @@ class StockGeneration(unittest.TestCase):
         self.assertEqual(invocation[invocation.index('--arrange')+1], '0')
         self.assertNotIn('--center',invocation)
 
+    def test_v2_two_slot_stock_routes_assign_exact_origin_and_stage_every_filament(self):
+        self._perfectionist_asset()
+        snapshot = copy.deepcopy(self.snapshot)
+        snapshot.update(schema='helix-orca-v1-context/v2',
+            runtime=dict(contract.ORCA_RUNTIME_V2, source_commit=contract.ORCA_SOURCE_V2,
+                         executable_sha256=contract.ORCA_EXECUTABLE_SHA256_V2),
+            filament_slots=[dict(slot_number=1, preset_name='Slot 1 PLA'),
+                            dict(slot_number=2, preset_name='Slot 2 PETG')],
+            origin_filament=dict(slot_number=2, preset_name='Slot 2 PETG', shared_slots=[2]))
+        snapshot['filament']['saved']['name'] = 'Slot 2 PETG'
+        snapshot['filament']['edited']['name'] = 'Slot 2 PETG'
+        snapshot['effective'].update(nozzle_diameter='0.4;0.4', filament_flow_ratio='0.8;1.2',
+                                     filament_max_volumetric_speed='8;12')
+        flow_request = dict(schema='helix-orca-v1-request/v2', request_id='3' * 32,
+            origin_id=snapshot['origin_id'], context_sha256=contract.digest(snapshot),
+            calibration='flow_ratio_yolo', parameters={'pass':2, 'pattern':'archimedean_chords'},
+            created_at=100, expires_at=200)
+        config = dict(source_commit=contract.ORCA_SOURCE_V2, runtime=contract.ORCA_RUNTIME_V2, now=150,
+            flow_fine_asset=dict(self.config['flow_fine_asset'], source_commit=contract.ORCA_SOURCE_V2))
+        staged = generation.prepare_inputs(flow_request, snapshot, self.root / 'v2-flow', config)
+        self.assertEqual([json.loads(path.read_text())['filament_flow_ratio']
+                          for path in staged['filament_paths']], ['0.8', '1.2'])
+        self.assertEqual([json.loads(path.read_text())['name']
+                          for path in staged['filament_paths']], ['Slot 1 PLA', 'Slot 2 PETG'])
+        with zipfile.ZipFile(staged['model']) as archive:
+            model_settings = ET.fromstring(archive.read('Metadata/model_settings.config'))
+        objects = [{metadata.get('key'):metadata.get('value') for metadata in obj.findall('metadata')}
+                   for obj in model_settings.findall('object')]
+        self.assertTrue(objects and all(item['extruder'] == '2' for item in objects))
+
+        temperature_request = dict(flow_request, request_id='4' * 32, calibration='temperature',
+            parameters=contract.V2_DEFAULTS['temperature'])
+        temperature_request['context_sha256'] = contract.digest(snapshot)
+        temp_config = dict(source_commit=contract.ORCA_SOURCE_V2, runtime=contract.ORCA_RUNTIME_V2, now=150,
+            temperature_model=dict(path=str(self.model), sha256=hashlib.sha256(self.model.read_bytes()).hexdigest(),
+                source_commit=contract.ORCA_SOURCE_V2, nozzle_mm=.4,
+                parameters=contract.V2_DEFAULTS['temperature']))
+        temp_staged = generation.prepare_inputs(temperature_request, snapshot, self.root / 'v2-temp', temp_config)
+        argv = generation._slice_argv(self.exe, self.root / 'v2-data', temp_staged['destination'],
+                                      temp_staged, 'High Temp Plate', True)
+        self.assertEqual(argv[argv.index('--load-filament-ids') + 1], '2')
+        self.assertEqual(len(argv[argv.index('--load-filaments') + 1].split(';')), 2)
+
     def test_yolo_group_center_uses_explicit_native_bounding_box_center(self):
         self.snapshot['effective']['printable_area'] = '-20x10,280x10,280x210,-20x210'
         self.assertEqual(generation._flow_bed_center(self.snapshot), [130,110])
@@ -283,6 +326,13 @@ class StockGeneration(unittest.TestCase):
         self.assertEqual(layout['native_float_group_bounds_mm'],[[1.,0.,0.],[12.,1.,2.]])
         self.assertEqual(layout['build_instances'],11)
         self.assertEqual(layout['cli_arguments'],['--arrange','0'])
+        scaled, scaled_layout = generation._center_flow_build(source, self.snapshot, scale=(1., 1., 1.5))
+        ns='http://schemas.microsoft.com/3dmanufacturing/core/2015/02'
+        scaled_tree = ET.fromstring(scaled)
+        scaled_item = scaled_tree.find('{'+ns+'}build/{'+ns+'}item')
+        scaled_transform = [float(value) for value in scaled_item.get('transform').split()]
+        self.assertEqual(scaled_transform[:9], [1.,0.,0.,0.,1.,0.,0.,0.,1.5])
+        self.assertEqual(scaled_layout['native_relative_scale_xyz'], [1.,1.,1.5])
         invalid=(source.replace(b'<item objectid="1"/>',b'<item objectid="1" transform="0 -1 0 1 0 0 0 0 1 0 0 0"/>'),
                  source.replace(b'<item objectid="1"/>',b'<item objectid="1" transform="1 0 0 0 1 0 0 0 1 nan 0 0"/>'),
                  source.replace(b'<item objectid="1"/>',b''),source.replace(b'unit="millimeter"',b'unit="inch"'))

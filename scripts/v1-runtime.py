@@ -15,12 +15,14 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from integration.v1_contract import ContractError, hex_value
+from integration.v1_contract import ContractError, digest, exact, hex_value
 from integration.v1_runtime import Coordinator, InstanceLock, atomic_json, read_json
 from integration.v1_transport import DirectoryEvents, MoonrakerEvents
 
 
 def tick(coordinator, storage, transport):
+    def event(kind):
+        return "helix_orca_v1." + kind + (".v2" if coordinator._current() else ".v1")
     availability = storage / "context-status.json"
     unavailable = availability.exists() and read_json(availability).get("available") is not True
     if unavailable and (coordinator.state["request"] is None or coordinator.state["phase"] in ("blocked", "failed", "cancelled")):
@@ -29,14 +31,14 @@ def tick(coordinator, storage, transport):
         if coordinator.state["offer"]:
             offer = dict(coordinator.state["offer"])
             offer["capabilities"] = [dict(id=c["id"], available=False, reason="Current Orca profile context is unavailable.") for c in coordinator.capabilities]
-            transport.send("helix_orca_v1.context.v1", offer)
+            transport.send(event("context"), offer)
         return
     context = storage / "context.json"
     if coordinator.state["request"] is not None and coordinator.state["phase"] not in ("delivered", "blocked", "failed", "cancelled"):
-        transport.send("helix_orca_v1.context.v1", coordinator.state["offer"])
+        transport.send(event("context"), coordinator.state["offer"])
     elif context.exists():
         offer = coordinator.offer(read_json(context))
-        transport.send("helix_orca_v1.context.v1", offer)
+        transport.send(event("context"), offer)
     native = transport.read()
     if coordinator.state.get("receipt") and native.get("receipt") == coordinator.state["receipt"]:
         coordinator.state["native_acknowledged"] = True
@@ -45,20 +47,60 @@ def tick(coordinator, storage, transport):
     if isinstance(native.get("request"), dict) and offered and native["request"].get("request_id") == offered["request_id"]:
         coordinator.request(native["request"])
     retained = coordinator.state["request"]
+    native_v2 = native.get("v2") if isinstance(native.get("v2"), dict) else {}
+    warning_state = native_v2.get("warning") if isinstance(native_v2.get("warning"), dict) else {}
+    decision = warning_state.get("decision")
+    if isinstance(decision, dict) and retained and coordinator._current():
+        exact(decision, "schema request_id origin_id prepared_sha256 warning_sha256 warning_codes action intent_id",
+              "native warning decision")
+        warning = coordinator.warning_event()
+        if (warning is None or decision["schema"] != "helix-orca-v1-native-warning-decision/v2"
+                or any(decision[key] != warning[key] for key in
+                       ("request_id", "origin_id", "prepared_sha256", "warning_sha256", "warning_codes"))
+                or decision["action"] not in ("continue", "cancel")):
+            raise ContractError("Native warning decision differs from the exact prepared warning")
+        hex_value(decision["intent_id"], 32)
+        if decision["action"] == "continue":
+            acknowledgement = coordinator.state.get("warning_ack") or dict(
+                schema="helix-orca-v1-warning-ack/v2", request_id=retained["request_id"],
+                prepared_sha256=warning["prepared_sha256"], warning_codes=warning["warning_codes"],
+                acknowledged_at=int(coordinator.now()))
+            coordinator.acknowledge_warnings(acknowledgement)
+        # Cancel is executed only by the separately persisted top-level
+        # intent/v2 below. Helix includes the warning decision for prompt
+        # correlation, but it must not create a second cancellation identity.
+    # V2 native storage carries only the bound warning decision.  The
+    # coordinator mints and returns the canonical acknowledgement timestamp;
+    # a Helix-local convenience copy must never compete with that authority.
+    if (not coordinator._current() and isinstance(native.get("warning_ack"), dict) and retained
+            and native["warning_ack"].get("request_id") == retained["request_id"]):
+        coordinator.acknowledge_warnings(native["warning_ack"])
     if isinstance(native.get("intent"), dict) and retained and native["intent"].get("request_id") == retained["request_id"]:
         coordinator.intent(native["intent"])
     coordinator.poll_job()
     coordinator.reconcile_native(native)
     if isinstance(native.get("result"), dict) and retained and native["result"].get("request_id") == retained["request_id"]:
         result = coordinator.result(native["result"])
-        atomic_json(storage / "inbox.json", dict(result=result, request=coordinator.state["request"],
-            prepared=coordinator.state["prepared"], completion=coordinator.state["completion"]))
+        inbox = dict(result=result, request=coordinator.state["request"],
+                     prepared=coordinator.state["prepared"], completion=coordinator.state["completion"])
+        if coordinator._current():
+            inbox.update(warning_ack=coordinator.state.get("warning_ack"),
+                         qualification=coordinator.state.get("qualification"))
+        atomic_json(storage / "inbox.json", inbox)
+    retry = native.get("application_retry")
+    if not isinstance(retry, dict):
+        retry = native_v2.get("application_retry")
+    if isinstance(retry, dict) and coordinator._current() and coordinator.state.get("result"):
+        atomic_json(storage / "application-retry.json", coordinator.authorize_application_retry(retry))
+    application = storage / "application.json"
+    if coordinator._current() and coordinator.state.get("result") and application.exists():
+        transport.send(event("application"), coordinator.application_event(read_json(application)))
     receipt = storage / "receipt.json"
     if coordinator.state["result"] and receipt.exists():
         candidate = read_json(receipt)
         if candidate.get("request_id") == coordinator.state["result"]["request_id"]:
             ack = coordinator.acknowledge(candidate)
-            transport.send("helix_orca_v1.ack.v1", ack)
+            transport.send(event("ack"), ack)
     status = coordinator.status()
     if status:
         atomic_json(storage / "status.json", status)
@@ -67,7 +109,9 @@ def tick(coordinator, storage, transport):
             original=dict({role: context[role]["saved"]["name"] for role in ("printer", "process", "filament")},
                 nozzle_mm=context["nozzle_mm"], context_sha256=coordinator.state["request"]["context_sha256"],
                 edited_roles=[role for role in ("printer", "process", "filament") if context[role]["saved"] != context[role]["edited"]])))
-        transport.send("helix_orca_v1.status.v1", status)
+        transport.send(event("status"), status)
+        if coordinator._current() and status["phase"] == "warning":
+            transport.send(event("warning"), coordinator.warning_event())
 
 
 def main():

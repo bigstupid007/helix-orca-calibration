@@ -22,9 +22,9 @@ def generate():
     anchor = "        orca.register_capability(TemperatureRoundTripPanel)"
     if source.count(anchor) != 1:
         raise ValueError("Qualified capability anchor changed")
-    source = source.replace(anchor, anchor + "\n        orca.register_capability(V1CalibrationPanel)")
-    for old, new in (("# version = \"0.4.1\"", "# version = \"1.0.0-v1-candidate\""),
-                     ("EXPORTER_VERSION = \"0.4.1\"", "EXPORTER_VERSION = \"1.0.0-v1-candidate\"")):
+    source = source.replace(anchor, anchor + "\n        orca.register_capability(V2CalibrationPanel)")
+    for old, new in (("# version = \"0.4.1\"", "# version = \"2.0.0-v2-candidate\""),
+                     ("EXPORTER_VERSION = \"0.4.1\"", "EXPORTER_VERSION = \"2.0.0-v2-candidate\"")):
         if source.count(old) != 1:
             raise ValueError("Qualified version anchor changed")
         source = source.replace(old, new)

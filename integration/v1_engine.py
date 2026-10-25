@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import platform
 import re
@@ -17,19 +18,21 @@ from pathlib import Path, PureWindowsPath
 from types import MappingProxyType
 from integration import v1_contract as _contract
 
-ORCA_SOURCE = "6a7763f08d1a175a464a00ce13f0b5a815662fc4"
+ORCA_SOURCE = "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03"
+LEGACY_ORCA_SOURCE = "6a7763f08d1a175a464a00ce13f0b5a815662fc4"
 SOURCE_HASHES = MappingProxyType({
-    "src/libslic3r/Print.hpp": "45b1cef48808d496c7f75a78b23b39ad5cd29dca9259aa3b1920492cee5b118a",
+    "src/libslic3r/Print.hpp": "fa68f6e7c0a4d5125a0ad59cf47c40c42d9d10c6c306ae6ed7c8ffcf9ee5e291",
     "src/libslic3r/calib.hpp": "3d993e153497669808075bcdc935e1666b18b840510da518fb6371cc7d064fd2",
     "src/libslic3r/calib.cpp": "ac5e19c8d8d5bd27fd13b576f28312ed91d39c0190b6d1f170a21bcea96d3aa4",
-    "src/libslic3r/GCode.cpp": "4fc8b474911a30cded21cb4ad856f771ceba0c0f1d85b2aab9f93ef568aa37d7",
-    "src/libslic3r/CMakeLists.txt": "02daa32753ad79d5ac98a13d237e74d0a71a8e2cc856427292bae4f1008a183f",
-    "src/slic3r/GUI/Plater.cpp": "8290003e06b12b06a5c239e4d66269dfbc081895c5deb304f3a9b6dbddc8621a",
+    "src/libslic3r/GCode.cpp": "f323428a8469cc4386fccf81561240d6a804bbc6b9019420b8b4cc843e4e78be",
+    "src/libslic3r/CMakeLists.txt": "29ecacbb33a937838956d34cd86e3da3b87ca7d4733dd08a9e65d0789c36364b",
+    "src/slic3r/GUI/Plater.cpp": "a13bcaebcd28e088a06ed52d1800dbd0a0ed63314f5a55ec0e47e8a636a5a2b3",
     "src/slic3r/GUI/calib_dlg.cpp": "cc845019c60fb763c61ba56d2edb09125b02a023350646394c6149106b497b0a",
     "src/slic3r/plugin/host/PluginHostSlicing.cpp": "ad415673ba92bce737bc398c663ff4b8fcd280cef4453a7dc6c5feb74d0a47bb",
     "src/slic3r/plugin/host/PluginHostApp.cpp": "cf3ca5345f7000a1160a79ec27665c7597694888601556da71c80a48a3af9ff6",
-    "src/OrcaSlicer.cpp": "e0b238e7c29006d382cf88790277c3e508bb6dc6753313c0b252a71843ae3282",
-    "CMakeLists.txt": "614005222dc2db9e1d221c9f14ca3a26ef76c31206a326d5fa6e3b922510b762",
+    "src/slic3r/plugin/host/PluginHostPresets.cpp": "483b7bc19217bb6dc4bd8b5bddb818f137fb0e3e98f86b5650ebe38ef1dede1b",
+    "src/OrcaSlicer.cpp": "ff01ba395ff8c4ebf56520fc8a22de0095dbcb00828099ff11b408e1709143a1",
+    "CMakeLists.txt": "5fd9175fd9d9bfecc9babba15823c3bd022020ae21257a686a56eaaa7c9dd3eb",
 })
 # Mode numbers are deliberately omitted: only the pinned C++ enum may define them.
 _ROUTES = MappingProxyType({
@@ -495,17 +498,57 @@ def select_native_reference(config, inputs_sha256):
     return json.loads(json.dumps(selected)) if selected is not None else None
 
 
+def _validated_effective_nozzle(snapshot, current):
+    raw = snapshot.get("effective", {}).get("nozzle_diameter")
+    try:
+        if current:
+            if not isinstance(raw, str):
+                raise ValueError("serialized vector required")
+            values = [float(item.strip()) for item in raw.split(";")]
+            if not values or any(not item.strip() for item in raw.split(";")):
+                raise ValueError("nonempty vector required")
+            if any(not math.isfinite(value) or value <= 0 for value in values):
+                raise ValueError("finite positive vector required")
+            if any(value != snapshot["nozzle_mm"] for value in values):
+                raise NativeEngineBlocked("Effective nozzle vector differs from context", "native_envelope")
+            return values[0]
+        value = float(raw)
+        if not math.isfinite(value) or value <= 0:
+            raise ValueError("finite positive scalar required")
+        if value != snapshot["nozzle_mm"]:
+            raise NativeEngineBlocked("Effective nozzle differs from context", "native_envelope")
+        return value
+    except NativeEngineBlocked:
+        raise
+    except (KeyError, ValueError, TypeError) as exc:
+        message = "Effective nozzle vector unavailable" if current else "Effective single nozzle unavailable"
+        raise NativeEngineBlocked(message, "native_envelope") from exc
+
+
 def generate(request, snapshot, output_dir, config):
     """Invoke our built C++ CLI and shared parity gate; never an Orca Python API."""
     from integration import v1_contract as contract
     from integration import v1_parity as parity
-    request = contract.validate_request(request, now=config.get("now"))
-    snapshot = contract.validate_context(snapshot)
+    current = request.get("schema") == "helix-orca-v1-request/v2"
+    if current:
+        request = contract.validate_request_v2(request, now=config.get("now"))
+        snapshot = contract.validate_context_v2(snapshot)
+        qualification = contract.validate_build_qualification_v2(config.get("build_qualification"))
+        if qualification["routes"][request["calibration"]]["qualified"] is not True:
+            raise NativeEngineBlocked("Selected route is not build-qualified", "build_qualification")
+    else:
+        request = contract.validate_request(request, now=config.get("now"))
+        snapshot = contract.validate_context(snapshot)
+        qualification = None
     if request["context_sha256"] != contract.digest(snapshot) or request["origin_id"] != snapshot["origin_id"]:
         raise NativeEngineBlocked("Native request differs from immutable context", "context_mismatch")
     backend = require_native_generation(request["calibration"], config)
-    if snapshot["runtime"] != {"version": "2.5.0-dev", "build": "6a7763f0"}:
-        raise NativeEngineBlocked("Exact October 15 runtime context required", "runtime_pin")
+    expected_runtime = (_contract.ORCA_RUNTIME_V2 if request["schema"] == "helix-orca-v1-request/v2"
+                        else {"version": "2.5.0-dev", "build": snapshot["runtime"]["build"]})
+    actual_runtime = {key: snapshot["runtime"][key] for key in ("version", "build")}
+    if (actual_runtime != expected_runtime or (not current and actual_runtime not in (
+            {"version": "2.5.0-dev", "build": "6a7763f0"}, _contract.ORCA_RUNTIME_V2))):
+        raise NativeEngineBlocked("Exact pinned runtime context required", "runtime_pin")
     effective = snapshot["effective"]
     missing = set(backend["receipt"]["capabilities"]["required_effective_keys"]) - set(effective)
     if missing:
@@ -515,12 +558,7 @@ def generate(request, snapshot, output_dir, config):
             raise NativeEngineBlocked("Native external processing unsupported: " + key, "external_processing")
     if effective.get("belt_printer") not in ("0", "false") or not effective.get("curr_bed_type"):
         raise NativeEngineBlocked("Explicit non-belt configuration and bed type required", "native_envelope")
-    try:
-        nozzle = float(effective["nozzle_diameter"])
-    except (KeyError, ValueError, TypeError) as exc:
-        raise NativeEngineBlocked("Effective single nozzle unavailable", "native_envelope") from exc
-    if nozzle != snapshot["nozzle_mm"]:
-        raise NativeEngineBlocked("Effective nozzle differs from context", "native_envelope")
+    _validated_effective_nozzle(snapshot, current)
     if request["calibration"] == "pressure_advance_pattern" and effective.get("gcode_flavor") != "klipper":
         raise NativeEngineBlocked("Native PA requires retained Klipper flavor", "native_vendor_unavailable")
     destination = Path(output_dir)
@@ -582,13 +620,38 @@ def generate(request, snapshot, output_dir, config):
     if native_path.is_symlink() or native_path.stat().st_size > 1048576:
         raise NativeEngineBlocked("Bounded native result required", "native_result")
     native = json.loads(native_path.read_text())
+    expected_unapplied = None if current else True
     if (native.get("source_commit") != ORCA_SOURCE or native.get("calibration") != request["calibration"]
             or native.get("parameters") != request["parameters"] or native.get("request_id") != request["request_id"]
             or native.get("origin_id") != request["origin_id"] or native.get("context_sha256") != request["context_sha256"]
             or native.get("artifact") != artifact.name or native.get("size") != record["size"]
-            or native.get("qualified") is not False or native.get("not_applied") is not True
-            or native.get("processing") != {"error_code": 0, "warnings": []} or native.get("max_parallelism") != 2):
+            or native.get("qualified") is not False
+            or (not current and native.get("not_applied") is not expected_unapplied)
+            or not isinstance(native.get("processing"), dict) or native["processing"].get("error_code") != 0
+            or (not current and native.get("processing") != {"error_code": 0, "warnings": []})
+            or native.get("max_parallelism") != 2):
         raise NativeEngineBlocked("Native result does not bind exact request and artifact", "native_result")
+    if current:
+        warnings = []
+        for warning in native["processing"].get("warnings", []):
+            normalized = dict(level=warning.get("level"), message=warning.get("message"),
+                              error_code=warning.get("error_code"), params=warning.get("params", []),
+                              known=(warning.get("error_code") in contract.KNOWN_WARNINGS_V2
+                                     and contract.KNOWN_WARNINGS_V2[warning.get("error_code")] == warning.get("message")),
+                              requires_ack=(warning.get("error_code") in contract.KNOWN_WARNINGS_V2
+                                            and contract.KNOWN_WARNINGS_V2[warning.get("error_code")] == warning.get("message")))
+            warnings.append(contract.validate_warning_v2(normalized))
+        processing = dict(error_code=0, warnings=warnings,
+                          status="ready" if all(warning["known"] for warning in warnings) else "blocked")
+        prepared = {key: request[key] for key in ("request_id", "origin_id", "context_sha256", "calibration", "parameters")}
+        prepared.update(schema="helix-orca-v1-prepared/v2", request_sha256=contract.digest(request), artifact=record,
+            generator=dict(source_commit=ORCA_SOURCE, route="native-engine-v2",
+                           executable_sha256=contract.ORCA_EXECUTABLE_SHA256_V2,
+                           qualification_sha256=contract.digest(qualification),
+                           machine_sha256=contract.machine_sha256_v2(snapshot)), processing=processing)
+        prepared = contract.validate_prepared_v2(prepared, request)
+        (destination / "prepared.json").write_bytes(contract.canonical(prepared))
+        return prepared
     reference = select_native_reference(config, contract.digest(inputs))
     if "native_references" in config:
         (destination / "native-reference-selection.json").write_bytes(contract.canonical({
@@ -630,7 +693,7 @@ def verify_source_bytes(sources):
             raise NativeSourceError("Native source must be exact bytes: " + name)
         actual = hashlib.sha256(value).hexdigest()
         if actual != expected:
-            raise NativeSourceError("Approved October 15 source mismatch: " + name)
+            raise NativeSourceError("Approved current-nightly source mismatch: " + name)
         files[name] = {"size": len(value), "sha256": actual}
     return dict(schema="helix-orca-v1-native-source/v1", source_commit=ORCA_SOURCE,
                 source_verified=True, executable_built=False, qualified=False, files=files,

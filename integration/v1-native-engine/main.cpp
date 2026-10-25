@@ -1,6 +1,6 @@
 // Calibration setup derived from OrcaSlicer Plater.cpp at the pinned commit.
 // OrcaSlicer source license: GNU Affero General Public License, version 3.
-// https://github.com/OrcaSlicer/OrcaSlicer/blob/6a7763f08d1a175a464a00ce13f0b5a815662fc4/LICENSE.txt
+// https://github.com/OrcaSlicer/OrcaSlicer/blob/b5e9cb3c5e7a925adf8379366ae580e4dabb1d03/LICENSE.txt
 // Separate, source-pinned adapter. No Orca application source is modified.
 // Experimental until compiled and independently compared with native UI output.
 #if defined(__linux__) && defined(__x86_64__)
@@ -41,6 +41,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -48,7 +49,7 @@
 using namespace Slic3r;
 using json = nlohmann::json;
 namespace fs = std::filesystem;
-static constexpr const char *source_commit = "6a7763f08d1a175a464a00ce13f0b5a815662fc4";
+static constexpr const char *source_commit = "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03";
 static void diagnostic(const std::string &stage)
 {
     if(std::getenv("HELIX_NATIVE_DIAGNOSTICS")) std::cerr<<"native-stage: "<<stage<<std::endl;
@@ -91,10 +92,11 @@ static double number(const json &value, double minimum, double maximum)
 
 static DynamicPrintConfig retained_config(const json &snapshot)
 {
-    if (snapshot.at("schema") != "helix-orca-v1-context/v1" ||
+    const bool current=snapshot.at("schema")=="helix-orca-v1-context/v2";
+    if ((!current && snapshot.at("schema") != "helix-orca-v1-context/v1") ||
         snapshot.at("runtime").at("version") != "2.5.0-dev" ||
-        snapshot.at("runtime").at("build") != "6a7763f0")
-        throw std::runtime_error("Approved October 15 retained context required");
+        snapshot.at("runtime").at("build") != (current ? "b5e9cb3c" : "6a7763f0"))
+        throw std::runtime_error("Approved pinned retained context required");
     const auto &effective = snapshot.at("effective");
     if (!effective.is_object()) throw std::runtime_error("Effective config unavailable");
     auto required = DynamicPrintConfig::full_print_config();
@@ -123,15 +125,31 @@ static DynamicPrintConfig retained_config(const json &snapshot)
                 if (!value.empty()) throw std::runtime_error("External processing unsupported: " + key);
     }
     const auto *nozzles = config.option<ConfigOptionFloats>("nozzle_diameter");
-    if (!nozzles || nozzles->values.size() != 1 || nozzles->get_at(0) <= 0)
-        throw std::runtime_error("V1 native adapter requires one known nozzle");
+    if (!nozzles || nozzles->values.empty() || nozzles->get_at(0) <= 0 ||
+        std::any_of(nozzles->values.begin(),nozzles->values.end(),[&](double value){return value!=nozzles->get_at(0);}))
+        throw std::runtime_error("Native adapter requires one unambiguous nozzle diameter");
     const auto *filaments = config.option<ConfigOptionFloats>("filament_diameter");
     const auto *ratios = config.option<ConfigOptionFloats>("filament_flow_ratio");
-    if (!filaments || filaments->values.size()!=1 || !ratios || ratios->values.size()!=1)
-        throw std::runtime_error("V1 native adapter requires one retained filament");
+    if (!filaments || filaments->values.empty() || !ratios || ratios->values.size()!=filaments->values.size())
+        throw std::runtime_error("Native adapter requires complete retained filament slots");
+    if(current) {
+        const int slot=snapshot.at("origin_filament").at("slot_number").get<int>();
+        if(slot<1 || size_t(slot)>filaments->values.size())
+            throw std::runtime_error("Originating filament slot is outside the effective config");
+    }
     if (config.has("belt_printer") && config.opt_bool("belt_printer"))
         throw std::runtime_error("Belt calibration is outside this adapter qualification");
     return config;
+}
+
+// Plater.cpp:1398. The retained effective configuration contains the exact
+// edited printer keys that the GUI passes separately as printer_config.
+static bool has_junction_deviation(const DynamicPrintConfig &printer_config)
+{
+    const auto *flavor=printer_config.option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor");
+    const auto *maximum=printer_config.option<ConfigOptionFloats>("machine_max_junction_deviation");
+    return flavor&&flavor->value==GCodeFlavor::gcfMarlinFirmware&&maximum&&
+           !maximum->values.empty()&&maximum->values.front()>0.0;
 }
 
 static void cut(Model &model, double z, ModelObjectCutAttribute keep)
@@ -212,11 +230,14 @@ static void temperature(Model &model, DynamicPrintConfig &config, Calib_Params &
 
 static void tower_range(Calib_Params &params,const json &parameters,bool volumetric)
 {
-    params.start=number(parameters.at("start"),volumetric?0.01:0,volumetric?200:20);
-    params.end=number(parameters.at("end"),volumetric?0.01:0,volumetric?200:20);
-    params.step=number(parameters.at("step"),0.001,volumetric?200:20);
-    if(params.end<params.start+params.step || (params.end-params.start)/params.step>1000)
-        throw std::runtime_error("Unsupported native tower sample count");
+    params.start=number(parameters.at("start"),volumetric?std::numeric_limits<double>::min():0,
+                        std::numeric_limits<double>::max());
+    params.end=number(parameters.at("end"),volumetric?std::numeric_limits<double>::min():0,
+                      std::numeric_limits<double>::max());
+    params.step=number(parameters.at("step"),std::numeric_limits<double>::min(),
+                       std::numeric_limits<double>::max());
+    if(params.end<params.start+params.step)
+        throw std::runtime_error("Native tower End must be at least Start + Step");
 }
 
 static void retraction(Model &model,DynamicPrintConfig &config,Calib_Params &params,
@@ -292,7 +313,7 @@ static void volumetric(Model &model,DynamicPrintConfig &config,Calib_Params &par
     if(top>object->bounding_box_exact().size().z()+EPSILON)
         throw std::runtime_error("Requested range exceeds native volumetric asset");
     if(top<object->bounding_box_exact().size().z()) cut(model,top,ModelObjectCutAttribute::KeepLower);
-    const double ratio=config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(0);
+    const double ratio=config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(params.extruder_id);
     const double volume=Flow(width,height,nozzle).mm3_per_mm()*ratio;
     if(!std::isfinite(volume)||volume<=0) throw std::runtime_error("Effective flow unavailable");
     params.start/=volume;params.end/=volume;params.step/=volume;
@@ -303,11 +324,21 @@ static void volumetric(Model &model,DynamicPrintConfig &config,Calib_Params &par
 static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Params &params,
                              const json &parameters)
 {
-    params.start=number(parameters.at("start"),0,5);
-    params.end=number(parameters.at("end"),0,5);
-    params.step=number(parameters.at("step"),0.001,5);
-    if(params.end<params.start+params.step || (params.end-params.start)/params.step>1000)
-        throw std::runtime_error("Unsupported native PA sample count");
+    params.start=number(parameters.at("start"),0,std::numeric_limits<double>::max());
+    params.end=number(parameters.at("end"),0,std::numeric_limits<double>::max());
+    params.step=number(parameters.at("step"),std::numeric_limits<double>::min(),std::numeric_limits<double>::max());
+    if(params.end<params.start+params.step)
+        throw std::runtime_error("Native PA End must be at least Start + Step");
+    if(parameters.contains("accelerations") || parameters.contains("speeds")) {
+        const auto &accelerations=parameters.at("accelerations"),&speeds=parameters.at("speeds");
+        if(!accelerations.is_array() || !speeds.is_array() || accelerations.size()>64 || speeds.size()>64)
+            throw std::runtime_error("Native PA batch values are malformed");
+        int minimum_accel=std::numeric_limits<int>::max(),maximum_speed=0;
+        for(const auto &item:accelerations) {const int value=item.get<int>();if(value<=0)throw std::runtime_error("PA accelerations must be positive");minimum_accel=std::min(minimum_accel,value);params.accelerations.push_back(value);}
+        for(const auto &item:speeds) {const int value=item.get<int>();if(value<=0)throw std::runtime_error("PA speeds must be positive");maximum_speed=std::max(maximum_speed,value);params.speeds.push_back(value);}
+        if(!accelerations.empty()&&!speeds.empty()&&minimum_accel<=maximum_speed)
+            throw std::runtime_error("PA accelerations must exceed every speed");
+    }
     params.mode=CalibMode::Calib_PA_Pattern;params.print_numbers=true;
     for(const std::string key:{"overhang_reverse","precise_z_height","wipe_inward"})
         config.set_key_value(key,new ConfigOptionBool(false));
@@ -322,18 +353,23 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
     for(const std::string key:{"wipe","retract_when_changing_layer"})
         config.set_key_value(key,new ConfigOptionBools(1,false));
     config.set_key_value("resonance_avoidance",new ConfigOptionBool(false));
-    double accel=config.get_abs_value_at("outer_wall_acceleration",0);
-    if(accel==0) accel=config.get_abs_value_at("inner_wall_acceleration",0);
-    if(accel==0) accel=config.get_abs_value_at("default_acceleration",0);
+    double accel=config.get_abs_value_at("outer_wall_acceleration",params.extruder_id);
+    if(accel==0) accel=config.get_abs_value_at("inner_wall_acceleration",params.extruder_id);
+    if(accel==0) accel=config.get_abs_value_at("default_acceleration",params.extruder_id);
+    if(params.accelerations.empty()) params.accelerations={accel};
+    else accel=*std::max_element(params.accelerations.begin(),params.accelerations.end());
     config.set_key_value("outer_wall_acceleration",new ConfigOptionFloatsNullable(1,accel));
     config.set_key_value("print_sequence",new ConfigOptionEnum<PrintSequence>(PrintSequence::ByLayer));
-    if(config.get_abs_value_at("default_jerk",0)>0) {
-        double jerk=config.get_abs_value_at("outer_wall_jerk",0);
-        if(jerk==0) jerk=config.get_abs_value_at("inner_wall_jerk",0);
-        if(jerk==0) jerk=config.get_abs_value_at("default_jerk",0);
+    const bool junction_deviation=has_junction_deviation(config);
+    if(!junction_deviation&&config.get_abs_value_at("default_jerk",params.extruder_id)>0) {
+        double jerk=config.get_abs_value_at("outer_wall_jerk",params.extruder_id);
+        if(jerk==0) jerk=config.get_abs_value_at("inner_wall_jerk",params.extruder_id);
+        if(jerk==0) jerk=config.get_abs_value_at("default_jerk",params.extruder_id);
         for(const std::string key:{"default_jerk","outer_wall_jerk","inner_wall_jerk","top_surface_jerk","infill_jerk","travel_jerk"})
             config.set_key_value(key,new ConfigOptionFloatsNullable(1,jerk));
     }
+    if(junction_deviation)
+        config.set_key_value("default_junction_deviation",new ConfigOptionFloatsNullable(1,0));
     const SuggestedConfigCalibPAPattern suggested;
     for(const auto &item:suggested.floats_pairs)
         config.set_key_value(item.first,new ConfigOptionFloatsNullable(1,item.second[0]));
@@ -343,9 +379,16 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
         config.set_key_value(item.first,new ConfigOptionInt(item.second));
     config.set_key_value(suggested.brim_pair.first,new ConfigOptionEnum<BrimType>(suggested.brim_pair.second));
     config.set_key_value("enable_wrapping_detection",new ConfigOptionBool(false));
-    const double speed=CalibPressureAdvance::find_optimal_PA_speed(config,
+    double speed=CalibPressureAdvance::find_optimal_PA_speed(config,
         config.get_abs_value("line_width",nozzle),config.get_abs_value("layer_height"),0,0);
-    config.set_key_value("outer_wall_speed",new ConfigOptionFloatsNullable(1,speed));
+    if(params.speeds.empty()) {
+        params.speeds={speed};
+        config.set_key_value("outer_wall_speed",new ConfigOptionFloatsNullable(1,speed));
+    }
+    else if(params.speeds.size()==1) {
+        speed=params.speeds.front();
+        config.set_key_value("outer_wall_speed",new ConfigOptionFloatsNullable(1,speed));
+    }
     // GUI_ObjectList create_mesh + GLCanvas3D.cpp 6118: axis-aligned primitive
     // side is 10% of the maximum bed dimension, then centered on the plate.
     const auto bed_bounds=get_extents(config.option<ConfigOptionPoints>("printable_area")->values);
@@ -353,7 +396,7 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
     auto *cube=model.add_object();cube->add_instance();
     const TriangleMesh mesh(its_make_cube(side,side,side));
     cube->add_volume(mesh);cube->translate(-mesh.bounding_box().center());
-    cube->config.set_key_value("extruder",new ConfigOptionInt(1));
+    cube->config.set_key_value("extruder",new ConfigOptionInt(params.extruder_id+1));
     cube->instances[0]->set_offset(Vec3d(bed_bounds.center().x(),bed_bounds.center().y(),0));
     cube->ensure_on_bed();
     CalibPressureAdvancePattern pattern(params,config,is_bbl_machine,*cube,Vec3d::Zero());
@@ -362,19 +405,37 @@ static void pressure_advance(Model &model,DynamicPrintConfig &config,Calib_Param
                 (pattern.print_size_y()+4)/bounds.size().y(),pattern.max_layer_z()/bounds.size().z());
     arrangement::ArrangeParams arrangement_params;
     const Points bedpts=arrangement::get_shrink_bedpts(&config,arrangement_params);
-    arrangement::ArrangePolygon polygon;cube->instances[0]->get_arrange_polygon(&polygon);polygon.bed_idx=0;
-    arrangement::ArrangePolygons polygons{polygon};
+    arrangement::ArrangePolygons polygons;
+    for(size_t index=0;index<params.speeds.size()*params.accelerations.size();++index) {
+        arrangement::ArrangePolygon polygon;cube->instances[0]->get_arrange_polygon(&polygon);polygon.bed_idx=0;
+        polygons.emplace_back(polygon);
+    }
     arrangement::arrange(polygons,bedpts,arrangement_params);
-    if(polygons[0].bed_idx!=0) throw std::runtime_error("Native PA cannot fit selected plate");
     bounds=cube->raw_bounding_box();
     cube->scale(pattern.handle_xy_size()/bounds.size().x(),pattern.handle_xy_size()/bounds.size().y(),
                 pattern.max_layer_z()/bounds.size().z());
-    cube->name="pa_pattern_"+std::to_string(int(speed))+"_"+std::to_string(int(accel));
-    cube->instances[0]->set_offset(Vec3d(unscale<double>(polygons[0].translation(X)),
-        unscale<double>(polygons[0].translation(Y)),0)+pattern.handle_pos_offset());
-    cube->ensure_on_bed();
+    for(size_t index=0;index<polygons.size();++index) {
+        if(polygons[index].bed_idx!=0) throw std::runtime_error("Native PA matrix cannot fit one selected plate");
+        const double test_speed=params.speeds[index%params.speeds.size()];
+        const double test_accel=params.accelerations[index/params.speeds.size()];
+        auto *object=index==0?cube:model.add_object(*cube);
+        object->name="pa_pattern_"+std::to_string(int(test_speed))+"_"+std::to_string(int(test_accel));
+        if(params.speeds.size()>1)
+            object->config.set_key_value("outer_wall_speed",new ConfigOptionFloatsNullable(1,test_speed));
+        if(params.accelerations.size()>1)
+            object->config.set_key_value("outer_wall_acceleration",new ConfigOptionFloatsNullable(1,test_accel));
+        object->instances[0]->set_offset(Vec3d(unscale<double>(polygons[index].translation(X)),
+            unscale<double>(polygons[index].translation(Y)),0)+pattern.handle_pos_offset());
+        object->ensure_on_bed();
+    }
     model.calib_pa_pattern=std::make_unique<CalibPressureAdvancePattern>(pattern);
-    model.plates_custom_gcodes[0]=pattern.generate_custom_gcodes(config,is_bbl_machine,*cube,Vec3d::Zero());
+    std::vector<CustomGCode::Info> generated;
+    for(auto *object:model.objects)
+        generated.emplace_back(pattern.generate_custom_gcodes(config,is_bbl_machine,*object,Vec3d::Zero()));
+    model.plates_custom_gcodes[0]=std::move(generated[0]);
+    for(size_t item=1;item<generated.size();++item)
+        for(size_t layer=0;layer<model.plates_custom_gcodes[0].gcodes.size();++layer)
+            model.plates_custom_gcodes[0].gcodes[layer].extra+=generated[item].gcodes[layer].extra;
 }
 
 int main(int argc,char **argv)
@@ -410,9 +471,10 @@ int main(int argc,char **argv)
             throw std::runtime_error("Usage: native [--prepare-temperature] REQUEST_JSON CONTEXT_JSON RESOURCES OUTPUT_DIRECTORY");
         const int first=prepare_temperature?2:1;
         const auto request=read_json(argv[first]),snapshot=read_json(argv[first+1]);
-        if(request.at("schema")!="helix-orca-v1-request/v1" || request.at("not_applied")!=true ||
+        const bool current=request.at("schema")=="helix-orca-v1-request/v2";
+        if((!current && (request.at("schema")!="helix-orca-v1-request/v1" || request.at("not_applied")!=true)) ||
            request.at("origin_id")!=snapshot.at("origin_id"))
-            throw std::runtime_error("Correlated V1 request required");
+            throw std::runtime_error("Correlated pinned request required");
         const std::string calibration=request.at("calibration").get<std::string>();
         if(prepare_temperature && calibration!="temperature")
             throw std::runtime_error("Geometry-only preparation requires a Temperature request");
@@ -429,11 +491,17 @@ int main(int argc,char **argv)
         auto config=retained_config(snapshot);
         diagnostic("config-ready");
         Model model;Calib_Params params;
+        const int origin_slot=current?snapshot.at("origin_filament").at("slot_number").get<int>():1;
+        params.extruder_id=origin_slot-1;
         if(calibration=="temperature") temperature(model,config,params,request.at("parameters"),resources);
         else if(calibration=="retraction") retraction(model,config,params,request.at("parameters"),resources);
         else if(calibration=="pressure_advance_pattern") pressure_advance(model,config,params,request.at("parameters"));
         else if(calibration=="max_volumetric_speed") volumetric(model,config,params,request.at("parameters"),resources);
         else throw std::runtime_error("Native adapter route is not implemented for this calibration");
+        if(current) {
+            for(auto *object:model.objects)
+                object->config.set_key_value("extruder",new ConfigOptionInt(origin_slot));
+        }
         diagnostic("model-ready");
         const auto area=config.option<ConfigOptionPoints>("printable_area")->values;
         const double height=config.opt_float("printable_height");
@@ -470,7 +538,7 @@ int main(int argc,char **argv)
         if(!error.string.empty()||!warnings.empty())
             throw std::runtime_error("Native validation rejected preparation: "+error.string);
         if(print.empty()) throw std::runtime_error("Native print is empty");
-        Model::setExtruderParams(config,1);Model::setPrintSpeedTable(config,print.config());
+        Model::setExtruderParams(config,origin_slot);Model::setPrintSpeedTable(config,print.config());
         GCodeProcessorResult processed;
         // Native Thread.cpp's thread-name/locale barrier counts the current
         // arena, not global_control's worker cap. Match both to avoid waiting
@@ -488,13 +556,18 @@ int main(int argc,char **argv)
             processing["warnings"].push_back({{"level",warning.level},{"message",warning.msg},
                                                {"error_code",warning.error_code},{"params",warning.params}});
         std::ofstream(output/"native-processing.json")<<processing.dump(2)<<'\n';
-        if(processed.gcode_check_result.error_code!=0 || !processed.warnings.empty())
+        const auto known_warning=[](const auto &warning){
+            return warning.error_code=="1000C001" && warning.msg=="bed_temperature_too_high_than_filament";
+        };
+        const bool unknown_warning=std::any_of(processed.warnings.begin(),processed.warnings.end(),
+                                                [&](const auto &warning){return !known_warning(warning);});
+        if(processed.gcode_check_result.error_code!=0 || unknown_warning || (!current && !processed.warnings.empty()))
             throw std::runtime_error("Native post-export validation rejected artifact; see native-processing.json");
         json report={{"source_commit",source_commit},{"calibration",calibration},{"parameters",request.at("parameters")},
                      {"request_id",request.at("request_id")},{"origin_id",request.at("origin_id")},
                      {"context_sha256",request.at("context_sha256")},
                      {"artifact",gcode.filename().string()},{"size",fs::file_size(gcode)},
-                     {"qualified",false},{"not_applied",true},
+                     {"qualified",false},{"not_applied",!current},
                      {"processing",processing},{"max_parallelism",2},
                      {"excluded_visual_keys",{"bed_custom_model","bed_custom_texture"}}};
         std::ofstream(output/"native-generation.json")<<report.dump(2)<<'\n';

@@ -17,7 +17,10 @@ import time
 
 from integration.v1_contract import (CALIBRATIONS, DEFAULTS, SETTINGS, ContractError,
     canonical, digest, exact, hex_value, validate_context, validate_prepared, validate_request,
-    default_parameters, context_extruder_type, flow_ratio_choices)
+    default_parameters, context_extruder_type, flow_ratio_choices, default_parameters_v2,
+    validate_context_v2, validate_request_v2, validate_prepared_v2,
+    validate_build_qualification_v2, validate_warning_acknowledgement_v2, validate_result_v2,
+    machine_sha256_v2)
 
 
 def read_json(path):
@@ -113,11 +116,21 @@ class Coordinator:
                 raise ContractError("Unknown coordinator journal")
             if self.state.get("request"):
                 req = self.state["request"]
-                validate_request(req, now=req["created_at"])
+                current = req.get("schema") == "helix-orca-v1-request/v2"
+                (validate_request_v2 if current else validate_request)(req, now=req["created_at"])
                 if digest(self.state["context"]) != req["context_sha256"]:
                     raise ContractError("Recovered original context differs")
                 if self.state.get("prepared"):
-                    validate_prepared(self.state["prepared"], req)
+                    prepared = (validate_prepared_v2 if current else validate_prepared)(self.state["prepared"], req)
+                    if current:
+                        if prepared["generator"]["machine_sha256"] != machine_sha256_v2(self.state["context"]):
+                            raise ContractError("Recovered prepared job differs from its immutable machine context")
+                        qualification = validate_build_qualification_v2(self.state.get("qualification"))
+                        if digest(qualification) != prepared["generator"]["qualification_sha256"]:
+                            raise ContractError("Recovered build qualification differs from the prepared job")
+                        acknowledgement = self.state.get("warning_ack")
+                        if acknowledgement is not None:
+                            validate_warning_acknowledgement_v2(acknowledgement, prepared)
                 # Interrupted preparation is ambiguous: never rerun from receipt.
                 if self.state["phase"] == "preparing":
                     self._status("blocked", "Preparation interrupted. Original request retained; no print was dispatched.")
@@ -127,8 +140,17 @@ class Coordinator:
             self.state = {"schema": "helix-orca-v1-journal/v1", "context": None, "offer": None,
                           "request": None, "prepared": None, "result": None, "phase": "requested",
                           "sequence": 0, "message": "Waiting for Orca profiles.", "consumed_intents": [],
-                          "job": None, "completion": None, "receipt": None, "pending_start_intent": None, "monitor": None}
+                          "job": None, "completion": None, "receipt": None, "pending_start_intent": None, "monitor": None,
+                          "warning_ack": None, "qualification": None}
+            self.state.update(application_digest=None, application_event=None)
             self._persist()
+
+    def _current(self):
+        request = self.state.get("request")
+        if request is not None:
+            return request.get("schema") == "helix-orca-v1-request/v2"
+        context = self.state.get("context")
+        return context is not None and context.get("schema") == "helix-orca-v1-context/v2"
 
     def _persist(self):
         atomic_json(self.path, self.state)
@@ -139,7 +161,8 @@ class Coordinator:
         self._persist()
 
     def offer(self, context):
-        context = validate_context(context)
+        current = context.get("schema") == "helix-orca-v1-context/v2"
+        context = validate_context_v2(context) if current else validate_context(context)
         if self.state["request"] is not None and self.state["phase"] == "delivered" and not self.state.get("native_acknowledged", False):
             return copy.deepcopy(self.state["offer"])
         if self.state["request"] is not None and self.state["phase"] not in ("delivered", "failed", "cancelled", "blocked"):
@@ -150,23 +173,29 @@ class Coordinator:
         if self.state["request"]:
             atomic_json(self.root / "history" / (self.state["request"]["request_id"] + ".json"), self.state)
         now = int(self.now())
-        offer = dict(schema="helix-orca-v1-offer/v1", request_id=secrets.token_hex(16),
+        offer = dict(schema="helix-orca-v1-offer/v2" if current else "helix-orca-v1-offer/v1", request_id=secrets.token_hex(16),
                      origin_id=context["origin_id"], context_sha256=digest(context),
                      created_at=now, expires_at=now + 3600, nozzle_mm=context["nozzle_mm"],
-                     capabilities=self.capabilities, defaults=default_parameters(context),
+                     capabilities=self.capabilities, defaults=default_parameters_v2(context) if current else default_parameters(context),
                      extruder_type=context_extruder_type(context))
+        if current:
+            offer["origin_filament"] = copy.deepcopy(context["origin_filament"])
+            offer["filament_slots"] = copy.deepcopy(context["filament_slots"])
         for role in ("printer", "process", "filament"):
             offer[role] = context[role]["saved"]["name"]
         self.state.update(context=context, offer=offer, request=None, prepared=None, result=None,
                           phase="requested", message="Choose a calibration on Helix.", consumed_intents=[],
-                          job=None, completion=None, receipt=None, native_acknowledged=False, pending_start_intent=None, monitor=None)
+                          job=None, completion=None, receipt=None, native_acknowledged=False, pending_start_intent=None, monitor=None,
+                          warning_ack=None, qualification=None)
+        self.state.update(application_digest=None, application_event=None)
         self._persist()
         return copy.deepcopy(offer)
 
     def request(self, value):
         if self.state["request"] is not None and canonical(value) == canonical(self.state["request"]):
             return self.status()  # Owned monitoring/result return outlives the Start deadline.
-        request = validate_request(value, now=self.now())
+        current = value.get("schema") == "helix-orca-v1-request/v2"
+        request = (validate_request_v2 if current else validate_request)(value, now=self.now())
         if self.state["request"]:
             if request == self.state["request"]:
                 return self.status()
@@ -191,13 +220,29 @@ class Coordinator:
         directory = self.root / "jobs" / request["request_id"]
         directory.mkdir(parents=True, exist_ok=False, mode=0o700)
         try:
-            prepared = validate_prepared(self.generator(copy.deepcopy(request), copy.deepcopy(self.state["context"]), directory, self.config), request)
+            prepared = (validate_prepared_v2 if current else validate_prepared)(
+                self.generator(copy.deepcopy(request), copy.deepcopy(self.state["context"]), directory, self.config), request)
+            if current and prepared["generator"]["machine_sha256"] != machine_sha256_v2(self.state["context"]):
+                raise ContractError("Prepared job differs from its immutable machine context")
             self.state["prepared"] = prepared
             atomic_json(directory / "prepared.json", prepared)
             if prepared["artifact"]:
                 self.verify_artifact(prepared, directory)
-            # A bare qualified flag is never trusted. V1 parity owns full report validation.
-            if prepared["parity"]["qualified"]:
+            if current:
+                qualification = validate_build_qualification_v2(self.config.get("build_qualification"))
+                if (digest(qualification) != prepared["generator"]["qualification_sha256"]
+                        or qualification["routes"][request["calibration"]]["qualified"] is not True
+                        or qualification["routes"][request["calibration"]]["route_id"] != prepared["generator"]["route"]):
+                    raise ContractError("Prepared route differs from build-level qualification")
+                self.state["qualification"] = qualification
+                if prepared["processing"]["status"] != "ready":
+                    self._status("blocked", "Unknown warning or processor error blocks this exact job.")
+                elif any(item["requires_ack"] for item in prepared["processing"]["warnings"]):
+                    self._status("warning", "Review and acknowledge Orca's structured warning before Confirm.")
+                else:
+                    self._status("review", "Exact job verified against the qualified build/route. Review, then Confirm.")
+            # A bare qualified flag is never trusted. Historical V1 parity owns full report validation.
+            elif prepared["parity"]["qualified"]:
                 self.verify_parity(prepared, directory)
                 self._status("review", "Prepared job verified. Review profiles and parameters, then Confirm.")
             else:
@@ -205,6 +250,113 @@ class Coordinator:
         except Exception as exc:
             self._status("blocked", "Preparation unavailable: " + str(exc)[:700])
         return self.status()
+
+    def acknowledge_warnings(self, value):
+        if not self._current() or self.state.get("prepared") is None:
+            raise ContractError("No current structured warning is awaiting acknowledgement")
+        acknowledged = validate_warning_acknowledgement_v2(value, self.state["prepared"])
+        retained = self.state.get("warning_ack")
+        if retained is not None:
+            if canonical(retained) != canonical(acknowledged):
+                raise ContractError("Structured warning acknowledgement is immutable")
+            return copy.deepcopy(retained)
+        if self.state["phase"] != "warning":
+            raise ContractError("No current structured warning is awaiting acknowledgement")
+        self.state["warning_ack"] = acknowledged
+        self._status("review", "Structured Orca warning acknowledged. Review the exact job, then Confirm.")
+        return copy.deepcopy(acknowledged)
+
+    def warning_event(self):
+        """Return the bounded native warning prompt for the exact prepared job."""
+        if not self._current() or self.state.get("prepared") is None:
+            return None
+        prepared = self.state["prepared"]
+        warnings = [item for item in prepared["processing"]["warnings"] if item["requires_ack"]]
+        if not warnings:
+            return None
+        codes = sorted(item["error_code"] for item in warnings)
+        return dict(schema="helix-orca-v1-native-warning/v2",
+                    request_id=prepared["request_id"], origin_id=prepared["origin_id"],
+                    prepared_sha256=digest(prepared), warning_sha256=digest(warnings),
+                    warning_codes=codes, title="Orca slicing warning",
+                    message=("Orca reports a known filament/bed temperature warning ("
+                             + ", ".join(codes) + "). Continue or cancel before confirmation."))
+
+    def application_event(self, application):
+        """Validate an Orca-side transaction journal and publish native state.
+
+        Failed journals receive a durable coordinator authorization envelope,
+        but it cannot reach Orca's retry file until native returns it unchanged.
+        Uncertain commit-boundary outcomes are terminal and never retryable.
+        """
+        result = self.state.get("result")
+        if not self._current() or result is None:
+            raise ContractError("No current returned result can own a preset application")
+        exact(application,
+              "schema status phase request_id origin_id result_sha256 attempt target_name slot_number shared_slots updates created_at updated_at message outcome",
+              "V2 preset application")
+        if (application["schema"] != "helix-orca-v1-application/v2"
+                or application["status"] not in ("pending", "applied", "failed", "uncertain")
+                or application["request_id"] != result["request_id"]
+                or application["origin_id"] != result["origin_id"]
+                or application["result_sha256"] != digest(result)
+                or type(application["attempt"]) is not int or application["attempt"] < 1
+                or type(application["message"]) is not str):
+            raise ContractError("Preset application differs from the returned result")
+        application_sha256 = digest(application)
+        if (self.state.get("application_digest") == application_sha256
+                and self.state.get("application_event") is not None):
+            return copy.deepcopy(self.state["application_event"])
+        retained = self.state.get("application_event")
+        sequence = (retained["sequence"] if retained else 0) + 1
+        status = application["status"]
+        native_state = "applying" if status == "pending" else "failed" if status == "uncertain" else status
+        outcome = application.get("outcome")
+        dirty = status == "applied" and isinstance(outcome, dict) and outcome.get("dirty") is True
+        if status == "applied" and not dirty:
+            raise ContractError("Applied preset transaction lacks Orca's dirty outcome")
+        retry = None
+        if status == "failed":
+            retry = dict(schema="helix-orca-v1-application-retry/v2",
+                         request_id=result["request_id"], origin_id=result["origin_id"],
+                         result_sha256=digest(result),
+                         failed_application_sha256=application_sha256,
+                         attempt=application["attempt"] + 1, token=secrets.token_hex(16),
+                         authorized_at=int(self.now()))
+        message = application["message"].encode("utf-8")[:512].decode("utf-8", errors="ignore")
+        if status == "uncertain":
+            message = "Orca could not prove the preset transaction outcome. Inspect it in Orca; retry is disabled."
+        event = dict(schema="helix-orca-v1-application/v2", request_id=result["request_id"],
+                     origin_id=result["origin_id"], sequence=sequence, state=native_state,
+                     message=message, result_sha256=digest(result), result=copy.deepcopy(result),
+                     transaction_id=application_sha256 if status == "applied" else "",
+                     dirty=dirty, unsaved=dirty, retry_authorization=retry)
+        self.state["application_digest"] = application_sha256
+        self.state["application_event"] = copy.deepcopy(event)
+        self._persist()
+        return event
+
+    def authorize_application_retry(self, value):
+        event = self.state.get("application_event")
+        expected = event.get("retry_authorization") if isinstance(event, dict) else None
+        if expected is None or canonical(value) != canonical(expected):
+            raise ContractError("Application retry is not the exact current owner authorization")
+        return copy.deepcopy(expected)
+
+    def _verify_prepared_authority(self, prepared, directory):
+        self.verify_artifact(prepared, directory)
+        if self._current():
+            qualification = validate_build_qualification_v2(self.state.get("qualification"))
+            if prepared["generator"]["machine_sha256"] != machine_sha256_v2(self.state["context"]):
+                raise ContractError("Prepared job differs from its immutable machine context")
+            if digest(qualification) != prepared["generator"]["qualification_sha256"]:
+                raise ContractError("Build qualification changed")
+            if qualification["routes"][prepared["calibration"]]["route_id"] != prepared["generator"]["route"]:
+                raise ContractError("Prepared generator route differs from build qualification")
+            if any(item["requires_ack"] for item in prepared["processing"]["warnings"]):
+                validate_warning_acknowledgement_v2(self.state.get("warning_ack"), prepared)
+        else:
+            self.verify_parity(prepared, directory)
 
     @staticmethod
     def verify_artifact(prepared, directory):
@@ -227,7 +379,8 @@ class Coordinator:
 
     def intent(self, value):
         exact(value, "schema request_id origin_id prepared_sha256 action intent_id", "intent")
-        if value["schema"] != "helix-orca-v1-intent/v1" or value["action"] not in ("confirm", "start", "cancel"):
+        expected_schema = "helix-orca-v1-intent/v2" if self._current() else "helix-orca-v1-intent/v1"
+        if value["schema"] != expected_schema or value["action"] not in ("confirm", "start", "cancel"):
             raise ContractError("Unknown native intent")
         hex_value(value["intent_id"], 32)
         req, prepared = self.state["request"], self.state["prepared"]
@@ -242,8 +395,7 @@ class Coordinator:
                 raise ContractError("Confirmation requires a verified prepared job")
             directory = self.root / "jobs" / req["request_id"]
             try:
-                self.verify_artifact(prepared, directory)
-                self.verify_parity(prepared, directory)
+                self._verify_prepared_authority(prepared, directory)
                 confirm = getattr(self.job_adapter, "confirm", None)
                 if confirm is not None:
                     confirm(copy.deepcopy(req), copy.deepcopy(prepared), directory, copy.deepcopy(value))
@@ -264,8 +416,7 @@ class Coordinator:
             else:
                 directory = self.root / "jobs" / req["request_id"]
                 try:
-                    self.verify_artifact(prepared, directory)
-                    self.verify_parity(prepared, directory)
+                    self._verify_prepared_authority(prepared, directory)
                 except Exception as exc:
                     self.state["consumed_intents"].append(value["intent_id"])
                     self._status("blocked", "Prepared job cannot start: " + str(exc))
@@ -287,6 +438,9 @@ class Coordinator:
                 except Exception:
                     self._status("uncertain", "Start outcome is uncertain; no automatic retry is permitted.")
                     raise
+        elif self.state["phase"] == "warning":
+            self.state["consumed_intents"].append(value["intent_id"])
+            self._status("cancelled", "Known warning cancelled. Nothing was sent to the printer.")
         else:
             if self.state["phase"] in ("starting", "printing", "verifying", "uncertain") and self.state.get("job"):
                 if self.job_adapter is None:
@@ -372,14 +526,21 @@ class Coordinator:
             start, end, step = (Decimal(str(p[k])) for k in ("start", "end", "step"))
             options = [float(start + step * i) for i in range(int((end - start) // step) + 1)]
             unit = {"retraction": "mm", "pressure_advance_pattern": "s", "max_volumetric_speed": "mm³/s"}[kind]
-        if len(options) > 128:
+        if not self._current() and len(options) > 128:
             raise ContractError("V1 supports at most 128 result choices. Increase Step or reduce the range.")
         return dict(setting=SETTINGS[kind], options=options, unit=unit)
 
     def result(self, value):
-        exact(value, "schema request_id origin_id context_sha256 prepared_sha256 job_id completion_sha256 setting value not_applied", "result")
         req, prepared, proof = self.state["request"], self.state["prepared"], self.state.get("completion")
-        if value["schema"] != "helix-orca-v1-result/v1" or value["not_applied"] is not True or not req or not prepared or not proof:
+        current = self._current()
+        if current:
+            if not req or not prepared:
+                raise ContractError("No independently completed original calibration")
+            value = validate_result_v2(value, req, prepared)
+        else:
+            exact(value, "schema request_id origin_id context_sha256 prepared_sha256 job_id completion_sha256 setting value not_applied", "result")
+        if ((not current and (value["schema"] != "helix-orca-v1-result/v1" or value["not_applied"] is not True))
+                or not req or not prepared or not proof):
             raise ContractError("No independently completed original calibration")
         if any(value[k] != req[k] for k in ("request_id", "origin_id", "context_sha256")) or value["prepared_sha256"] != digest(prepared) or value["completion_sha256"] != digest(proof) or value["job_id"] != self.state["job"]["job_id"]:
             raise ContractError("Result is unrelated to original job")
@@ -393,11 +554,29 @@ class Coordinator:
         if self.state["phase"] != "complete":
             raise ContractError("Evaluation is locked")
         self.state["result"] = copy.deepcopy(value)
-        self._status("returning", "Returning the selected result to the original Orca context. NOT APPLIED.")
+        self._status("returning", ("Returning the selected result for explicit originating-preset application."
+                                   if current else "Returning the selected result to the original Orca context. NOT APPLIED."))
         return copy.deepcopy(value)
 
     def acknowledge(self, receipt):
         result = self.state["result"]
+        if self._current():
+            exact(receipt, "schema request_id origin_id result_sha256 application_sha256 status", "V2 application receipt")
+            application = self.state.get("application_event")
+            application_sha256 = self.state.get("application_digest")
+            if (result is None or receipt["schema"] != "helix-orca-v1-ack/v2" or receipt["status"] != "applied"
+                    or receipt["request_id"] != result["request_id"] or receipt["origin_id"] != result["origin_id"]
+                    or receipt["result_sha256"] != digest(result)
+                    or not isinstance(application, dict) or application.get("state") != "applied"
+                    or application.get("dirty") is not True or application.get("unsaved") is not True
+                    or application.get("transaction_id") != application_sha256
+                    or receipt["application_sha256"] != application_sha256):
+                raise ContractError("Only the exact originating preset application can acknowledge delivery")
+            hex_value(receipt["application_sha256"])
+            if self.state.get("receipt") != receipt:
+                self.state["receipt"] = copy.deepcopy(receipt)
+                self._status("delivered", "Result applied to Orca's edited originating filament preset; save remains the owner's choice.")
+            return copy.deepcopy(receipt)
         expected = dict(schema="helix-orca-v1-ack/v1", request_id=result["request_id"], origin_id=result["origin_id"],
                         result_sha256=digest(result), result=result, not_applied=True) if result else None
         if expected is None or canonical(receipt) != canonical(expected):
@@ -436,10 +615,16 @@ class Coordinator:
         if req is None:
             return None
         prepared = self.state["prepared"]
-        return dict(schema="helix-orca-v1-status/v1", request_id=req["request_id"], origin_id=req["origin_id"],
+        result = dict(schema="helix-orca-v1-status/v2" if self._current() else "helix-orca-v1-status/v1",
+                    request_id=req["request_id"], origin_id=req["origin_id"],
                     sequence=self.state["sequence"], phase=self.state["phase"], message=self.state["message"],
                     prepared=copy.deepcopy(prepared), prepared_sha256=digest(prepared) if prepared else None,
                     job_id=self.state["job"]["job_id"] if self.state.get("job") else None,
                     completion_sha256=digest(self.state["completion"]) if self.state.get("completion") else None,
                     evaluation=self.evaluation() if self.state.get("completion") else None,
                     monitor=copy.deepcopy(self.state.get("monitor")) if self.state["phase"] in ("printing", "verifying", "complete") else None)
+        if self._current():
+            result.update(warning_ack=copy.deepcopy(self.state.get("warning_ack")),
+                          qualification_sha256=(digest(self.state["qualification"])
+                                                if self.state.get("qualification") else None))
+        return result

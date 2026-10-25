@@ -16,7 +16,8 @@ from integration.v1_contract import canonical, digest, validate_parameters
 CALIBRATIONS = ('temperature', 'flow_ratio_yolo', 'pressure_advance_pattern',
                 'retraction', 'max_volumetric_speed')
 PINS = {'210bc927bc6fb3d3bf390fdf72e4a2767b5de4b3': {'version': '2.5.0-dev', 'build': '210bc927'},
-        '6a7763f08d1a175a464a00ce13f0b5a815662fc4': {'version': '2.5.0-dev', 'build': '6a7763f0'}}
+        '6a7763f08d1a175a464a00ce13f0b5a815662fc4': {'version': '2.5.0-dev', 'build': '6a7763f0'},
+        'b5e9cb3c5e7a925adf8379366ae580e4dabb1d03': {'version': '2.5.0-dev', 'build': 'b5e9cb3c'}}
 MAX_GCODE_BYTES = 128 * 1024 * 1024
 
 
@@ -199,8 +200,9 @@ def _scalar(effective, key, positive=False):
 
 
 def _native_envelope(text, inputs):
-    if inputs.get('source_commit') != '6a7763f08d1a175a464a00ce13f0b5a815662fc4':
-        raise ValueError('native invariant adapter requires the source-verified October 15 build')
+    if inputs.get('source_commit') not in ('6a7763f08d1a175a464a00ce13f0b5a815662fc4',
+                                            'b5e9cb3c5e7a925adf8379366ae580e4dabb1d03'):
+        raise ValueError('native invariant adapter requires a source-verified pinned build')
     if inputs.get('effective', {}).get('belt_printer') != '0':
         raise ValueError('native invariant adapter requires explicit non-belt input')
     if any(re.match(r'G(?:2|3|10|11)\b', code) for code in executable(text)):

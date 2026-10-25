@@ -1,6 +1,8 @@
 """Embedded after the qualified October 15 plugin. UI callbacks/local I/O only."""
 import os
+import queue
 import secrets
+import time
 from decimal import Decimal
 V1_PAGE = r'''<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
 *{box-sizing:border-box}body{font:14px system-ui;margin:0;background:#f5f7f8;color:#203440}main{max-width:720px;margin:auto;padding:20px}h1{font-size:24px;line-height:1.2;margin:4px 0 8px}h2{font-size:16px;margin:0 0 12px}p{line-height:1.5}.eyebrow{color:#087e76;font-size:11px;font-weight:750;letter-spacing:.1em;text-transform:uppercase}.muted{color:#59707c;font-size:13px}.card{background:white;border:1px solid #dce4e8;border-radius:12px;padding:18px;margin:16px 0;overflow-wrap:anywhere}.row{display:grid;grid-template-columns:90px 1fr;gap:8px 14px}.label{color:#59707c}.value{font-weight:600}.badge{display:inline-block;padding:5px 9px;background:#e4f3ef;color:#086c5b;border-radius:6px;font-size:12px;font-weight:700}.pending{background:#fff0d9;color:#785510}.result{border-color:#008579;border-width:2px}.big{font-size:30px;color:#007a70;font-weight:700}button{font:inherit;background:white;color:#006c65;border:1px solid #a1c5bf;border-radius:6px;padding:9px 12px;cursor:pointer}button:focus-visible,summary:focus-visible{outline:3px solid #008579;outline-offset:3px}details{margin:18px 0}summary{cursor:pointer;color:#59707c;font-size:12px}pre{white-space:pre-wrap;font:12px system-ui}#status{white-space:pre-wrap} [hidden]{display:none!important}@media(max-width:360px){main{padding:12px}.card{padding:14px}.row{grid-template-columns:70px 1fr;gap:7px}}
@@ -217,3 +219,364 @@ class V1CalibrationPanel(orca.script.ScriptPluginCapabilityBase):
             self.panel.post(dict(command="v1_state", context=self.context, context_sha256=digest(self.context) if self.context else None,
                                  view=view, error=self.error,
                                  health=("Coordinator stopped" if health and health.get("stopped") else "Coordinator last reported running" if health and health.get("ok") else "Coordinator unavailable or blocked")))
+
+
+# Current-nightly V2. These helpers are deliberately separate from the
+# historical V1 UI/receipt path above. A generated plugin may call capture from
+# a UI callback, but v2_apply_inbox must run from Script.execute's worker.
+V2_APPLICATION_KEYS = {
+    "temperature": ("nozzle_temperature",),
+    "flow_ratio_yolo": ("filament_flow_ratio",),
+    "pressure_advance_pattern": ("enable_pressure_advance", "pressure_advance"),
+    "retraction": ("filament_retraction_length",),
+    "max_volumetric_speed": ("filament_max_volumetric_speed",),
+}
+V2_PAGE = r'''<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
+*{box-sizing:border-box}body{font:14px system-ui;margin:0;background:#f5f7f8;color:#203440}main{max-width:680px;margin:auto;padding:18px}.card{background:#fff;border:1px solid #dce4e8;border-radius:12px;padding:16px;margin:14px 0}h1{font-size:22px}label{display:block;font-weight:650;margin:10px 0 5px}select,button{font:inherit;padding:9px;border:1px solid #94aaa9;border-radius:6px;background:white}button{color:#006c65;font-weight:650;margin:8px 8px 0 0}.badge{display:inline-block;padding:5px 8px;border-radius:6px;background:#e4f3ef;color:#086c5b;font-weight:700}.warn{background:#fff0d9;color:#785510}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px system-ui}</style></head><body><main>
+<span class="badge">Pinned beta.12 companion</span><h1>Helix Calibration</h1><p>Choose the filament slot that originated this exact job. Shared slots remain visible; Orca applies a result only to the official edited preset transaction and never saves it.</p>
+<section class="card"><label for="slot">Originating filament slot</label><select id="slot"></select><div><button id="capture">Use this slot</button><button id="refresh">Refresh slots</button></div><pre id="context">Loading Orca selection…</pre></section>
+<section class="card"><span class="badge warn">Originating preset transaction</span><p id="status">Waiting for the owner-local coordinator.</p><pre id="application"></pre></section>
+<script>(function(){'use strict';var slot=document.getElementById('slot'),status=document.getElementById('status');function send(command,extra){window.orca.postMessage(Object.assign({command:command},extra||{}));}window.orca.onMessage(function(m){if(!m)return;if(m.command==='v2_slots'){slot.textContent='';(m.slots||[]).forEach(function(s){var o=document.createElement('option');o.value=s.slot_number;o.textContent='Slot '+s.slot_number+' · '+s.preset_name;slot.appendChild(o);});status.textContent=m.error||'Choose the originating slot.';}if(m.command==='v2_context'){document.getElementById('context').textContent=m.error||('Origin: slot '+m.context.origin_filament.slot_number+' · '+m.context.origin_filament.preset_name+'\nShared slots: '+m.context.origin_filament.shared_slots.join(', ')+'\nContext: '+m.context_sha256);status.textContent=m.error||'Exact context available. A returned result is applied automatically through Orca’s official transaction.';}if(m.command==='v2_application'){status.textContent=m.error||(m.state?m.state.message:'No returned result is waiting.');document.getElementById('application').textContent=m.state?JSON.stringify(m.state,null,2):'';}});document.getElementById('capture').onclick=function(){send('capture',{origin_slot:Number(slot.value)});};document.getElementById('refresh').onclick=function(){send('slots');};send('slots');})();</script></main></body></html>'''
+
+
+def _v2_config(obj, keys="config_keys", read="config_value"):
+    result = {}
+    for key in getattr(obj, keys)():
+        sensitive, _ = _is_sensitive_key(key)
+        if sensitive and key != "post_process":
+            continue
+        raw = getattr(obj, read)(key)
+        if not isinstance(raw, str):
+            raise ContractError("Serialized configuration unavailable: " + key)
+        result[key] = raw
+    return result
+
+
+def v2_capture(host, origin_id, origin_slot):
+    """Capture an explicitly chosen 1-based originating filament slot."""
+    info = dict(host.app_info())
+    if ({key: info.get(key) for key in ("version", "build")} != ORCA_RUNTIME_V2):
+        raise ContractError("V2 requires the pinned b5e9cb3c Orca nightly")
+    if type(origin_slot) is not int or origin_slot < 1:
+        raise ContractError("Choose an explicit 1-based originating filament slot")
+    bundle = host.preset_bundle()
+    names = list(bundle.current_filament_preset_names())
+    if origin_slot > len(names) or not names[origin_slot - 1]:
+        raise ContractError("The chosen originating filament slot is unavailable")
+    slots = [dict(slot_number=index, preset_name=str(name))
+             for index, name in enumerate(names, 1) if name]
+    if len(slots) != len(names):
+        raise ContractError("Every active filament slot needs an exact preset identity")
+    origin_name = str(names[origin_slot - 1])
+    value = dict(schema="helix-orca-v1-context/v2", origin_id=origin_id,
+                 runtime=dict(version=info["version"], build=info["build"],
+                              source_commit=ORCA_SOURCE_V2,
+                              executable_sha256=ORCA_EXECUTABLE_SHA256_V2),
+                 filament_slots=slots,
+                 origin_filament=dict(slot_number=origin_slot, preset_name=origin_name,
+                                      shared_slots=[slot["slot_number"] for slot in slots
+                                                    if slot["preset_name"] == origin_name]))
+    for role, collection in (("printer", bundle.printers), ("process", bundle.prints)):
+        value[role] = {}
+        for name, method in (("saved", "selected_preset"), ("edited", "edited_preset")):
+            preset = _call(collection, method)
+            value[role][name] = dict(name=_preset_view(preset)["name"], config=_v2_config(preset))
+    assigned = list(bundle.current_filament_presets())
+    if len(assigned) != len(names) or assigned[origin_slot - 1] is None:
+        raise ContractError("The originating filament preset cannot be resolved")
+    saved_filament = assigned[origin_slot - 1]
+    edited_filament = _call(bundle.filaments, "edited_preset", "get_edited_preset")
+    if _preset_view(edited_filament)["name"] != origin_name:
+        raise ContractError("Select the originating filament preset in Orca before opening calibration")
+    value["filament"] = {
+        "saved": dict(name=origin_name, config=_v2_config(saved_filament)),
+        "edited": dict(name=origin_name, config=_v2_config(edited_filament)),
+    }
+    value["effective"] = _v2_config(bundle, "full_config_keys", "full_config_value")
+    nozzles, nozzle_error = _parse_number_vector(value["effective"].get("nozzle_diameter"), "nozzle_diameter")
+    if nozzle_error:
+        raise ContractError(nozzle_error)
+    if not nozzles or any(not number > 0 for number in nozzles) or any(number != nozzles[0] for number in nozzles):
+        raise ContractError("V2 requires one unambiguous effective nozzle diameter")
+    value["nozzle_mm"] = nozzles[0]
+    return validate_context_v2(value)
+
+
+def _v2_decimal(value):
+    number_value = Decimal(str(value))
+    if not number_value.is_finite():
+        raise ContractError("A finite preset value is required")
+    result = format(number_value, "f")
+    if "." in result:
+        result = result.rstrip("0").rstrip(".")
+    return result or "0"
+
+
+def v2_application_updates(request, result, original):
+    setting = SETTINGS[request["calibration"]]
+    if result.get("setting") != setting:
+        raise ContractError("Returned setting does not match the calibration")
+    value = result.get("value")
+    if type(value) not in (int, float):
+        raise ContractError("Returned result value must be numeric")
+    parameters = request["parameters"]
+    if request["calibration"] == "temperature":
+        choices = list(range(parameters["start"], parameters["end"] - 1, -5))
+    elif request["calibration"] == "flow_ratio_yolo":
+        ratios, ratio_error = _parse_number_vector(
+            original["effective"].get("filament_flow_ratio"), "filament_flow_ratio")
+        slot_index = original["origin_filament"]["slot_number"] - 1
+        if ratio_error or slot_index < 0 or slot_index >= len(ratios):
+            raise ContractError("Effective flow ratio is unavailable for the originating filament slot")
+        choices = flow_ratio_choices(str(ratios[slot_index]), parameters["pass"])
+    else:
+        start, end, step = (Decimal(str(parameters[key])) for key in ("start", "end", "step"))
+        choices = [float(start + step * index) for index in range(int((end - start) // step) + 1)]
+    if value not in choices:
+        raise ContractError("Returned result is outside the completed calibration choices")
+    if request["calibration"] == "pressure_advance_pattern":
+        return [("enable_pressure_advance", "1"), ("pressure_advance", _v2_decimal(value))]
+    return [(setting, _v2_decimal(value))]
+
+
+def _v2_update_result(result):
+    value = dict(category=result.category, target_name=result.target_name,
+                 selection_changed=result.selection_changed, slot_number=result.slot_number,
+                 slot_assignment_changed=result.slot_assignment_changed,
+                 shared_slots=list(result.shared_slots), keys=list(result.keys), dirty=result.dirty)
+    exact(value, "category target_name selection_changed slot_number slot_assignment_changed shared_slots keys dirty", "preset update result")
+    if value["category"] != "filament" or any(type(value[key]) is not bool for key in ("selection_changed", "slot_assignment_changed", "dirty")):
+        raise ContractError("Orca returned an invalid filament update result")
+    return value
+
+
+def v2_apply_inbox(directory, preset_editor, now=None):
+    """Apply one result through Orca's atomic filament transaction.
+
+    This function must be invoked on the persistent Script worker, never from
+    a WebView/UI callback. It writes intent before begin_update(), records the
+    commit boundary, and never retries a pending/uncertain transaction.
+    """
+    directory = pathlib.Path(directory)
+    application_path = directory / "application.json"
+    prior = v1_read(application_path)
+    attempt = 1
+    if prior is not None:
+        if prior.get("status") == "pending":
+            crossed_commit = prior.get("phase") == "commit_started"
+            prior.update(status="uncertain" if crossed_commit else "failed",
+                         phase="recovered_commit_started" if crossed_commit else "recovered_before_commit",
+                         message=("A prior commit crossed an unobserved boundary; no retry is permitted."
+                                  if crossed_commit else
+                                  "A prior attempt ended before commit; an explicit result-bound retry is required."))
+            v1_write(application_path, prior)
+        if prior.get("status") == "applied":
+            return prior
+        if prior.get("status") == "uncertain":
+            raise ContractError("Preset application is uncertain; no retry is permitted")
+        if prior.get("status") != "failed":
+            raise ContractError("Malformed retained preset application state")
+        retry = v1_read(directory / "application-retry.json")
+        if retry is None:
+            raise ContractError("Failed application requires an exact explicit result-bound retry")
+        exact(retry, "schema request_id origin_id result_sha256 failed_application_sha256 attempt token authorized_at", "V2 application retry")
+        if (retry["schema"] != "helix-orca-v1-application-retry/v2"
+                or retry["request_id"] != prior["request_id"] or retry["origin_id"] != prior["origin_id"]
+                or retry["result_sha256"] != prior["result_sha256"]
+                or retry["failed_application_sha256"] != digest(prior)
+                or type(retry["attempt"]) is not int or retry["attempt"] != prior.get("attempt", 1) + 1
+                or type(retry["authorized_at"]) is not int):
+            raise ContractError("Failed application requires an exact explicit result-bound retry")
+        hex_value(retry["token"], 32)
+        consumed = v1_read(directory / "application-retry-consumed.json")
+        if isinstance(consumed, dict) and consumed.get("retry_sha256") == digest(retry):
+            raise ContractError("This explicit retry was already consumed; inspect the failed attempt before authorizing another")
+        attempts = directory / "application-attempts"
+        attempts.mkdir(exist_ok=True)
+        v1_write(attempts / (str(prior.get("attempt", 1)) + "-" + digest(prior) + ".json"), prior)
+        v1_write(directory / "application-retry-consumed.json",
+                 dict(schema="helix-orca-v1-application-retry-consumed/v2",
+                      retry_sha256=digest(retry), token=retry["token"], consumed_at=int(time.time() if now is None else now)))
+        attempt = retry["attempt"]
+    inbox = v1_read(directory / "inbox.json")
+    if inbox is None:
+        return None
+    exact(inbox, "result request prepared completion warning_ack qualification", "V2 inbox")
+    request = validate_request_v2(inbox["request"], now=inbox["request"]["created_at"])
+    prepared = validate_prepared_v2(inbox["prepared"], request)
+    qualification = validate_build_qualification_v2(inbox["qualification"])
+    if digest(qualification) != prepared["generator"]["qualification_sha256"]:
+        raise ContractError("Prepared job is unrelated to build-level qualification")
+    if prepared["processing"]["status"] != "ready":
+        raise ContractError("Unknown warning or processor error blocks application")
+    acknowledgement = inbox["warning_ack"]
+    required = any(warning["requires_ack"] for warning in prepared["processing"]["warnings"])
+    if required:
+        validate_warning_acknowledgement_v2(acknowledgement, prepared)
+    elif acknowledgement is not None:
+        validate_warning_acknowledgement_v2(acknowledgement, prepared)
+    original = v1_read(directory / "origins" / (request["origin_id"] + ".json"))
+    if original is None or digest(validate_context_v2(original)) != request["context_sha256"]:
+        raise ContractError("Returned result has no retained originating filament context")
+    if prepared["generator"]["machine_sha256"] != machine_sha256_v2(original):
+        raise ContractError("Returned result differs from its immutable machine context")
+    result = validate_result_v2(inbox["result"], request, prepared)
+    proof = inbox["completion"]
+    exact(proof, "job_id file_sha256 print_state history_state history_job_id history_file_sha256", "completion proof")
+    if (proof["print_state"] != "complete" or proof["history_state"] != "completed"
+            or proof["job_id"] != proof["history_job_id"] or proof["job_id"] != result["job_id"]
+            or proof["file_sha256"] != proof["history_file_sha256"]
+            or proof["file_sha256"] != prepared["artifact"]["sha256"]
+            or result["completion_sha256"] != digest(proof)):
+        raise ContractError("Returned result lacks exact independent same-job proof")
+    updates = v2_application_updates(request, result, original)
+    origin = original["origin_filament"]
+    stamp = int(time.time() if now is None else now)
+    state = dict(schema="helix-orca-v1-application/v2", status="pending", phase="binding",
+                 request_id=request["request_id"], origin_id=request["origin_id"],
+                 result_sha256=digest(result), attempt=attempt, target_name=origin["preset_name"],
+                 slot_number=origin["slot_number"], shared_slots=origin["shared_slots"],
+                 updates=[dict(key=key, value=value) for key, value in updates],
+                 created_at=stamp, updated_at=stamp,
+                 message="Binding the official originating-filament-preset transaction.", outcome=None)
+    v1_write(application_path, state)
+    try:
+        transaction = preset_editor.begin_update(slot_number=origin["slot_number"],
+                                                 preset_name=origin["preset_name"])
+        for key, value in updates:
+            transaction.set(key, value)
+    except Exception as exc:
+        state.update(status="failed", phase="before_commit", updated_at=int(time.time() if now is None else now),
+                     message=("Preset transaction did not reach commit: " + str(exc))[:768])
+        v1_write(application_path, state)
+        raise
+    state.update(phase="commit_started", updated_at=int(time.time() if now is None else now),
+                 message="Atomic preset commit started; an interrupted outcome must be treated as uncertain.")
+    v1_write(application_path, state)
+    try:
+        outcome = _v2_update_result(transaction.commit())
+    except Exception as exc:
+        state.update(status="failed", phase="commit_rolled_back", updated_at=int(time.time() if now is None else now),
+                     message=("Orca rejected the atomic commit and rolled back every staged setting; an explicit result-bound retry is required: " + str(exc))[:768])
+        v1_write(application_path, state)
+        raise
+    expected_keys = [key for key, _ in updates]
+    if (outcome["target_name"] != origin["preset_name"] or outcome["slot_number"] != origin["slot_number"]
+            or outcome["keys"] != expected_keys
+            or outcome["slot_assignment_changed"] is not False or outcome["dirty"] is not True):
+        state.update(status="uncertain", phase="unexpected_outcome", updated_at=int(time.time() if now is None else now),
+                     message="Orca committed but returned an unexpected target/result; inspect the edited preset without retrying.",
+                     outcome=outcome)
+        v1_write(application_path, state)
+        raise ContractError(state["message"])
+    state.update(status="applied", phase="committed", updated_at=int(time.time() if now is None else now),
+                 message="Result applied to Orca's edited originating filament preset; it remains unsaved and dirty.",
+                 outcome=outcome)
+    v1_write(application_path, state)
+    v1_write(directory / "receipt.json", dict(schema="helix-orca-v1-ack/v2",
+             request_id=request["request_id"], origin_id=request["origin_id"],
+             result_sha256=digest(result), application_sha256=digest(state), status="applied"))
+    return state
+
+
+class V2CalibrationPanel(orca.script.ScriptPluginCapabilityBase):
+    """Ordinary owner-local companion with one persistent Script worker.
+
+    WebView callbacks enqueue commands only. The worker owns the blocking
+    begin_update/set/commit transaction as required by the pinned host API.
+    """
+    def __init__(self):
+        super().__init__()
+        self.panel = None
+        self.directory = None
+        self.commands = queue.Queue(maxsize=16)
+        self.stopping = False
+        self.last_application_notice = None
+
+    def get_name(self):
+        return "Helix Calibration"
+
+    def execute(self):
+        self.directory = v1_storage(orca.host.plugin.storage())
+        kwargs = dict(html=V2_PAGE, title="Helix Calibration", width=460, height=740,
+                      on_message=self.on_message, on_close=self.on_close)
+        try:
+            self.panel = orca.host.ui.create_dock_panel(**kwargs, dock="right")
+        except Exception:
+            self.panel = orca.host.ui.create_window(**kwargs)
+        while not self.stopping:
+            try:
+                command = self.commands.get(timeout=.25)
+            except queue.Empty:
+                command = dict(command="poll_application")
+            if command["command"] == "stop":
+                break
+            if command["command"] == "slots":
+                try:
+                    names = list(orca.host.preset_bundle().current_filament_preset_names())
+                    slots = [dict(slot_number=index, preset_name=str(name))
+                             for index, name in enumerate(names, 1) if name]
+                    payload = dict(command="v2_slots", slots=slots,
+                                   error=None if len(slots) == len(names) else "One or more active slots has no preset identity.")
+                except Exception as exc:
+                    payload = dict(command="v2_slots", slots=[], error=("Unavailable: " + str(exc))[:768])
+                if self.panel and self.panel.is_open():
+                    self.panel.post(payload)
+            elif command["command"] == "capture":
+                try:
+                    retained = v1_read(self.directory / "context.json")
+                    origin_id = retained["origin_id"] if retained else secrets.token_hex(16)
+                    captured = v2_capture(orca.host, origin_id, command["origin_slot"])
+                    if retained and captured != retained:
+                        captured["origin_id"] = secrets.token_hex(16)
+                    captured = validate_context_v2(captured)
+                    origins = self.directory / "origins"
+                    origins.mkdir(exist_ok=True)
+                    v1_write(self.directory / "context.json", captured)
+                    origin_path = origins / (captured["origin_id"] + ".json")
+                    old = v1_read(origin_path)
+                    if old is not None and canonical(old) != canonical(captured):
+                        raise ContractError("Original V2 context is immutable")
+                    v1_write(origin_path, captured)
+                    payload = dict(command="v2_context", context=captured,
+                                   context_sha256=digest(captured), error=None)
+                except Exception as exc:
+                    payload = dict(command="v2_context", context=None, context_sha256=None,
+                                   error=("Unavailable: " + str(exc))[:768])
+                if self.panel and self.panel.is_open():
+                    self.panel.post(payload)
+            elif command["command"] == "poll_application":
+                try:
+                    state = v2_apply_inbox(self.directory, orca.host.preset.filament)
+                    payload = dict(command="v2_application", state=state, error=None)
+                except Exception as exc:
+                    payload = dict(command="v2_application", state=v1_read(self.directory / "application.json"),
+                                   error=("Unavailable: " + str(exc))[:768])
+                notice = canonical(payload)
+                if self.panel and self.panel.is_open() and notice != self.last_application_notice:
+                    self.last_application_notice = notice
+                    self.panel.post(payload)
+        return orca.ExecutionResult.success("Helix Calibration worker stopped.")
+
+    def on_message(self, message):
+        if not isinstance(message, dict) or message.get("command") not in ("slots", "capture"):
+            return
+        command = dict(command=message["command"])
+        if command["command"] == "capture":
+            if type(message.get("origin_slot")) is not int or message["origin_slot"] < 1:
+                return
+            command["origin_slot"] = message["origin_slot"]
+        try:
+            self.commands.put_nowait(command)
+        except queue.Full:
+            if self.panel and self.panel.is_open():
+                self.panel.post(dict(command="v2_application", state=None,
+                                     error="Application request already queued."))
+
+    def on_close(self):
+        self.stopping = True
+        try:
+            self.commands.put_nowait(dict(command="stop"))
+        except queue.Full:
+            pass
+        self.panel = None

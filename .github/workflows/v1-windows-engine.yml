@@ -55,7 +55,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: OrcaSlicer/OrcaSlicer
-          ref: 6a7763f08d1a175a464a00ce13f0b5a815662fc4
+          ref: b5e9cb3c5e7a925adf8379366ae580e4dabb1d03
           path: upstream
           submodules: recursive
           persist-credentials: false

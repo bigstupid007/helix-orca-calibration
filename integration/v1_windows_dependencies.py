@@ -17,7 +17,7 @@ import sys
 import tempfile
 import zipfile
 
-ORCA_SOURCE='6a7763f08d1a175a464a00ce13f0b5a815662fc4'
+ORCA_SOURCE='b5e9cb3c5e7a925adf8379366ae580e4dabb1d03'
 CONTRACT_SCHEMA='helix-orca-v1-windows-dependency-contract/v1'
 BUNDLE_SCHEMA='helix-orca-v1-windows-dependency-bundle/v1'
 RECEIPT_SCHEMA='helix-orca-v1-windows-dependency-receipt/v1'

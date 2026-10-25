@@ -74,6 +74,68 @@ def _numeric(mapping, key):
     return value
 
 
+def _numeric_vector(mapping, key):
+    if key not in mapping or not isinstance(mapping[key], str):
+        _blocked('effective_unavailable', 'Effective ' + key + ' is unavailable.')
+    raw = mapping[key].strip()
+    try:
+        decoded = json.loads(raw)
+        values = decoded if isinstance(decoded, list) else [decoded]
+    except (ValueError, TypeError):
+        values = [item.strip() for item in re.split(r'[;,]', raw) if item.strip()]
+    try:
+        result = [float(item) for item in values]
+    except (ValueError, TypeError):
+        _blocked('effective_malformed', 'Effective ' + key + ' is not a finite vector.')
+    if not result or any(not math.isfinite(item) for item in result):
+        _blocked('effective_malformed', 'Effective ' + key + ' is not a finite vector.')
+    return result
+
+
+def _origin_numeric(snapshot, key):
+    """Resolve a filament vector at the explicit V2 originating slot."""
+    if snapshot.get('schema') != 'helix-orca-v1-context/v2':
+        return _numeric(snapshot['effective'], key)
+    values = _numeric_vector(snapshot['effective'], key)
+    index = snapshot['origin_filament']['slot_number'] - 1
+    if index < 0 or index >= len(values):
+        _blocked('effective_unavailable', 'Effective ' + key + ' lacks the originating filament slot.')
+    return values[index]
+
+
+def _slot_serialized_value(value, index, count):
+    """Project one exact active-filament vector cell into a CLI preset slot."""
+    if not isinstance(value, str):
+        return value
+    raw = value.strip()
+    try:
+        decoded = json.loads(raw)
+        if isinstance(decoded, list) and len(decoded) == count:
+            selected = decoded[index]
+            return selected if isinstance(selected, str) else json.dumps(selected, separators=(',', ':'))
+    except (ValueError, TypeError):
+        pass
+    cells = raw.split(';')
+    if len(cells) == count and all(cell.strip() for cell in cells):
+        return cells[index].strip()
+    return value
+
+
+def _filament_slot_profiles(snapshot, origin_profile):
+    """Stage one official CLI filament preset per complete active V2 slot."""
+    slots = sorted(snapshot['filament_slots'], key=lambda item: item['slot_number'])
+    result = []
+    for slot in slots:
+        profile = copy.deepcopy(origin_profile)
+        index = slot['slot_number'] - 1
+        for key in tuple(profile):
+            if key not in ('name', 'from', 'type', 'instantiation') and key in snapshot['effective']:
+                profile[key] = _slot_serialized_value(snapshot['effective'][key], index, len(slots))
+        profile['name'] = slot['preset_name']
+        result.append(profile)
+    return result
+
+
 def _configs(snapshot):
     effective = snapshot['effective']
     result = {}
@@ -116,7 +178,7 @@ def _temperature(request, snapshot, destination, config, profiles):
     if p['start'] % 5 or p['end'] % 5:
         _blocked('temperature_bands', 'Native standard tower requires start and end individually divisible by five.')
     if not p['scale'] or snapshot['nozzle_mm'] not in (0.4, 0.6) or snapshot['effective'].get('gcode_flavor') not in ('marlin', 'klipper'):
-        _blocked('temperature_envelope', 'Stock Temperature recipe currently supports scaled 0.4/0.6 mm single-tool Marlin/Klipper towers only; other inputs need native qualification.')
+        _blocked('temperature_envelope', 'Stock Temperature recipe currently supports scaled 0.4/0.6 mm Marlin/Klipper towers only; other inputs need native qualification.')
     model = config.get('temperature_model')
     output = destination / 'model.stl'
     if model:
@@ -175,10 +237,8 @@ def _temperature(request, snapshot, destination, config, profiles):
 def _flow(request, snapshot, destination, config, profiles):
     effective = snapshot['effective']
     nozzle = snapshot['nozzle_mm']
-    # Bound geometry to native 0.4 mm/ten-layer asset; wider envelope awaits
-    # retained native references, avoiding guessed selection.scale semantics.
-    if nozzle != 0.4 or _numeric(effective, 'initial_layer_print_height') != 0.2:
-        _blocked('flow_geometry', 'YOLO recipe currently supports 0.4 mm nozzle and 0.2 mm first layer; native-scaled geometry for other cases is pending.')
+    if not nozzle > 0:
+        _blocked('flow_geometry', 'YOLO requires a positive explicit nozzle diameter.')
     pass_number = request['parameters']['pass']
     asset_key = 'flow_asset' if pass_number == 1 else 'flow_fine_asset'
     asset = config.get(asset_key)
@@ -198,8 +258,8 @@ def _flow(request, snapshot, destination, config, profiles):
     if not layer_height > 0 or not width >= layer_height:
         _blocked('flow_speed', 'YOLO needs explicit absolute line width at least the original layer height.')
     area = layer_height * (width - layer_height * (1 - math.pi / 4))
-    flow = _numeric(effective, 'filament_flow_ratio')
-    max_volume = _numeric(effective, 'filament_max_volumetric_speed')
+    flow = _origin_numeric(snapshot, 'filament_flow_ratio')
+    max_volume = _origin_numeric(snapshot, 'filament_max_volumetric_speed')
     if flow <= 0 or max_volume <= 0:
         _blocked('flow_speed', 'YOLO flow ratio and volumetric limit must be positive.')
     # CalibUtils.cpp:209 uses the variant's largest positive additive offset.
@@ -213,7 +273,8 @@ def _flow(request, snapshot, destination, config, profiles):
         'bottom_shell_layers': '2', 'top_shell_layers': '5', 'top_shell_thickness': '0',
         'bottom_shell_thickness': '0', 'detect_thin_wall': '1', 'filter_out_gap_fill': '0',
         'sparse_infill_pattern': 'rectilinear', 'top_surface_line_width': repr(native_surface_width),
-        'internal_solid_infill_line_width': repr(native_surface_width), 'top_surface_pattern': 'archimedeanchords',
+        'internal_solid_infill_line_width': repr(native_surface_width),
+        'top_surface_pattern': ('archimedeanchords' if request['parameters'].get('pattern', 'archimedean_chords') == 'archimedean_chords' else 'monotonic'),
         'top_solid_infill_flow_ratio': '1', 'infill_direction': '45', 'solid_infill_direction': '135',
         'center_of_surface_pattern': 'each_surface', 'separated_infills': '0',
         'align_infill_direction_to_model': '1', 'ironing_type': 'no ironing',
@@ -242,11 +303,20 @@ def _flow(request, snapshot, destination, config, profiles):
                 _blocked('flow_asset', 'Malformed YOLO modifier.')
             seen.add(modifier)
             node = ET.SubElement(model_settings, 'object', {'id': obj.attrib['id']})
-            for key, value in {'name': name, **settings, 'print_flow_ratio': repr((flow + f32(modifier)) / flow)}.items():
+            object_settings = {'name': name, **settings,
+                               'print_flow_ratio': repr((flow + f32(modifier)) / flow)}
+            if snapshot.get('schema') == 'helix-orca-v1-context/v2':
+                # BBS_3MF_Importer deserializes this 1-based ModelObject key;
+                # unlike --load-filament-ids, it remains authoritative for 3MF.
+                object_settings['extruder'] = str(snapshot['origin_filament']['slot_number'])
+            for key, value in object_settings.items():
                 ET.SubElement(node, 'metadata', {'key': key, 'value': value})
         if seen != expected or len(objects) != len(patches):
             _blocked('flow_asset', 'YOLO requires all ' + str(len(patches)) + ' native variant patches, without duplicates.')
-        centered_model, layout = _center_flow_build(original_model, snapshot, len(patches))
+        xy_scale = nozzle / .6 if nozzle / .6 > 1.2 else 1.0
+        z_scale = f32((native_initial + 9 * native_layer) / 2)
+        centered_model, layout = _center_flow_build(
+            original_model, snapshot, len(patches), (xy_scale, xy_scale, z_scale))
         (destination / 'flow-layout.json').write_bytes(contract.canonical(layout))
         output = destination / 'model.3mf'
         with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as target:
@@ -286,7 +356,7 @@ def _flow_bed_center(snapshot):
     return [(low[i] + high[i]) / 2 for i in range(2)]
 
 
-def _center_flow_build(raw, snapshot, patch_count=11):
+def _center_flow_build(raw, snapshot, patch_count=11, scale=(1.0, 1.0, 1.0)):
     """Apply native group translation to build items, never mesh coordinates.
 
     The registered Oct15 CLI disables --center (PrintConfig.cpp12818), so its
@@ -295,6 +365,9 @@ def _center_flow_build(raw, snapshot, patch_count=11):
     Preserve resources/vertex XML bytes and all item ordering/linear/Z values.
     """
     center = _flow_bed_center(snapshot)
+    if (not isinstance(scale, tuple) or len(scale) != 3
+            or any(type(value) not in (int, float) or not math.isfinite(value) or value <= 0 for value in scale)):
+        _blocked('flow_layout', 'YOLO native scale is malformed.')
     ns = {'c': 'http://schemas.microsoft.com/3dmanufacturing/core/2015/02'}
     try:
         text = raw.decode('utf-8')
@@ -323,7 +396,7 @@ def _center_flow_build(raw, snapshot, patch_count=11):
                 point = [struct.unpack('f', struct.pack('f', float(vertex.get(axis))))[0] for axis in 'xyz']
                 if any(not math.isfinite(value) or abs(value) > 10000 for value in point):
                     raise ValueError('bounded finite float vertices required')
-                points.append([point[i] + transform[9+i] for i in range(3)])
+                points.append([(point[i] + transform[9+i]) * scale[i] for i in range(3)])
             if abs(min(point[2] for point in points)) > .000001:
                 raise ValueError('original native patches must already rest on bed')
             translations.append(transform)
@@ -340,7 +413,11 @@ def _center_flow_build(raw, snapshot, patch_count=11):
         def translate(match):
             nonlocal count
             original = match[0]
-            values = list(next(transforms)); values[9] += shift[0]; values[10] += shift[1]
+            values = list(next(transforms))
+            values[0], values[4], values[8] = scale
+            values[9] = values[9] * scale[0] + shift[0]
+            values[10] = values[10] * scale[1] + shift[1]
+            values[11] = values[11] * scale[2]
             value = ' '.join(format(number,'.17g') for number in values)
             attribute = ' transform="' + value + '"'
             count += 1
@@ -360,25 +437,33 @@ def _center_flow_build(raw, snapshot, patch_count=11):
         'centered_model_xml_sha256':hashlib.sha256(centered).hexdigest(),
         'unchanged_resources_xml_sha256':hashlib.sha256(unchanged_resources).hexdigest(),
         'native_float_group_bounds_mm':[low,high], 'bed_center_mm':center, 'uniform_translation_xy_mm':shift,
-        'build_instances':len(items), 'mesh_coordinates_changed':False, 'cli_arguments':['--arrange','0']}
+        'build_instances':len(items), 'mesh_coordinates_changed':False,
+        'native_relative_scale_xyz':list(scale), 'cli_arguments':['--arrange','0']}
 
 
 def prepare_inputs(request, snapshot, output_dir, config):
     """Stage the shared stock recipe bundle without invoking a slicer."""
-    request = contract.validate_request(request, now=config.get('now'))
-    snapshot = contract.validate_context(snapshot)
+    current = request.get('schema') == 'helix-orca-v1-request/v2'
+    request = (contract.validate_request_v2(request, now=config.get('now')) if current
+               else contract.validate_request(request, now=config.get('now')))
+    snapshot = contract.validate_context_v2(snapshot) if current else contract.validate_context(snapshot)
     if request['context_sha256'] != contract.digest(snapshot) or request['origin_id'] != snapshot['origin_id']:
         _blocked('context_mismatch', 'Generation request does not match its immutable original context.')
     kind = request['calibration']
     if kind in BLOCKERS:
         _blocked('native_engine_required', BLOCKERS[kind])
     source = config.get('source_commit')
-    if parity.PINS.get(source) != snapshot['runtime'] or config.get('runtime') != snapshot['runtime']:
+    runtime_identity = {key: snapshot['runtime'][key] for key in ('version', 'build')}
+    if parity.PINS.get(source) != runtime_identity or config.get('runtime') != runtime_identity:
         _blocked('runtime_pin', 'Snapshot and configured exact engine source/runtime differ.')
     effective = snapshot['effective']
     if effective.get('belt_printer') not in ('0', 'false'):
         _blocked('belt_unavailable', 'Explicit non-belt effective configuration is required.')
-    if _numeric(effective, 'nozzle_diameter') != snapshot['nozzle_mm']:
+    if current:
+        nozzles = _numeric_vector(effective, 'nozzle_diameter')
+        if any(value != snapshot['nozzle_mm'] for value in nozzles):
+            _blocked('nozzle', 'Effective nozzle vector differs from the explicit V2 context.')
+    elif _numeric(effective, 'nozzle_diameter') != snapshot['nozzle_mm']:
         _blocked('nozzle', 'Effective single-tool nozzle differs from the context.')
     bed = effective.get('curr_bed_type')
     if not bed:
@@ -394,6 +479,14 @@ def prepare_inputs(request, snapshot, output_dir, config):
     model = (_temperature if kind == 'temperature' else _flow)(request, snapshot, destination, config, profiles)
     for role, value in profiles.items():
         (destination / (role + '.json')).write_bytes(contract.canonical(value))
+    filament_paths = [destination / 'filament.json']
+    if current:
+        filament_profiles = _filament_slot_profiles(snapshot, profiles['filament'])
+        filament_paths = []
+        for index, profile in enumerate(filament_profiles, 1):
+            path = destination / ('filament-' + str(index) + '.json')
+            path.write_bytes(contract.canonical(profile))
+            filament_paths.append(path)
     merged = copy.deepcopy(snapshot['effective'])
     for profile in profiles.values():
         merged.update({key: value for key, value in profile.items()
@@ -407,20 +500,36 @@ def prepare_inputs(request, snapshot, output_dir, config):
     (destination / 'inputs.json').write_bytes(contract.canonical(inputs))
     return {'request': request, 'snapshot': snapshot, 'destination': destination,
             'model': model, 'profiles': profiles, 'native_effective': merged, 'inputs': inputs,
-            'layout_arguments': layout_arguments}
+            'layout_arguments': layout_arguments, 'filament_paths': filament_paths}
+
+
+def _slice_argv(executable, data, destination, staged, bed, current):
+    request, snapshot, model = staged['request'], staged['snapshot'], staged['model']
+    argv = [str(executable), '--datadir', str(data), '--load-settings', str(destination / 'machine.json') + ';' + str(destination / 'process.json'),
+            '--load-filaments', ';'.join(str(path) for path in staged['filament_paths']), '--curr-bed-type', bed,
+            *staged['layout_arguments'], '--orient', '0', '--strict', '--outputdir', str(destination),
+            '--export-settings', str(destination / 'effective.json'), '--slice', '0', str(model)]
+    if current and request['calibration'] == 'temperature':
+        # OrcaSlicer.cpp maps the one STL input to this 1-based loaded-filament
+        # index.  3MF rejects this option and carries its assignment in object
+        # metadata instead (the Flow path above).
+        argv[argv.index('--strict'):argv.index('--strict')] = [
+            '--load-filament-ids', str(snapshot['origin_filament']['slot_number'])]
+    return argv
 
 
 def generate(request, snapshot, output_dir, config):
+    current = request.get('schema') == 'helix-orca-v1-request/v2'
+    qualification = contract.validate_build_qualification_v2(config.get('build_qualification')) if current else None
     executable = _checked_file({'path': config.get('executable', ''), 'sha256': config.get('executable_sha256')}, maximum=2 * 1024**3)
+    if current and config.get('executable_sha256') != contract.ORCA_EXECUTABLE_SHA256_V2:
+        _blocked('runtime_pin', 'V2 stock slicing requires the exact official Orca executable.')
     staged = prepare_inputs(request, snapshot, output_dir, config)
     request, snapshot, destination = staged['request'], staged['snapshot'], staged['destination']
     model, source, bed = staged['model'], config['source_commit'], snapshot['effective']['curr_bed_type']
     data = destination / 'orca-data'
     data.mkdir()
-    argv = [str(executable), '--datadir', str(data), '--load-settings', str(destination / 'machine.json') + ';' + str(destination / 'process.json'),
-            '--load-filaments', str(destination / 'filament.json'), '--curr-bed-type', bed,
-            *staged['layout_arguments'], '--orient', '0', '--strict', '--outputdir', str(destination),
-            '--export-settings', str(destination / 'effective.json'), '--slice', '0', str(model)]
+    argv = _slice_argv(executable, data, destination, staged, bed, current)
     (destination / 'invocation.json').write_bytes(contract.canonical({'argv': argv, 'source_commit': source, 'executable_sha256': config['executable_sha256']}))
     runner = config.get('runner')
     if runner:
@@ -441,16 +550,39 @@ def generate(request, snapshot, output_dir, config):
     if returncode != 0:
         _blocked('slice_failed', 'Stock Orca slicing failed; retained slice.log contains diagnostics.')
     result_file = destination / 'result.json'
+    result = {'return_code': 0, 'warnings': []}
     if result_file.exists():
         result = json.loads(result_file.read_text())
-        if result.get('return_code') != 0 or result.get('warnings'):
-            _blocked('slice_warnings', 'Stock Orca reported failure or warnings; no qualification is allowed.')
+        if result.get('return_code') != 0:
+            _blocked('slice_failed', 'Stock Orca reported a slicing failure.')
+        if not current and result.get('warnings'):
+            _blocked('slice_warnings', 'Stock Orca reported warnings; historical V1 remains fail-closed.')
     outputs = list(destination.glob('*.gcode'))
     if len(outputs) != 1:
         _blocked('artifact', 'Stock Orca did not produce exactly one G-code artifact.')
     artifact = outputs[0]
     inputs = parity.generation_inputs(request, snapshot, source)
     (destination / 'inputs.json').write_bytes(contract.canonical(inputs))
+    if current:
+        warnings = []
+        for item in result.get('warnings', []):
+            if not isinstance(item, dict):
+                _blocked('slice_warnings', 'Stock Orca returned an unstructured warning.')
+            code, message = item.get('error_code'), item.get('message', item.get('msg'))
+            known = contract.KNOWN_WARNINGS_V2.get(code) == message
+            warnings.append(contract.validate_warning_v2(dict(level=item.get('level', 0), message=message,
+                error_code=code, params=item.get('params', []), known=known, requires_ack=known)))
+        processing = dict(error_code=0, warnings=warnings,
+                          status='ready' if all(item['known'] for item in warnings) else 'blocked')
+        prepared = {key: request[key] for key in ('request_id', 'origin_id', 'context_sha256', 'calibration', 'parameters')}
+        prepared.update(schema='helix-orca-v1-prepared/v2', request_sha256=contract.digest(request),
+            artifact=parity.file_record(artifact), generator=dict(source_commit=source,
+                route='stock-cli-recipe-v2', executable_sha256=config['executable_sha256'],
+                qualification_sha256=contract.digest(qualification),
+                machine_sha256=contract.machine_sha256_v2(snapshot)), processing=processing)
+        prepared = contract.validate_prepared_v2(prepared, request)
+        (destination / 'prepared.json').write_bytes(contract.canonical(prepared))
+        return prepared
     reference = config.get('native_reference')
     if reference:
         manifest_path = _checked_file(reference['manifest'])
