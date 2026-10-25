@@ -34,10 +34,12 @@ decimals. Temperature Step5 is read-only; Flow selects Recommended/Perfectionist
 and a native Orca surface pattern; PA has deliberate Direct Drive/Bowden defaults.
 Drafts survive reopen and offer updates; Generate copies scalars into the immutable
 request, including for known blocked capabilities so the actual coordinator retains
-numbers and reports its real blocker. Missing context blocks locally. See
-`docs/V1_NATIVE_PARAMETERS.md` for this functional correction and pending focused
-independent800×480 operator/real-Coordinator proof. Historical396-frame fixture
-proof does not qualify the changed controls.
+numbers and reports its real blocker. Missing context blocks locally. The current
+beta.12 qualifier captures the edited configuration values immediately before
+Generate and the selected evaluation immediately before Return, so every 39-frame
+workflow is visually continuous with the exact persisted request and result.
+Historical beta.9 fixture proof remains immutable and does not qualify these current
+controls.
 
 The current native capture tool uses exact beta.12 source
 `00a9fe6030c37d56748b2122b41fd36de1fdf831`, its hash-verified official desktop
@@ -87,22 +89,27 @@ re-verify pending choices before manual reopening. A committed result stays
 immutable. Pending/applying preset transactions restore as failed/needs-recheck,
 never as success and never as an automatic retry.
 
-The historical qualifier/capture added native checks for logical compact bounds,
-the historical beta.9 automatic Temperature presentation on Home/Print Status/Controls, preserved
-native dismissal, duplicate suppression, manual reopening, restart and a lost
-claim. Recovery restarts only the exact existing ManagedRun-owned synthetic
-container; it creates no replacement container and preserves the retained state.
-All inputs remain synthetic and network-none. Existing workflow frames are kept,
-with five explicit Confirmed/Start frames added: **36 frames per viewport, 396
-across all eleven targets**. Those captures remain historical and are not
-relabeled. The beta.12 qualifier requires **39 frames per viewport**, adding a
-queued warning and application failure/applied states. Raw tile
-geometry and presentation transitions are also retained in each private capture.
-Those completed 396-frame sources remain historical; the current parameter
-correction uses the focused800×480 gate authorized in
-`docs/V1_PARAMETER_CORRECTION.md`, without relabeling the old fixture evidence.
-No capture, build, physical action or deployment was performed for this source
-correction while the shared heavy-work slot was owned elsewhere.
+The historical beta.9 qualifier/capture added native checks for logical compact
+bounds, automatic Temperature presentation on Home/Print Status/Controls,
+preserved native dismissal, duplicate suppression, manual reopening, restart and
+a lost claim. Its **36 frames per viewport, 396 across all eleven targets** remain
+immutable historical evidence and are not relabeled. The current beta.12 qualifier
+requires **39 frames per viewport, 429 across all eleven targets**, adding the
+queued warning and application failure/applied states while retaining all five
+configuration, Review, Confirmed/Start, monitor, evaluation and returned-result
+flows. Recovery restarts only the exact existing ManagedRun-owned synthetic
+container; it creates no replacement container and preserves retained state. Raw
+tile geometry and presentation transitions are retained in each private capture.
+All inputs remain explicitly synthetic and Docker network-none; the matrix is
+native product-shell evidence, not Windows generation or physical evidence.
+Each target also executes an assertion-only compact-result case: a native-valid
+Retraction range with 10,000,001 printed values is represented as start/end/step,
+rejects a high-index half-step keypad value, and commits one exact on-step value
+without allocating a 10,000,001-entry dropdown. This adds no screenshot or
+physical claim.
+The managed per-target deadline is six minutes to cover the full workflow plus
+that precise keypad path; CPU, memory, PID, disk-reserve, teardown, source-lock,
+and network-none bounds remain unchanged.
 
 ## Restart status reconciliation
 
@@ -188,10 +195,13 @@ No existing user, printer, accepted or physical layout is migrated or changed.
 The qualifier adds source-bound Confirmed/Start screenshots for all five
 calibrations, nullable/malformed monitor cases, 100%-progress evaluation lock,
 terminal evaluation visibility, readable Return/receipt/Done, and receipt arrival
-while Controls remains visible. The beta.12 portable verifier requires the exact
-shared 39-frame inventory for every target; older 341/396-frame checkpoints remain bound
-to their historical source and do not establish these new behaviors. A fresh
-complete eleven-size managed capture remains required before promotion.
+while Controls remains visible. It also drives the actual ordinary coordinator
+`tick` from beta.12-persisted storage for every target and requires the unchanged
+request digest at the Review boundary. The portable verifier requires the exact
+shared 39-frame inventory for every target; older 341/396-frame checkpoints remain
+bound to their historical source and do not establish these behaviors. Promotion
+is valid only from one complete 429-frame managed capture whose source hashes match
+this candidate and whose private lifecycle records all verify complete/runtime-clear.
 
 Chooser/configuration cards bind separately to the latest validated Orca offer;
 job/result cards keep the immutable session's original profile identity. A fresh

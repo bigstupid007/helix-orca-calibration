@@ -1,5 +1,12 @@
 ## Status and authority
 
+**2026-10-25 controlling amendment:** Issue #14's Founder amendment supersedes
+the October 18 rules only where they require the October 15 Orca build,
+HelixScreen beta.9, exact-request parity, a universal Voron macro ABI, NOT
+APPLIED return, disabled physical execution, or a separate future deployment
+grant. The accepted physical Temperature implementation/evidence and all other
+valid work remain. [Current pins, product interpretation, and completion gates](V1_CURRENT_UPSTREAM_REBASE.md).
+
 Founder approved and launched this integrated V1 Build Program on 2026-10-18 (America/Chicago). Work lane: Large; one lead, at most three isolated implementation workers, one integration branch and one combined substantial independent review. This Issue is the single launch/governance unit. PRs remain unmerged pending Founder acceptance.
 
 Shared Development System main verified at `4a42a944b344427c8f925241191595eb57c6949c`: current Coordination Contract, Founder Execution Contract, Operating Model, Specification Fidelity, UX/Alpha, Development Process, Toolchain, Orchestration, Testing, risk and managed-run controls apply. Application starting main is `523bc5d21a83bb4fe555a17922ed1b28eeba8122` (merged PR #13).

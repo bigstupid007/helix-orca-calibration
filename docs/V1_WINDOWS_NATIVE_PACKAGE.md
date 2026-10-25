@@ -1,5 +1,11 @@
 # Bounded Windows native-engine package
 
+> **Current pin:** this package is being requalified at Orca
+> `b5e9cb3c5e7a925adf8379366ae580e4dabb1d03`, with the official x64 artifact
+> and current dependency closure. Older `c0fa61d` / October 15 results below
+> remain historical evidence and do not qualify the amended build.
+> [Exact current artifacts and hashes](V1_CURRENT_UPSTREAM_REBASE.md).
+
 <!-- v1-generator-current -->
 Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
 completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`

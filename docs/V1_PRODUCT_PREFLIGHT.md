@@ -1,5 +1,12 @@
 # V1 AI Product Preflight
 
+> **Historical preflight pending replacement:** the October 25 amendment changes
+> native Helix, Orca companion, result application, physical execution, and
+> installation. Earlier beta.9/October 15 observations below remain useful
+> history but do not preflight the amended candidate. A fresh evidence-first
+> Product Preflight is required before guided Founder Review.
+> [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 Current functional status: independent actual800×480 native operator proof passes
 all five edited requests against the actual Windows coordinator. All14 fresh
 captures, exact source bindings and complete managed cleanup pass. Both PA default

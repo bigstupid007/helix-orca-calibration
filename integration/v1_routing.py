@@ -2,6 +2,7 @@
 from integration import v1_contract as contract
 from integration import v1_generation as stock
 from integration import v1_engine as native
+from integration.v1_qualification import PACKAGE_BINDING_KEY, runtime_build_qualification
 
 DEFAULT_ROUTES = {kind: ('stock-cli' if kind in ('temperature', 'flow_ratio_yolo') else 'native-engine')
                   for kind in contract.CALIBRATIONS}
@@ -24,7 +25,7 @@ def capabilities(config=None):
     chosen = routes(config)
     qualification = None
     if config.get('build_qualification') is not None:
-        qualification = contract.validate_build_qualification_v2(config['build_qualification'])
+        qualification = runtime_build_qualification(config)
     stock_caps = {item['id']: item for item in stock.capabilities(config)}
     native_caps = {item['id']: item for item in native.capabilities(config.get('native_engine'))}
     result = []
@@ -59,7 +60,14 @@ def generate(request, snapshot, output_dir, config):
         try:
             native_config = dict(config.get('native_engine', {}))
             if request.get('schema') == 'helix-orca-v1-request/v2':
-                native_config['build_qualification'] = config.get('build_qualification')
+                if config.get('build_qualification') is not None:
+                    native_config['build_qualification'] = config['build_qualification']
+                    native_config['qualification_closure'] = config.get('qualification_closure')
+                    if PACKAGE_BINDING_KEY in config:
+                        native_config[PACKAGE_BINDING_KEY] = config[PACKAGE_BINDING_KEY]
+                else:
+                    native_config['qualification_intent'] = config.get('qualification_intent')
+                    native_config['qualification_authorizer'] = config.get('qualification_authorizer')
             return native.generate(request, snapshot, output_dir, native_config)
         except native.NativeEngineBlocked as exc:
             raise stock.GenerationBlocked(exc.code, exc.reason) from exc

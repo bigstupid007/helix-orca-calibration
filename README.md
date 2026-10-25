@@ -1,5 +1,15 @@
 # Helix-Orca Calibration
 
+> **Current authority (2026-10-25):** the Founder amendment in Issue #14
+> controls the completion candidate. It pins HelixScreen beta.12 and Orca
+> `b5e9cb3c`, replaces exact-request parity with build/route qualification,
+> removes the universal Voron macro ABI, applies selected results through
+> Orca's official unsaved preset transaction, and authorizes the controlled
+> five-calibration physical validation after the non-consequential gates pass.
+> See [the current-upstream amendment record](docs/V1_CURRENT_UPSTREAM_REBASE.md).
+> Older candidate sections below remain historical until fresh evidence replaces
+> them; they do not control the amended product.
+
 <!-- v1-generator-current -->
 Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
 completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`

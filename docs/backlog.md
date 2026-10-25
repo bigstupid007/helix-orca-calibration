@@ -1,5 +1,10 @@
 # Backlog
 
+The 2026-10-25 Founder amendment is the active Issue #14 completion authority.
+It supersedes the exact-request, beta.9, October 15, NOT APPLIED, universal
+Voron-macro, and no-physical-test limitations in the historical status below.
+[Current-upstream completion record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 The functional parameter correction passes independent actual800×480 native
 operator proof: all five changed requests match Windows transport/journal readback,
 all14 fresh captures pass, and source-bound managed cleanup completes. Perfectionist

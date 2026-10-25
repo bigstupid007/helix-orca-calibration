@@ -1,5 +1,11 @@
 # Architecture
 
+> **Current V1 architecture:** Issue #14's October 25 amendment layers a
+> beta.12-native five-calibration product, current Orca build/route-qualified
+> generation, printer-neutral exact-job execution, official originating-preset
+> transactions, and an owner-local runtime on top of the preserved Issue #1/#12
+> foundations below. [Current architecture authority](V1_CURRENT_UPSTREAM_REBASE.md).
+
 ## Issue #1 HelixScreen foundation
 
 `helix-plugin/orcacal/` is an independent permissionless Lua plugin for the

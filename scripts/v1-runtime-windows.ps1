@@ -192,12 +192,39 @@ function Read-Installation {
     $path=Get-InstallationPath
     if (-not [IO.File]::Exists($path)) { return $null }
     $record=Read-Control $path
-    if ($record.schema -ne 'helix-orca-v1-windows-installation/v1' -or
+    if ($record.schema -ne 'helix-orca-v1-windows-installation/v2' -or
         $record.owner_sid -ne $script:Sid.Value -or $record.active_candidate -notmatch '^[a-f0-9]{64}$' -or
-        $record.active_manifest_sha256 -notmatch '^[a-f0-9]{64}$') {
+        $record.active_manifest_sha256 -notmatch '^[a-f0-9]{64}$' -or $null -eq $record.candidate_bindings) {
         throw 'Installed runtime selector is malformed or foreign.'
     }
+    foreach ($binding in @($record.candidate_bindings)) {
+        if ($binding.candidate_sha256 -notmatch '^[a-f0-9]{64}$' -or
+            $binding.manifest_sha256 -notmatch '^[a-f0-9]{64}$' -or
+            $binding.config_sha256 -notmatch '^[a-f0-9]{64}$' -or
+            ($null -ne $binding.deployment_authorization_sha256 -and
+             $binding.deployment_authorization_sha256 -notmatch '^[a-f0-9]{64}$')) {
+            throw 'Installed candidate binding is malformed.'
+        }
+    }
     return $record
+}
+function Get-CandidateBinding($Installation,[string]$Candidate,[string]$ManifestHash) {
+    $matches=@($Installation.candidate_bindings | Where-Object {
+        $_.candidate_sha256 -ceq $Candidate -and $_.manifest_sha256 -ceq $ManifestHash })
+    if ($matches.Count -ne 1) { throw 'Installed candidate lacks one exact config/authorization binding.' }
+    $binding=$matches[0]
+    $config=Get-ExistingPath $binding.config $false
+    if ((Get-FileHash -LiteralPath $config -Algorithm SHA256).Hash.ToLowerInvariant() -cne $binding.config_sha256) {
+        throw 'Installed candidate configuration changed.'
+    }
+    if ($null -ne $binding.deployment_authorization) {
+        $authorization=Get-PrivateAuthorization $binding.deployment_authorization
+        if ((Get-FileHash -LiteralPath $authorization -Algorithm SHA256).Hash.ToLowerInvariant() -cne
+            $binding.deployment_authorization_sha256) { throw 'Installed candidate deployment authorization changed.' }
+    } elseif ($null -ne $binding.deployment_authorization_sha256) {
+        throw 'Installed candidate authorization binding is incomplete.'
+    }
+    return $binding
 }
 function Install-RuntimePackage {
     $source=Get-ExistingPath $PackageRoot $true
@@ -257,6 +284,7 @@ function Install-RuntimePackage {
     $python=Get-ExistingPath $PythonExe $false
     $storagePath=Get-ExistingPath $Storage $true
     $configPath=Get-ExistingPath $Config $false
+    $configHash=(Get-FileHash -LiteralPath $configPath -Algorithm SHA256).Hash.ToLowerInvariant()
     if ([IO.Path]::GetFileName($python) -notin @('python.exe','python3.exe')) { throw 'An explicit installed Python executable is required.' }
     $authorizationPath=$null; $authorizationHash=$null
     if ($PSBoundParameters.ContainsKey('DeploymentAuthorization')) {
@@ -265,17 +293,21 @@ function Install-RuntimePackage {
     }
     $prior=Read-Installation
     $installed=@($value.candidate_sha256)
+    $bindings=@()
     $previous=$null; $previousHash=$null
     if ($null -ne $prior) {
         $previous=$prior.active_candidate; $previousHash=$prior.active_manifest_sha256
         $installed=@($prior.installed_candidates)+@($value.candidate_sha256) | Select-Object -Unique
+        $bindings=@($prior.candidate_bindings | Where-Object { $_.candidate_sha256 -cne $value.candidate_sha256 })
     }
-    $record=[ordered]@{ schema='helix-orca-v1-windows-installation/v1'; owner_sid=$script:Sid.Value;
+    $bindings+=,[ordered]@{ candidate_sha256=$value.candidate_sha256; manifest_sha256=$manifestHash;
+        config=$configPath; config_sha256=$configHash; deployment_authorization=$authorizationPath;
+        deployment_authorization_sha256=$authorizationHash; moonraker_events=[bool]$MoonrakerEvents }
+    $record=[ordered]@{ schema='helix-orca-v1-windows-installation/v2'; owner_sid=$script:Sid.Value;
         active_candidate=$value.candidate_sha256; active_manifest_sha256=$manifestHash;
         previous_candidate=$previous; previous_manifest_sha256=$previousHash;
-        installed_candidates=@($installed); python_exe=$python; storage=$storagePath; config=$configPath;
-        deployment_authorization=$authorizationPath; deployment_authorization_sha256=$authorizationHash;
-        moonraker_events=[bool]$MoonrakerEvents }
+        installed_candidates=@($installed); candidate_bindings=@($bindings);
+        python_exe=$python; storage=$storagePath }
     Write-Control (Get-InstallationPath) $record
     return $record
 }
@@ -626,12 +658,13 @@ $candidateSha=$null; $manifestSha=$null
 if ($null -ne $installation) {
     $repo=Assert-InstalledVersion $installation.active_candidate $installation.active_manifest_sha256
     $candidateSha=$installation.active_candidate; $manifestSha=$installation.active_manifest_sha256
+    $binding=Get-CandidateBinding $installation $candidateSha $manifestSha
     $python=Get-ExistingPath $installation.python_exe $false
     $storagePath=Get-ExistingPath $installation.storage $true
-    $configPath=Get-ExistingPath $installation.config $false
-    $authorizationPath=$installation.deployment_authorization
-    $authorizationHash=$installation.deployment_authorization_sha256
-    $MoonrakerEvents=[bool]$installation.moonraker_events
+    $configPath=Get-ExistingPath $binding.config $false
+    $authorizationPath=$binding.deployment_authorization
+    $authorizationHash=$binding.deployment_authorization_sha256
+    $MoonrakerEvents=[bool]$binding.moonraker_events
     if ($PSBoundParameters.ContainsKey('RepoRoot') -and (Get-FullLocalPath $RepoRoot) -cne $repo) { throw 'RepoRoot differs from active installed candidate.' }
 } else {
     $python=Get-ExistingPath $PythonExe $false
@@ -670,6 +703,13 @@ try {
         $null -ne $selected -and ($selected.active_candidate -cne $candidateSha -or
                                   $selected.active_manifest_sha256 -cne $manifestSha)) {
         throw 'Installed candidate changed while Start was being prepared.'
+    }
+    if ($null -ne $selected) {
+        $selectedBinding=Get-CandidateBinding $selected $candidateSha $manifestSha
+        if ($selectedBinding.config_sha256 -cne (Get-FileHash -LiteralPath $configPath -Algorithm SHA256).Hash.ToLowerInvariant() -or
+            $selectedBinding.deployment_authorization_sha256 -cne $authorizationHash) {
+            throw 'Installed candidate binding changed while Start was being prepared.'
+        }
     }
     if ([IO.File]::Exists((Get-RecordPath))) {
         $previous=Read-Control (Get-RecordPath); Assert-Record $previous

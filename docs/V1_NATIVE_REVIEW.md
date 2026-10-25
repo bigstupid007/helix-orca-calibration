@@ -1,5 +1,12 @@
 # Bounded V1 native interactive review
 
+> **Current native target:** HelixScreen beta.12 commit
+> `00a9fe6030c37d56748b2122b41fd36de1fdf831`, including queued native result
+> presentation, the app numeric editor where it preserves precision, warning
+> decisions, and preset-application states. The beta.9 viewer and 396-frame
+> material below remain historical and must not be relabeled.
+> [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 The viewer presents actual pinned beta.9 Helix pixels and forwards native
 pointer/Home/Back input. Its default now uses the real V1 Coordinator, routing,
 and DirectoryEvents journal, with no configured generator or printer adapter.

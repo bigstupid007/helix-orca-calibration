@@ -1,5 +1,13 @@
 # Separate local deployment boundary
 
+> **Superseded deployment limitation:** the October 25 Founder amendment is the
+> explicit authority for the owner-local runtime, reversible beta.12 plugin
+> deployment, and controlled five-calibration physical validation after the
+> required gates. The amended authorization is exact-config, exact-package, and
+> exact-target bound; it creates no service, public listener, firewall rule,
+> account, or credential. Older “future approval” text below is historical.
+> [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 The V1 program builds code and isolated evidence. It does not authorize physical
 activation, installation on the printer, another print, profile writeback,
 credentials/access changes or startup registration. The default CLI and Windows

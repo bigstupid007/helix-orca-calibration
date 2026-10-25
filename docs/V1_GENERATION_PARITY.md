@@ -1,5 +1,13 @@
 # V1 generation and mandatory native G-code parity
 
+> **Current qualification model:** the October 25 amendment qualifies each
+> exact generator build/route over its representative native matrix. It does
+> not require a duplicate native reference for every future native-valid
+> request. Per-job context, parameters, processing warnings, artifact bytes,
+> target fit, and execution remain exact and fail closed. Historical
+> exact-request reports below stay evidence for their old candidate only.
+> [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 <!-- v1-generator-current -->
 Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
 completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`

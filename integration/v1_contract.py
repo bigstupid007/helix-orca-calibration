@@ -4,7 +4,8 @@ import json
 import math
 import re
 import time
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal, InvalidOperation, ROUND_CEILING
+from pathlib import Path
 
 CALIBRATIONS = ("temperature", "flow_ratio_yolo", "pressure_advance_pattern", "retraction", "max_volumetric_speed")
 ORCA_SOURCE_V2 = "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03"
@@ -23,6 +24,9 @@ V2_QUALIFICATION_PARAMETER_CASES = (
     "default", "non_default_range", "non_default_step", "lower_boundary", "upper_boundary",
 )
 V2_GENERATOR_ROUTES = frozenset(("stock-cli-recipe-v2", "native-engine-v2"))
+V2_FINAL_SLICE_PATH = ["Print.process", "Print.export_gcode"]
+V2_QUALIFICATION_INTENT_SCHEMA = "helix-orca-v1-qualification-execution-intent/v2"
+V2_QUALIFICATION_AUTHORIZATION_SCHEMA = "helix-orca-v1-qualification-execution-authorization/v2"
 DEFAULTS = {
     "temperature": {"start": 230, "end": 190, "step": 5, "scale": True},
     "flow_ratio_yolo": {"pass": 1},
@@ -272,16 +276,85 @@ def validate_parameters_v2(calibration, value):
         for key in ("start", "end", "step"):
             if type(value[key]) not in (int, float) or not math.isfinite(value[key]):
                 raise ContractError(key.capitalize() + " must be finite")
-        if value["start"] < 0 or value["step"] <= 0 or value["end"] < value["start"] + value["step"]:
-            raise ContractError("End must be at least Start + positive Step")
+        invalid_step = (value["step"] < 0.001 if calibration == "pressure_advance_pattern"
+                        else value["step"] <= 0)
+        if value["start"] < 0 or invalid_step:
+            raise ContractError("Start/Step are outside the pinned Orca calibration domain")
+        if value["end"] < value["start"] + value["step"]:
+            raise ContractError("End must be at least Start + Step.")
         if calibration == "max_volumetric_speed" and value["start"] <= 0:
-            raise ContractError("Maximum volumetric speed Start must be positive")
+            raise ContractError("Maximum volumetric speed Start must be greater than zero")
         if calibration == "pressure_advance_pattern":
+            if value["start"] > 2.0 or value["end"] > 2.0:
+                raise ContractError("Orca Pressure Advance values must not exceed 2.0")
             accelerations = _positive_int_list(value["accelerations"], "Accelerations")
             speeds = _positive_int_list(value["speeds"], "Speeds")
             if accelerations and speeds and min(accelerations) <= max(speeds):
                 raise ContractError("Orca PA Pattern requires every acceleration to exceed every speed")
     return json.loads(canonical(value))
+
+
+def evaluation_v2(request, context):
+    """Return a bounded result description for every native-valid request.
+
+    Small sets stay as explicit choices. Large Retraction/PA/MVS sets remain a
+    compact exact arithmetic range so owner-runtime memory is independent of a
+    UI-accepted tiny step.
+    """
+    request = validate_request_v2(request, now=request["created_at"])
+    context = validate_context_v2(context)
+    kind, parameters = request["calibration"], request["parameters"]
+    unit = {"temperature": "°C", "flow_ratio_yolo": "ratio",
+            "pressure_advance_pattern": "s", "retraction": "mm",
+            "max_volumetric_speed": "mm³/s"}[kind]
+    if kind == "temperature":
+        return {"setting": SETTINGS[kind],
+                "options": list(range(parameters["start"], parameters["end"] - 1, -5)),
+                "unit": unit}
+    if kind == "flow_ratio_yolo":
+        serialized = context["effective"].get("filament_flow_ratio")
+        if not isinstance(serialized, str):
+            raise ContractError("Effective flow ratio is unavailable for the originating filament slot")
+        try:
+            values = [item.strip() for item in serialized.split(";")]
+            ratios = [Decimal(item) for item in values]
+        except (InvalidOperation, ValueError):
+            raise ContractError("Effective flow ratio is unavailable for the originating filament slot") from None
+        slot = context["origin_filament"]["slot_number"] - 1
+        if (not values or any(not item for item in values) or slot < 0 or slot >= len(ratios)
+                or any(not item.is_finite() for item in ratios)):
+            raise ContractError("Effective flow ratio is unavailable for the originating filament slot")
+        return {"setting": SETTINGS[kind],
+                "options": flow_ratio_choices(str(ratios[slot]), parameters["pass"]), "unit": unit}
+    start, end, step = (Decimal(str(parameters[key])) for key in ("start", "end", "step"))
+    count = (int(((end - start) / step).to_integral_value(rounding=ROUND_CEILING)) + 1
+             if kind == "pressure_advance_pattern" else int((end - start) // step) + 1)
+    actual_end = start + step * (count - 1)
+    if count <= 128:
+        return {"setting": SETTINGS[kind],
+                "options": [float(start + step * index) for index in range(count)], "unit": unit}
+    return {"setting": SETTINGS[kind],
+            "range": {"start": float(start), "end": float(actual_end), "step": float(step)}, "unit": unit}
+
+
+def evaluation_value_v2(evaluation, value):
+    if type(value) not in (int, float) or not math.isfinite(value):
+        raise ContractError("Returned result value must be finite")
+    fields = set(evaluation) if isinstance(evaluation, dict) else set()
+    if fields == {"setting", "options", "unit"}:
+        if value not in evaluation["options"]:
+            raise ContractError("Returned result is outside the completed calibration choices")
+        return value
+    if fields != {"setting", "range", "unit"}:
+        raise ContractError("Malformed V2 evaluation descriptor")
+    exact(evaluation["range"], "start end step", "V2 evaluation range")
+    start, end, step, selected = (Decimal(str(item)) for item in (
+        evaluation["range"]["start"], evaluation["range"]["end"],
+        evaluation["range"]["step"], value))
+    index = (selected - start) / step
+    if selected < start or selected > end or index != index.to_integral_value():
+        raise ContractError("Returned result is outside the completed calibration choices")
+    return value
 
 
 def validate_context_v2(value):
@@ -381,7 +454,7 @@ def validate_build_qualification_v2(value):
         raise ContractError("A qualified V2 build record is required")
     if value["source_commit"] != ORCA_SOURCE_V2 or value["runtime"] != ORCA_RUNTIME_V2:
         raise ContractError("Build qualification source/runtime differs")
-    text(value["platform"], "qualified platform", 128)
+    text(value["platform"], "qualified platform", 256)
     exact(value["distribution"], "archive_sha256 executable_sha256", "qualified distribution")
     if (value["distribution"]["archive_sha256"] != ORCA_ARCHIVE_SHA256_V2
             or value["distribution"]["executable_sha256"] != ORCA_EXECUTABLE_SHA256_V2):
@@ -427,9 +500,98 @@ def validate_build_qualification_v2(value):
         hex_value(route["cases_sha256"])
         if route["cases_sha256"] != digest(coverage):
             raise ContractError("Route qualification case digest differs: " + calibration)
-        if route["final_slice_path"] != ["Print.process", "Print.export_gcode"]:
+        if route["final_slice_path"] != V2_FINAL_SLICE_PATH:
             raise ContractError("Route does not use Orca's ordinary final slicing path")
     return json.loads(canonical(value))
+
+
+def _output_sha256_v2(output_dir):
+    try:
+        resolved = str(Path(output_dir).resolve(strict=False))
+    except (OSError, TypeError, ValueError) as exc:
+        raise ContractError("Qualification output root is invalid") from exc
+    return hashlib.sha256(resolved.encode("utf-8")).hexdigest()
+
+
+def validate_qualification_intent_v2(value, request, context, route_id, output_dir):
+    """Validate one exact qualification generation, never a runtime permission.
+
+    This schema deliberately cannot pass ``validate_build_qualification_v2``.
+    The intent authorizes only one final-slice evidence cell.  Prepared output
+    carrying its digest is provisional evidence and cannot satisfy the normal
+    coordinator's final build-qualification digest comparison.
+    """
+    exact(value, ("schema case_id source_commit runtime executable_sha256 adapter_sha256 "
+                  "resources_sha256 context_sha256 machine_sha256 request_sha256 calibration "
+                  "parameters_sha256 route_id output_sha256 final_slice_path generation_only one_shot"),
+          "qualification execution intent")
+    request = validate_request_v2(request, now=request["created_at"])
+    context = validate_context_v2(context)
+    if (value["schema"] != V2_QUALIFICATION_INTENT_SCHEMA
+            or value["source_commit"] != ORCA_SOURCE_V2
+            or value["runtime"] != ORCA_RUNTIME_V2
+            or value["executable_sha256"] != ORCA_EXECUTABLE_SHA256_V2
+            or value["route_id"] != route_id or route_id not in V2_GENERATOR_ROUTES
+            or value["final_slice_path"] != V2_FINAL_SLICE_PATH
+            or value["generation_only"] is not True or value["one_shot"] is not True):
+        raise ContractError("Qualification intent is not the exact generation-only V2 route")
+    for key in ("case_id", "adapter_sha256", "resources_sha256", "context_sha256",
+                "machine_sha256", "request_sha256", "parameters_sha256", "output_sha256"):
+        hex_value(value[key])
+    if (request["context_sha256"] != digest(context)
+            or request["origin_id"] != context["origin_id"]
+            or value["context_sha256"] != digest(context)
+            or value["machine_sha256"] != machine_sha256_v2(context)
+            or value["request_sha256"] != digest(request)
+            or value["calibration"] != request["calibration"]
+            or value["parameters_sha256"] != digest(request["parameters"])
+            or value["output_sha256"] != _output_sha256_v2(output_dir)):
+        raise ContractError("Qualification intent differs from its exact case/context/output")
+    return json.loads(canonical(value))
+
+
+def authorize_qualification_generation_v2(config, request, context, route_id, output_dir,
+                                           build_qualification=None):
+    """Return the final-record or one-shot-intent digest for V2 generation.
+
+    ``qualification_authorizer`` is trusted in-process qualification tooling,
+    never JSON/request data.  No intent or authorization receipt is accepted by
+    the coordinator, owned-job adapter, confirmation, upload, or Start paths.
+    """
+    intent = config.get("qualification_intent")
+    authorizer = config.get("qualification_authorizer")
+    if build_qualification is not None:
+        if intent is not None or authorizer is not None:
+            raise ContractError("Choose final build qualification or one-shot qualification intent")
+        qualification = validate_build_qualification_v2(build_qualification)
+        route = qualification["routes"][request["calibration"]]
+        if route["qualified"] is not True or route["route_id"] != route_id:
+            raise ContractError("Selected route differs from the final build qualification")
+        return digest(qualification), None
+    if intent is None or not callable(authorizer):
+        raise ContractError("Final build qualification or callable one-shot qualification authorizer required")
+    intent = validate_qualification_intent_v2(intent, request, context, route_id, output_dir)
+    receipt = authorizer(intent)
+    exact(receipt, ("schema intent_sha256 case_id request_sha256 context_sha256 machine_sha256 "
+                    "route_id output_sha256 adapter_sha256 resources_sha256 consumed generation_only"),
+          "qualification execution authorization")
+    expected = {
+        "schema": V2_QUALIFICATION_AUTHORIZATION_SCHEMA,
+        "intent_sha256": digest(intent),
+        "case_id": intent["case_id"],
+        "request_sha256": intent["request_sha256"],
+        "context_sha256": intent["context_sha256"],
+        "machine_sha256": intent["machine_sha256"],
+        "route_id": intent["route_id"],
+        "output_sha256": intent["output_sha256"],
+        "adapter_sha256": intent["adapter_sha256"],
+        "resources_sha256": intent["resources_sha256"],
+        "consumed": True,
+        "generation_only": True,
+    }
+    if canonical(receipt) != canonical(expected):
+        raise ContractError("Qualification authorizer did not consume this exact one-shot intent")
+    return digest(intent), json.loads(canonical(receipt))
 
 
 def validate_prepared_v2(value, request):

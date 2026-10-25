@@ -319,21 +319,8 @@ def v2_application_updates(request, result, original):
     value = result.get("value")
     if type(value) not in (int, float):
         raise ContractError("Returned result value must be numeric")
-    parameters = request["parameters"]
-    if request["calibration"] == "temperature":
-        choices = list(range(parameters["start"], parameters["end"] - 1, -5))
-    elif request["calibration"] == "flow_ratio_yolo":
-        ratios, ratio_error = _parse_number_vector(
-            original["effective"].get("filament_flow_ratio"), "filament_flow_ratio")
-        slot_index = original["origin_filament"]["slot_number"] - 1
-        if ratio_error or slot_index < 0 or slot_index >= len(ratios):
-            raise ContractError("Effective flow ratio is unavailable for the originating filament slot")
-        choices = flow_ratio_choices(str(ratios[slot_index]), parameters["pass"])
-    else:
-        start, end, step = (Decimal(str(parameters[key])) for key in ("start", "end", "step"))
-        choices = [float(start + step * index) for index in range(int((end - start) // step) + 1)]
-    if value not in choices:
-        raise ContractError("Returned result is outside the completed calibration choices")
+    evaluation = evaluation_v2(request, original)
+    evaluation_value_v2(evaluation, value)
     if request["calibration"] == "pressure_advance_pattern":
         return [("enable_pressure_advance", "1"), ("pressure_advance", _v2_decimal(value))]
     return [(setting, _v2_decimal(value))]
@@ -358,9 +345,59 @@ def v2_apply_inbox(directory, preset_editor, now=None):
     commit boundary, and never retries a pending/uncertain transaction.
     """
     directory = pathlib.Path(directory)
+    inbox = v1_read(directory / "inbox.json")
+    if inbox is None:
+        return None
+    # Establish the exact current result before consulting any retained
+    # application/retry journal. Global transport filenames are only pointers;
+    # their authority is always request/result identity scoped.
+    exact(inbox, "result request prepared completion warning_ack qualification", "V2 inbox")
+    request = validate_request_v2(inbox["request"], now=inbox["request"]["created_at"])
+    prepared = validate_prepared_v2(inbox["prepared"], request)
+    qualification = validate_build_qualification_v2(inbox["qualification"])
+    if digest(qualification) != prepared["generator"]["qualification_sha256"]:
+        raise ContractError("Prepared job is unrelated to build-level qualification")
+    if prepared["processing"]["status"] != "ready":
+        raise ContractError("Unknown warning or processor error blocks application")
+    acknowledgement = inbox["warning_ack"]
+    required = any(warning["requires_ack"] for warning in prepared["processing"]["warnings"])
+    if required:
+        validate_warning_acknowledgement_v2(acknowledgement, prepared)
+    elif acknowledgement is not None:
+        validate_warning_acknowledgement_v2(acknowledgement, prepared)
+    original = v1_read(directory / "origins" / (request["origin_id"] + ".json"))
+    if original is None or digest(validate_context_v2(original)) != request["context_sha256"]:
+        raise ContractError("Returned result has no retained originating filament context")
+    if prepared["generator"]["machine_sha256"] != machine_sha256_v2(original):
+        raise ContractError("Returned result differs from its immutable machine context")
+    result = validate_result_v2(inbox["result"], request, prepared)
+    proof = inbox["completion"]
+    exact(proof, "job_id file_sha256 print_state history_state history_job_id history_file_sha256", "completion proof")
+    if (proof["print_state"] != "complete" or proof["history_state"] != "completed"
+            or proof["job_id"] != proof["history_job_id"] or proof["job_id"] != result["job_id"]
+            or proof["file_sha256"] != proof["history_file_sha256"]
+            or proof["file_sha256"] != prepared["artifact"]["sha256"]
+            or result["completion_sha256"] != digest(proof)):
+        raise ContractError("Returned result lacks exact independent same-job proof")
+    updates = v2_application_updates(request, result, original)
+    origin = original["origin_filament"]
+    current_identity = (request["request_id"], request["origin_id"], digest(result))
     application_path = directory / "application.json"
     prior = v1_read(application_path)
     attempt = 1
+    if prior is not None:
+        prior_identity = (prior.get("request_id"), prior.get("origin_id"), prior.get("result_sha256"))
+        if prior_identity != current_identity:
+            if prior.get("status") != "applied":
+                raise ContractError("An unresolved preset application belongs to a different result")
+            history = directory / "application-history"
+            history.mkdir(exist_ok=True)
+            archived = history / (prior["request_id"] + "-" + digest(prior) + ".json")
+            retained = v1_read(archived)
+            if retained is not None and canonical(retained) != canonical(prior):
+                raise ContractError("Preset application history identity collision")
+            v1_write(archived, prior)
+            prior = None
     if prior is not None:
         if prior.get("status") == "pending":
             crossed_commit = prior.get("phase") == "commit_started"
@@ -398,39 +435,6 @@ def v2_apply_inbox(directory, preset_editor, now=None):
                  dict(schema="helix-orca-v1-application-retry-consumed/v2",
                       retry_sha256=digest(retry), token=retry["token"], consumed_at=int(time.time() if now is None else now)))
         attempt = retry["attempt"]
-    inbox = v1_read(directory / "inbox.json")
-    if inbox is None:
-        return None
-    exact(inbox, "result request prepared completion warning_ack qualification", "V2 inbox")
-    request = validate_request_v2(inbox["request"], now=inbox["request"]["created_at"])
-    prepared = validate_prepared_v2(inbox["prepared"], request)
-    qualification = validate_build_qualification_v2(inbox["qualification"])
-    if digest(qualification) != prepared["generator"]["qualification_sha256"]:
-        raise ContractError("Prepared job is unrelated to build-level qualification")
-    if prepared["processing"]["status"] != "ready":
-        raise ContractError("Unknown warning or processor error blocks application")
-    acknowledgement = inbox["warning_ack"]
-    required = any(warning["requires_ack"] for warning in prepared["processing"]["warnings"])
-    if required:
-        validate_warning_acknowledgement_v2(acknowledgement, prepared)
-    elif acknowledgement is not None:
-        validate_warning_acknowledgement_v2(acknowledgement, prepared)
-    original = v1_read(directory / "origins" / (request["origin_id"] + ".json"))
-    if original is None or digest(validate_context_v2(original)) != request["context_sha256"]:
-        raise ContractError("Returned result has no retained originating filament context")
-    if prepared["generator"]["machine_sha256"] != machine_sha256_v2(original):
-        raise ContractError("Returned result differs from its immutable machine context")
-    result = validate_result_v2(inbox["result"], request, prepared)
-    proof = inbox["completion"]
-    exact(proof, "job_id file_sha256 print_state history_state history_job_id history_file_sha256", "completion proof")
-    if (proof["print_state"] != "complete" or proof["history_state"] != "completed"
-            or proof["job_id"] != proof["history_job_id"] or proof["job_id"] != result["job_id"]
-            or proof["file_sha256"] != proof["history_file_sha256"]
-            or proof["file_sha256"] != prepared["artifact"]["sha256"]
-            or result["completion_sha256"] != digest(proof)):
-        raise ContractError("Returned result lacks exact independent same-job proof")
-    updates = v2_application_updates(request, result, original)
-    origin = original["origin_filament"]
     stamp = int(time.time() if now is None else now)
     state = dict(schema="helix-orca-v1-application/v2", status="pending", phase="binding",
                  request_id=request["request_id"], origin_id=request["origin_id"],

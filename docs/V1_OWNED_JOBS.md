@@ -1,5 +1,13 @@
 # V1 owned-job adapter candidate
 
+> **Current adapter authority:** printer-neutral exact-job execution replaces
+> the universal `PRINT_START` / `PRINT_END` ABI. The amended adapter retains
+> no-overwrite naming, upload-without-start, remote byte readback, fresh
+> target/idle/queue checks, separate Confirm and Start, one-shot recovery,
+> exact history, and exact-owned Cancel, with beta.12-equivalent fit findings.
+> Voron may be physically enabled only by its exact target qualification; AD5X
+> remains generation-only. [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 `integration/v1_jobs.py` supplies a bounded owned-job adapter for the integrated
 coordinator. It supports every calibration through the same prepared-artifact
 contract. It neither generates G-code nor makes an unqualified generator work.

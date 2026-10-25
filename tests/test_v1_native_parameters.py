@@ -55,11 +55,14 @@ class NativeParameterTests(unittest.TestCase):
         self.assertIn("local precise=rule.kind=='positive_int_list' or rule.max==nil",source)
         self.assertIn('v1_precise_editor(id,key,rule,p,entry)',source)
 
-    def test_current_orca_numeric_domains_have_no_artificial_maxima_and_pa_lists_are_editable(self):
-        for ident in ('pressure_advance_pattern','retraction','max_volumetric_speed'):
+    def test_current_orca_numeric_domains_preserve_real_maxima_and_pa_lists_are_editable(self):
+        for ident in ('retraction','max_volumetric_speed'):
             for key in ('start','end','step'):
                 self.assertNotIn('max',builder.CATALOG[ident]['parameters'][key])
         pa=builder.CATALOG['pressure_advance_pattern']['parameters']
+        for key in ('start','end'):
+            self.assertEqual(pa[key]['max'],2.0)
+        self.assertNotIn('max',pa['step'])
         for key in ('accelerations','speeds'):
             self.assertEqual(pa[key],{'kind':'positive_int_list','max_items':64})
             button=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_pressure_advance_pattern.xml').find(
@@ -68,6 +71,14 @@ class NativeParameterTests(unittest.TestCase):
         source=(ROOT/'integration/v1-native/controls.lua').read_text()
         self.assertIn("rule.kind=='positive_int_list'",source)
         self.assertIn("for item in v1_edit_buffer:gmatch('[^,]+')",source)
+        self.assertEqual(builder.CATALOG['retraction']['parameters']['step'],
+                         {'kind':'number','min':0,'exclusive_min':True})
+        self.assertEqual(builder.CATALOG['max_volumetric_speed']['parameters']['start'],
+                         {'kind':'number','min':0,'exclusive_min':True})
+        self.assertEqual(builder.CATALOG['max_volumetric_speed']['parameters']['step'],
+                         {'kind':'number','min':0,'exclusive_min':True})
+        self.assertIn("helix.ui.on('v1_evaluation_edit'",source)
+        self.assertIn("v1_evaluation_range_value(v1_session.evaluation,number)",source)
     def test_beta12_native_number_editor_handles_zero_to_two_decimal_fields(self):
         source=(ROOT/'integration/v1-native/controls.lua').read_text()
         self.assertIn('pcall(helix.ui.edit_number',source)
@@ -102,5 +113,18 @@ class NativeParameterTests(unittest.TestCase):
             self.assertIn("helix.ui.on('v1_key_set'",source)
             self.assertIn('helix.ui.edit_number',source)
             self.assertIn('local V1_PA_DEFAULTS =',source)
+
+    def test_native_qualifier_drives_large_range_exactness_without_extra_frames(self):
+        source=(ROOT/'scripts/v1-native-qualify.py').read_text()
+        self.assertIn("'native-compact-range-rejects-off-step-and-returns-exact-step'",source)
+        self.assertIn("range={start=0,['end']=1,step=0.0000001}",source)
+        self.assertIn("for char in '0.84750005'",source)
+        self.assertIn("for char in '0.8475'",source)
+        self.assertIn("count=10000001,rejected=0.84750005",source)
+
+    def test_large_range_membership_tolerance_never_grows_with_index(self):
+        source=(ROOT/'integration/v1-native/main.lua').read_text()
+        self.assertIn('math.abs(index-nearest)<=1e-7',source)
+        self.assertNotIn('math.abs(index-nearest)<=1e-7*',source)
 
 if __name__=='__main__':unittest.main()

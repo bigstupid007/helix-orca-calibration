@@ -54,13 +54,31 @@ CONTROL_BOUNDARY = (
 # while pinning the replacement bytes makes the authority transition explicit;
 # it does not turn either record into build-qualification evidence.
 AMENDMENT_CONTROL_BOUNDARY_SHA256 = {
-    "integration/v1_contract.py": "4c8d163a6e76d0c3b81f2333ee09df87d92e70eb1e094650947022467c942fb4",
-    "integration/v1_routing.py": "a4419835275148d7c85f1d3773fb988ec3281833d7d8690269b2638cbe1b9667",
-    "integration/v1_runtime.py": "3ada80331f9d5786bd7ca6d61c454a6c35f330a83e0d39a7380d7147f084e46e",
+    "integration/v1_contract.py": "5180172eef09015de72b780fd335390085dcb4c372caeb4149d326ea52541d2e",
+    "integration/v1_routing.py": "b3174a1816a6313e8730ac10a597bb1b5e0114a0f4bda6c3ab46f57ededf907a",
+    "integration/v1_runtime.py": "ad2e09e3bd59dac8e4bfede3d15b26f00eb77704d77b35e514bafec748ed4c66",
     "integration/v1_transport.py": "b5f1afc43d099cb58868d02247c4f6431e154e172891511af2abd6fec778067b",
-    "scripts/v1-runtime.py": "43300756c8fee3002ea1adce61a2eb6ad49137f352ef6a825ed14336c0aa84df",
+    "scripts/v1-native-plugin.py": "80c3f2f908211b657396dd4d627b3b0c1e5e08a04b4c8074da50c60761cdbf48",
+    "scripts/v1-native-qualify.py": "5627f766b00ac1bf1c7070d86a211a69489c3385be2158f646b6cc8dde87ec41",
+    "scripts/v1-native-review.py": "ea4131f1ef0c694539641da174ef5abd2e3b29e34d2648e244f6ca1616c6dc43",
+    "scripts/v1-runtime.py": "9622d752eccdd4bdeb7548cc35541c84a81e2f737422e9f8326a7cf642b6826c",
 }
 NATIVE_SOURCE_PREFIX = "integration/v1-native/"
+AMENDMENT_NATIVE_REMOVED = frozenset()
+AMENDMENT_NATIVE_SHA256 = {
+    "integration/v1-native/README.md": "0690ab6b87bb933f9b0b412e7a665e0164652bb25e961367c224a86f0e5b621a",
+    "integration/v1-native/catalog.json": "ac8c17d40b33cf33b9d0660c4e3e046abe7c3c44de401909e4f0bf4a41d92415",
+    "integration/v1-native/controls.lua": "a836d2c2d24675c7e33d8937dd20f690d892aee3b59f35567dc8bf0b293462b3",
+    "integration/v1-native/main.lua": "8ce5e32e98d683845d9ca9c80669f9e5981af01fc52b0f01fa123307ca11a2b0",
+    "integration/v1-native/presentation.lua": "df952a096fdcc559bff2da0e1f376fbad57b22e5e335279ecfd6430610e2943e",
+    "integration/v1-native/ui/orcacal__v1_flow_ratio_yolo.xml": "19e735f60faba3d20173edbbf568e97ca5359df6ac9fdc8efba4c0f37a0e1249",
+    "integration/v1-native/ui/orcacal__v1_job.xml": "914488e9f5c524a2942af6d56dca5a7ce3b3299feaf289dcfe909602a75640aa",
+    "integration/v1-native/ui/orcacal__v1_keypad.xml": "06df03ddf2bc4cbe39e91733adc7190be8c41022ba1e1573b777d61c0831f326",
+    "integration/v1-native/ui/orcacal__v1_pressure_advance_pattern.xml": "3070dc7e7962d2601441cb48879f0cc87662cda6f7634d0d80867f20342766bf",
+    "integration/v1-native/ui/orcacal__v1_result.xml": "4f37d0c5276550cb99d5fc0c1a442be046da9efc824b96eb7b33f01dce51d444",
+    "integration/v1-native/ui/orcacal__v1_result_picker.xml": "3f65f14d58e6846b8a328d947ea2e1b7960f2aa7aab002bc4ebe3ff99e6e7b79",
+    "integration/v1-native/ui/orcacal__v1_warning.xml": "0e9150774a289a9083c1354ec9b9a3346d228bcaace177efb5a8b55f5dc1ce89",
+}
 EXCLUDED_GENERATOR_SOURCES = frozenset({
     "integration/v1_deployment.py",
     "integration/v1_engine.py",
@@ -209,10 +227,19 @@ def verify_accepted_semantics(report, operator, parity):
 
 def current_equivalence_paths(report):
     sources = report["sources"]
-    native = sorted(name for name in sources if name.startswith(NATIVE_SOURCE_PREFIX))
+    accepted_native = {name for name in sources if name.startswith(NATIVE_SOURCE_PREFIX)}
+    require(AMENDMENT_NATIVE_REMOVED < accepted_native,
+            "Amendment removal is not part of the accepted native inventory")
+    require(not (set(AMENDMENT_NATIVE_SHA256) & AMENDMENT_NATIVE_REMOVED),
+            "Amendment native add/change and removal overlap")
+    native = sorted((accepted_native - AMENDMENT_NATIVE_REMOVED) | set(AMENDMENT_NATIVE_SHA256))
     expected = sorted((*CONTROL_BOUNDARY, *native))
     require(not (set(expected) & EXCLUDED_GENERATOR_SOURCES), "Equivalence/exclusion overlap")
-    require(set(expected).issubset(sources), "Accepted control-boundary source missing")
+    accepted_or_amended = set(sources) | set(AMENDMENT_NATIVE_SHA256)
+    require(
+        set(expected).issubset(accepted_or_amended),
+        "Accepted control-boundary source missing",
+    )
     return expected, native
 
 
@@ -225,7 +252,9 @@ def verify_current_equivalence(root, report):
     for relative in expected:
         path = root / relative
         require(path.is_file() and not path.is_symlink(), f"Missing/unsafe current boundary source: {relative}")
-        expected_sha256 = AMENDMENT_CONTROL_BOUNDARY_SHA256.get(relative, report["sources"][relative])
+        expected_sha256 = AMENDMENT_NATIVE_SHA256.get(relative,
+            AMENDMENT_CONTROL_BOUNDARY_SHA256.get(relative, report["sources"].get(relative)))
+        require(expected_sha256 is not None, f"Missing amendment digest: {relative}")
         require(sha(path) == expected_sha256,
                 f"Current control/request boundary changed: {relative}")
     driver = root / "scripts/v1-windows-parameter-operator.cjs"
@@ -239,7 +268,7 @@ def verify(root=ROOT):
     verify_accepted_semantics(report, operator, parity)
     verify_historical_matrix(root, report)
     verify_current_equivalence(root, report)
-    print("PASS: retained 66bfaf6 proof and exact amendment boundary; current build qualification remains separate")
+    print("PASS: retained 66bfaf6 proof and exact beta.12 amendment boundary; current build qualification remains separate")
 
 
 if __name__ == "__main__":

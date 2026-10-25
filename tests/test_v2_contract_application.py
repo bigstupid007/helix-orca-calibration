@@ -121,9 +121,12 @@ class V2ContractApplicationTests(unittest.TestCase):
         finally:
             test_plugin.PLUGIN_PATH = previous
 
-    def inbox(self, root, warning=False):
+    def inbox(self, root, warning=False, parameters=None, result_value=.04):
         original, build = context(), qualification()
         req = request(original)
+        if parameters is not None:
+            req["parameters"] = parameters
+            req = contract.validate_request_v2(req, now=150)
         warning_value = []
         if warning:
             warning_value = [contract.validate_warning_v2(dict(level=3,
@@ -136,7 +139,7 @@ class V2ContractApplicationTests(unittest.TestCase):
         result = dict(schema="helix-orca-v1-result/v2", request_id=req["request_id"],
             origin_id=req["origin_id"], context_sha256=req["context_sha256"],
             prepared_sha256=contract.digest(prep), job_id="owned",
-            completion_sha256=contract.digest(proof), setting="pressure_advance", value=.04)
+            completion_sha256=contract.digest(proof), setting="pressure_advance", value=result_value)
         ack = None
         if warning:
             ack = dict(schema="helix-orca-v1-warning-ack/v2", request_id=req["request_id"],
@@ -157,6 +160,38 @@ class V2ContractApplicationTests(unittest.TestCase):
         with self.assertRaisesRegex(contract.ContractError, "exceed"):
             contract.validate_parameters_v2("pressure_advance_pattern",
                 {"start": 0, "end": .1, "step": .01, "accelerations": [100], "speeds": [200]})
+        with self.assertRaisesRegex(contract.ContractError, "2.0"):
+            contract.validate_parameters_v2("pressure_advance_pattern",
+                {"start": 1.9, "end": 2.1, "step": .1, "accelerations": [], "speeds": []})
+        self.assertEqual(contract.validate_parameters_v2("retraction",
+            {"start": 0, "end": .002, "step": .0005}),
+            {"start": 0, "end": .002, "step": .0005})
+        self.assertEqual(contract.validate_parameters_v2("max_volumetric_speed",
+            {"start": .005, "end": .015, "step": .005}),
+            {"start": .005, "end": .015, "step": .005})
+        with self.assertRaisesRegex(contract.ContractError, "greater than zero"):
+            contract.validate_parameters_v2("max_volumetric_speed",
+                {"start": 0, "end": .01, "step": .005})
+
+        many = request(original, "retraction")
+        many["parameters"] = {"start": 0, "end": 1, "step": .0005}
+        many = contract.validate_request_v2(many, now=150)
+        evaluation = contract.evaluation_v2(many, original)
+        self.assertEqual(set(evaluation), {"setting", "range", "unit"})
+        self.assertEqual(evaluation["range"], {"start": 0.0, "end": 1.0, "step": .0005})
+        self.assertEqual(contract.evaluation_value_v2(evaluation, .8475), .8475)
+        with self.assertRaisesRegex(contract.ContractError, "outside"):
+            contract.evaluation_value_v2(evaluation, .8476)
+
+        pa_ceiling = request(original, "pressure_advance_pattern")
+        pa_ceiling["parameters"] = {"start": 0, "end": .095, "step": .02,
+                                    "accelerations": [], "speeds": []}
+        pa_ceiling = contract.validate_request_v2(pa_ceiling, now=150)
+        pa_evaluation = contract.evaluation_v2(pa_ceiling, original)
+        self.assertEqual(pa_evaluation["options"], [0.0, .02, .04, .06, .08, .1])
+        self.assertEqual(contract.evaluation_value_v2(pa_evaluation, .1), .1)
+        with self.assertRaisesRegex(contract.ContractError, "outside"):
+            contract.evaluation_value_v2(pa_evaluation, .095)
 
         build = qualification()
         build["routes"]["temperature"]["coverage"].pop()
@@ -307,7 +342,9 @@ class V2ContractApplicationTests(unittest.TestCase):
         plugin = self.load_plugin()
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            original, inbox = self.inbox(root, warning=True)
+            original, inbox = self.inbox(root, warning=True,
+                parameters={"start": 0, "end": .095, "step": .02,
+                            "accelerations": [], "speeds": []}, result_value=.1)
             plugin.v1_write(root / "origins" / (original["origin_id"] + ".json"), original)
             plugin.v1_write(root / "inbox.json", inbox)
             editor = FakeEditor()
@@ -315,12 +352,54 @@ class V2ContractApplicationTests(unittest.TestCase):
             self.assertEqual(state["status"], "applied")
             self.assertEqual(editor.bindings, [(2, "AD5X PLA")])
             self.assertEqual(state["updates"], [dict(key="enable_pressure_advance", value="1"),
-                                                dict(key="pressure_advance", value="0.04")])
+                                                dict(key="pressure_advance", value="0.1")])
             self.assertEqual(state["outcome"]["shared_slots"], [1, 2])
             self.assertTrue(state["outcome"]["dirty"])
             self.assertEqual(editor.commits, 1)
             self.assertEqual(plugin.v2_apply_inbox(root, editor, now=180), state)
             self.assertEqual(editor.commits, 1)
+
+    def test_two_sequential_calibrations_rotate_applied_state_and_apply_exact_second_result(self):
+        plugin = self.load_plugin()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            original, first = self.inbox(root)
+            plugin.v1_write(root / "origins" / (original["origin_id"] + ".json"), original)
+            plugin.v1_write(root / "inbox.json", first)
+            editor = FakeEditor()
+            applied_first = plugin.v2_apply_inbox(root, editor, now=170)
+            self.assertEqual(applied_first["request_id"], "2" * 32)
+
+            build = first["qualification"]
+            second_request = contract.validate_request_v2(dict(
+                schema="helix-orca-v1-request/v2", request_id="3" * 32,
+                origin_id=original["origin_id"], context_sha256=contract.digest(original),
+                calibration="retraction", parameters=contract.V2_DEFAULTS["retraction"],
+                created_at=101, expires_at=201), now=150)
+            second_prepared = prepared(second_request, build)
+            second_proof = dict(job_id="owned-second",
+                file_sha256=second_prepared["artifact"]["sha256"], print_state="complete",
+                history_state="completed", history_job_id="owned-second",
+                history_file_sha256=second_prepared["artifact"]["sha256"])
+            second_result = dict(schema="helix-orca-v1-result/v2",
+                request_id=second_request["request_id"], origin_id=second_request["origin_id"],
+                context_sha256=second_request["context_sha256"],
+                prepared_sha256=contract.digest(second_prepared), job_id="owned-second",
+                completion_sha256=contract.digest(second_proof),
+                setting="filament_retraction_length", value=.5)
+            plugin.v1_write(root / "inbox.json", dict(
+                result=second_result, request=second_request, prepared=second_prepared,
+                completion=second_proof, warning_ack=None, qualification=build))
+            applied_second = plugin.v2_apply_inbox(root, editor, now=180)
+
+            self.assertEqual(applied_second["request_id"], "3" * 32)
+            self.assertEqual(applied_second["updates"], [
+                dict(key="filament_retraction_length", value="0.5")])
+            self.assertEqual(editor.commits, 2)
+            history = list((root / "application-history").glob("*.json"))
+            self.assertEqual(len(history), 1)
+            self.assertEqual(plugin.v1_read(history[0]), applied_first)
+            self.assertEqual(plugin.v1_read(root / "receipt.json")["request_id"], "3" * 32)
 
     def test_commit_exception_is_failed_and_only_explicit_result_bound_retry_runs(self):
         plugin = self.load_plugin()

@@ -33,3 +33,18 @@ class NativePortableEvidenceTests(unittest.TestCase):
         for id in module.q.contract.CALIBRATIONS:
             self.assertIn(id+'-returned.png',module.FRAMES)
             self.assertIn(id+'-confirmed.png',module.FRAMES)
+    def test_captured_values_are_the_values_submitted_and_returned(self):
+        source=(ROOT/'scripts/v1-native-qualify.py').read_text()
+        drive=source.index('def drive(entry,name,work):')
+        edit=source.index('edit_parameter(name,id,parameter,replacement,w,h,work,native)',drive)
+        configured=source.index("a._screenshot(name,work,id+'-configure.png')",drive)
+        generate=source.index("tap(name,'orcacal__v1_generate_'+id",drive)
+        selected=source.index("ctl(name,'set_value',selector,'1')",drive)
+        evaluated=source.index("a._screenshot(name,work,id+'-evaluate.png')",drive)
+        returned=source.index('tap(name,return_button,w,h,work)',drive)
+        self.assertLess(edit,configured)
+        self.assertLess(configured,generate)
+        self.assertLess(selected,evaluated)
+        self.assertLess(evaluated,returned)
+    def test_preserved_beta9_matrix_remains_directly_verifiable(self):
+        module.verify(ROOT/'docs/evidence/issue-14/native')

@@ -17,7 +17,8 @@ from unittest.mock import patch
 import uuid
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
-from integration.v1_runtime import Coordinator
+from integration.v1_runtime import Coordinator, atomic_json, read_json
+from integration.v1_transport import DirectoryEvents
 def load(name,path):
     s=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(s);sys.modules[name]=m;s.loader.exec_module(m);return m
 q=load('v1_native_q',ROOT/'scripts/temperature-communication-qualify.py')
@@ -38,13 +39,98 @@ def configure_harness():
     a.IMAGE=beta12.RUNTIME_IMAGE
     a.binary_path=lambda:root/'binary/helix-screen'
     a.runtime_path=lambda:root/'runtime/helixscreen'
-ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','beta12-native-number-editor-and-precise-fallback','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block','beta12-queued-owned-job-cancellation','logical-one-cell-home-tile-child-bounds-and-nonoverlap','verified-result-automatic-all-five-calibrations','automatic-dismiss-preserves-native-page-and-does-not-repeat','beta12-dialog-result-uses-original-return-handler','conservative-restart-and-lost-claim-manual-recovery','actual-coordinator-republishes-review-confirmed-complete-after-native-restart','same-job-progress-is-read-only-and-nullable','terminal-outcomes-hide-evaluation','application-pending-success-failure-retry-states','next-offer-display-is-distinct-from-immutable-job-context']
+ASSERTIONS=['native-five-calibration-chooser','native-bounded-parameter-configuration','beta12-native-number-editor-and-precise-fallback','generate-only-request-no-start','unqualified-and-mismatched-preparation-locks-controls','separate-confirm-then-explicit-start','monotonic-status-and-exact-job','independent-completion-gates-evaluation','immutable-original-context-result','exact-originating-receipt-only','native-back-and-horizontal-fit','physical-adapter-absent','fresh-nonce-next-calibration-after-delivery-and-block','beta12-queued-owned-job-cancellation','logical-one-cell-home-tile-child-bounds-and-nonoverlap','verified-result-automatic-all-five-calibrations','automatic-dismiss-preserves-native-page-and-does-not-repeat','beta12-dialog-result-uses-original-return-handler','conservative-restart-and-lost-claim-manual-recovery','actual-coordinator-republishes-review-confirmed-complete-after-native-restart','same-job-progress-is-read-only-and-nullable','terminal-outcomes-hide-evaluation','application-pending-success-failure-retry-states','next-offer-display-is-distinct-from-immutable-job-context','beta12-native-v2-storage-to-coordinator-tick','native-compact-range-rejects-off-step-and-returns-exact-step']
 FRAMES={'home.png','chooser.png','blocked.png','warning.png','application-failed.png','application-applied.png','cancel-confirm.png','cancel-kept.png','cancelled.png'}|{id+'-'+phase+'.png' for id in contract.CALIBRATIONS for phase in ('configure','review','confirmed','monitor','evaluate','returned')}
 def hashes():
     paths=[ROOT/'scripts/v1-native-plugin.py',ROOT/'scripts/v1-native-qualify.py',ROOT/'integration/v1_contract.py',ROOT/'integration/v1_runtime.py',ROOT/'scripts/temperature-communication-plugin.py',ROOT/'scripts/temperature-communication-qualify.py',ROOT/'scripts/helix-beta12-qualify.py',ROOT/'scripts/helix-beta9-qualify.py',ROOT/'scripts/helix_dev.py',builder.ACCEPTED_TILE]+list((ROOT/'integration/v1-native').rglob('*'))
     return {str(p.relative_to(ROOT)):q.sha256(p) for p in sorted(paths) if p.is_file()}
 def require(value,message):
     if not value:raise ValueError(message)
+
+def current_context():
+    value=dict(schema='helix-orca-v1-context/v2',origin_id='1'*32,
+        runtime=dict(contract.ORCA_RUNTIME_V2,source_commit=contract.ORCA_SOURCE_V2,
+                     executable_sha256=contract.ORCA_EXECUTABLE_SHA256_V2),
+        nozzle_mm=.4,effective={'curr_bed_type':'Textured PEI Plate','extruder_type':'Direct Drive',
+            'filament_flow_ratio':'1','nozzle_diameter':'0.4'},
+        filament_slots=[dict(slot_number=1,preset_name='Synthetic PLA')],
+        origin_filament=dict(slot_number=1,preset_name='Synthetic PLA',shared_slots=[1]))
+    for role in ('printer','process','filament'):
+        name='Synthetic PLA' if role=='filament' else 'Synthetic '+role
+        value[role]={kind:dict(name=name,config={'fixture':kind}) for kind in ('saved','edited')}
+    return contract.validate_context_v2(value)
+
+def synthetic_build_qualification():
+    """Schema-valid UI/transport fixture; explicitly not Windows qualification."""
+    coverage=[dict(context=context_name,parameter_case=parameter_case,
+                   case_sha256=hashlib.sha256((context_name+':'+parameter_case).encode()).hexdigest())
+              for context_name in contract.V2_QUALIFICATION_CONTEXTS
+              for parameter_case in contract.V2_QUALIFICATION_PARAMETER_CASES]
+    def route(calibration):
+        return dict(qualified=True,
+            route_id='stock-cli-recipe-v2' if calibration in ('temperature','flow_ratio_yolo') else 'native-engine-v2',
+            case_count=len(coverage),cases_sha256=contract.digest(coverage),coverage=coverage,
+            final_slice_path=list(contract.V2_FINAL_SLICE_PATH))
+    return contract.validate_build_qualification_v2(dict(schema='helix-orca-v1-build-qualification/v2',
+        source_commit=contract.ORCA_SOURCE_V2,runtime=contract.ORCA_RUNTIME_V2,
+        platform='SYNTHETIC native-storage transport fixture; not Windows qualification',
+        distribution=dict(archive_sha256=contract.ORCA_ARCHIVE_SHA256_V2,
+                          executable_sha256=contract.ORCA_EXECUTABLE_SHA256_V2),
+        upstream=dict(run_id=contract.ORCA_UPSTREAM_RUN_V2,overall_conclusion='failure',
+            sole_failed_job='build_macos_arch (arm64) / Check Cache',
+            exact_jobs={name:dict(job_id=job_id,conclusion='success')
+                        for name,job_id in contract.ORCA_UPSTREAM_JOBS_V2.items()}),
+        adapter=dict(sha256='4'*64),resources_sha256='5'*64,
+        routes={calibration:route(calibration) for calibration in contract.CALIBRATIONS},
+        evidence_sha256='6'*64,qualified=True))
+
+def current_offer():
+    context=current_context()
+    value=dict(schema='helix-orca-v1-offer/v2',request_id='3'*32,
+        origin_id=context['origin_id'],context_sha256=contract.digest(context),created_at=1000,expires_at=4600,
+        nozzle_mm=context['nozzle_mm'],capabilities=[dict(id=key,available=True,reason='Synthetic UI transport fixture only') for key in contract.CALIBRATIONS],
+        defaults=contract.default_parameters_v2(context),extruder_type=contract.context_extruder_type(context),
+        origin_filament=context['origin_filament'],filament_slots=context['filament_slots'])
+    for role in ('printer','process','filament'):value[role]=context[role]['saved']['name']
+    return value
+
+def current_storage_roundtrip(saved,work):
+    """Feed beta.12's actual persisted V2 session through the real runtime tick."""
+    require(saved.get('v2',{}).get('schema')=='helix-orca-v1-native-adapter/v2',
+            'Native current request omitted its V2 adapter envelope')
+    request=contract.validate_request_v2(saved.get('request'),now=1000)
+    expected_offer=current_offer()
+    require(saved.get('offer')==expected_offer,'Native persisted offer differs from the exact current context')
+    build=synthetic_build_qualification();context=current_context()
+    def generate(candidate,snapshot,directory,_config):
+        require(candidate==request and snapshot==context,'Runtime tick changed the native request/context')
+        artifact=directory/'synthetic-current-roundtrip.gcode';data=b'; SYNTHETIC NATIVE STORAGE ROUND TRIP ONLY\n';artifact.write_bytes(data)
+        value={key:candidate[key] for key in ('request_id','origin_id','context_sha256','calibration','parameters')}
+        value.update(schema='helix-orca-v1-prepared/v2',request_sha256=contract.digest(candidate),
+            artifact=dict(name=artifact.name,size=len(data),sha256=hashlib.sha256(data).hexdigest()),
+            generator=dict(source_commit=contract.ORCA_SOURCE_V2,route='stock-cli-recipe-v2',
+                executable_sha256=contract.ORCA_EXECUTABLE_SHA256_V2,
+                qualification_sha256=contract.digest(build),machine_sha256=contract.machine_sha256_v2(snapshot)),
+            processing=dict(error_code=0,warnings=[],status='ready'))
+        return contract.validate_prepared_v2(value,candidate)
+    storage=work/'current-roundtrip-companion';channel=DirectoryEvents(work/'current-roundtrip-events')
+    atomic_json(storage/'context.json',context);atomic_json(channel.directory/'native.json',saved)
+    with patch('integration.v1_runtime.secrets.token_hex',return_value='3'*32):
+        runtime=Coordinator(work/'current-roundtrip-runtime',generate,dict(build_qualification=build),
+            [dict(id=key,available=True,reason='Synthetic UI transport fixture only') for key in contract.CALIBRATIONS],now=lambda:1000)
+        spec=importlib.util.spec_from_file_location('v1_native_roundtrip_runtime',ROOT/'scripts/v1-runtime.py')
+        cli=importlib.util.module_from_spec(spec);spec.loader.exec_module(cli)
+        cli.tick(runtime,storage,channel)
+    status=read_json(channel.directory/'status.json')
+    require(runtime.state['request']==request and status['schema']=='helix-orca-v1-status/v2'
+            and status['phase']=='review' and status['qualification_sha256']==contract.digest(build),
+            'Real runtime tick did not accept the exact beta.12 persisted V2 request')
+    proof=dict(schema='helix-orca-v1-native-storage-roundtrip/v2',synthetic_only=True,physical_actions=0,
+        native_session_sha256=contract.digest(saved),request_sha256=contract.digest(request),
+        coordinator_request_sha256=contract.digest(runtime.state['request']),status_sha256=contract.digest(status),
+        status_phase=status['phase'],qualification_fixture_sha256=contract.digest(build))
+    atomic_json(work/'current-storage-roundtrip.json',proof)
+    return proof
 def recovery_fixtures():
     """Actual coordinator transitions with an explicitly synthetic parity/job boundary.
 
@@ -122,12 +208,14 @@ def fixture(root):
     target=root/'orcacal';builder.generate(target)
     defaults=json.dumps(contract.DEFAULTS,separators=(',',':'))
     recovery=json.dumps(recovery_fixtures(),separators=(',',':'),ensure_ascii=False)
+    current=json.dumps(current_offer(),separators=(',',':'),ensure_ascii=False)
     hook='''
 -- SYNTHETIC UI TEST FIXTURE ONLY; never included by the product builder.
 local fixture_serial=v1_session and tonumber(v1_session.request.request_id:sub(-8),16) or 0
 local fixture_signal=helix.subject.int('v1_fixture_signal',0)
 local fixture_defaults=helix.json.decode([==[DEFAULTS]==])
 local fixture_recovery=helix.json.decode([==[RECOVERY]==])
+local fixture_current_offer=helix.json.decode([==[CURRENT_OFFER]==])
 local function fixture_offer(changed)
  fixture_serial=fixture_serial+1
  local capabilities={}
@@ -221,6 +309,12 @@ fixture_signal:observe(function(value)
  elseif code==11 then v1_receive_status('fixture',fixture_status('cancelled'))
  elseif code==14 then v1_receive_status('fixture',fixture_status('failed'))
  elseif code==15 then fixture_offer(true)
+ elseif code==30 then v1_receive_offer('fixture',fixture_current_offer)
+ elseif code==31 then
+  local d=fixture_status('complete')
+  d.evaluation={setting='filament_retraction_length',range={start=0,['end']=1,step=0.0000001},unit='mm'}
+  v1_receive_status('fixture',d)
+ elseif code==32 then v1_completion_presentation.close()
  elseif code==16 then
   local adapter=v1_v2(v1_session)
   adapter.warning={schema='helix-orca-v1-native-warning/v2',request_id=v1_session.request.request_id,
@@ -248,7 +342,7 @@ fixture_signal:observe(function(value)
  end
 end)
 fixture_offer()
-'''.replace('DEFAULTS',defaults).replace('RECOVERY',recovery)
+'''.replace('DEFAULTS',defaults).replace('RECOVERY',recovery).replace('CURRENT_OFFER',current)
     with (target/'main.lua').open('a') as f:f.write(hook)
     return root
 
@@ -441,6 +535,38 @@ def pending_temperature_recovery(name,w,h,work):
     require(returned['result']['context_sha256']==complete['retained']['request']['context_sha256'],'Manual recovery changed original context')
     evidence['manual_original_return']=True;evidence['lost_claim_suppressed']=True;evidence['retained_claim_suppressed']=True
     return evidence
+def compact_range_result_proof(name,w,h,work):
+    """Drive the real native range editor without increasing frame inventory."""
+    q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
+    tap(name,'orcacal__v1_choose_retraction',w,h,work)
+    tap(name,'orcacal__v1_generate_retraction',w,h,work)
+    signal(name,2);signal(name,3);tap(name,'orcacal__v1_confirm',w,h,work);signal(name,4)
+    tap(name,'orcacal__v1_start',w,h,work);signal(name,5);signal(name,31)
+    require(value(name,'evaluation_options_on')==0 and value(name,'evaluation_range_on')==1,
+            'Compact evaluation range did not replace the dropdown')
+    # The ordinary five-workflow matrix already proves beta.12's Later button.
+    # Close any retained test-fixture modal deterministically, then exercise
+    # every compact-range action through the real owned job and keypad.
+    signal(name,32)
+    tap(name,'orcacal__v1_evaluation_range',w,h,work)
+    tap(name,'orcacal__v1_key_clear',w,h,work)
+    for char in '0.84750005':
+        tap(name,'orcacal__v1_key_'+({'.':'dot'}.get(char,char)),w,h,work)
+    tap(name,'orcacal__v1_key_set',w,h,work)
+    require('exact printed increment' in value(name,'keypad_error'),
+            'Off-step compact result was accepted')
+    tap(name,'orcacal__v1_key_clear',w,h,work)
+    for char in '0.8475':
+        tap(name,'orcacal__v1_key_'+({'.':'dot'}.get(char,char)),w,h,work)
+    tap(name,'orcacal__v1_key_set',w,h,work)
+    require(value(name,'evaluation_value')=='0.8475 mm','Exact compact result was not retained')
+    tap(name,'orcacal__v1_return',w,h,work)
+    saved=stored_when(work,lambda s:s.get('result',{}).get('value')==0.8475,
+                      'Exact compact result was not committed')
+    signal(name,7)
+    tap(name,'orcacal__v1_result_done',w,h,work)
+    return dict(start=0,end=1,step=0.0000001,count=10000001,rejected=0.84750005,
+                returned=saved['result']['value'])
 def drive(entry,name,work):
     label,w,h,layout,dpi=entry
     q.wait_ready(name)
@@ -455,7 +581,6 @@ def drive(entry,name,work):
             q.back_to_home(name);signal(name,1);tap(name,'orcacal__tile',w,h,work)
         tap(name,'orcacal__v1_choose_'+id,w,h,work)
         a._assert_horizontal_fit(ctl(name,'geom','orcacal__v1_v1_'+id+'_content','8'),w)
-        a._screenshot(name,work,id+'-configure.png')
         edits={
             'temperature':('start','225',True),
             'pressure_advance_pattern':('end','0.09',False),
@@ -465,6 +590,10 @@ def drive(entry,name,work):
         if id in edits:
             parameter,replacement,native=edits[id]
             edit_parameter(name,id,parameter,replacement,w,h,work,native)
+        # Capture the exact values that the following Generate action submits.
+        # Taking this frame before the scripted edit made an otherwise-correct
+        # workflow look like several unrelated jobs to a cold reviewer.
+        a._screenshot(name,work,id+'-configure.png')
         tap(name,'orcacal__v1_generate_'+id,w,h,work)
         require(value(name,'confirm_on')==0 and value(name,'start_on')==0,'Generate unlocked execution')
         signal(name,2);signal(name,9);signal(name,3)
@@ -498,10 +627,12 @@ def drive(entry,name,work):
         selector='orcacal__v1_pick';return_button='orcacal__v1_pick_use';returned='orcacal__v1_returned_status'
         ctl(name,'scroll',selector)
         a._visible_widget_geometry(ctl(name,'geom',selector,'0'),selector,w,h)
+        # Select first, then capture and return that same immutable option so
+        # evaluation and result evidence visibly describe one exact job.
+        ctl(name,'set_value',selector,'1')
         a._screenshot(name,work,id+'-evaluate.png')
         signal(name,12);require(navigation(name)==after and visible_widget(name,'orcacal__v1_pick_use',w,h),'Duplicate completion changed presentation')
         # Every queued picker shares the same immutable result/application path.
-        ctl(name,'set_value',selector,'1')
         tap(name,return_button,w,h,work);require(value(name,'evaluate_on')==0,'Returned result editable')
         a._assert_overlay(navigation(name),['orcacal__v1_result'])
         require(value(name,'result_heading')=='Ready for Orca' and 'APPLICATION PENDING' in value(name,'returned'),'Result did not enter pending application')
@@ -580,6 +711,12 @@ def drive(entry,name,work):
     signal(name,14)
     stored_when(work,lambda s:s.get('phase')=='failed','Failed calibration was not retained')
     require(value(name,'evaluate_on')==0 and evaluation_hidden(name),'Failed calibration still shows evaluation')
+    presentation['compact_range_result']=compact_range_result_proof(name,w,h,work)
+    q.back_to_home(name);signal(name,30);tap(name,'orcacal__tile',w,h,work)
+    tap(name,'orcacal__v1_choose_temperature',w,h,work);tap(name,'orcacal__v1_generate_temperature',w,h,work)
+    current_saved=stored_when(work,lambda s:s.get('request',{}).get('schema')=='helix-orca-v1-request/v2',
+                              'Native beta.12 did not persist the current V2 request')
+    presentation['current_storage_roundtrip']=current_storage_roundtrip(current_saved,work)
     logs=a.run(['docker','logs',name],capture=True,check=False)
     (work/'runtime.log').write_text(logs.stdout+logs.stderr)
     require('[plugin orcacal]' not in logs.stdout+logs.stderr,'Native runtime error')
@@ -587,8 +724,14 @@ def drive(entry,name,work):
     a.json_write(work/'presentation.json',presentation)
     return {'label':label,'viewport':f'{w}x{h}','layout':layout,'dpi':dpi,'result':'PASS','calibrations':list(contract.CALIBRATIONS),'assertions':ASSERTIONS}
 
+def selected_viewports(only=None):
+    labels={entry[0] for entry in a.VIEWPORTS}
+    require(only is None or only in labels,'Unknown native viewport: '+str(only))
+    return [entry for entry in a.VIEWPORTS if only is None or entry[0]==only]
+
 def capture(output,only=None):
     before=hashes();runtime=beta12.verify_cache();configure_harness()
+    selected=selected_viewports(only)
     require(not output.exists(),'Refusing to overwrite evidence');output.mkdir(parents=True)
     resource=load('v1_resource_lifecycle',Path('/home/dev/Projects/system/100-day-development-system/scripts/resource_lifecycle.py'))
     cache=builder.default_output().parent;cache.mkdir(parents=True,exist_ok=True)
@@ -602,14 +745,13 @@ def capture(output,only=None):
             args[1]='create';args.remove('--detach');args[args.index(a.IMAGE)]=image
             args[2:2]=['--label',resource.LABEL+'='+run_id,'--restart=no','--memory',str(memory),'--memory-swap',str(memory),'--cpus',str(cpus),'--pids-limit',str(pids),'--log-driver','local','--log-opt','max-size=1m','--log-opt','max-file=2']
             return self.call(*args[1:])
-    for entry in a.VIEWPORTS:
+    for entry in selected:
         label,w,h,layout,dpi=entry
-        if only and label!=only:continue
         adapter=NativeDocker()
         a.PLUGIN_ROOT=plugins
         image_id=a.image_metadata()['id']
         commit=a.run(['git','rev-parse','HEAD'],capture=True,cwd=ROOT).stdout.strip()
-        with resource.ManagedRun(app='helix-orca-v1-native',repo=str(ROOT),issue='https://github.com/bigstupid007/helix-orca-calibration/issues/14',commit=commit,dirty_input=contract.digest(before),paths=[str(output.parent),str(cache),str(ROOT)],reserve=5*1024**3,peak=512*1024**2,margin=512*1024**2,timeout=240,adapter=adapter) as run:
+        with resource.ManagedRun(app='helix-orca-v1-native',repo=str(ROOT),issue='https://github.com/bigstupid007/helix-orca-calibration/issues/14',commit=commit,dirty_input=contract.digest(before),paths=[str(output.parent),str(cache),str(ROOT)],reserve=5*1024**3,peak=512*1024**2,margin=512*1024**2,timeout=360,adapter=adapter) as run:
             work=run.artifacts/label;work.mkdir();(work/'home').mkdir();settings(work/'config')
             cid=run.container(image_id,[],memory=512*1024**2,cpus=2,pids=128)
             result=run.execute([sys.executable,str(Path(__file__).resolve()),'_drive',str(work),'--viewport',label,'--container',cid],cwd=ROOT)

@@ -10,9 +10,9 @@ local function int_subject(name,value)
     local s=helix.subject.int('v1_'..name,value or 0)
     v1_subjects[name]=s; return s
 end
-for _,name in ipairs({'printer','profiles','context_note','message','calibration','phase','parameters','artifact','qualification','evaluation_note','returned','result_heading','result_note','application_note','monitor','offer_printer','offer_profiles','offer_note','warning_heading','warning_message'}) do string_subject(name) end
+for _,name in ipairs({'printer','profiles','context_note','message','calibration','phase','parameters','artifact','qualification','evaluation_note','evaluation_value','returned','result_heading','result_note','application_note','monitor','offer_printer','offer_profiles','offer_note','warning_heading','warning_message'}) do string_subject(name) end
 string_subject('tile','Ready')
-for _,name in ipairs({'resume_on','confirm_on','start_on','cancel_on','evaluate_on','evaluation_idx','monitor_on','warning_on','retry_on'}) do int_subject(name) end
+for _,name in ipairs({'resume_on','confirm_on','start_on','cancel_on','evaluate_on','evaluation_idx','evaluation_options_on','evaluation_range_on','monitor_on','warning_on','retry_on'}) do int_subject(name) end
 local v1_drafts={}
 for id,entry in pairs(V1_CATALOG) do
     string_subject('availability_'..id,'Waiting for Orca companion')
@@ -63,7 +63,8 @@ local function v1_valid_field(rule,value)
         for _,v in ipairs(rule.values) do if value==v and math.type(value)==math.type(v) then return true end end
         return false
     end
-    return v1_number(value) and value>=rule.min and (rule.max==nil or value<=rule.max)
+    return v1_number(value) and value>=rule.min and (not rule.exclusive_min or value>rule.min)
+        and (rule.max==nil or value<=rule.max)
         and (not rule.integer or math.type(value)=='integer') and (not rule.multiple or value%rule.multiple==0)
 end
 local function v1_valid_parameters(id,p,strict_v2)
@@ -86,7 +87,16 @@ local function v1_valid_parameters(id,p,strict_v2)
         for _,value in ipairs(p.speeds) do if value>max_speed then max_speed=value end end
         if min_accel<=max_speed then return false end
     end
-    return p['end']>=p.start+p.step and (strict_v2 or (p['end']-p.start)/p.step<=1000)
+    return p.step>0 and p['end']>=p.start+p.step and (strict_v2 or (p['end']-p.start)/p.step<=1000)
+end
+local function v1_evaluation_range_value(e,value)
+    if type(e)~='table' or type(e.range)~='table' or not v1_number(value) then return false end
+    local r=e.range
+    if not v1_number(r.start) or not v1_number(r['end']) or not v1_number(r.step)
+        or r.step<=0 or value<r.start or value>r['end'] then return false end
+    local index=(value-r.start)/r.step
+    local nearest=math.floor(index+0.5)
+    return math.abs(index-nearest)<=1e-7
 end
 local function v1_identity(data)
     return v1_session and type(data)=='table' and data.request_id==v1_session.request.request_id
@@ -119,7 +129,7 @@ local v1_prepared_reason
 local function v1_options()
     local out={}
     local e=v1_session and v1_session.evaluation
-    if e then for _,value in ipairs(e.options) do out[#out+1]=tostring(value)..(e.unit~='' and (' '..e.unit) or '') end end
+    if e and type(e.options)=='table' then for _,value in ipairs(e.options) do out[#out+1]=tostring(value)..(e.unit~='' and (' '..e.unit) or '') end end
     return #out>0 and table.concat(out,'\n') or 'Unavailable'
 end
 local v1_open_job
@@ -222,7 +232,13 @@ local function v1_render()
     v1_set('start_on',s.phase=='confirmed' and qualified and s.intent and s.intent.action=='confirm' and 1 or 0)
     v1_set('cancel_on',(s.phase=='printing' and s.intent and s.intent.action=='start') and 1 or 0)
     v1_set('evaluate_on',s.phase=='complete' and s.evaluation and not s.result and 1 or 0)
-    v1_set('evaluation_note',s.phase=='complete' and 'Choose the best result from the completed calibration.' or '')
+    local range=s.evaluation and s.evaluation.range
+    v1_set('evaluation_options_on',s.phase=='complete' and s.evaluation and s.evaluation.options and not s.result and 1 or 0)
+    v1_set('evaluation_range_on',s.phase=='complete' and range and not s.result and 1 or 0)
+    v1_set('evaluation_value',range and (tostring(s.evaluation.value)..(s.evaluation.unit~='' and (' '..s.evaluation.unit) or '')) or '')
+    v1_set('evaluation_note',s.phase=='complete' and (range and
+        ('Choose an exact printed step from '..tostring(range.start)..' to '..tostring(range['end'])..' in '..tostring(range.step)..' increments.')
+        or 'Choose the best result from the completed calibration.') or '')
     v1_set('monitor_on',(s.phase=='starting' or s.phase=='printing' or s.phase=='verifying' or s.phase=='uncertain') and 1 or 0)
     v1_set('monitor',v1_monitor_text(s.monitor))
     v1_set('warning_on',warning and not warning.decision and not (s.intent and s.intent.action=='cancel') and 1 or 0)
@@ -480,8 +496,14 @@ local function v1_receive_status(_,d)
         local e=d.evaluation
         if not v1_hex(d.completion_sha256,64) or type(e)~='table' or not v1_text(e.setting,128)
             or e.setting~=v1_settings[s.request.calibration]
-            or type(e.options)~='table' or #e.options<1 or #e.options>128 or type(e.unit)~='string' or #e.unit>16 or e.unit:find('%c') or utf8.len(e.unit)==nil then return end
-        for _,v in ipairs(e.options) do if not v1_number(v) then return end end
+            or type(e.unit)~='string' or #e.unit>16 or e.unit:find('%c') or utf8.len(e.unit)==nil then return end
+        local options_ok=v1_exact(e,'setting options unit') and type(e.options)=='table' and #e.options>=1 and #e.options<=128
+        if options_ok then for _,v in ipairs(e.options) do if not v1_number(v) then options_ok=false;break end end end
+        local range_ok=v1_exact(e,'setting range unit') and type(e.range)=='table' and v1_exact(e.range,'start end step')
+            and v1_number(e.range.start) and v1_number(e.range['end']) and v1_number(e.range.step)
+            and e.range.step>0 and e.range['end']>=e.range.start+e.range.step
+        if options_ok==range_ok then return end
+        if range_ok then e.value=e.range.start end
         s.completion_sha256=d.completion_sha256;s.evaluation=e
     end
     if d.phase=='failed' or d.phase=='cancelled' or d.phase=='uncertain' or d.phase=='blocked' then
@@ -539,8 +561,9 @@ end)
 helix.ui.on('v1_return',function()
     local s=v1_session
     if not s or s.phase~='complete' or s.result or not s.evaluation then return end
-    local value=s.evaluation.options[v1_subjects.evaluation_idx:get()+1]
+    local value=s.evaluation.options and s.evaluation.options[v1_subjects.evaluation_idx:get()+1] or s.evaluation.value
     if value==nil then return end
+    if s.evaluation.range and not v1_evaluation_range_value(s.evaluation,value) then return end
     local result_v2=s.request.schema=='helix-orca-v1-request/v2'
     s.result={schema=result_v2 and 'helix-orca-v1-result/v2' or 'helix-orca-v1-result/v1',request_id=s.request.request_id,origin_id=s.request.origin_id,
         context_sha256=s.request.context_sha256,prepared_sha256=s.prepared_sha256,job_id=s.job_id,

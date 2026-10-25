@@ -65,11 +65,13 @@
     "parameters": {
       "start": {
         "kind": "number",
-        "min": 0
+        "min": 0,
+        "max": 2.0
       },
       "end": {
         "kind": "number",
-        "min": 0
+        "min": 0,
+        "max": 2.0
       },
       "step": {
         "kind": "number",
@@ -107,7 +109,8 @@
       },
       "step": {
         "kind": "number",
-        "min": 0.001
+        "min": 0,
+        "exclusive_min": true
       }
     },
     "labels": {
@@ -123,15 +126,17 @@
     "parameters": {
       "start": {
         "kind": "number",
-        "min": 0.01
+        "min": 0,
+        "exclusive_min": true
       },
       "end": {
         "kind": "number",
-        "min": 0.01
+        "min": 0
       },
       "step": {
         "kind": "number",
-        "min": 0.001
+        "min": 0,
+        "exclusive_min": true
       }
     },
     "labels": {

@@ -1,5 +1,12 @@
 # Windows V1 runtime lifecycle candidate
 
+> **Current lifecycle:** the amended per-user package provides install, status,
+> start, stop, restart, rollback, and uninstall around an immutable manifest and
+> private mutable state. It remains an ordinary owner process with no service,
+> machine account, inbound listener, firewall change, or new credential.
+> Checkout-only/no-startup descriptions below are historical candidate limits.
+> [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 `scripts/v1-runtime-windows.ps1` packages the local V1 coordinator as an explicit
 per-user process, independently of Codex, the Spare testing worker and an open
 foreground terminal. It starts one fixed repository entry point with existing

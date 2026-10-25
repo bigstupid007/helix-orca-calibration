@@ -13,7 +13,14 @@
     <lv_obj name="orcacal__v1_pick_body" width="content" height="content" flex_flow="column" style_pad_all="#space_lg" style_pad_gap="#space_sm" style_bg_opa="0" style_border_width="0" scrollable="false">
       <text_small width="100%" bind_text="orcacal__v1_calibration" style_text_color="#text_muted" />
       <text_small width="100%" text="Choose the observed sample. Orca will show the preset change before you save it." long_mode="wrap" />
-      <lv_dropdown name="orcacal__v1_pick" width="#orcacal__v1_pick_w" options="$evaluation_options" bind_value="orcacal__v1_evaluation_idx" />
+      <lv_dropdown name="orcacal__v1_pick" width="#orcacal__v1_pick_w" options="$evaluation_options" bind_value="orcacal__v1_evaluation_idx">
+        <bind_flag_if_eq subject="orcacal__v1_evaluation_options_on" flag="hidden" ref_value="0" />
+      </lv_dropdown>
+      <lv_button name="orcacal__v1_pick_range" width="100%" height="#button_height" style_bg_color="#card_bg" style_bg_opa="255" style_radius="#border_radius" style_border_width="0" style_shadow_width="0">
+        <bind_flag_if_eq subject="orcacal__v1_evaluation_range_on" flag="hidden" ref_value="0" />
+        <event_cb trigger="clicked" callback="plugin_event" user_data="orcacal__v1_evaluation_edit" />
+        <lv_label width="100%" bind_text="orcacal__v1_evaluation_value" style_text_align="center" style_text_font="#font_body_bold" style_text_color="#text" />
+      </lv_button>
     </lv_obj>
     <modal_button_row primary_text="Use in Orca" primary_callback="plugin_event" primary_user_data="orcacal__v1_return"
                       secondary_text="Later" secondary_callback="plugin_event" secondary_user_data="orcacal__v1_result_later"

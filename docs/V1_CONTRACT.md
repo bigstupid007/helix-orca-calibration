@@ -1,5 +1,12 @@
 # V1 shared wire contract — Build Program #14
 
+> **Current contract authority:** the October 25 amendment adds explicit V2
+> schemas alongside immutable historical V1 records. V2 binds an originating
+> 1-based filament slot/preset, build-level route qualification, structured
+> warnings, exact-job completion, and Orca's official dirty/unsaved preset
+> transaction. It does not silently reinterpret historical `not_applied` or
+> exact-request evidence. [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 Status: v1 foundation; not qualification or physical authorization. Lead owns
 `integration/v1_contract.py`, runtime, companion and integration. Stock worker
 owns `integration/v1_generation.py`, `integration/v1_parity.py`, generation CLI

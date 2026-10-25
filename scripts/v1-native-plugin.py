@@ -32,20 +32,24 @@ def load_base():
     return module
 
 def generate(output: Path):
-    # Temperature is bounded by Orca. Current PA/Retraction/MVS dialogs have
-    # lower/order constraints but no product maximum; do not silently reapply
-    # historical V1 resource maxima to current V2 controls.
+    # Temperature and the current PA wizard are bounded by Orca. Retraction and
+    # MVS have lower/order constraints but no product maximum; do not silently
+    # reapply historical V1 resource maxima to those current V2 controls.
     exact_numbers={
         'temperature':{'start':(160,500),'end':(155,495)},
-        'pressure_advance_pattern':{'start':(0,None),'end':(0,None),'step':(.001,None)},
-        'retraction':{'start':(0,None),'end':(0,None),'step':(.001,None)},
-        'max_volumetric_speed':{'start':(.01,None),'end':(.01,None),'step':(.001,None)},
+        'pressure_advance_pattern':{'start':(0,2.0),'end':(0,2.0),'step':(.001,None)},
+        'retraction':{'start':(0,None),'end':(0,None),'step':(0,None)},
+        'max_volumetric_speed':{'start':(0,None),'end':(0,None),'step':(0,None)},
     }
     for ident,bounds in exact_numbers.items():
         for key,(minimum,maximum) in bounds.items():
             rule=CATALOG[ident]['parameters'][key]
             if rule.get('kind')!='number' or rule.get('min')!=minimum or rule.get('max')!=maximum:
                 raise ValueError('Native control domain differs from pinned Orca')
+    for ident,key in (('retraction','step'),('max_volumetric_speed','start'),
+                      ('max_volumetric_speed','step')):
+        if CATALOG[ident]['parameters'][key].get('exclusive_min') is not True:
+            raise ValueError('Native exclusive-positive domain differs from pinned Orca')
     for key in ('accelerations','speeds'):
         if CATALOG['pressure_advance_pattern']['parameters'][key] != {'kind':'positive_int_list','max_items':64}:
             raise ValueError('Native PA list domain differs from pinned Orca')

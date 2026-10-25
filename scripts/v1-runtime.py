@@ -94,7 +94,9 @@ def tick(coordinator, storage, transport):
         atomic_json(storage / "application-retry.json", coordinator.authorize_application_retry(retry))
     application = storage / "application.json"
     if coordinator._current() and coordinator.state.get("result") and application.exists():
-        transport.send(event("application"), coordinator.application_event(read_json(application)))
+        candidate = read_json(application)
+        if candidate.get("request_id") == coordinator.state["result"]["request_id"]:
+            transport.send(event("application"), coordinator.application_event(candidate))
     receipt = storage / "receipt.json"
     if coordinator.state["result"] and receipt.exists():
         candidate = read_json(receipt)
@@ -145,16 +147,27 @@ def main():
     signal.signal(signal.SIGINT, stop)
     signal.signal(signal.SIGTERM, stop)
     with InstanceLock(args.storage / "coordinator.lock"), InstanceLock(root / "runtime.lock"):
-        from integration.v1_deployment import authorized, require_native_channel
+        from integration.v1_deployment import authorized, require_native_channel, runtime_manifest
         from integration.v1_jobs import current_candidate_verifier, from_config
+        from integration.v1_qualification import PACKAGE_BINDING_KEY, runtime_build_qualification
         deployment = authorized(args.deployment_authorization, config, Path(__file__))
         if deployment and config.get("owned_jobs", {}).get("actions_enabled") is True:
             require_native_channel(config, args.moonraker_events)
         current = isinstance(config.get("build_qualification"), dict) and \
             config["build_qualification"].get("schema") == "helix-orca-v1-build-qualification/v2"
+        if current:
+            installed_manifest = runtime_manifest(Path(__file__))
+            if installed_manifest is None:
+                raise ValueError("Current qualified runtime requires a verified installed package")
+            config[PACKAGE_BINDING_KEY] = {
+                "root": str(Path(__file__).resolve().parents[1]),
+                "manifest": installed_manifest,
+            }
+            runtime_build_qualification(config)
         jobs = from_config(config, root / "owned-jobs", deployment_authorized=deployment,
             api_key=os.environ.get(config.get("moonraker", {}).get("api_key_env", "HELIX_ORCA_MOONRAKER_API_KEY")),
-            candidate_verifier=(current_candidate_verifier(config["build_qualification"])
+            candidate_verifier=(current_candidate_verifier(
+                config["build_qualification"], lambda: runtime_build_qualification(config))
                                 if current else None),
             request_validator=(validate_request_v2 if current else None))
         coordinator = Coordinator(root, generate, config, capabilities(config), job_adapter=jobs)

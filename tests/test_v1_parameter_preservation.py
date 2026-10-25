@@ -39,12 +39,23 @@ class ParameterPreservationTests(unittest.TestCase):
             self.report["sources"]["integration/v1_engine.py"],
         )
         # The Founder amendment deliberately changes the native controls and
-        # wire boundary. Keep the accepted beta.9 proof immutable, but never
-        # relabel it as qualification of this beta.12 candidate.
-        with self.assertRaisesRegex(ValueError, "native UI/catalog inventory changed"):
-            preserve.verify_current_equivalence(ROOT, self.report)
-        preserve.verify_historical_matrix(ROOT, self.report)
-        preserve.verify_accepted_semantics(self.report, self.operator, self.parity)
+        # wire boundary. Its replacement inventory is hash-bound separately;
+        # the accepted beta.9 blobs remain immutable and are never relabelled
+        # as beta.12 or current-Orca build qualification.
+        self.assertNotIn(
+            "integration/v1-native/ui/orcacal__v1_cancel_confirm.xml",
+            preserve.AMENDMENT_NATIVE_REMOVED,
+        )
+        self.assertEqual(
+            preserve.sha(ROOT / "integration/v1-native/ui/orcacal__v1_cancel_confirm.xml"),
+            self.report["sources"]["integration/v1-native/ui/orcacal__v1_cancel_confirm.xml"],
+        )
+        self.assertIn(
+            "integration/v1-native/ui/orcacal__v1_warning.xml",
+            preserve.AMENDMENT_NATIVE_SHA256,
+        )
+        preserve.verify_current_equivalence(ROOT, self.report)
+        preserve.verify(ROOT)
 
     def test_any_accepted_blob_change_is_rejected(self):
         with tempfile.TemporaryDirectory() as raw:

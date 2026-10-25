@@ -520,13 +520,22 @@ def _slice_argv(executable, data, destination, staged, bed, current):
 
 def generate(request, snapshot, output_dir, config):
     current = request.get('schema') == 'helix-orca-v1-request/v2'
-    qualification = contract.validate_build_qualification_v2(config.get('build_qualification')) if current else None
+    if current and config.get('build_qualification') is not None:
+        from integration.v1_qualification import runtime_build_qualification
+        qualification = runtime_build_qualification(config)
+    else:
+        qualification = None
     executable = _checked_file({'path': config.get('executable', ''), 'sha256': config.get('executable_sha256')}, maximum=2 * 1024**3)
     if current and config.get('executable_sha256') != contract.ORCA_EXECUTABLE_SHA256_V2:
         _blocked('runtime_pin', 'V2 stock slicing requires the exact official Orca executable.')
     staged = prepare_inputs(request, snapshot, output_dir, config)
     request, snapshot, destination = staged['request'], staged['snapshot'], staged['destination']
     model, source, bed = staged['model'], config['source_commit'], snapshot['effective']['curr_bed_type']
+    qualification_sha256, authorization = (contract.authorize_qualification_generation_v2(
+        config, request, snapshot, 'stock-cli-recipe-v2', destination,
+        build_qualification=qualification) if current else (None, None))
+    if authorization is not None:
+        (destination / 'qualification-authorization.json').write_bytes(contract.canonical(authorization))
     data = destination / 'orca-data'
     data.mkdir()
     argv = _slice_argv(executable, data, destination, staged, bed, current)
@@ -578,7 +587,7 @@ def generate(request, snapshot, output_dir, config):
         prepared.update(schema='helix-orca-v1-prepared/v2', request_sha256=contract.digest(request),
             artifact=parity.file_record(artifact), generator=dict(source_commit=source,
                 route='stock-cli-recipe-v2', executable_sha256=config['executable_sha256'],
-                qualification_sha256=contract.digest(qualification),
+                qualification_sha256=qualification_sha256,
                 machine_sha256=contract.machine_sha256_v2(snapshot)), processing=processing)
         prepared = contract.validate_prepared_v2(prepared, request)
         (destination / 'prepared.json').write_bytes(contract.canonical(prepared))

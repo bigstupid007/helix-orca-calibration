@@ -125,7 +125,7 @@ def legacy_candidate_verifier(request, prepared, directory, machine):
     return (directory / prepared["artifact"]["name"]).read_bytes()
 
 
-def current_candidate_verifier(build_qualification):
+def current_candidate_verifier(build_qualification, runtime_closure_verifier):
     """Bind current exact jobs to one independently qualified build and target.
 
     The returned callback fits ``OwnedJobAdapter``'s narrow verification seam.
@@ -134,8 +134,13 @@ def current_candidate_verifier(build_qualification):
     """
     qualification = validate_build_qualification_v2(build_qualification)
     qualification_sha256 = digest(qualification)
+    if not callable(runtime_closure_verifier):
+        raise ContractError("Current physical jobs require a runtime qualification closure verifier")
 
     def verify(request, prepared, directory, machine):
+        current = runtime_closure_verifier()
+        if digest(current) != qualification_sha256:
+            raise ContractError("Executing generator closure differs from the exact build qualification")
         request = validate_request_v2(request, now=request.get("created_at"))
         prepared = validate_prepared_v2(prepared, request)
         route = qualification["routes"][request["calibration"]]

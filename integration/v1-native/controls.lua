@@ -77,7 +77,7 @@ local function v1_precise_editor(id,key,rule,p,entry)
     v1_set('keypad_title',entry.labels[key]..(rule.kind=='positive_int_list' and '' or ' · precise'))
     v1_set('keypad_value',v1_edit_buffer=='' and 'Automatic' or v1_edit_buffer);v1_set('keypad_error','')
     local limits=rule.kind=='positive_int_list' and 'Optional: up to 64 positive whole numbers separated by commas.'
-        or 'Minimum: '..tostring(rule.min)..(rule.max and ('; maximum: '..tostring(rule.max)) or '; no Orca product maximum')
+        or (rule.exclusive_min and 'Greater than: ' or 'Minimum: ')..tostring(rule.min)..(rule.max and ('; maximum: '..tostring(rule.max)) or '; no Orca product maximum')
             ..(rule.multiple and '; multiples of '..rule.multiple or '')..'.'
     v1_set('keypad_limits',limits)
     local handle
@@ -113,6 +113,21 @@ helix.ui.on('v1_edit',function(arg)
         v1_set('message','The numeric editor is busy. Close the current dialog and try again.')
     end
 end)
+helix.ui.on('v1_evaluation_edit',function()
+    local e=v1_session and v1_session.evaluation
+    if not e or v1_session.phase~='complete' or v1_session.result or not e.range
+        or v1_keypad_handle or v1_editor_open then return end
+    v1_edit_target={id='__evaluation',key='value',kind='number',range=e.range}
+    v1_edit_buffer=tostring(e.value or e.range.start)
+    v1_set('keypad_title','Choose printed result')
+    v1_set('keypad_value',v1_edit_buffer);v1_set('keypad_error','')
+    v1_set('keypad_limits','Use an exact printed step from '..tostring(e.range.start)..' to '..tostring(e.range['end'])..' in '..tostring(e.range.step)..' increments.')
+    local handle
+    handle=helix.ui.overlay('orcacal__v1_keypad',{on_close=function()
+        if v1_keypad_handle==handle then v1_keypad_handle=nil;v1_edit_target=nil;v1_edit_buffer='' end
+    end})
+    v1_keypad_handle=handle
+end)
 helix.ui.on('v1_key',function(key)
     if not v1_edit_target or not v1_keypad_handle then return end
     v1_set('keypad_error','')
@@ -134,9 +149,11 @@ helix.ui.on('v1_key',function(key)
     v1_set('keypad_value',v1_edit_buffer=='' and 'Automatic' or v1_edit_buffer)
 end)
 helix.ui.on('v1_key_set',function()
-    if not v1_edit_target or not v1_keypad_handle or not v1_edit_allowed() then return end
+    if not v1_edit_target or not v1_keypad_handle then return end
     local id,key=v1_edit_target.id,v1_edit_target.key
-    local rule=V1_CATALOG[id].parameters[key]
+    if id~='__evaluation' and not v1_edit_allowed() then return end
+    local rule=id=='__evaluation' and {kind='number',min=v1_edit_target.range.start,max=v1_edit_target.range['end']}
+        or V1_CATALOG[id].parameters[key]
     if rule.kind=='positive_int_list' then
         local values={}
         if v1_edit_buffer~='' then
@@ -159,6 +176,15 @@ helix.ui.on('v1_key_set',function()
     if rule.integer and number then number=math.tointeger(number) end
     if not v1_edit_buffer:match('^%d+%.?%d*$') or not v1_valid_field(rule,number) then
         v1_set('keypad_error','Enter a finite value at or above the displayed minimum'..(rule.multiple and ', in multiples of '..rule.multiple or '')..'.');return
+    end
+    if id=='__evaluation' then
+        if not v1_evaluation_range_value(v1_session.evaluation,number) then
+            v1_set('keypad_error','Choose one exact printed increment from the displayed range.');return
+        end
+        v1_session.evaluation.value=number;v1_set('evaluation_value',tostring(number)..
+            (v1_session.evaluation.unit~='' and (' '..v1_session.evaluation.unit) or ''))
+        if not v1_persist() then return end
+        local handle=v1_keypad_handle;v1_keypad_handle=nil;v1_edit_target=nil;v1_edit_buffer='';pcall(handle.close);return
     end
     if not v1_commit_edit(id,key,number) then return end
     local handle=v1_keypad_handle;v1_keypad_handle=nil;v1_edit_target=nil;v1_edit_buffer='';pcall(handle.close)

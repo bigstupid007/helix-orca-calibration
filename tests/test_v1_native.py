@@ -56,6 +56,21 @@ class V1NativeTests(unittest.TestCase):
             self.assertEqual(manifest['version'],'1.1.0-v1-beta12')
             self.assertEqual(generated['helix_source_commit'],qualifier.beta12.SOURCE_COMMIT)
             self.assertEqual(generated['native_adapter_schema'],'helix-orca-v1-native-adapter/v2')
+    def test_native_capture_refuses_an_unknown_or_empty_viewport_selection(self):
+        self.assertEqual([entry[0] for entry in qualifier.selected_viewports('medium_800x480')],
+                         ['medium_800x480'])
+        with self.assertRaisesRegex(ValueError,'Unknown native viewport'):
+            qualifier.selected_viewports('medium')
+    def test_warning_dialog_uses_beta12_responsive_widths(self):
+        doc=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_warning.xml')
+        constants={item.attrib['name']:item.attrib['value'] for item in doc.findall('./consts/px')}
+        self.assertEqual(constants,{
+            'orcacal__v1_warning_w_small':'200',
+            'orcacal__v1_warning_w_medium':'260',
+            'orcacal__v1_warning_w_large':'320',
+        })
+        self.assertEqual(doc.find(".//lv_obj[@name='orcacal__v1_warning_body']").attrib['width'],
+                         '#orcacal__v1_warning_w')
     def test_v2_adapter_is_parallel_to_legacy_wire_objects(self):
         source=(ROOT/'integration/v1-native/main.lua').read_text()
         for schema in ('helix-orca-v1-request/v2','helix-orca-v1-prepared/v2','helix-orca-v1-result/v2',
@@ -74,6 +89,22 @@ class V1NativeTests(unittest.TestCase):
                       source.index("warning.decision=",source.index('local function v1_warning_decision'))]
         self.assertIn("v1_intent('cancel')",cancel)
         self.assertNotIn('warning.decision=',cancel)
+
+    def test_current_native_storage_roundtrip_uses_the_real_runtime_tick(self):
+        offer=qualifier.current_offer()
+        request={key:offer[key] for key in ('request_id','origin_id','context_sha256','created_at','expires_at')}
+        request.update(schema='helix-orca-v1-request/v2',calibration='temperature',
+                       parameters=offer['defaults']['temperature'])
+        saved=dict(request=request,offer=offer,phase='requested',sequence=0,
+                   message='Generation requested · nothing started',
+                   v2=dict(schema='helix-orca-v1-native-adapter/v2',application_sequence=0,
+                           origin_filament=offer['origin_filament']))
+        with tempfile.TemporaryDirectory() as name:
+            proof=qualifier.current_storage_roundtrip(saved,Path(name))
+        self.assertTrue(proof['synthetic_only'])
+        self.assertEqual(proof['physical_actions'],0)
+        self.assertEqual(proof['status_phase'],'review')
+        self.assertEqual(proof['request_sha256'],proof['coordinator_request_sha256'])
     def test_refuses_overwrite_symlink_and_repository_destinations(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);out=root/'orcacal';out.mkdir();(out/'keep').write_text('preserved')
@@ -203,9 +234,16 @@ class V1NativeTests(unittest.TestCase):
     def test_terminal_evaluation_uses_flat_native_scroll_parent_and_hidden_bindings(self):
         doc=ET.parse(ROOT/'integration/v1-native/ui/orcacal__v1_job.xml')
         content=doc.find('view/lv_obj')
-        for key in ('evaluation_heading','evaluation_note','evaluation','return'):
+        for key in ('evaluation_heading','evaluation_note','return'):
             node=next(n for n in content if n.attrib.get('name')=='orcacal__v1_'+key)
             self.assertEqual(node.find('bind_flag_if_eq').attrib,dict(subject='orcacal__v1_evaluate_on',flag='hidden',ref_value='0'))
+        modes={
+            'evaluation':'orcacal__v1_evaluation_options_on',
+            'evaluation_range':'orcacal__v1_evaluation_range_on',
+        }
+        for key,subject in modes.items():
+            node=next(n for n in content if n.attrib.get('name')=='orcacal__v1_'+key)
+            self.assertEqual(node.find('bind_flag_if_eq').attrib,dict(subject=subject,flag='hidden',ref_value='0'))
         self.assertNotIn('Printing is unavailable',ET.tostring(doc.getroot(),encoding='unicode'))
         source=(ROOT/'integration/v1-native/main.lua').read_text()
         self.assertIn("pcall(helix.ui.confirm,'Cancel this calibration print?'",source)

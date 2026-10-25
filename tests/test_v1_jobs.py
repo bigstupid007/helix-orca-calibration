@@ -436,7 +436,8 @@ class OwnedJobsTests(unittest.TestCase):
                 executable_sha256=ORCA_EXECUTABLE_SHA256_V2,
                 qualification_sha256=digest(build),machine_sha256=self.machine),
             processing=dict(error_code=0,warnings=[],status='ready'))
-        verifier = current_candidate_verifier(build)
+        closure_checks=[]
+        verifier = current_candidate_verifier(build, lambda: closure_checks.append(True) or build)
         adapter = OwnedJobAdapter(self.fixture.transport(),self.root/'v2-current-journal',
             orca_machine_sha256=self.machine,physical_qualification=self.qualification,
             candidate_verifier=verifier,
@@ -450,6 +451,7 @@ class OwnedJobsTests(unittest.TestCase):
         job=adapter.start(request,prepared,directory,intent('start','6'))
         self.assertEqual(job['file_sha256'],hashlib.sha256(data).hexdigest())
         self.assertFalse((directory/'parity.json').exists())
+        self.assertGreaterEqual(len(closure_checks),2)
 
         changed=copy.deepcopy(prepared);changed['generator']['machine_sha256']='d'*64
         fresh=self.root/'wrong-machine';fresh.mkdir()
@@ -462,6 +464,11 @@ class OwnedJobsTests(unittest.TestCase):
         changed=copy.deepcopy(prepared);changed['generator']['route']='stock-cli-recipe-v2'
         with self.assertRaisesRegex(ContractError,'route'):
             verifier(request,changed,directory,self.machine)
+
+        different=copy.deepcopy(build);different['evidence_sha256']='d'*64
+        stale=current_candidate_verifier(build,lambda:different)
+        with self.assertRaisesRegex(ContractError,'Executing generator closure'):
+            stale(request,prepared,directory,self.machine)
 
     def test_changed_machine_configuration_or_nozzle_blocks_before_http(self):
         for alteration in ('nozzle', 'printer_config', 'printer_missing'):

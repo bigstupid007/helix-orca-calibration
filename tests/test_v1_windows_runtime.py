@@ -1,10 +1,15 @@
 """Windows lifecycle packaging boundaries; execution evidence remains separate."""
 from pathlib import Path
+import hashlib
+import json
 import os
 import re
 import shutil
 import subprocess
+import sys
+import tempfile
 import unittest
+import uuid
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'scripts/v1-runtime-windows.ps1'
 class WindowsRuntimePackagingTests(unittest.TestCase):
@@ -43,6 +48,10 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
         for required in ("schema -ne 'helix-orca-v1-runtime-manifest/v1'",
                          "'versions'", 'active_candidate', 'previous_candidate',
                          'active_manifest_sha256', 'Assert-InstalledVersion',
+                         "schema='helix-orca-v1-windows-installation/v2'",
+                         'candidate_bindings', 'Get-CandidateBinding',
+                         'Installed candidate lacks one exact config/authorization binding.',
+                         'Installed candidate binding changed while Start was being prepared.',
                          'Get-RuntimeManifest', "'scripts/v1-runtime.py'",
                          'Installed candidate contains an unlisted file.',
                          'Partial installed candidate contains an unlisted file.',
@@ -101,3 +110,51 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
         command="$tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile('"+path+"',[ref]$tokens,[ref]$errors);if($errors.Count){$errors | ForEach-Object {$_.Message};exit 1}"
         result=subprocess.run([host,'-NoProfile','-NonInteractive','-Command',command],capture_output=True,text=True,timeout=30)
         self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+
+    @unittest.skipUnless(os.name=='nt' and (shutil.which('powershell.exe') or shutil.which('pwsh.exe')),'Actual Windows lifecycle unavailable')
+    def test_actual_install_second_candidate_rollback_restores_its_config_and_authorization(self):
+        host=shutil.which('powershell.exe') or shutil.which('pwsh.exe')
+        runtime=Path(os.environ['LOCALAPPDATA'])/('helix-orca-lifecycle-test-'+uuid.uuid4().hex)
+        self.addCleanup(lambda: shutil.rmtree(runtime,ignore_errors=True))
+        with tempfile.TemporaryDirectory() as temporary:
+            root=Path(temporary);storage=root/'storage';storage.mkdir()
+            def package(name,token):
+                package_root=root/name;(package_root/'scripts').mkdir(parents=True)
+                entry=package_root/'scripts/v1-runtime.py';entry.write_text('# lifecycle fixture\n')
+                payload=entry.read_bytes()
+                manifest={'schema':'helix-orca-v1-runtime-manifest/v1','candidate_sha256':token*64,
+                    'files':[{'path':'scripts/v1-runtime.py','size':len(payload),
+                              'sha256':hashlib.sha256(payload).hexdigest()}]}
+                path=package_root/'runtime-manifest.json';path.write_text(json.dumps(manifest,separators=(',',':')))
+                config=root/(name+'.json');config.write_text(json.dumps({'candidate':token}))
+                authorization=root/(name+'.authorization.json');authorization.write_text(json.dumps({'candidate':token}))
+                quoted=str(authorization).replace("'","''")
+                command=("$sid=[Security.Principal.WindowsIdentity]::GetCurrent().User;"
+                         "$acl=New-Object Security.AccessControl.FileSecurity;"
+                         "$acl.SetOwner($sid);$acl.SetAccessRuleProtection($true,$false);"
+                         "$rule=New-Object Security.AccessControl.FileSystemAccessRule($sid,'FullControl','Allow');"
+                         "$acl.AddAccessRule($rule);Set-Acl -LiteralPath '"+quoted+"' -AclObject $acl")
+                locked=subprocess.run([host,'-NoProfile','-NonInteractive','-Command',command],
+                                      capture_output=True,text=True,timeout=30)
+                self.assertEqual(locked.returncode,0,locked.stdout+locked.stderr)
+                return package_root,path,config,authorization
+            first=package('first','a');second=package('second','b')
+            def invoke(action,*extra):
+                command=[host,'-NoProfile','-NonInteractive','-File',str(SOURCE),'-Action',action,
+                         '-RuntimeRoot',str(runtime),*map(str,extra)]
+                result=subprocess.run(command,capture_output=True,text=True,timeout=60)
+                self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+                return json.loads(result.stdout)
+            for package_root,manifest,config,authorization in (first,second):
+                invoke('install','-PythonExe',sys.executable,'-Storage',storage,'-Config',config,
+                       '-DeploymentAuthorization',authorization,'-PackageRoot',package_root,'-Manifest',manifest)
+            rolled=invoke('rollback')
+            self.assertEqual(rolled['active_candidate'],'a'*64)
+            binding=[item for item in rolled['candidate_bindings'] if item['candidate_sha256']=='a'*64]
+            self.assertEqual(len(binding),1)
+            self.assertEqual(Path(binding[0]['config']),first[2])
+            self.assertEqual(Path(binding[0]['deployment_authorization']),first[3])
+            plan=invoke('plan')
+            self.assertEqual(Path(plan['deployment_authorization']),first[3])
+            self.assertIn(str(first[2]),plan['arguments'])
+            invoke('uninstall')

@@ -4,10 +4,39 @@ on:
     paths:
       - 'integration/v1-native*'
       - 'integration/v1-native-engine/**'
+      - 'integration/v1_contract.py'
+      - 'integration/v1_deployment.py'
       - 'integration/v1_engine.py'
+      - 'integration/v1_fit.py'
+      - 'integration/v1_generation.py'
+      - 'integration/v1_jobs.py'
+      - 'integration/v1_orca_extension.py'
+      - 'integration/v1_qualification.py'
       - 'integration/v1_pe.py'
+      - 'integration/v1_routing.py'
+      - 'integration/v1_runtime.py'
+      - 'integration/v1_transport.py'
       - 'integration/v1_windows_dependencies.py'
+      - 'plugin/helix_calibration.py'
+      - 'scripts/v1-build-qualify.py'
+      - 'scripts/v1-companion.py'
       - 'scripts/v1-engine-windows.py'
+      - 'scripts/v1-native-evidence.py'
+      - 'scripts/v1-native-plugin.py'
+      - 'scripts/v1-native-qualify.py'
+      - 'scripts/v1-parameter-preservation.py'
+      - 'scripts/v1-runtime.py'
+      - 'scripts/v1-runtime-windows.ps1'
+      - 'tests/test_v1_build_qualification.py'
+      - 'tests/test_v1_deployment.py'
+      - 'tests/test_v1_fit.py'
+      - 'tests/test_v1_jobs.py'
+      - 'tests/test_v1_native.py'
+      - 'tests/test_v1_native_evidence.py'
+      - 'tests/test_v1_native_parameters.py'
+      - 'tests/test_v1_parameter_preservation.py'
+      - 'tests/test_v1_windows_runtime.py'
+      - 'tests/test_v2_contract_application.py'
       - '.github/workflows/v1-windows-engine.yml'
   workflow_dispatch:
     inputs:
@@ -62,6 +91,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify the amended contract, native bridge, owner runtime, and qualification boundary
+        run: |
+          python -m unittest discover -s tests -v
       - name: Retrieve only an explicitly pinned owned dependency checkpoint
         if: github.event_name == 'workflow_dispatch' && !inputs.toolchain_preflight_only && inputs.dependency_run_id != ''
         env:

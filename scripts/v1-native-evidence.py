@@ -15,6 +15,9 @@ def load():
     module=importlib.util.module_from_spec(spec);sys.modules[spec.name]=module;spec.loader.exec_module(module);return module
 q=load()
 SCHEMA='helix-orca-v1-native-portable-evidence/v2'
+LEGACY_SCHEMA='helix-orca-v1-native-portable-evidence/v1'
+LEGACY_CAPTURE_SCHEMA='helix-orca-v1-native-evidence/v1'
+LEGACY_REPORT_SHA256='178dc0551495db1322f2d64ab37429eff02e91ad8240ec5a1902d27156b813c5'
 HEX32=re.compile(r'[a-f0-9]{32}')
 HEX64=re.compile(r'[a-f0-9]{64}')
 FRAMES=q.FRAMES
@@ -92,8 +95,21 @@ def build(capture,output):
     write(output,portable)
     print('PASS: portable manifest prepared; full private inventories were excluded')
 
+def verify_legacy(root,report,private_capture=None):
+    require(report['schema']==LEGACY_SCHEMA and report['capture_schema']==LEGACY_CAPTURE_SCHEMA,'Unknown historical portable evidence schema')
+    require(file_hash(root/'report.json')==LEGACY_REPORT_SHA256,'Historical beta.9 evidence report changed')
+    require(len(report['screenshots'])==396,'Historical beta.9 frame inventory changed')
+    for name,digest in report['screenshots'].items():
+        require(HEX64.fullmatch(digest) and file_hash(safe_file(root,name))==digest,'Historical beta.9 screenshot differs: '+name)
+    require(len(report['managed_runs'])==11 and len({i['run_id'] for i in report['managed_runs']})==11,'Incomplete historical lifecycle summaries')
+    for item in report['managed_runs']:check_summary(item)
+    require(private_capture is None,'Historical private capture recheck requires the frozen beta.9 verifier')
+    print('PASS: preserved exact-digest synthetic beta.9 native matrix (11 targets, 5 calibrations, 396 frames; private inventories not required)')
+
 def verify(root,private_capture=None):
     report=read(root/'report.json')
+    if report.get('schema')==LEGACY_SCHEMA:
+        return verify_legacy(root,report,private_capture)
     require(report['schema']==SCHEMA and report['capture_schema']=='helix-orca-v1-native-evidence/v2','Unknown portable evidence schema')
     require(HEX64.fullmatch(report['capture_report_sha256']) and report['verifier_sha256']==file_hash(__file__),'Portable verifier/provenance differs')
     verify_content(root,report)

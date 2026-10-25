@@ -1,5 +1,13 @@
 # V1 coordinator and companion — development candidate
 
+> **Current completion scope:** the October 25 amendment authorizes an ordinary
+> owner-local installed coordinator and an action-enabled physical Voron target
+> after exact gates pass. The current companion targets pinned Orca `b5e9cb3c`
+> and applies a completed result to the explicit originating filament through
+> Orca's official transaction, leaving it dirty and unsaved. Historical
+> October 15 / NOT APPLIED descriptions below are preserved candidate history.
+> [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 This is Issue #14 implementation, not physical deployment or production
 qualification. Accepted Temperature hardware behavior, installed files, original
 profiles/settings, first/final physical evidence and rollback are unchanged.

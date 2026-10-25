@@ -515,6 +515,9 @@ class Coordinator:
         req = self.state["request"]
         if not req:
             return None
+        if self._current():
+            from integration.v1_contract import evaluation_v2
+            return evaluation_v2(req, self.state["context"])
         kind, p = req["calibration"], req["parameters"]
         if kind == "temperature":
             options = list(range(p["start"], p["end"] - 1, -5))
@@ -526,7 +529,7 @@ class Coordinator:
             start, end, step = (Decimal(str(p[k])) for k in ("start", "end", "step"))
             options = [float(start + step * i) for i in range(int((end - start) // step) + 1)]
             unit = {"retraction": "mm", "pressure_advance_pattern": "s", "max_volumetric_speed": "mm³/s"}[kind]
-        if not self._current() and len(options) > 128:
+        if len(options) > 128:
             raise ContractError("V1 supports at most 128 result choices. Increase Step or reduce the range.")
         return dict(setting=SETTINGS[kind], options=options, unit=unit)
 
@@ -545,7 +548,12 @@ class Coordinator:
         if any(value[k] != req[k] for k in ("request_id", "origin_id", "context_sha256")) or value["prepared_sha256"] != digest(prepared) or value["completion_sha256"] != digest(proof) or value["job_id"] != self.state["job"]["job_id"]:
             raise ContractError("Result is unrelated to original job")
         evaluation = self.evaluation()
-        if value["setting"] != evaluation["setting"] or type(value["value"]) not in (int, float) or value["value"] not in evaluation["options"]:
+        if value["setting"] != evaluation["setting"]:
+            raise ContractError("Result outside completed calibration choices")
+        if current:
+            from integration.v1_contract import evaluation_value_v2
+            evaluation_value_v2(evaluation, value["value"])
+        elif type(value["value"]) not in (int, float) or value["value"] not in evaluation["options"]:
             raise ContractError("Result outside completed calibration choices")
         if self.state["result"]:
             if canonical(value) != canonical(self.state["result"]):

@@ -533,9 +533,11 @@ def generate(request, snapshot, output_dir, config):
     if current:
         request = contract.validate_request_v2(request, now=config.get("now"))
         snapshot = contract.validate_context_v2(snapshot)
-        qualification = contract.validate_build_qualification_v2(config.get("build_qualification"))
-        if qualification["routes"][request["calibration"]]["qualified"] is not True:
-            raise NativeEngineBlocked("Selected route is not build-qualified", "build_qualification")
+        if config.get("build_qualification") is not None:
+            from integration.v1_qualification import runtime_build_qualification
+            qualification = runtime_build_qualification(config)
+        else:
+            qualification = None
     else:
         request = contract.validate_request(request, now=config.get("now"))
         snapshot = contract.validate_context(snapshot)
@@ -566,8 +568,13 @@ def generate(request, snapshot, output_dir, config):
         raise NativeEngineBlocked("Native generation requires a new empty job directory", "output_exists")
     destination.mkdir(mode=0o700, parents=True, exist_ok=True)
     destination = destination.resolve()
+    qualification_sha256, authorization = (contract.authorize_qualification_generation_v2(
+        config, request, snapshot, "native-engine-v2", destination,
+        build_qualification=qualification) if current else (None, None))
     (destination / "request.json").write_bytes(contract.canonical(request))
     (destination / "context.json").write_bytes(contract.canonical(snapshot))
+    if authorization is not None:
+        (destination / "qualification-authorization.json").write_bytes(contract.canonical(authorization))
     inputs = parity.generation_inputs(request, snapshot, ORCA_SOURCE)
     (destination / "inputs.json").write_bytes(contract.canonical(inputs))
     argv = [str(backend["executable"]), str(destination / "request.json"),
@@ -647,7 +654,7 @@ def generate(request, snapshot, output_dir, config):
         prepared.update(schema="helix-orca-v1-prepared/v2", request_sha256=contract.digest(request), artifact=record,
             generator=dict(source_commit=ORCA_SOURCE, route="native-engine-v2",
                            executable_sha256=contract.ORCA_EXECUTABLE_SHA256_V2,
-                           qualification_sha256=contract.digest(qualification),
+                           qualification_sha256=qualification_sha256,
                            machine_sha256=contract.machine_sha256_v2(snapshot)), processing=processing)
         prepared = contract.validate_prepared_v2(prepared, request)
         (destination / "prepared.json").write_bytes(contract.canonical(prepared))
