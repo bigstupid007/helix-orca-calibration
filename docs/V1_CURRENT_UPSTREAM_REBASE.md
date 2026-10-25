@@ -133,8 +133,8 @@ service, machine account, public listener, firewall rule, or new credential.
 Installed code is immutable and manifest-bound; mutable state, job journals,
 logs, accepted evidence, and rollback material remain outside the versioned
 package.
-Each installed candidate retains its own exact config and deployment-
-authorization binding. Rollback restores that complete candidate tuple rather
+Each installed candidate retains its own exact originating storage, config and
+deployment-authorization binding. Rollback restores that complete candidate tuple rather
 than combining old code with the newer candidate's target authorization.
 Likewise, Orca application state is request-scoped: a completed calibration is
 archived before the next exact inbox is applied, while unrelated unresolved or

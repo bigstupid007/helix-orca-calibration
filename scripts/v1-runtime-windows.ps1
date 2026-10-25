@@ -201,6 +201,7 @@ function Read-Installation {
         if ($binding.candidate_sha256 -notmatch '^[a-f0-9]{64}$' -or
             $binding.manifest_sha256 -notmatch '^[a-f0-9]{64}$' -or
             $binding.config_sha256 -notmatch '^[a-f0-9]{64}$' -or
+            -not ($binding.PSObject.Properties.Name -contains 'storage') -or
             ($null -ne $binding.deployment_authorization_sha256 -and
              $binding.deployment_authorization_sha256 -notmatch '^[a-f0-9]{64}$')) {
             throw 'Installed candidate binding is malformed.'
@@ -213,6 +214,7 @@ function Get-CandidateBinding($Installation,[string]$Candidate,[string]$Manifest
         $_.candidate_sha256 -ceq $Candidate -and $_.manifest_sha256 -ceq $ManifestHash })
     if ($matches.Count -ne 1) { throw 'Installed candidate lacks one exact config/authorization binding.' }
     $binding=$matches[0]
+    $storage=Get-ExistingPath $binding.storage $true
     $config=Get-ExistingPath $binding.config $false
     if ((Get-FileHash -LiteralPath $config -Algorithm SHA256).Hash.ToLowerInvariant() -cne $binding.config_sha256) {
         throw 'Installed candidate configuration changed.'
@@ -301,7 +303,7 @@ function Install-RuntimePackage {
         $bindings=@($prior.candidate_bindings | Where-Object { $_.candidate_sha256 -cne $value.candidate_sha256 })
     }
     $bindings+=,[ordered]@{ candidate_sha256=$value.candidate_sha256; manifest_sha256=$manifestHash;
-        config=$configPath; config_sha256=$configHash; deployment_authorization=$authorizationPath;
+        storage=$storagePath; config=$configPath; config_sha256=$configHash; deployment_authorization=$authorizationPath;
         deployment_authorization_sha256=$authorizationHash; moonraker_events=[bool]$MoonrakerEvents }
     $record=[ordered]@{ schema='helix-orca-v1-windows-installation/v2'; owner_sid=$script:Sid.Value;
         active_candidate=$value.candidate_sha256; active_manifest_sha256=$manifestHash;
@@ -628,6 +630,8 @@ if ($Action -eq 'rollback') {
         $candidate=$installation.active_candidate; $hash=$installation.active_manifest_sha256
         $installation.active_candidate=$installation.previous_candidate; $installation.active_manifest_sha256=$installation.previous_manifest_sha256
         $installation.previous_candidate=$candidate; $installation.previous_manifest_sha256=$hash
+        $restored=Get-CandidateBinding $installation $installation.active_candidate $installation.active_manifest_sha256
+        $installation.storage=$restored.storage
         Write-Control (Get-InstallationPath) $installation
     } finally { $operationLock.Dispose() }
     $installation | ConvertTo-Json -Depth 8; exit 0
@@ -660,7 +664,7 @@ if ($null -ne $installation) {
     $candidateSha=$installation.active_candidate; $manifestSha=$installation.active_manifest_sha256
     $binding=Get-CandidateBinding $installation $candidateSha $manifestSha
     $python=Get-ExistingPath $installation.python_exe $false
-    $storagePath=Get-ExistingPath $installation.storage $true
+    $storagePath=Get-ExistingPath $binding.storage $true
     $configPath=Get-ExistingPath $binding.config $false
     $authorizationPath=$binding.deployment_authorization
     $authorizationHash=$binding.deployment_authorization_sha256

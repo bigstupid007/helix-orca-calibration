@@ -26,6 +26,11 @@ normal Orca settings and accepted evidence. The wrapper creates and protects onl
 that new directory. It refuses inherited/shared ACLs on an existing destination;
 it never repairs another directory's permissions.
 
+The originating storage path, private configuration and optional deployment
+authorization are retained per installed candidate. Installing a second
+candidate cannot make rollback reuse that newer candidate's storage or policy
+files; rollback restores the complete prior binding before Start or Plan.
+
 Example paths below are placeholders to replace deliberately, not discovery or
 permission to use normal profile/configuration directories:
 
