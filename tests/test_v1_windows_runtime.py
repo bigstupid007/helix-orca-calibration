@@ -51,6 +51,7 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
                          "schema='helix-orca-v1-windows-installation/v2'",
                          'candidate_bindings', 'Get-CandidateBinding',
                          'storage=$storagePath',
+                         "$script:DeploymentAuthorizationBound=$PSBoundParameters.ContainsKey('DeploymentAuthorization')",
                          'Installed candidate lacks one exact config/authorization binding.',
                          'Installed candidate binding changed while Start was being prepared.',
                          'Get-RuntimeManifest', "'scripts/v1-runtime.py'",
@@ -79,6 +80,7 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
     def test_optional_deployment_file_is_local_private_pinned_and_fixed_argument(self):
         text=SOURCE.read_text()
         for required in ('[string]$DeploymentAuthorization', 'function Get-PrivateAuthorization',
+                         'if ($script:DeploymentAuthorizationBound)',
                          '$path=Get-ExistingPath $Value $false', 'Assert-PrivateFile $path',
                          '$size -lt 1 -or $size -gt 65536',
                          "@('--deployment-authorization',$authorization)",

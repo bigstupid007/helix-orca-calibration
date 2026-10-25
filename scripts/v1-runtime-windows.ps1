@@ -21,6 +21,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
+$script:DeploymentAuthorizationBound=$PSBoundParameters.ContainsKey('DeploymentAuthorization')
 if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT) { throw 'Windows is required; no action was performed.' }
 $script:Sid=[Security.Principal.WindowsIdentity]::GetCurrent().User
 $script:Utf8=New-Object Text.UTF8Encoding($false)
@@ -289,7 +290,7 @@ function Install-RuntimePackage {
     $configHash=(Get-FileHash -LiteralPath $configPath -Algorithm SHA256).Hash.ToLowerInvariant()
     if ([IO.Path]::GetFileName($python) -notin @('python.exe','python3.exe')) { throw 'An explicit installed Python executable is required.' }
     $authorizationPath=$null; $authorizationHash=$null
-    if ($PSBoundParameters.ContainsKey('DeploymentAuthorization')) {
+    if ($script:DeploymentAuthorizationBound) {
         $authorizationPath=Get-PrivateAuthorization $DeploymentAuthorization
         $authorizationHash=(Get-FileHash -LiteralPath $authorizationPath -Algorithm SHA256).Hash.ToLowerInvariant()
     }
