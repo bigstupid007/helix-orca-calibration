@@ -84,6 +84,7 @@ class FakeFinalSlice:
             (output / "native-generation.json").write_bytes(contract.canonical({
                 "test_only": True, "artifact_sha256": prepared["artifact"]["sha256"]}))
             (output / "native-validation-warnings.json").write_bytes(contract.canonical([]))
+            (output / "native-slicing-warnings.json").write_bytes(contract.canonical([]))
         return prepared
 
 

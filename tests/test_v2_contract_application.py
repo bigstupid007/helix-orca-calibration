@@ -648,6 +648,9 @@ class V2ContractApplicationTests(unittest.TestCase):
         self.assertIn('if(!error.string.empty())', source)
         self.assertNotIn('if(!error.string.empty()||!warnings.empty())', source)
         self.assertIn('native-validation-warnings.json', source)
+        self.assertIn('native-slicing-warnings.json', source)
+        self.assertIn('status.warning_level!=PrintStateBase::WarningLevel::NON_CRITICAL', source)
+        self.assertNotIn('throw std::runtime_error("Native slicing warning: "+status.text)', source)
 
 
 if __name__ == "__main__":

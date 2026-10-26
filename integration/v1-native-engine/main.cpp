@@ -523,9 +523,18 @@ int main(int argc,char **argv)
         diagnostic("print-constructor-start");
         Print print;
         diagnostic("print-ready");
-        print.set_status_callback([](const PrintBase::SlicingStatus &status){
-            if(status.warning_step!=-1 && status.message_type!=PrintStateBase::SlicingDefaultNotification)
-                throw std::runtime_error("Native slicing warning: "+status.text);
+        json slicing_warnings=json::array();
+        print.set_status_callback([&](const PrintBase::SlicingStatus &status){
+            if(status.warning_step==-1 || status.message_type==PrintStateBase::SlicingDefaultNotification)
+                return;
+            slicing_warnings.push_back({{"message",status.text},{"step",status.warning_step},
+                                        {"message_type",static_cast<int>(status.message_type)},
+                                        {"warning_level",static_cast<int>(status.warning_level)}});
+            // Pinned Orca records and continues non-critical slicing warnings.
+            // Critical warnings remain blocking instead of being silently
+            // downgraded by the headless native adapter.
+            if(status.warning_level!=PrintStateBase::WarningLevel::NON_CRITICAL)
+                throw std::runtime_error("Native critical slicing warning: "+status.text);
         });
         diagnostic("apply-start");
         print.apply(model,config);
@@ -561,6 +570,8 @@ int main(int argc,char **argv)
             print.export_gcode(gcode.string(),&processed,nullptr);
             diagnostic("export-ready");
         });
+        std::ofstream(output/"native-slicing-warnings.json")
+            <<slicing_warnings.dump(2)<<'\n';
         json processing={{"error_code",processed.gcode_check_result.error_code},{"warnings",json::array()}};
         for(const auto &warning:processed.warnings)
             processing["warnings"].push_back({{"level",warning.level},{"message",warning.msg},
