@@ -31,7 +31,20 @@ def v1_write(path, value):
             stream.write(canonical(value))
             stream.flush()
             os.fsync(stream.fileno())
-        os.replace(name, path)
+        # Windows denies an otherwise-atomic replacement while another owner-
+        # local reader has the destination open.  The coordinator and panel
+        # deliberately poll these journals, so tolerate only that transient
+        # sharing condition for a short bounded interval.  Every other write
+        # error still fails immediately and the temporary file is retained
+        # only until this function's finally block.
+        for attempt in range(50):
+            try:
+                os.replace(name, path)
+                break
+            except PermissionError:
+                if attempt == 49:
+                    raise
+                time.sleep(.01)
     finally:
         if os.path.exists(name):
             os.unlink(name)

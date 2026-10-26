@@ -462,6 +462,27 @@ class V2ContractApplicationTests(unittest.TestCase):
             self.assertEqual(plugin.v1_read(directory / "application.json")["status"], "applied")
             self.assertEqual(editor.commits, 1)
 
+    def test_atomic_journal_retries_a_transient_windows_sharing_violation(self):
+        plugin = self.load_plugin()
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "application.json"
+            replace = plugin.os.replace
+            attempts = []
+
+            def transient(source, destination):
+                attempts.append((source, destination))
+                if len(attempts) < 4:
+                    raise PermissionError("simulated Windows sharing violation")
+                return replace(source, destination)
+
+            plugin.os.replace = transient
+            try:
+                plugin.v1_write(path, {"status": "applied"})
+            finally:
+                plugin.os.replace = replace
+            self.assertEqual(len(attempts), 4)
+            self.assertEqual(plugin.v1_read(path), {"status": "applied"})
+
     def test_only_returned_coordinator_retry_runs_and_uncertain_cannot_retry(self):
         plugin = self.load_plugin()
         with tempfile.TemporaryDirectory() as temporary:
