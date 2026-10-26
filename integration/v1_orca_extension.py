@@ -525,7 +525,9 @@ class V2CalibrationPanel(orca.script.ScriptPluginCapabilityBase):
         self.last_application_notice = None
 
     def get_name(self):
-        return "Helix Calibration"
+        # The preserved read-only context action already owns "Helix Calibration".
+        # Orca requires every Script capability name in one plugin to be unique.
+        return "Helix V1 Calibration"
 
     def execute(self):
         self.directory = v1_storage(orca.host.plugin.storage())

@@ -74,6 +74,12 @@ class CompanionTests(unittest.TestCase):
         self.assertNotIn("urllib", source)
         self.assertNotIn("import threading", source)
 
+        plugin.HelixCalibrationPlugin().register_capabilities()
+        names = [capability().get_name() for capability in orca.registered_capabilities]
+        self.assertEqual(len(names), len(set(names)), "Orca rejects duplicate Script capability names")
+        self.assertIn("Helix Calibration", names)
+        self.assertIn("Helix V1 Calibration", names)
+
     def test_result_commits_before_receipt_and_wrong_origin_or_conflict_rejects(self):
         from test_v1_runtime import context, request, prepared
         plugin, _ = self.load()
