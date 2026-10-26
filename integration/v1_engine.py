@@ -504,8 +504,9 @@ def _validated_effective_nozzle(snapshot, current):
         if current:
             if not isinstance(raw, str):
                 raise ValueError("serialized vector required")
-            values = [float(item.strip()) for item in raw.split(";")]
-            if not values or any(not item.strip() for item in raw.split(";")):
+            tokens = re.split(r"[;,]", raw)
+            values = [float(item.strip()) for item in tokens]
+            if not values or any(not item.strip() for item in tokens):
                 raise ValueError("nonempty vector required")
             if any(not math.isfinite(value) or value <= 0 for value in values):
                 raise ValueError("finite positive vector required")

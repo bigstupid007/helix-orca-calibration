@@ -22,7 +22,7 @@ def context():
     value = dict(schema="helix-orca-v1-context/v2", origin_id="1" * 32,
         runtime=dict(contract.ORCA_RUNTIME_V2, source_commit=contract.ORCA_SOURCE_V2,
                      executable_sha256=contract.ORCA_EXECUTABLE_SHA256_V2),
-        nozzle_mm=.4, effective={"filament_flow_ratio": "0.8;1.2", "nozzle_diameter": "0.4;0.4"},
+        nozzle_mm=.4, effective={"filament_flow_ratio": "0.8;1.2", "nozzle_diameter": "0.4,0.4"},
         filament_slots=[dict(slot_number=1, preset_name="AD5X PLA"),
                         dict(slot_number=2, preset_name="AD5X PLA")],
         origin_filament=dict(slot_number=2, preset_name="AD5X PLA", shared_slots=[1, 2]))
@@ -210,6 +210,32 @@ class V2ContractApplicationTests(unittest.TestCase):
         updates = self.load_plugin().v2_application_updates(
             flow_request, {"setting": "filament_flow_ratio", "value": selected}, original)
         self.assertEqual(updates, [("filament_flow_ratio", str(selected))])
+
+    def test_current_orca_numeric_vectors_capture_with_native_delimiters(self):
+        plugin = self.load_plugin()
+        preset = test_plugin.FakePreset(
+            "AD5X PLA", user=True,
+            values={"filament_flow_ratio": "0.8,1.2"})
+        bundle = test_plugin.FakeBundle(
+            values={"nozzle_diameter": "0.4,0.4",
+                    "filament_flow_ratio": "0.8,1.2", "post_process": ""},
+            names=["AD5X PLA", "AD5X PLA"],
+            filament_presets=[preset, preset])
+        printer = test_plugin.FakePreset(
+            "AD5X", values={"nozzle_diameter": "0.4,0.4"})
+        process = test_plugin.FakePreset(
+            "0.20mm Standard", values={"layer_height": "0.2"})
+        bundle.printers = test_plugin.FakeCollection(printer, printer)
+        bundle.prints = test_plugin.FakeCollection(process, process)
+        bundle.filaments = test_plugin.FakeCollection(preset, preset)
+        host = test_plugin.FakeHost(
+            bundle, build=contract.ORCA_RUNTIME_V2["build"])
+        captured = plugin.v2_capture(host, "a" * 32, 2)
+        self.assertEqual(captured["effective"]["nozzle_diameter"], "0.4,0.4")
+        self.assertEqual(captured["effective"]["filament_flow_ratio"], "0.8;1.2")
+        self.assertEqual(
+            contract.evaluation_v2(request(captured, "flow_ratio_yolo"), captured)["setting"],
+            "filament_flow_ratio")
 
     def test_native_wrapper_requires_uniform_v2_nozzle_vector(self):
         original = context()

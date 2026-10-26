@@ -3,7 +3,7 @@ import os
 import queue
 import secrets
 import time
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 V1_PAGE = r'''<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
 *{box-sizing:border-box}body{font:14px system-ui;margin:0;background:#f5f7f8;color:#203440}main{max-width:720px;margin:auto;padding:20px}h1{font-size:24px;line-height:1.2;margin:4px 0 8px}h2{font-size:16px;margin:0 0 12px}p{line-height:1.5}.eyebrow{color:#087e76;font-size:11px;font-weight:750;letter-spacing:.1em;text-transform:uppercase}.muted{color:#59707c;font-size:13px}.card{background:white;border:1px solid #dce4e8;border-radius:12px;padding:18px;margin:16px 0;overflow-wrap:anywhere}.row{display:grid;grid-template-columns:90px 1fr;gap:8px 14px}.label{color:#59707c}.value{font-weight:600}.badge{display:inline-block;padding:5px 9px;background:#e4f3ef;color:#086c5b;border-radius:6px;font-size:12px;font-weight:700}.pending{background:#fff0d9;color:#785510}.result{border-color:#008579;border-width:2px}.big{font-size:30px;color:#007a70;font-weight:700}button{font:inherit;background:white;color:#006c65;border:1px solid #a1c5bf;border-radius:6px;padding:9px 12px;cursor:pointer}button:focus-visible,summary:focus-visible{outline:3px solid #008579;outline-offset:3px}details{margin:18px 0}summary{cursor:pointer;color:#59707c;font-size:12px}pre{white-space:pre-wrap;font:12px system-ui}#status{white-space:pre-wrap} [hidden]{display:none!important}@media(max-width:360px){main{padding:12px}.card{padding:14px}.row{grid-template-columns:70px 1fr;gap:7px}}
 </style></head><body><main><span class="eyebrow">Helix Calibration · V1 candidate</span><h1 id="headline">Waiting for Helix</h1><p class="muted">Choose and configure your calibration on Helix. Orca keeps the profiles, preparation and returned result together here.</p>
@@ -244,6 +244,7 @@ V2_APPLICATION_KEYS = {
     "retraction": ("filament_retraction_length",),
     "max_volumetric_speed": ("filament_max_volumetric_speed",),
 }
+V2_WIRE_SEMICOLON_VECTOR_KEYS = {"filament_flow_ratio"}
 V2_PAGE = r'''<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>
 *{box-sizing:border-box}body{font:14px system-ui;margin:0;background:#f5f7f8;color:#203440}main{max-width:680px;margin:auto;padding:18px}.card{background:#fff;border:1px solid #dce4e8;border-radius:12px;padding:16px;margin:14px 0}h1{font-size:22px}label{display:block;font-weight:650;margin:10px 0 5px}select,button{font:inherit;padding:9px;border:1px solid #94aaa9;border-radius:6px;background:white}button{color:#006c65;font-weight:650;margin:8px 8px 0 0}.badge{display:inline-block;padding:5px 8px;border-radius:6px;background:#e4f3ef;color:#086c5b;font-weight:700}.warn{background:#fff0d9;color:#785510}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px system-ui}</style></head><body><main>
 <span class="badge">Pinned beta.12 companion</span><h1>Helix Calibration</h1><p>Choose the filament slot that originated this exact job. Shared slots remain visible; Orca applies a result only to the official edited preset transaction and never saves it.</p>
@@ -261,6 +262,19 @@ def _v2_config(obj, keys="config_keys", read="config_value"):
         raw = getattr(obj, read)(key)
         if not isinstance(raw, str):
             raise ContractError("Serialized configuration unavailable: " + key)
+        if key in V2_WIRE_SEMICOLON_VECTOR_KEYS:
+            # Pinned current Orca serializes numeric ConfigOption vectors with
+            # commas.  The accepted V2 wire contract uses semicolons; preserve
+            # every numeric token while canonicalizing only that delimiter.
+            tokens = [token.strip() for token in re.split(r"[;,]", raw)]
+            try:
+                numbers = [Decimal(token) for token in tokens]
+            except InvalidOperation as exc:
+                raise ContractError("Serialized numeric vector unavailable: " + key) from exc
+            if (not tokens or any(not token for token in tokens)
+                    or any(not number.is_finite() for number in numbers)):
+                raise ContractError("Serialized numeric vector unavailable: " + key)
+            raw = ";".join(tokens)
         result[key] = raw
     return result
 

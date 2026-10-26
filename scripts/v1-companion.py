@@ -13,6 +13,14 @@ def generate():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     source = module.generate()
+    # The accepted physical Temperature plugin remains byte-for-byte pinned,
+    # while the current-Orca V2 companion accepts ConfigOption numeric vectors
+    # serialized with native comma delimiters (and legacy semicolons).
+    old = '    for index, token in enumerate(text.split(";")):'
+    new = '    for index, token in enumerate(re.split(r"[;,]", text)):'
+    if source.count(old) != 1:
+        raise ValueError("Qualified numeric-vector parser anchor changed")
+    source = source.replace(old, new)
     anchor = "@orca.plugin\nclass HelixCalibrationPlugin"
     if source.count(anchor) != 1:
         raise ValueError("Qualified companion class anchor changed")
