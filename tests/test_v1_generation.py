@@ -217,16 +217,20 @@ class StockGeneration(unittest.TestCase):
             origin_filament=dict(slot_number=2, preset_name='Slot 2 PETG', shared_slots=[2]))
         snapshot['filament']['saved']['name'] = 'Slot 2 PETG'
         snapshot['filament']['edited']['name'] = 'Slot 2 PETG'
-        snapshot['filament']['edited']['config'].update(
+        snapshot['filament']['edited']['config'] = dict(
+            filament_flow_ratio='1.2', filament_max_volumetric_speed='12',
             nozzle_temperature='240', nozzle_temperature_initial_layer='245',
             filament_extruder_variant='"Bowden High Flow"',
+            filament_end_gcode='"M117 slot 2"', filament_notes='[1,2]',
             filament_start_gcode='"M117 exact, slot; retained\\n"')
         snapshot['effective'].update(
             nozzle_diameter='0.4,0.4', filament_flow_ratio='0.8;1.2',
             filament_max_volumetric_speed='8,12', nozzle_temperature='210,240',
             nozzle_temperature_initial_layer='215,245',
             filament_extruder_variant='"Direct Drive Standard";"Bowden High Flow"',
-            filament_start_gcode='"M117 exact, slot; retained\\n"')
+            filament_end_gcode=';"M117 slot 2"', filament_notes='1,2;[1,2]',
+            filament_start_gcode='"M117 exact, slot; retained\\n";'
+                                '"M117 exact, slot; retained\\n"')
         flow_request = dict(schema='helix-orca-v1-request/v2', request_id='3' * 32,
             origin_id=snapshot['origin_id'], context_sha256=contract.digest(snapshot),
             calibration='flow_ratio_yolo', parameters={'pass':2, 'pattern':'archimedean_chords'},
@@ -245,6 +249,10 @@ class StockGeneration(unittest.TestCase):
         self.assertEqual([json.loads(path.read_text())['filament_extruder_variant']
                           for path in staged['filament_paths']],
                          ['"Direct Drive Standard"', '"Bowden High Flow"'])
+        self.assertEqual([json.loads(path.read_text())['filament_end_gcode']
+                          for path in staged['filament_paths']], ['""', '"M117 slot 2"'])
+        self.assertEqual([json.loads(path.read_text())['filament_notes']
+                          for path in staged['filament_paths']], ['1,2', '[1,2]'])
         self.assertEqual([json.loads(path.read_text())['filament_start_gcode']
                           for path in staged['filament_paths']],
                          ['"M117 exact, slot; retained\\n"'] * 2)
@@ -281,8 +289,30 @@ class StockGeneration(unittest.TestCase):
         self.assertEqual(generation._slot_serialized_value(
             '"0,0,0\\n0,0,0"', 0, 1, 'adaptive_pressure_advance_model'),
             '"0,0,0\\n0,0,0"')
+        self.assertEqual(generation._slot_serialized_value(
+            '1,2', 0, 1, 'filament_notes'), '1,2')
+        self.assertEqual(generation._slot_serialized_value(
+            '[1,2]', 0, 1, 'filament_notes'), '[1,2]')
+        self.assertEqual([
+            generation._slot_serialized_value(
+                ';"M117 slot 2"', index, 2, 'filament_start_gcode')
+            for index in range(2)], ['""', '"M117 slot 2"'])
+        self.assertEqual([
+            generation._slot_serialized_value(
+                'first;;third', index, 3, 'filament_notes')
+            for index in range(3)], ['first', '""', 'third'])
+        self.assertEqual([
+            generation._slot_serialized_value(
+                '"M117 slot 1";', index, 2, 'filament_end_gcode')
+            for index in range(2)], ['"M117 slot 1"', '""'])
         with self.assertRaisesRegex(generation.GenerationBlocked, 'lacks an active filament slot'):
             generation._slot_serialized_value('8,12', 2, 3, 'filament_max_volumetric_speed')
+        with self.assertRaisesRegex(generation.GenerationBlocked, 'lacks an active filament slot'):
+            generation._slot_serialized_value(';', 2, 3, 'filament_start_gcode')
+        self.assertEqual(generation._slot_serialized_value(
+            '', 0, 1, 'filament_ids'), '')
+        with self.assertRaisesRegex(generation.GenerationBlocked, 'lacks an active filament slot'):
+            generation._slot_serialized_value('"unterminated', 0, 1, 'filament_notes')
 
     def test_yolo_group_center_uses_explicit_native_bounding_box_center(self):
         self.snapshot['effective']['printable_area'] = '-20x10,280x10,280x210,-20x210'

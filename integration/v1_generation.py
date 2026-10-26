@@ -105,6 +105,66 @@ def _origin_numeric(snapshot, key):
 
 _NUMERIC_VECTOR_CELL = re.compile(
     r'(?:nil|[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?%?)\Z', re.IGNORECASE)
+# Pinned b5e9cb3c PrintConfig.cpp ConfigOptionStrings inventory.  Their cells
+# use C-style quoting and semicolon separators.  Unlike numeric vectors, simple
+# comma- or bracket-bearing strings are unquoted.
+_ORCA_STRING_VECTOR_KEYS = frozenset({
+    'adaptive_pressure_advance_model',
+    'compatible_machine_expression_group',
+    'compatible_printers',
+    'compatible_prints',
+    'compatible_process_expression_group',
+    'default_filament_colour',
+    'default_filament_profile',
+    'different_settings_to_system',
+    'downward_settings',
+    'extruder_ams_count',
+    'extruder_bed_exclude_volumes',
+    'extruder_colour',
+    'extruder_nozzle_stats',
+    'extruder_variant_list',
+    'filament_change_extrusion_role_gcode',
+    'filament_colour',
+    'filament_colour_type',
+    'filament_dev_ams_drying_ams_limitations',
+    'filament_end_gcode',
+    'filament_extruder_variant',
+    'filament_ids',
+    'filament_mixed_components',
+    'filament_mixed_gradient_curve',
+    'filament_mixed_gradient_range',
+    'filament_mixed_sublayer_ratios',
+    'filament_multi_colour',
+    'filament_notes',
+    'filament_ramming_parameters',
+    'filament_settings_id',
+    'filament_start_gcode',
+    'filament_type',
+    'filament_vendor',
+    'imex_mode_active_tools',
+    'imex_mode_gcodes',
+    'imex_mode_names',
+    'inherits_group',
+    'load_filaments',
+    'load_settings',
+    'load_slicedata',
+    'metadata_name',
+    'metadata_value',
+    'parallel_printheads_bed_exclude_areas',
+    'plugins',
+    'post_process',
+    'preset_names',
+    'print_compatible_printers',
+    'print_extruder_variant',
+    'printer_extruder_variant',
+    'scale',
+    'slicing_pipeline_plugin',
+    'small_area_infill_flow_compensation_model',
+    'upward_compatible_machine',
+    'uptodate_filaments',
+    'uptodate_settings',
+    'volumetric_speed_coefficients',
+})
 
 
 def _delimited_cells(raw, delimiter):
@@ -120,7 +180,7 @@ def _delimited_cells(raw, delimiter):
         elif character == delimiter and not quoted:
             cells.append(raw[start:offset].strip())
             start = offset + 1
-    if quoted or not cells:
+    if quoted:
         return None
     cells.append(raw[start:].strip())
     return cells
@@ -131,31 +191,37 @@ def _slot_serialized_value(value, index, count, key='option'):
     if not isinstance(value, str):
         return value
     raw = value.strip()
-    try:
-        decoded = json.loads(raw)
-        if isinstance(decoded, list):
-            if len(decoded) < count or index >= len(decoded):
-                _blocked('effective_malformed', 'Effective ' + key + ' lacks an active filament slot.')
-            selected = decoded[index]
-            return selected if isinstance(selected, str) else json.dumps(selected, separators=(',', ':'))
-    except (ValueError, TypeError):
-        pass
+    string_vector = key in _ORCA_STRING_VECTOR_KEYS
     cells = _delimited_cells(raw, ';')
-    # ConfigOptionStrings quote embedded semicolons.  Empty top-level cells are
-    # therefore not a valid native vector (and commonly identify G-code text).
-    if cells is not None and not all(cells):
+    if string_vector:
+        if cells is None:
+            _blocked('effective_malformed', 'Effective ' + key + ' lacks an active filament slot.')
+        # Pinned Orca uses bare empty text for a valid optional zero-length
+        # ConfigOptionStrings value.  It has no slot cell to project.
+        if not raw:
+            return raw
+        if len(cells) == 1:
+            if count > 1:
+                _blocked('effective_malformed', 'Effective ' + key + ' lacks an active filament slot.')
+            return raw
+    elif (cells is None or len(cells) == 1
+          or not all(_NUMERIC_VECTOR_CELL.fullmatch(cell) for cell in cells)):
         cells = None
-    if cells is None:
+    if not string_vector and cells is None:
         comma_cells = _delimited_cells(raw, ',')
         # Current Orca serializes numeric, Boolean, enum and nullable vectors
-        # with commas.  Require their scalar grammar so a ConfigOptionString
-        # containing commas can never be reinterpreted as a filament vector.
-        if comma_cells is not None and all(_NUMERIC_VECTOR_CELL.fullmatch(cell) for cell in comma_cells):
+        # with commas.  The pinned string-option inventory above is excluded
+        # before this grammar is considered.
+        if (comma_cells is not None and len(comma_cells) > 1
+                and all(_NUMERIC_VECTOR_CELL.fullmatch(cell) for cell in comma_cells)):
             cells = comma_cells
     if cells is not None:
-        if (not all(cells) or len(cells) < count or index >= len(cells)):
+        if len(cells) < count or index >= len(cells):
             _blocked('effective_malformed', 'Effective ' + key + ' lacks an active filament slot.')
-        return cells[index]
+        selected = cells[index]
+        # A one-cell empty ConfigOptionStrings value serializes as two quotes;
+        # bare empty text deserializes to an empty vector in pinned Orca.
+        return '""' if string_vector and not selected else selected
     return value
 
 
