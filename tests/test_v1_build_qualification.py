@@ -155,6 +155,9 @@ class QualificationVerifierTests(unittest.TestCase):
                              "upper_boundary/qualification-request.json").read_text())
             self.assertEqual(pa["parameters"], {"start": 1.9, "end": 2, "step": .1,
                                                 "accelerations": [], "speeds": []})
+            mvs = json.loads((output / "private/jobs" / context_name / "max_volumetric_speed" /
+                              "lower_boundary/qualification-request.json").read_text())
+            self.assertEqual(mvs["parameters"], {"start": .01, "end": 1.01, "step": 1})
         qualify.verify_evidence(output, allow_test=True)
 
         # A final record is accepted at ordinary runtime only while every

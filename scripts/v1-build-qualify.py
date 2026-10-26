@@ -220,11 +220,17 @@ def parameters_for(context, calibration: str, parameter_case: str) -> dict:
                  if parameter_case == "lower_boundary" else
                  {"start": 19, "end": 20, "step": 1})
     else:
+        # Keep a small positive start in the core matrix without combining it
+        # with the smallest tested increment.  That Cartesian corner requests
+        # an approximately 1,001 mm stock tower: useful retained stress
+        # evidence, but not a representative build-qualification job and too
+        # tall for AD5X.  The separate extreme-range diagnostic preserves that
+        # exact request.
         value = ({"start": 10, "end": 30, "step": .5}
                  if parameter_case == "non_default_range" else
                  {"start": 5, "end": 20, "step": 1}
                  if parameter_case == "non_default_step" else
-                 {"start": .01, "end": .011, "step": .001}
+                 {"start": .01, "end": 1.01, "step": 1}
                  if parameter_case == "lower_boundary" else
                  {"start": 199, "end": 200, "step": 1})
     return contract.validate_parameters_v2(calibration, value)
