@@ -310,8 +310,9 @@ static void volumetric(Model &model,DynamicPrintConfig &config,Calib_Params &par
     cfg.set_key_value("brim_object_gap",new ConfigOptionFloat(0));
     cfg.set_key_value("precise_z_height",new ConfigOptionBool(false));
     const double top=(params.end-params.start+1)/params.step;
-    if(top>object->bounding_box_exact().size().z()+EPSILON)
-        throw std::runtime_error("Requested range exceeds native volumetric asset");
+    // Pinned Plater::calib_max_vol_speed only cuts an in-range request.  If
+    // the requested height exceeds the stock asset it keeps the complete
+    // native tower and still attempts the final slice.
     if(top<object->bounding_box_exact().size().z()) cut(model,top,ModelObjectCutAttribute::KeepLower);
     const double ratio=config.option<ConfigOptionFloats>("filament_flow_ratio")->get_at(params.extruder_id);
     const double volume=Flow(width,height,nozzle).mm3_per_mm()*ratio;

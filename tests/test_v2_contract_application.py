@@ -642,6 +642,9 @@ class V2ContractApplicationTests(unittest.TestCase):
         self.assertIn('config.set_key_value("default_junction_deviation",new ConfigOptionFloatsNullable(1,0))', source)
         self.assertIn('object->config.set_key_value("outer_wall_speed"', source)
         self.assertIn('object->config.set_key_value("outer_wall_acceleration"', source)
+        self.assertNotIn('Requested range exceeds native volumetric asset', source)
+        volumetric = source.split('static void volumetric(', 1)[1].split('// Plater::_calib_pa_pattern', 1)[0]
+        self.assertIn('if(top<object->bounding_box_exact().size().z()) cut(', volumetric)
 
 
 if __name__ == "__main__":
