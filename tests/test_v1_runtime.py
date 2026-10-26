@@ -4,6 +4,7 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+from urllib.error import HTTPError
 from unittest.mock import patch
 
 from integration.v1_contract import ContractError, DEFAULTS, canonical, digest, validate_context, validate_parameters, validate_prepared, validate_request
@@ -293,6 +294,26 @@ class RuntimeTests(unittest.TestCase):
                 adapter.send("printer.print.start", {})
             adapter.send("helix_orca_v1.context.v1", {"safe": True})
             self.assertEqual(read_json(Path(root)/"context.json"), {"safe": True})
+
+    def test_missing_initial_native_storage_is_empty_but_other_http_errors_fail(self):
+        class Opener:
+            def __init__(self, status):
+                self.status = status
+
+            def open(self, request, timeout):
+                raise HTTPError(request.full_url, self.status, "test", {}, None)
+
+        adapter = MoonrakerEvents(
+            "http://192.168.1.10", "192.168.1.10", "pin", trusted_lan=True)
+        adapter.assert_identity = lambda: None
+        adapter.opener = Opener(404)
+        self.assertEqual(adapter.read(), {})
+        with self.assertRaises(HTTPError):
+            adapter._get("/server/info")
+        for status in (401, 403, 503):
+            adapter.opener = Opener(status)
+            with self.subTest(status=status), self.assertRaises(HTTPError):
+                adapter.read()
 
 
 if __name__ == "__main__":

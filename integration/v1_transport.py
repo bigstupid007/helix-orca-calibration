@@ -7,6 +7,7 @@ import importlib.util
 import ipaddress
 import json
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import Request, ProxyHandler, HTTPRedirectHandler, build_opener
 
@@ -47,8 +48,17 @@ class MoonrakerEvents:
         headers = {"Accept": "application/json"}
         if self.api_key:
             headers["X-Api-Key"] = self.api_key
-        with self.opener.open(Request(self.origin + path, headers=headers), timeout=5) as response:
-            data = response.read(1048577)
+        try:
+            with self.opener.open(Request(self.origin + path, headers=headers), timeout=5) as response:
+                data = response.read(1048577)
+        except HTTPError as exc:
+            # Helix creates the per-plugin storage file only after the first
+            # persisted native session.  Before then, its exact Moonraker file
+            # URL is a normal 404 and means "no native request yet".  Auth and
+            # every other HTTP error remain failures.
+            if path == self.STORAGE and exc.code == 404:
+                return {}
+            raise
         if len(data) > 1048576:
             raise ContractError("Native storage exceeds bound")
         value = json.loads(data)
