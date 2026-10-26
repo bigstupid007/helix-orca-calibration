@@ -536,8 +536,17 @@ int main(int argc,char **argv)
         diagnostic("validate-start");
         const auto error=print.validate(&warnings);
         diagnostic("validate-ready");
-        if(!error.string.empty()||!warnings.empty())
+        if(!error.string.empty())
             throw std::runtime_error("Native validation rejected preparation: "+error.string);
+        // Pinned Plater treats Print::validate warnings as non-blocking
+        // ValidateWarning notifications and continues slicing. Retain their
+        // exact private text for qualification without converting them into a
+        // fatal error or a post-export warning/acknowledgement.
+        json validation_warnings=json::array();
+        for(const auto &warning:warnings)
+            validation_warnings.push_back({{"message",warning.string},{"option",warning.opt_key}});
+        std::ofstream(output/"native-validation-warnings.json")
+            <<validation_warnings.dump(2)<<'\n';
         if(print.empty()) throw std::runtime_error("Native print is empty");
         Model::setExtruderParams(config,origin_slot);Model::setPrintSpeedTable(config,print.config());
         GCodeProcessorResult processed;

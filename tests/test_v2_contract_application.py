@@ -645,6 +645,9 @@ class V2ContractApplicationTests(unittest.TestCase):
         self.assertNotIn('Requested range exceeds native volumetric asset', source)
         volumetric = source.split('static void volumetric(', 1)[1].split('// Plater::_calib_pa_pattern', 1)[0]
         self.assertIn('if(top<object->bounding_box_exact().size().z()) cut(', volumetric)
+        self.assertIn('if(!error.string.empty())', source)
+        self.assertNotIn('if(!error.string.empty()||!warnings.empty())', source)
+        self.assertIn('native-validation-warnings.json', source)
 
 
 if __name__ == "__main__":

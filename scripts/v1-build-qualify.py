@@ -412,7 +412,8 @@ def _case_receipt(context_name, parameter_case, request, context, intent, prepar
         labels.append("qualification-warning-ack.json")
         ack_sha = _digest(acknowledgement)
     if prepared["generator"]["route"] == "native-engine-v2":
-        labels.extend(["native-processing.json", "native-generation.json"])
+        labels.extend(["native-processing.json", "native-generation.json",
+                       "native-validation-warnings.json"])
     result_path = case_dir / "result.json"
     if result_path.is_file():
         labels.append("result.json")
