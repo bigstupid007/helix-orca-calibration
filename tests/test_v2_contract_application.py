@@ -113,7 +113,7 @@ class V2ContractApplicationTests(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         path = Path(temporary.name) / "helix_calibration.py"
-        path.write_text(self.builder.generate())
+        path.write_text(self.builder.generate(), encoding="utf-8", newline="\n")
         previous = test_plugin.PLUGIN_PATH
         test_plugin.PLUGIN_PATH = path
         try:

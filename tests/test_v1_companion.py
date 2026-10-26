@@ -17,7 +17,7 @@ class CompanionTests(unittest.TestCase):
     def load(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp)/"helix_calibration.py"
-            path.write_text(builder.generate())
+            path.write_text(builder.generate(), encoding="utf-8", newline="\n")
             previous = test_plugin.PLUGIN_PATH
             test_plugin.PLUGIN_PATH = path
             try:

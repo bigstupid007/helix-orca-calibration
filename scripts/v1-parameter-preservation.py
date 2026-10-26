@@ -246,7 +246,7 @@ def current_equivalence_paths(report):
 def verify_current_equivalence(root, report):
     root = Path(root)
     expected, native = current_equivalence_paths(report)
-    actual_native = sorted(str(path.relative_to(root)) for path in (root / "integration/v1-native").rglob("*")
+    actual_native = sorted(path.relative_to(root).as_posix() for path in (root / "integration/v1-native").rglob("*")
                            if path.is_file())
     require(actual_native == native, "Current native UI/catalog inventory changed")
     for relative in expected:

@@ -40,5 +40,5 @@ if __name__ == "__main__":
     source = generate()
     compile(source, "helix_calibration.py", "exec")
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(source)
+    args.output.write_text(source, encoding="utf-8", newline="\n")
     print(hashlib.sha256(source.encode()).hexdigest())
