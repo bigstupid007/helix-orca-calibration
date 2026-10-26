@@ -117,6 +117,11 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
     @unittest.skipUnless(os.name=='nt' and (shutil.which('powershell.exe') or shutil.which('pwsh.exe')),'Actual Windows lifecycle unavailable')
     def test_actual_install_second_candidate_rollback_restores_its_config_and_authorization(self):
         host=shutil.which('powershell.exe') or shutil.which('pwsh.exe')
+        acl_probe=subprocess.run([host,'-NoProfile','-NonInteractive','-Command',
+            "$ErrorActionPreference='Stop';Import-Module Microsoft.PowerShell.Security;"
+            "[void](Get-Command Set-Acl -ErrorAction Stop)"],capture_output=True,text=True,timeout=30)
+        if acl_probe.returncode:
+            self.skipTest('Actual Windows ACL provider unavailable: '+(acl_probe.stderr or acl_probe.stdout).strip()[:200])
         runtime=Path(os.environ['LOCALAPPDATA'])/('helix-orca-lifecycle-test-'+uuid.uuid4().hex)
         self.addCleanup(lambda: shutil.rmtree(runtime,ignore_errors=True))
         with tempfile.TemporaryDirectory() as temporary:

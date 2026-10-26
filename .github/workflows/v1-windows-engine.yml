@@ -93,7 +93,15 @@ jobs:
           python-version: '3.12'
       - name: Verify the amended contract, native bridge, owner runtime, and qualification boundary
         run: |
-          python -m unittest discover -s tests -v
+          $env:PYTHONPATH = (Join-Path $env:GITHUB_WORKSPACE 'tests')
+          python -m unittest -v `
+            tests.test_v1_build_qualification `
+            tests.test_v1_jobs `
+            tests.test_v1_native_evidence `
+            tests.test_v1_native_parameters `
+            tests.test_v1_parameter_preservation `
+            tests.test_v1_windows_runtime `
+            tests.test_v2_contract_application
       - name: Retrieve only an explicitly pinned owned dependency checkpoint
         if: github.event_name == 'workflow_dispatch' && !inputs.toolchain_preflight_only && inputs.dependency_run_id != ''
         env:
