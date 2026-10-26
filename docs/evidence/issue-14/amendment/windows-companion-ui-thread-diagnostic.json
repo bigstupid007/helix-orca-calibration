@@ -1,0 +1,22 @@
+{
+  "schema": "helix-orca-v1-windows-companion-ui-thread-diagnostic/v1",
+  "retained_at_utc": "2026-10-26T17:14:42Z",
+  "platform": "SPARE / Windows owner session",
+  "candidate_head": "ff8a6dc",
+  "companion_sha256": "fed6838936b19980f3f199200d5f2c2ac4f307515089da4a720c4284d413d8f4",
+  "orca_source_commit": "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03",
+  "selected_originating_filament": {
+    "slot_number": 1,
+    "preset_name": "Generic PLA - Voron Rapido - Initial"
+  },
+  "founder_capture": {
+    "filename": "codex-clipboard-bc8acc3f-6e9c-40d7-acb5-bafd4d97b05e.png",
+    "sha256": "cb1ac38cce7db0826edee7a62eb5d35b30e64b7b6cbb654b55756e570869ead1",
+    "visible_error": "Unavailable: app_info() must be called from the UI thread"
+  },
+  "classification": "actual product assertion",
+  "root_cause": "The V2 companion queued live Orca context capture to its persistent Script worker even though the pinned host permits app_info() only from the UI thread and documents dock-panel on_message callbacks as UI-thread callbacks.",
+  "bounded_disposition": "Keep the official edited-preset transaction on the persistent Script worker, move only read-only live slot/context capture to the native UI callback, add a regression test for callback-thread ownership, and rerun the current Windows gate.",
+  "accepted_temperature_implementation_changed": false,
+  "physical_action_dispatched": false
+}

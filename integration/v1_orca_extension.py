@@ -513,8 +513,9 @@ def v2_apply_inbox(directory, preset_editor, now=None):
 class V2CalibrationPanel(orca.script.ScriptPluginCapabilityBase):
     """Ordinary owner-local companion with one persistent Script worker.
 
-    WebView callbacks enqueue commands only. The worker owns the blocking
-    begin_update/set/commit transaction as required by the pinned host API.
+    WebView callbacks own the read-only live Orca snapshot because the pinned
+    host invokes them on its UI thread. The Script worker owns only the blocking
+    begin_update/set/commit transaction and never reads live UI state.
     """
     def __init__(self):
         super().__init__()
@@ -544,41 +545,7 @@ class V2CalibrationPanel(orca.script.ScriptPluginCapabilityBase):
                 command = dict(command="poll_application")
             if command["command"] == "stop":
                 break
-            if command["command"] == "slots":
-                try:
-                    names = list(orca.host.preset_bundle().current_filament_preset_names())
-                    slots = [dict(slot_number=index, preset_name=str(name))
-                             for index, name in enumerate(names, 1) if name]
-                    payload = dict(command="v2_slots", slots=slots,
-                                   error=None if len(slots) == len(names) else "One or more active slots has no preset identity.")
-                except Exception as exc:
-                    payload = dict(command="v2_slots", slots=[], error=("Unavailable: " + str(exc))[:768])
-                if self.panel and self.panel.is_open():
-                    self.panel.post(payload)
-            elif command["command"] == "capture":
-                try:
-                    retained = v1_read(self.directory / "context.json")
-                    origin_id = retained["origin_id"] if retained else secrets.token_hex(16)
-                    captured = v2_capture(orca.host, origin_id, command["origin_slot"])
-                    if retained and captured != retained:
-                        captured["origin_id"] = secrets.token_hex(16)
-                    captured = validate_context_v2(captured)
-                    origins = self.directory / "origins"
-                    origins.mkdir(exist_ok=True)
-                    v1_write(self.directory / "context.json", captured)
-                    origin_path = origins / (captured["origin_id"] + ".json")
-                    old = v1_read(origin_path)
-                    if old is not None and canonical(old) != canonical(captured):
-                        raise ContractError("Original V2 context is immutable")
-                    v1_write(origin_path, captured)
-                    payload = dict(command="v2_context", context=captured,
-                                   context_sha256=digest(captured), error=None)
-                except Exception as exc:
-                    payload = dict(command="v2_context", context=None, context_sha256=None,
-                                   error=("Unavailable: " + str(exc))[:768])
-                if self.panel and self.panel.is_open():
-                    self.panel.post(payload)
-            elif command["command"] == "poll_application":
+            if command["command"] == "poll_application":
                 try:
                     state = v2_apply_inbox(self.directory, orca.host.preset.filament)
                     payload = dict(command="v2_application", state=state, error=None)
@@ -594,17 +561,44 @@ class V2CalibrationPanel(orca.script.ScriptPluginCapabilityBase):
     def on_message(self, message):
         if not isinstance(message, dict) or message.get("command") not in ("slots", "capture"):
             return
-        command = dict(command=message["command"])
-        if command["command"] == "capture":
+
+        # The pinned host explicitly delivers dock-panel on_message callbacks on
+        # the UI thread. app_info() rejects every other thread, so all live Orca
+        # reads stay in this callback and never enter the transaction worker.
+        if message["command"] == "slots":
+            try:
+                names = list(orca.host.preset_bundle().current_filament_preset_names())
+                slots = [dict(slot_number=index, preset_name=str(name))
+                         for index, name in enumerate(names, 1) if name]
+                payload = dict(command="v2_slots", slots=slots,
+                               error=None if len(slots) == len(names) else "One or more active slots has no preset identity.")
+            except Exception as exc:
+                payload = dict(command="v2_slots", slots=[], error=("Unavailable: " + str(exc))[:768])
+        else:
             if type(message.get("origin_slot")) is not int or message["origin_slot"] < 1:
                 return
-            command["origin_slot"] = message["origin_slot"]
-        try:
-            self.commands.put_nowait(command)
-        except queue.Full:
-            if self.panel and self.panel.is_open():
-                self.panel.post(dict(command="v2_application", state=None,
-                                     error="Application request already queued."))
+            try:
+                retained = v1_read(self.directory / "context.json")
+                origin_id = retained["origin_id"] if retained else secrets.token_hex(16)
+                captured = v2_capture(orca.host, origin_id, message["origin_slot"])
+                if retained and captured != retained:
+                    captured["origin_id"] = secrets.token_hex(16)
+                captured = validate_context_v2(captured)
+                origins = self.directory / "origins"
+                origins.mkdir(exist_ok=True)
+                v1_write(self.directory / "context.json", captured)
+                origin_path = origins / (captured["origin_id"] + ".json")
+                old = v1_read(origin_path)
+                if old is not None and canonical(old) != canonical(captured):
+                    raise ContractError("Original V2 context is immutable")
+                v1_write(origin_path, captured)
+                payload = dict(command="v2_context", context=captured,
+                               context_sha256=digest(captured), error=None)
+            except Exception as exc:
+                payload = dict(command="v2_context", context=None, context_sha256=None,
+                               error=("Unavailable: " + str(exc))[:768])
+        if self.panel and self.panel.is_open():
+            self.panel.post(payload)
 
     def on_close(self):
         self.stopping = True

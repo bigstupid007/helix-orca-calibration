@@ -488,6 +488,28 @@ class V2ContractApplicationTests(unittest.TestCase):
             self.assertEqual(plugin.v1_read(directory / "application.json")["status"], "applied")
             self.assertEqual(editor.commits, 1)
 
+    def test_live_context_capture_stays_in_ui_message_callback(self):
+        plugin = self.load_plugin()
+        callback_thread = threading.get_ident()
+        calls = []
+        original_capture = plugin.v2_capture
+        plugin.v2_capture = lambda host, origin_id, slot: (
+            calls.append((threading.get_ident(), slot)), context())[1]
+        try:
+            with tempfile.TemporaryDirectory() as temporary:
+                panel = plugin.V2CalibrationPanel()
+                panel.directory = Path(temporary)
+                messages = []
+                panel.panel = types.SimpleNamespace(is_open=lambda: True, post=messages.append)
+                panel.on_message({"command": "capture", "origin_slot": 2})
+                self.assertEqual(calls, [(callback_thread, 2)])
+                self.assertEqual(messages[-1]["command"], "v2_context")
+                self.assertIsNone(messages[-1]["error"])
+                self.assertEqual(plugin.v1_read(panel.directory / "context.json"), context())
+                self.assertTrue(panel.commands.empty())
+        finally:
+            plugin.v2_capture = original_capture
+
     def test_atomic_journal_retries_a_transient_windows_sharing_violation(self):
         plugin = self.load_plugin()
         with tempfile.TemporaryDirectory() as temporary:
