@@ -103,21 +103,59 @@ def _origin_numeric(snapshot, key):
     return values[index]
 
 
-def _slot_serialized_value(value, index, count):
+_NUMERIC_VECTOR_CELL = re.compile(
+    r'(?:nil|[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?%?)\Z', re.IGNORECASE)
+
+
+def _delimited_cells(raw, delimiter):
+    """Split an Orca vector without treating delimiters inside strings as cells."""
+    cells, start, quoted, escaped = [], 0, False, False
+    for offset, character in enumerate(raw):
+        if escaped:
+            escaped = False
+        elif character == '\\' and quoted:
+            escaped = True
+        elif character == '"':
+            quoted = not quoted
+        elif character == delimiter and not quoted:
+            cells.append(raw[start:offset].strip())
+            start = offset + 1
+    if quoted or not cells:
+        return None
+    cells.append(raw[start:].strip())
+    return cells
+
+
+def _slot_serialized_value(value, index, count, key='option'):
     """Project one exact active-filament vector cell into a CLI preset slot."""
     if not isinstance(value, str):
         return value
     raw = value.strip()
     try:
         decoded = json.loads(raw)
-        if isinstance(decoded, list) and len(decoded) == count:
+        if isinstance(decoded, list):
+            if len(decoded) < count or index >= len(decoded):
+                _blocked('effective_malformed', 'Effective ' + key + ' lacks an active filament slot.')
             selected = decoded[index]
             return selected if isinstance(selected, str) else json.dumps(selected, separators=(',', ':'))
     except (ValueError, TypeError):
         pass
-    cells = raw.split(';')
-    if len(cells) == count and all(cell.strip() for cell in cells):
-        return cells[index].strip()
+    cells = _delimited_cells(raw, ';')
+    # ConfigOptionStrings quote embedded semicolons.  Empty top-level cells are
+    # therefore not a valid native vector (and commonly identify G-code text).
+    if cells is not None and not all(cells):
+        cells = None
+    if cells is None:
+        comma_cells = _delimited_cells(raw, ',')
+        # Current Orca serializes numeric, Boolean, enum and nullable vectors
+        # with commas.  Require their scalar grammar so a ConfigOptionString
+        # containing commas can never be reinterpreted as a filament vector.
+        if comma_cells is not None and all(_NUMERIC_VECTOR_CELL.fullmatch(cell) for cell in comma_cells):
+            cells = comma_cells
+    if cells is not None:
+        if (not all(cells) or len(cells) < count or index >= len(cells)):
+            _blocked('effective_malformed', 'Effective ' + key + ' lacks an active filament slot.')
+        return cells[index]
     return value
 
 
@@ -130,7 +168,8 @@ def _filament_slot_profiles(snapshot, origin_profile):
         index = slot['slot_number'] - 1
         for key in tuple(profile):
             if key not in ('name', 'from', 'type', 'instantiation') and key in snapshot['effective']:
-                profile[key] = _slot_serialized_value(snapshot['effective'][key], index, len(slots))
+                profile[key] = _slot_serialized_value(
+                    snapshot['effective'][key], index, len(slots), key)
         profile['name'] = slot['preset_name']
         result.append(profile)
     return result
