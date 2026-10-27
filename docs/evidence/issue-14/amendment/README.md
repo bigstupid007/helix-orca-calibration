@@ -1,8 +1,8 @@
 # Issue #14 completion-amendment evidence
 
 This directory contains the bounded public evidence for the Founder's
-2026-10-25 completion amendment. The frozen candidate is
-`2f1ffe1041b9f591d2c621e821975f53414efd65`. Its actual Windows build-level
+2026-10-25 completion amendment and October 27 focused continuation. The frozen
+candidate is `f85936f002517640b20854ee36b30a7c6ca952f8`. Its actual Windows build-level
 qualification is bound to product source `4c0379b05e9a58a7546b42da9fbcc09658fabba8`
 and harness head `992577c15aac24ee7b23cf850c98f016c0ac73a4`; later commits are bounded
 companion, transport, runtime, and owned-job recovery corrections. PR #15
@@ -60,10 +60,19 @@ remains draft and unmerged.
   Founder/Voron attempt in which beta.12 returned to the chooser and continued
   to present a retired uncertain session while the healthy idle coordinator
   held no request. Independent Moonraker readback proves that no new owned file
-  was uploaded or started. This is a real product session/navigation failure,
-  while not being evidence of generation, slicing, upload, dispatch, or print
-  failure. Per Founder direction it is preserved and not retried in another
-  repair loop.
+  was uploaded or started. The separately authorized October 27 continuation
+  repaired and narrowly proved only that exact stale-session defect.
+- `physical-stale-session-reconciliation-sigill.json` records the October 27
+  focused proof, exact package/runtime bindings, successful authenticated
+  retirement, fresh chooser, and the controlled Temperature retry. The real
+  beta.12 **Request generation** tap then crashed HelixScreen with signal 4
+  (illegal instruction). Preparation reached the exact request-bound warning,
+  but no job, upload, Start, completion, or preset transaction existed. The
+  coordinator was stopped, rollback retained, and Moonraker independently
+  remained ready and idle. This actual physical product/runtime failure is not
+  synthetic navigation, modal ownership, or timing evidence and is outside the
+  stale-session-only repair authority; no further repair or physical loop was
+  started.
 - The complete earlier eleven-target beta.12 capture remains private layout
   lineage because four subsequently corrected product-source hashes differ.
 - The extreme-range native report remains private harness diagnostic evidence

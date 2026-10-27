@@ -2,7 +2,7 @@
 
 This is the current review guide for the Founder's 2026-10-25 completion
 amendment in Issue #14. Draft PR #15 remains draft and unmerged. The candidate
-is frozen at `2f1ffe1041b9f591d2c621e821975f53414efd65`. Its build-level
+is frozen at focused stale-session repair `f85936f002517640b20854ee36b30a7c6ca952f8`. Its build-level
 qualification remains bound to `4c0379b` product bytes and the `992577c`
 representative harness; later commits are bounded companion, transport,
 runtime, and owned-job recovery corrections.
@@ -11,15 +11,21 @@ runtime, and owned-job recovery corrections.
 The owner-local lifecycle receipt is partial: stop/rollback/install/start/status
 and final freeze stop passed, while restart/uninstall are implementation/test
 reviewed only. The amended physical sequence is incomplete and
-blocked by a preserved beta.12 stale-session/navigation failure after the first
-deliberate Start was proven to have stopped before upload. Per Founder direction,
-the product is frozen and that path is not being repaired or retried. This guide
-is the mature evidence/blocker review candidate; **do not start another physical
-calibration from it**.
+blocked by a preserved physical beta.12 signal-4 crash on the real Temperature
+**Request generation** tap. The October 27 continuation first proved that the
+retired stale session reconciles exactly, with no replay, and restored the fresh
+chooser. The retry then prepared the exact 225→215 °C artifact and warning, but
+HelixScreen crashed before Confirm or Start. No job, upload, physical motion,
+completion, or preset transaction occurred. This actual product/runtime failure
+is outside the stale-session-only repair authority, so the product is frozen and
+no additional repair or physical loop was started. This guide is the mature
+evidence/blocker review candidate; **do not start another physical calibration
+from it**.
 
 **Founder action now: none. Do not interact with the Orca Calibration tile.**
-The owner-local coordinator on SPARE is stopped and frozen; its installed
-candidate, journals, authorization, and rollback material remain preserved.
+The owner-local coordinator on SPARE is stopped and frozen; runtime candidate
+`e1d4bae2…04d9`, its journals and authorization, and immediate rollback
+candidate `41dc24a7…109` remain preserved.
 
 ## What is pinned and preserved
 
@@ -72,8 +78,8 @@ an uncertain state, stop; do not replay Start or the preset transaction.
 
 The table below is the accepted target sequence, retained for review. It is not
 a request to execute it on this frozen candidate: zero of the five amended jobs
-completed, and no additional repair/retry loop is permitted for the recorded
-stale-session/navigation failure.
+completed. The stale-session defect passed its bounded correction proof, but the
+subsequent actual beta.12 SIGILL is a separate blocker outside that repair scope.
 
 Use the order and values below. These are the controlled physical-validation
 jobs, not a general recommendation for every filament.
@@ -130,10 +136,11 @@ as extreme-range native build-volume evidence and is not a representative core
 matrix cell. Neither diagnostic is treated as a product-navigation failure or
 as permission to alter the frozen product.
 
-The physical continuation is separately retained at
+The original physical failure is retained at
 `docs/evidence/issue-14/amendment/physical-stale-session-navigation-diagnostic.json`.
-It proves the coordinator was healthy and held no new request while beta.12
-continued to present the retired uncertain request as active. Independent
-Moonraker readback found no active virtual-SD file, no new owned upload, and no
-new print. This is the specific acceptance blocker; it is not relabeled as a
-successful five-calibration playback.
+The bounded correction and retry are separately retained at
+`docs/evidence/issue-14/amendment/physical-stale-session-reconciliation-sigill.json`.
+Together they prove exact retired-session reconciliation and then the distinct
+actual SIGILL blocker. Independent Moonraker readback found no active virtual-SD
+file, no uploaded prepared artifact, and no new print. Neither record is
+relabeled as a successful five-calibration playback.

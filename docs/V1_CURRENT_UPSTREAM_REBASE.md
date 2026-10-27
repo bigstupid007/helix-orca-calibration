@@ -151,8 +151,8 @@ for that action.
 
 ## Frozen completion candidate
 
-The completion candidate is frozen at
-`2f1ffe1041b9f591d2c621e821975f53414efd65`. Build-level qualification remains
+The completion candidate is frozen at focused stale-session repair
+`f85936f002517640b20854ee36b30a7c6ca952f8`. Build-level qualification remains
 bound to product head `4c0379b05e9a58a7546b42da9fbcc09658fabba8` and harness
 head `992577c15aac24ee7b23cf850c98f016c0ac73a4`. The intervening commits are
 bounded companion-name/UI-thread, transport, machine-binding, warning-recovery,
@@ -197,13 +197,14 @@ separate extreme-range evidence. `992577c` changes only the representative
 matrix cell to `0.01→1.01/1`; ordinary runtime remains open to every finite
 native-valid request and reports exact native fit blockers.
 
-The frozen source passes 637 dependency-free tests with seven host skips,
+The frozen source passes 640 dependency-free tests with seven host skips,
 the protected Temperature preservation verifier, the beta.9 preservation proof,
 and `git diff --check`. Exact-`992577c` CI run `40342726011`, Temperature
 readiness run `40342726039`, and V1 native-UI run `40342726496` pass;
 source-pinned Windows run `40342726026` passes. The retained actual Windows
 matrix qualifies 50/50 cases and the final owner-local runtime completes its
-stop/rollback/install/start/status sequence. Exact frozen-head CI also passes:
+stop/rollback/install/start/status sequence. The earlier `2f1ffe1` head also
+passed all four checks:
 offline evidence `40454341347`, policy `40454341394`, native UI `40454341387`,
 and pinned Windows native engine `40454341448`.
 
@@ -218,14 +219,29 @@ files changed later and are covered by tests and bounded playback rather than a
 new screenshot matrix. The prior eleven-target run remains layout lineage and
 the separate range proof remains an extreme harness diagnostic.
 
-The bounded physical continuation then exposed a different limit. One exact
+The first bounded physical continuation exposed a different limit. One exact
 Temperature job reached prepared review, warning acknowledgement, Confirm, and
 the Founder's deliberate Start, but printer readiness rejected before upload.
 Independent readback proved that no file was uploaded or started. After the
 recovery corrections and a complete owner-runtime upgrade, beta.12 still
 presented that retired uncertain request as active while the healthy coordinator
 held no request; Request generation returned to the chooser. Per Founder
-direction this stale-session/navigation failure was preserved, the product was
-frozen, and no further repair loop or physical retry began. The amendment's five
-new end-to-end physical workflows therefore remain incomplete rather than being
-inferred from the accepted Issue #12 Temperature print.
+direction this stale-session/navigation failure was preserved.
+
+The October 27 Founder-approved continuation authorized repair of only that
+stale-session defect. Commit `f85936f` reconciles the exact retired native
+session through authenticated coordinator history, without replaying upload,
+Start, result, or application. Forty-six focused tests and the 640-test full
+suite pass; focused-head CI passes in runs `40557562971`, `40557563239`,
+`40557563914`, and `40557563099`. Physical proof restored the fresh chooser.
+
+The authorized Temperature retry retained 225→215 °C, 5 °C steps and scale-on,
+then prepared exact artifact SHA-256 `9d65e34b…5717` with known warning
+`1000C001`. On the real Request-generation interaction HelixScreen raised signal
+4 before Confirm or Start. The coordinator was stopped; Moonraker independently
+showed ready/idle, no uploaded artifact, no active virtual-SD file, and no new
+motion. This actual product/runtime failure is outside the stale-session-only
+repair. The product is frozen and the remaining four physical validations were
+not started. The amendment's five new end-to-end physical workflows therefore
+remain incomplete rather than being inferred from the accepted Issue #12
+Temperature print.

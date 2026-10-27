@@ -1,6 +1,7 @@
 # Helix-Orca Calibration
 
-> **Current authority (2026-10-25):** the Founder amendment in Issue #14
+> **Current authority (2026-10-27):** the Founder amendment and approved
+> stale-session continuation in Issue #14
 > controls the completion candidate. It pins HelixScreen beta.12 and Orca
 > `b5e9cb3c`, replaces exact-request parity with build/route qualification,
 > removes the universal Voron macro ABI, applies selected results through
@@ -11,8 +12,8 @@
 > them; they do not control the amended product.
 
 <!-- v1-generator-current -->
-The frozen amendment candidate is
-`2f1ffe1041b9f591d2c621e821975f53414efd65`. Its actual Windows build-level
+The frozen amendment candidate is focused stale-session repair
+`f85936f002517640b20854ee36b30a7c6ca952f8`. Its actual Windows build-level
 qualification remains bound to product head `4c0379b05e9a58a7546b42da9fbcc09658fabba8`
 and harness head `992577c15aac24ee7b23cf850c98f016c0ac73a4`; later commits are bounded
 companion, transport, runtime, and owned-job recovery corrections. The product preserves the accepted
@@ -26,22 +27,24 @@ nonblocking warning behavior rather than being promoted to fatal errors.
 Printer execution is target-qualified and does not require a universal Voron
 macro signature.
 
-The frozen source passes 637 dependency-free tests (seven host skips), protected
+The frozen source passes 640 dependency-free tests (seven host skips), protected
 Temperature and native-evidence verification, and final independent engineering
 review. Product Preflight review is complete and the product remains blocked.
 The focused beta.12 proof is presentation lineage: 26 of its 28 captured source
 files are unchanged at freeze; the earlier eleven-target capture is also layout
 lineage, and the extreme-range run remains separate harness diagnostic evidence.
-All four frozen-head CI checks pass: offline evidence `40454341347`, policy
-`40454341394`, native UI `40454341387`, and pinned Windows native engine
-`40454341448`. The final Windows package, SPARE qualification/lifecycle, and
+All four focused-head CI checks pass: offline evidence `40557562971`, policy
+`40557563239`, native UI `40557563914`, and pinned Windows native engine
+`40557563099`. The final Windows package, SPARE qualification/lifecycle, and
 controlled five-calibration Founder-started physical sequence are tracked in the
 [completion ledger](docs/V1_COMPLETION_ACCEPTANCE.md) and
 [current Founder guide](docs/V1_FOUNDER_REVIEW_CURRENT.md). The Windows matrix
 passes and the owner-local lifecycle is partial within its exact receipt. The
-amended physical sequence is explicitly
-blocked by the preserved beta.12 stale-session/navigation diagnostic after zero
-new uploads or prints; per Founder direction it was not repaired or retried.
+stale-session defect was narrowly repaired and proved without replay. The
+authorized Temperature retry then produced the exact prepared artifact and known
+warning, but physical beta.12 crashed with signal 4 on Request generation before
+Confirm or Start. No upload, print, or motion occurred; the runtime is stopped,
+the product is frozen, and the remaining four validations were not started.
 No automatic preset Save is claimed. PR #15 remains draft and unmerged.
 <!-- /v1-generator-current -->
 

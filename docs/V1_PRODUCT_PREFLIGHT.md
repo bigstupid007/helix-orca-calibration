@@ -1,7 +1,8 @@
 # V1 AI Product Preflight
 
 > **Product Preflight review complete; product blocked:** the candidate is
-> frozen at `2f1ffe1041b9f591d2c621e821975f53414efd65`. The current beta.12 native
+> frozen at focused stale-session repair
+> `f85936f002517640b20854ee36b30a7c6ca952f8`. The current beta.12 native
 > evidence-first review is complete; build qualification, owner-runtime and
 > controlled physical observations are recorded here when their bounded runs
 > complete.  Earlier beta.9/October 15 sections remain history, not current
@@ -43,16 +44,20 @@ occluded.` Per Founder instruction it was preserved, not retried or treated as
 a product failure. See the [focused beta.12 evidence and exact limits](evidence/issue-14/amendment/native-beta12-focused/README.md)
 and [sanitized capture diagnostic](evidence/issue-14/amendment/windows-gui-diagnostic.json).
 
-The bounded Founder/Voron continuation later returned from Request generation
+The first bounded Founder/Voron continuation returned from Request generation
 to the chooser while beta.12 still presented the retired uncertain request as
 active. Readback found a healthy idle coordinator with no current request and
 no new prepared job; Moonraker was ready with no active virtual-SD file and no
 new owned upload. This is retained as a
 [stale-session/navigation diagnostic](evidence/issue-14/amendment/physical-stale-session-navigation-diagnostic.json).
-It is an actual product session/navigation failure and the Product Preflight
-blocker, while independent readback shows it is not evidence of generation,
-upload, dispatch, or printing failure. Per Founder direction it was not
-retried, and product behavior was frozen.
+The October 27 continuation repaired and narrowly proved that exact retired
+session reconciliation without replay. A fresh Temperature request then
+prepared the exact 225→215 °C artifact and known warning, after which the real
+beta.12 Request-generation tap crashed HelixScreen with signal 4 before Confirm
+or Start. This separate actual product/runtime failure is the current Product
+Preflight blocker. Independent readback proves no upload, dispatch, print, or
+motion occurred. The coordinator is stopped and the product is frozen. See the
+[focused correction and SIGILL record](evidence/issue-14/amendment/physical-stale-session-reconciliation-sigill.json).
 
 The following visual audit, 396-frame matrix and earlier synthetic browser
 workflow are historical, tied to their exact source snapshots. They do not
