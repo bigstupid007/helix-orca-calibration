@@ -167,7 +167,9 @@ class Coordinator:
             return copy.deepcopy(self.state["offer"])
         if self.state["request"] is not None and self.state["phase"] not in ("delivered", "failed", "cancelled", "blocked"):
             return self.state["offer"]
-        if self.state["request"] is None and self.state["context"] == context and self.state["offer"] and self.now() < self.state["offer"]["expires_at"]:
+        if (self.state["request"] is None and self.state["context"] == context
+                and self.state["offer"] and self.now() < self.state["offer"]["expires_at"]
+                and self.state["offer"].get("capabilities") == self.capabilities):
             return self.state["offer"]
         # Archive completed/blocked immutable session before allowing a fresh nonce.
         if self.state["request"]:

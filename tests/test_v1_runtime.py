@@ -113,6 +113,19 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(read_json(Path(root)/"history"/(first["request_id"]+".json"))["request"], req)
             self.assertEqual(second, runtime.offer(context()))
 
+    def test_unconsumed_offer_refreshes_after_runtime_capability_change(self):
+        with tempfile.TemporaryDirectory() as root:
+            unavailable = self.make(root, available=False)
+            first = unavailable.offer(context())
+            self.assertTrue(all(not item["available"] for item in first["capabilities"]))
+
+            available = self.make(root, available=True)
+            second = available.offer(context())
+            self.assertNotEqual(first["request_id"], second["request_id"])
+            self.assertEqual(first["context_sha256"], second["context_sha256"])
+            self.assertTrue(all(item["available"] for item in second["capabilities"]))
+            self.assertEqual(second, available.offer(context()))
+
     def test_tick_ignores_archived_native_artifacts_and_unavailable_context(self):
         spec = importlib.util.spec_from_file_location("v1_cli_tick", Path(__file__).resolve().parents[1]/"scripts/v1-runtime.py")
         cli = importlib.util.module_from_spec(spec); spec.loader.exec_module(cli)
