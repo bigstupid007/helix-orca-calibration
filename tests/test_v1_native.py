@@ -215,6 +215,7 @@ class V1NativeTests(unittest.TestCase):
         self.assertIn('d.sequence<=v1_session.sequence',source)
         self.assertIn("s.phase='uncertain';s.evaluation=nil;s.recovery_required=true",source)
         self.assertIn("local recovering=s.recovery_required==true and s.phase=='uncertain'",source)
+        self.assertIn("uncertain={warning=true,blocked=true", source)
         self.assertIn("(s.phase~='review' and not recovering) or action~='confirm'",source)
         self.assertIn('s.recovery_required=nil',source)
         for token in ('v1_same(s.prepared,d.prepared)','s.job_id~=d.job_id','s.completion_sha256~=d.completion_sha256'):

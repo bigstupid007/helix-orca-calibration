@@ -470,7 +470,7 @@ local function v1_receive_status(_,d)
         starting={starting=true,blocked=true,printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
         printing={printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
         verifying={verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
-        uncertain={blocked=true,review=true,confirmed=true,starting=true,printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
+        uncertain={warning=true,blocked=true,review=true,confirmed=true,starting=true,printing=true,verifying=true,complete=true,failed=true,cancelled=true,uncertain=true},
         blocked={blocked=true}}
     if not transitions[s.phase] or not transitions[s.phase][d.phase] then return end
     if s.result or s.phase=='failed' or s.phase=='cancelled' or s.phase=='complete' then return end
