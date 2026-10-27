@@ -78,7 +78,12 @@ def tick(coordinator, storage, transport):
     if isinstance(native.get("intent"), dict) and retained and native["intent"].get("request_id") == retained["request_id"]:
         coordinator.intent(native["intent"])
     coordinator.poll_job()
-    coordinator.reconcile_native(native)
+    retirement = coordinator.retirement(native)
+    if retirement:
+        suffix = ".v2" if retirement["schema"] == "helix-orca-v1-retired/v2" else ".v1"
+        transport.send("helix_orca_v1.retired" + suffix, retirement)
+    else:
+        coordinator.reconcile_native(native)
     if isinstance(native.get("result"), dict) and retained and native["result"].get("request_id") == retained["request_id"]:
         result = coordinator.result(native["result"])
         inbox = dict(result=result, request=coordinator.state["request"],

@@ -54,6 +54,31 @@ class RecoveryTests(unittest.TestCase):
                 self.assertEqual(r.status(),current)
                 self.assertEqual(fixtures.RuntimeTests().make(root).status(),current)
 
+    def test_exact_archived_predispatch_rejection_retires_stale_native_session(self):
+        with tempfile.TemporaryDirectory() as root:
+            r=self.make(root,'uncertain')
+            retained=copy.deepcopy(r.state['request'])
+            native=dict(request=retained,sequence=r.state['sequence'],phase='uncertain',
+                recovery_required=True,prepared=copy.deepcopy(r.state['prepared']),
+                prepared_sha256=digest(r.state['prepared']),job_id=None,completion_sha256=None)
+            r._status('blocked','Retained printer readiness rejection occurred before upload; nothing was sent to the printer.')
+            r.offer(context())
+            self.assertIsNone(r.state['request'])
+            retirement=r.retirement(native)
+            self.assertEqual(retirement['schema'],'helix-orca-v1-retired/v1')
+            self.assertEqual(retirement['request'],retained)
+            self.assertEqual(retirement['phase'],'blocked')
+            self.assertGreater(retirement['sequence'],native['sequence'])
+            for changed in (
+                    dict(native,request=dict(retained,request_id='f'*32)),
+                    dict(native,recovery_required=False),
+                    dict(native,prepared_sha256='f'*64),
+                    dict(native,sequence=retirement['sequence']+1)):
+                self.assertIsNone(r.retirement(changed))
+            r.state['request']=copy.deepcopy(retained)
+            r._persist()
+            self.assertIsNone(r.retirement(native))
+
     def test_intent_crashes_cannot_consume_without_recording_outcome(self):
         for action,phase in (('confirm','review'),('start','confirmed'),('cancel','printing')):
             for after in (False,True):

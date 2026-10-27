@@ -49,19 +49,19 @@ CONTROL_BOUNDARY = (
     "scripts/v1-native-review.py",
     "scripts/v1-runtime.py",
 )
-# The October 25 amendment intentionally changes only these entries in the
-# otherwise-retained control boundary.  Keeping the accepted manifest immutable
-# while pinning the replacement bytes makes the authority transition explicit;
-# it does not turn either record into build-qualification evidence.
+# The October 25 amendment and October 27 stale-session continuation change
+# only these entries in the otherwise-retained control boundary. Keeping the
+# accepted manifest immutable while pinning the replacement bytes makes both
+# authority transitions explicit; neither record is build-qualification evidence.
 AMENDMENT_CONTROL_BOUNDARY_SHA256 = {
     "integration/v1_contract.py": "5180172eef09015de72b780fd335390085dcb4c372caeb4149d326ea52541d2e",
     "integration/v1_routing.py": "b3174a1816a6313e8730ac10a597bb1b5e0114a0f4bda6c3ab46f57ededf907a",
-    "integration/v1_runtime.py": "686dd677e4c84b909052fd9a18213ce2fec09d746655f0b26f1cfa33f135b0c7",
-    "integration/v1_transport.py": "c1db4f6d7804dff57b959e715e7325d7e3e2473841285461f79cae60673646da",
+    "integration/v1_runtime.py": "a183fb3f67ee35fa7c010de3136f22be7ca163bc5e8bb07a2589b800f15a4e0c",
+    "integration/v1_transport.py": "23c1282c224b6dfef7b7471d7f8acff36e070c375005a45c8b71c5304f338117",
     "scripts/v1-native-plugin.py": "80c3f2f908211b657396dd4d627b3b0c1e5e08a04b4c8074da50c60761cdbf48",
     "scripts/v1-native-qualify.py": "5627f766b00ac1bf1c7070d86a211a69489c3385be2158f646b6cc8dde87ec41",
     "scripts/v1-native-review.py": "ea4131f1ef0c694539641da174ef5abd2e3b29e34d2648e244f6ca1616c6dc43",
-    "scripts/v1-runtime.py": "9622d752eccdd4bdeb7548cc35541c84a81e2f737422e9f8326a7cf642b6826c",
+    "scripts/v1-runtime.py": "defebc87630967ec597c7fa2cc54648720cd167fe7e337ee1b01f6519db3a8b2",
 }
 NATIVE_SOURCE_PREFIX = "integration/v1-native/"
 AMENDMENT_NATIVE_REMOVED = frozenset()
@@ -69,7 +69,7 @@ AMENDMENT_NATIVE_SHA256 = {
     "integration/v1-native/README.md": "0690ab6b87bb933f9b0b412e7a665e0164652bb25e961367c224a86f0e5b621a",
     "integration/v1-native/catalog.json": "ac8c17d40b33cf33b9d0660c4e3e046abe7c3c44de401909e4f0bf4a41d92415",
     "integration/v1-native/controls.lua": "a836d2c2d24675c7e33d8937dd20f690d892aee3b59f35567dc8bf0b293462b3",
-    "integration/v1-native/main.lua": "964c78cd7ad3fca22379545b25cbe8b25652923fc3fe85c4b47162f77e32e836",
+    "integration/v1-native/main.lua": "967f633146008a006460e715b7ebd59c59d5db26a51b0b05052f757b11af53c8",
     "integration/v1-native/presentation.lua": "df952a096fdcc559bff2da0e1f376fbad57b22e5e335279ecfd6430610e2943e",
     "integration/v1-native/ui/orcacal__v1_flow_ratio_yolo.xml": "19e735f60faba3d20173edbbf568e97ca5359df6ac9fdc8efba4c0f37a0e1249",
     "integration/v1-native/ui/orcacal__v1_job.xml": "914488e9f5c524a2942af6d56dca5a7ce3b3299feaf289dcfe909602a75640aa",

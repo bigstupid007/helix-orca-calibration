@@ -222,6 +222,21 @@ class V1NativeTests(unittest.TestCase):
             self.assertIn(token,source)
         self.assertIn("elseif s.phase=='blocked' or s.phase=='failed' or s.phase=='cancelled' then",source)
 
+    def test_native_retirement_requires_exact_recovery_identity_and_clears_actions(self):
+        source=(ROOT/'integration/v1-native/main.lua').read_text()
+        self.assertIn("s.phase~='uncertain' or s.recovery_required~=true",source)
+        self.assertIn("not v1_same(d.request,s.request)",source)
+        self.assertIn("d.sequence<s.sequence",source)
+        self.assertIn("helix.moonraker.on_agent_event('helix_orca_v1.retired.v2'",source)
+        self.assertIn("v1_session=nil\n    if not v1_persist()",source)
+        self.assertIn("retired session remains locked",source)
+        self.assertIn("'resume_on','confirm_on','start_on','cancel_on','evaluate_on'",source)
+        with tempfile.TemporaryDirectory() as name:
+            output=Path(name)/'plugin';builder.generate(output)
+            generated=(output/'main.lua').read_text()
+            self.assertIn("helix_orca_v1.retired.v1",generated)
+            self.assertIn("helix_orca_v1.retired.v2",generated)
+
     def test_manual_reopen_deliberately_navigates_home_after_preserved_native_panel(self):
         calls=[]
         with patch.object(qualifier.q,'back_to_home',side_effect=lambda name:calls.append(('pop',name))),\

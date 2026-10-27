@@ -620,6 +620,44 @@ class Coordinator:
             self._status(self.state["phase"], self.state["message"])
         return True
 
+    def retirement(self, native):
+        """Prove that one exact recovery marker belongs to a retired journal.
+
+        A missing current request is deliberately insufficient: only a bounded,
+        durable terminal history record with the same complete request and
+        retained artifact/job bindings can retire the native session.
+        """
+        if (self.state["request"] is not None or not isinstance(native, dict)
+                or native.get("recovery_required") is not True
+                or native.get("phase") != "uncertain" or type(native.get("sequence")) is not int):
+            return None
+        request = native.get("request")
+        if not isinstance(request, dict):
+            return None
+        try:
+            request_id = hex_value(request.get("request_id"), 32)
+        except ContractError:
+            return None
+        history_path = self.root / "history" / (request_id + ".json")
+        if not history_path.exists():
+            return None
+        archived = read_json(history_path)
+        if (archived.get("schema") != "helix-orca-v1-journal/v1"
+                or archived.get("request") != request
+                or archived.get("phase") not in ("blocked", "failed", "cancelled", "delivered")
+                or type(archived.get("sequence")) is not int
+                or native["sequence"] < 0 or native["sequence"] > archived["sequence"]):
+            return None
+        prepared = archived.get("prepared")
+        bindings = {"prepared_sha256": digest(prepared) if prepared else None,
+                    "job_id": archived["job"]["job_id"] if archived.get("job") else None,
+                    "completion_sha256": digest(archived["completion"]) if archived.get("completion") else None}
+        if native.get("prepared") != prepared or any(native.get(key) != value for key, value in bindings.items()):
+            return None
+        current = request.get("schema") == "helix-orca-v1-request/v2"
+        return dict(schema="helix-orca-v1-retired/v2" if current else "helix-orca-v1-retired/v1",
+                    request=copy.deepcopy(request), sequence=archived["sequence"], phase=archived["phase"])
+
     def status(self):
         req = self.state["request"]
         if req is None:

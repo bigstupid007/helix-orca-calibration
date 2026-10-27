@@ -203,6 +203,8 @@ local function v1_render()
     v1_offer_context(v1_offer)
     if not v1_session then
         v1_context(v1_offer);v1_set('message','Choose a calibration and configure its parameters.')
+        v1_set('tile','Ready');v1_set('phase','Ready')
+        for _,key in ipairs({'resume_on','confirm_on','start_on','cancel_on','evaluate_on','evaluation_options_on','evaluation_range_on','monitor_on'}) do v1_set(key,0) end
         v1_set('warning_on',0);v1_set('retry_on',0);v1_set('application_note','')
         return
     end
@@ -725,14 +727,38 @@ helix.ui.on('v1_application_retry',function()
     s.message='Application retry requested · no preset change confirmed yet'
     if v1_persist() then v1_render() end
 end)
+local function v1_receive_retired(_,d)
+    local s=v1_session
+    if not s or s.phase~='uncertain' or s.recovery_required~=true then return end
+    local v2=s.request.schema=='helix-orca-v1-request/v2'
+    if not v1_exact(d,'schema request sequence phase')
+        or d.schema~=(v2 and 'helix-orca-v1-retired/v2' or 'helix-orca-v1-retired/v1')
+        or not v1_same(d.request,s.request) or not v1_number(d.sequence) or d.sequence%1~=0
+        or d.sequence<s.sequence
+        or (d.phase~='blocked' and d.phase~='failed' and d.phase~='cancelled' and d.phase~='delivered') then return end
+    -- Clear only after the exact retired identity is durably removed locally.
+    -- A repeated event is then inert, and no retained intent/result can replay.
+    v1_session=nil
+    if not v1_persist() then
+        v1_session=s;s.phase='uncertain';s.recovery_required=true
+        s.message='Local storage unavailable · retired session remains locked'
+        v1_render();return
+    end
+    v1_completion_presentation.disarm();v1_close_warning();v1_retire_preparation_views()
+    v1_refresh_result=false
+    if v1_result_handle then local h=v1_result_handle;v1_result_handle=nil;pcall(h.close) end
+    v1_render()
+end
 helix.moonraker.on_agent_event('helix_orca_v1.context.v1',v1_receive_offer)
 helix.moonraker.on_agent_event('helix_orca_v1.status.v1',v1_receive_status)
 helix.moonraker.on_agent_event('helix_orca_v1.ack.v1',v1_receive_ack)
+helix.moonraker.on_agent_event('helix_orca_v1.retired.v1',v1_receive_retired)
 helix.moonraker.on_agent_event('helix_orca_v1.context.v2',v1_receive_offer)
 helix.moonraker.on_agent_event('helix_orca_v1.status.v2',v1_receive_status)
 helix.moonraker.on_agent_event('helix_orca_v1.ack.v2',v1_receive_ack)
 helix.moonraker.on_agent_event('helix_orca_v1.warning.v2',v1_receive_warning_v2)
 helix.moonraker.on_agent_event('helix_orca_v1.application.v2',v1_receive_application_v2)
+helix.moonraker.on_agent_event('helix_orca_v1.retired.v2',v1_receive_retired)
 -- Recover retained state without replaying any request/intent or restoring an action.
 local v1_ok,v1_saved=pcall(helix.storage.get,'v1_session')
 local function v1_restore_v2(s)

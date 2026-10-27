@@ -150,6 +150,33 @@ class RuntimeTests(unittest.TestCase):
             self.assertIsNone(runtime.state["request"])
             self.assertTrue(all(not item["available"] for item in read_json(channel.directory/"context.json")["capabilities"]))
 
+    def test_tick_emits_only_exact_durable_retirement_for_stale_recovery_marker(self):
+        spec = importlib.util.spec_from_file_location("v1_cli_retirement_tick", Path(__file__).resolve().parents[1]/"scripts/v1-runtime.py")
+        cli = importlib.util.module_from_spec(spec); spec.loader.exec_module(cli)
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); storage=root/"storage"; storage.mkdir()
+            runtime=self.make(root/"runtime")
+            original=context(); atomic_json(storage/"context.json",original)
+            retained=request(runtime.offer(original)); runtime.request(retained)
+            status=runtime.status()
+            native=dict(request=copy.deepcopy(retained),sequence=status["sequence"],phase="uncertain",
+                recovery_required=True,prepared=copy.deepcopy(status["prepared"]),
+                prepared_sha256=status["prepared_sha256"],job_id=None,completion_sha256=None)
+            runtime._status("blocked","Retained printer readiness rejection occurred before upload; nothing was sent to the printer.")
+            runtime.offer(original)
+            channel=DirectoryEvents(root/"channel")
+            atomic_json(channel.directory/"native.json",native)
+            cli.tick(runtime,storage,channel)
+            retired=read_json(channel.directory/"retired.json")
+            self.assertEqual(retired["request"],retained)
+            self.assertEqual(retired["phase"],"blocked")
+            self.assertFalse((channel.directory/"status.json").exists())
+            (channel.directory/"retired.json").unlink()
+            native["prepared_sha256"]="f"*64
+            atomic_json(channel.directory/"native.json",native)
+            cli.tick(runtime,storage,channel)
+            self.assertFalse((channel.directory/"retired.json").exists())
+
     def test_available_is_not_qualification_and_unavailable_never_runs(self):
         with tempfile.TemporaryDirectory() as root:
             runtime = self.make(root, lambda *_: self.fail("Unavailable generator called"), available=False)
