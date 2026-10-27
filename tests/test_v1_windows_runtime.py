@@ -19,6 +19,11 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
         self.assertEqual(re.findall(r"'([^']+)'",actions),
             ['install','start','status','stop','restart','rollback','uninstall','plan','supervise'])
         self.assertIn("schema='helix-orca-v1-stop/v1'; run_id=$record.run_id",text)
+        self.assertIn("$status.state -eq 'attention-required'",text)
+        self.assertIn("-not (Test-Identity $record.python)",text)
+        self.assertIn("-not (Test-Identity $record.supervisor)",text)
+        self.assertIn("Set-FinalState $record.run_id 'stopped' $record.exit_code",text)
+        self.assertIn('no owned process remained, and journals were retained.',text)
         self.assertIn("'--run-id',$Record.run_id,'--stop-file',$Record.stop_file",text)
         self.assertIn("$Record.stop_file -cne $expected",text)
         self.assertIn("'run_id,schema'",text)

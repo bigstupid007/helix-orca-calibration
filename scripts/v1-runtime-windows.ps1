@@ -589,6 +589,11 @@ function Request-RuntimeStop {
         if ($status.state -eq 'stopped' -or $status.state -eq 'not-started') { return $status }
         $record=Read-Control (Get-RecordPath); Assert-Record $record
         if (-not (Test-StopRequest $record)) { Write-Control $record.stop_file ([ordered]@{ schema='helix-orca-v1-stop/v1'; run_id=$record.run_id }) }
+        if ($status.state -eq 'attention-required' -and -not (Test-Identity $record.python) -and
+            -not (Test-Identity $record.supervisor)) {
+            Set-FinalState $record.run_id 'stopped' $record.exit_code 'Inspected attention state acknowledged; no owned process remained, and journals were retained.'
+            return (Get-Status)
+        }
     } finally { $lock.Dispose() }
     $until=[DateTime]::UtcNow.AddSeconds($WaitSeconds)
     do { $status=Get-Status; if ($status.state -eq 'stopped') { break }; Start-Sleep -Milliseconds 200 } while ([DateTime]::UtcNow -lt $until)
