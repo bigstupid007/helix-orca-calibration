@@ -80,7 +80,7 @@ class PrinterFixture:
         self.job_id = 'ABC123'; self.start_time = 10; self.history_status = 'in_progress'
         self.history_override = None; self.baseline = []; self.queue = []; self.started = False
         self.posts = []; self.gets = []; self.upload_fields = None
-        self.progress = .25; self.print_duration = 100; self.total_duration = 120; self.sd_path_override = None
+        self.progress = .25; self.print_duration = 100; self.total_duration = 120; self.sd_path_override = None; self.sd_active = False
         self.tamper = False; self.start_error = False; self.cancel_error = False; self.auto_queue = False
         self.analysis_status = 'ready'; self.analysis_override = None; self.modified = 42.5
         self.helix_version = HELIXPRINT_VERSION; self.file_analysis_available = True
@@ -115,7 +115,7 @@ class PrinterFixture:
                 if self.path == '/server/job_queue/status': return self.response(dict(queued_jobs=fixture.queue, queue_state='ready'))
                 if self.path in ('/printer/objects/query?print_stats', '/printer/objects/query?print_stats&virtual_sdcard'):
                     fixture.event += 1
-                    return self.response(dict(eventtime=fixture.event, status=dict(print_stats=dict(state=fixture.state, filename=fixture.filename, print_duration=fixture.print_duration,total_duration=fixture.total_duration),virtual_sdcard=dict(progress=fixture.progress,file_path=fixture.sd_path_override or '/fixture/gcodes/'+fixture.filename))))
+                    return self.response(dict(eventtime=fixture.event, status=dict(print_stats=dict(state=fixture.state, filename=fixture.filename, print_duration=fixture.print_duration,total_duration=fixture.total_duration),virtual_sdcard=dict(progress=fixture.progress,file_path=fixture.sd_path_override or '/fixture/gcodes/'+fixture.filename,is_active=fixture.sd_active))))
                 if p.path == '/server/files/metadata':
                     name = q['filename'][0]
                     if name not in fixture.files: return self.response({}, 404)
@@ -258,6 +258,42 @@ class OwnedJobsTests(unittest.TestCase):
         self.fixture.queue = []; self.fixture.files[self.record()['filename']] = b'preserve'
         with self.assertRaises(ContractError): self.start()
         self.assertEqual(self.fixture.posts, [])
+    def test_completed_prior_job_is_idle_only_with_matching_terminal_history(self):
+        self.confirm()
+        prior = dict(job_id='ABCDEF', filename='prior.gcode', start_time=4,
+                     end_time=9, status='completed')
+        self.fixture.state = 'complete'; self.fixture.filename = 'prior.gcode'
+        self.fixture.baseline = [prior]
+        job = self.start()
+        self.assertEqual(job['job_id'], 'ABC123')
+
+    def test_completed_prior_job_requires_inactive_sd_and_exact_history(self):
+        cases = (
+            (dict(job_id='ABCDEF', filename='other.gcode', start_time=4,
+                  end_time=9, status='completed'), False),
+            (dict(job_id='ABCDEF', filename='prior.gcode', start_time=4,
+                  end_time=9, status='in_progress'), False),
+            (dict(job_id='ABCDEF', filename='prior.gcode', start_time=4,
+                  end_time=4, status='completed'), False),
+            (dict(job_id='ABCDEF', filename='prior.gcode', start_time=4,
+                  end_time=9, status='completed'), True),
+        )
+        for index, (prior, active) in enumerate(cases):
+            with self.subTest(index=index):
+                adapter = OwnedJobAdapter(self.fixture.transport(),
+                    self.root/('terminal-'+str(index)),
+                    orca_machine_sha256=self.machine,
+                    physical_qualification=self.qualification, actions=True,
+                    now=lambda: 100)
+                adapter.confirm(self.request, self.prepared, self.directory,
+                    self.intent('confirm', '5'))
+                self.fixture.state = 'complete'; self.fixture.filename = 'prior.gcode'
+                self.fixture.baseline = [prior]; self.fixture.sd_active = active
+                posts = list(self.fixture.posts)
+                with self.assertRaises(ContractError):
+                    adapter.start(self.request, self.prepared, self.directory,
+                        self.intent('start', '6'))
+                self.assertEqual(self.fixture.posts, posts)
     def test_upload_readback_difference_blocks_start_and_restart_replay(self):
         self.confirm(); self.fixture.tamper = True
         with self.assertRaises(ContractError): self.start()

@@ -260,6 +260,9 @@ class PinnedMoonraker:
         elapsed = latest.get("total_duration")
         elapsed = float(elapsed) if type(elapsed) in (int, float) and math.isfinite(elapsed) and 0 <= elapsed <= 31*86400 else None
         sd = final["status"].get("virtual_sdcard", {})
+        sd_active = sd.get("is_active") if isinstance(sd, dict) else None
+        if type(sd_active) is not bool:
+            sd_active = None
         progress = sd.get("progress") if isinstance(sd, dict) else None
         sd_path = sd.get("file_path") if isinstance(sd, dict) else None
         if (not isinstance(sd_path, str) or sd_path.rsplit("/", 1)[-1] != filename
@@ -270,7 +273,7 @@ class PinnedMoonraker:
             job_id=metadata.get("job_id") if metadata else None, start_time=metadata.get("print_start_time") if metadata else None,
             queue_job_ids=tuple(j["job_id"] for j in queue["queued_jobs"]), physical_identity=physical,
             identity_algorithm=self.identity_algorithm, configuration_sha256=config_hash,
-            fit_machine=fit_machine)
+            fit_machine=fit_machine, sd_active=sd_active)
 
     def helix_status(self):
         return self._wire("/server/helix/status")
@@ -479,9 +482,25 @@ class OwnedJobAdapter:
             raise ContractError("Physical actions disabled; separate deployment approval required")
 
     @staticmethod
-    def _idle(sample):
-        if sample["state"] != "standby" or sample["filename"] is not None or sample["job_id"] is not None or sample["start_time"] is not None or sample["queue_job_ids"]:
-            raise ContractError("Start requires idle printer with empty queue and no current job")
+    def _idle(sample, baseline):
+        if sample["queue_job_ids"] or sample.get("sd_active") is not False:
+            raise ContractError("Start requires inactive virtual SD and an empty queue")
+        if (sample["state"] == "standby" and sample["filename"] is None
+                and sample["job_id"] is None and sample["start_time"] is None):
+            return
+        # Moonraker normally retains the last completed filename in print_stats.
+        # Accept that terminal record only when independent history proves the
+        # exact same file completed and ended after it started.
+        if (sample["state"] == "complete" and sample["filename"]
+                and baseline and baseline.get("filename") == sample["filename"]
+                and baseline.get("status") == "completed"
+                and baseline.get("end_time") is not None
+                and _number(baseline["end_time"], "baseline history end")
+                    > _number(baseline["start_time"], "baseline history start")
+                and (sample["job_id"] is None or sample["job_id"] == baseline["job_id"])
+                and (sample["start_time"] is None or sample["start_time"] == baseline["start_time"])):
+            return
+        raise ContractError("Start requires an independently verified idle or completed prior job")
 
     @staticmethod
     def _matching(sample, record):
@@ -527,8 +546,9 @@ class OwnedJobAdapter:
                 hex_value(active["request_id"], 32)
                 if active["request_id"] != request["request_id"] and active["phase"] not in ("complete", "cancelled", "error"):
                     raise ContractError("Earlier owned job remains unresolved; new dispatch blocked")
-            sample = self._snapshot(record); self._idle(sample); self._fresh(sample, record)
-            record["baseline"] = self.transport.history()
+            sample = self._snapshot(record); baseline = self.transport.history()
+            self._idle(sample, baseline); self._fresh(sample, record)
+            record["baseline"] = baseline
             filename = record["filename"]
             if self.transport.metadata(filename) is not None or self.transport.file(filename, missing=True) is not None:
                 raise ContractError("Owned staging filename already exists; overwrite refused")
@@ -537,12 +557,12 @@ class OwnedJobAdapter:
                 self.transport.upload(filename, data)
                 if self.transport.file(filename) != data:
                     raise ContractError("Uploaded bytes differ from prepared artifact")
-                sample = self._snapshot(record); self._idle(sample); self._fresh(sample, record)
+                sample = self._snapshot(record); self._idle(sample, record["baseline"]); self._fresh(sample, record)
                 record["fit_evidence"] = self._fit_ready(filename, data, sample["fit_machine"],
                     request, prepared, intent)
                 if self.transport.file(filename) != data:
                     raise ContractError("Uploaded bytes changed during file-fit analysis")
-                sample = self._snapshot(record); self._idle(sample); self._fresh(sample, record)
+                sample = self._snapshot(record); self._idle(sample, record["baseline"]); self._fresh(sample, record)
                 self.request_validator(request, self.now())
                 record["phase"] = "start-intent"; self._save(record)
                 self.transport.start(filename)
