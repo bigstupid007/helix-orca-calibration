@@ -203,8 +203,9 @@ and `git diff --check`. Exact-`992577c` CI run `40342726011`, Temperature
 readiness run `40342726039`, and V1 native-UI run `40342726496` pass;
 source-pinned Windows run `40342726026` passes. The retained actual Windows
 matrix qualifies 50/50 cases and the final owner-local runtime completes its
-stop/rollback/install/start/status sequence. Exact frozen-head CI is rerun after
-publication; no pass is inferred before that run completes.
+stop/rollback/install/start/status sequence. Exact frozen-head CI also passes:
+offline evidence `40454341347`, policy `40454341394`, native UI `40454341387`,
+and pinned Windows native engine `40454341448`.
 
 One exact-head official-Orca GUI capture ended before product interaction with
 `Capture is occluded.` The diagnostic is preserved and separated from product

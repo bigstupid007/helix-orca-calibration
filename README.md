@@ -32,8 +32,9 @@ review. Product Preflight review is complete and the product remains blocked.
 The focused beta.12 proof is presentation lineage: 26 of its 28 captured source
 files are unchanged at freeze; the earlier eleven-target capture is also layout
 lineage, and the extreme-range run remains separate harness diagnostic evidence.
-Four CI checks passed at prior head `992577c`; frozen-head CI remains pending
-publication. The final Windows package, SPARE qualification/lifecycle, and
+All four frozen-head CI checks pass: offline evidence `40454341347`, policy
+`40454341394`, native UI `40454341387`, and pinned Windows native engine
+`40454341448`. The final Windows package, SPARE qualification/lifecycle, and
 controlled five-calibration Founder-started physical sequence are tracked in the
 [completion ledger](docs/V1_COMPLETION_ACCEPTANCE.md) and
 [current Founder guide](docs/V1_FOUNDER_REVIEW_CURRENT.md). The Windows matrix

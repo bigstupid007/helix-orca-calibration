@@ -24,9 +24,9 @@ bounded-run direction, no repair or retry followed.
 The Windows owner-runtime receipt proves the actual SPARE sequence stop →
 rollback → install → start → status and the final graceful freeze stop.
 Restart and uninstall are implementation/test-reviewed but were not exercised
-by that exact receipt. Likewise, the passing PR checks at `992577c` predate the
-frozen head and cannot be called exact-frozen-head CI until publication runs
-complete.
+by that exact receipt. The earlier passing PR checks at `992577c` predated the
+freeze; after publication, all four exact frozen-head checks completed
+successfully, including pinned Windows native-engine run `40454341448`.
 
 Verification at freeze: 637 dependency-free tests passed with seven host skips;
 `git diff --check` and the preserved native and physical evidence verifiers
