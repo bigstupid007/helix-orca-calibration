@@ -22,7 +22,11 @@ class WindowsRuntimePackagingTests(unittest.TestCase):
         self.assertIn("$status.state -eq 'attention-required'",text)
         self.assertIn("-not (Test-Identity $record.python)",text)
         self.assertIn("-not (Test-Identity $record.supervisor)",text)
-        self.assertIn("Set-FinalState $record.run_id 'stopped' $record.exit_code",text)
+        recovery=text[text.index("if ($status.state -eq 'attention-required'"):
+                      text.index("} finally { $lock.Dispose() }",text.index("if ($status.state -eq 'attention-required'"))]
+        self.assertIn("$record.state='stopped'",recovery)
+        self.assertIn("Write-Control (Get-RecordPath) $record",recovery)
+        self.assertNotIn('Set-FinalState',recovery)
         self.assertIn('no owned process remained, and journals were retained.',text)
         self.assertIn("'--run-id',$Record.run_id,'--stop-file',$Record.stop_file",text)
         self.assertIn("$Record.stop_file -cne $expected",text)

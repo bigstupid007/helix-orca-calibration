@@ -591,7 +591,9 @@ function Request-RuntimeStop {
         if (-not (Test-StopRequest $record)) { Write-Control $record.stop_file ([ordered]@{ schema='helix-orca-v1-stop/v1'; run_id=$record.run_id }) }
         if ($status.state -eq 'attention-required' -and -not (Test-Identity $record.python) -and
             -not (Test-Identity $record.supervisor)) {
-            Set-FinalState $record.run_id 'stopped' $record.exit_code 'Inspected attention state acknowledged; no owned process remained, and journals were retained.'
+            $record.state='stopped'
+            $record.message='Inspected attention state acknowledged; no owned process remained, and journals were retained.'
+            Write-Control (Get-RecordPath) $record
             return (Get-Status)
         }
     } finally { $lock.Dispose() }
