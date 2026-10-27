@@ -1,0 +1,54 @@
+{
+  "schema": "helix-orca-v1-public-windows-build-qualification/v1",
+  "completed_at": "2026-10-26T16:12:39.9088791Z",
+  "review_head": "992577c15aac24ee7b23cf850c98f016c0ac73a4",
+  "product_head": "4c0379b05e9a58a7546b42da9fbcc09658fabba8",
+  "review_run_id": 40342726026,
+  "artifact_build_run_id": 40286504913,
+  "exit_code": 0,
+  "qualified": true,
+  "source_commit": "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03",
+  "runtime": {
+    "version": "2.5.0-dev",
+    "build": "b5e9cb3c",
+    "platform": "Windows x86_64 official nightly",
+    "actual_windows_x86_64": true,
+    "test_only": false,
+    "runner": "production-v1-routing.generate",
+    "executable_sha256": "aab75b0bf66bba057e695ffd8425d723f881b7d409a496c486caad0983fe6761"
+  },
+  "final_slice_path": [
+    "Print.process",
+    "Print.export_gcode"
+  ],
+  "qualification_sha256": "66c8616cbe77ef162f21336274146418a540046bde12d46e9ec76369b16f09ee",
+  "qualification_size": 9035,
+  "private_evidence_sha256": "bc49ce3c05765c6d590ed357a8aea6cf70118b29a3f36991e27f38b9d1c07fed",
+  "private_evidence_size": 149878,
+  "matrix": {
+    "contexts": [
+      "voron",
+      "ad5x"
+    ],
+    "calibrations": [
+      "temperature",
+      "flow_ratio_yolo",
+      "pressure_advance_pattern",
+      "retraction",
+      "max_volumetric_speed"
+    ],
+    "parameter_cases": [
+      "default",
+      "non_default_range",
+      "non_default_step",
+      "lower_boundary",
+      "upper_boundary"
+    ],
+    "case_count": 50,
+    "cases_per_context_and_calibration": 5,
+    "known_warning_code": "1000C001",
+    "known_warning_acknowledgements_bound_to_prepared_jobs": true
+  },
+  "artifact_reuse": "The review-head delta is qualification-harness only. Later 2f1ffe1 runtime/job recovery changes do not alter the qualified generator, adapter, stock resources, pinned Orca executable, or qualification record; installed startup and every generation revalidate that exact closure.",
+  "limits": "This qualifies generation, final slicing, warning acknowledgement, and AD5X context compatibility. It does not claim an AD5X physical adapter, a Voron print, or a preset result transaction."
+}

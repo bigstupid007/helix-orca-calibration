@@ -20,8 +20,11 @@ The launch instruction explicitly approves choose, configure, request generation
 confirm prepared job, deliberate Start, monitor, evaluate and return on native
 Helix, with selected profiles/preparation/result on Orca. These are the only
 required human steps. Technical IDs, receipts, hashes and qualification are
-internal; do not turn them into required user input. Result remains NOT APPLIED.
-No independent worker may invent profile writeback or a physical-test grant.
+internal; do not turn them into required user input. Historical V1 results
+remain `NOT APPLIED`; current V2 results use only the official originating
+filament transaction and remain dirty/unsaved until the owner chooses Orca's
+normal Save. No implementation may invent direct profile-file writeback or a
+physical-test grant beyond the exact amendment authority.
 
 ## Common objects
 

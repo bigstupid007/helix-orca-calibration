@@ -1,5 +1,12 @@
 # Native parameter controls — functional correction
 
+> **Current parameter authority:** the beta.12 V2 path retains these native
+> controls while mirroring pinned current-Orca domains, adding the explicit YOLO
+> pattern and optional PA acceleration/speed lists, and representing large valid
+> ranges without eager allocation. Historical `NOT APPLIED` statements below
+> describe the earlier V1 candidate only. See the
+> [amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 Current source replaces finite numeric dropdowns with editable native value
 buttons and a bounded owned numeric keypad. It does not redesign the accepted
 shell, compact home tile, job/result navigation, Confirm/Start, monitoring,

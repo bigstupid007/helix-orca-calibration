@@ -9,28 +9,29 @@
 > [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
 
 <!-- v1-generator-current -->
-Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
-completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`
-harness qualifies Temperature, PA Pattern, Retraction and Max Volumetric Speed for
-the retained explicit unsaved 50°C context and exact parameters. Their executable
-streams match native UI references: **106,508 / 2,904 / 16,585 / 35,672 commands**,
-with zero mismatches and both invariant sets passing. Both qualified YOLO modes
-retain their separate original-context qualification.
+The qualified generator candidate is
+`4c0379b05e9a58a7546b42da9fbcc09658fabba8`, pinned to Orca
+`b5e9cb3c5e7a925adf8379366ae580e4dabb1d03`. Its V2 configuration binds the
+exact native engine, stock routes, resource inventory, adapter/package closure,
+and a representative 50-cell matrix: five calibrations × five parameter cases ×
+Voron and AD5X contexts. Current Orca numeric/nullable vectors and its
+semicolon/C-style string vectors are projected by the explicit originating slot;
+arbitrary comma/bracket-bearing strings remain byte-identical.
 
-Four fresh native 800×480 Helix sessions independently reach actual Windows
-Coordinator Prepared with exact request/readback values, real generation and parity;
-no Cancel, Confirm or Start is sent. Normal Orca's **1,429-file fingerprint is unchanged**.
-All verified controls, ordinary coordination and the accepted physical Temperature
-baseline remain intact. [Exact results and limits](V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate),
-[parity receipts](evidence/issue-14/generator-blockers/native-four-windows-parity-r2.json),
-[native Prepared evidence](evidence/issue-14/generator-blockers/native-prepared-ui-r2.json).
+The first actual Windows matrix at `60dbbad` exposed one genuine adapter
+divergence: a UI-valid `0.010→0.011 / 0.001` MVS request was rejected as taller
+than the stock asset. Pinned `Plater::calib_max_vol_speed` does not reject that
+case; it retains the complete asset and attempts the final slice. `f838503`
+removes only the extra adapter rejection and retains the failed diagnostic as
+separate evidence.
 
-Qualification covers these exact contexts/origins/profiles/parameters only. The
-original 60°C bed / 55°C filament threshold remains unsupported; the actual PA
-negative still reports `native_warning` / `1000C001` before reference selection.
-No warning suppression, profile writeback, new physical test, printer deployment
-or merge occurred. Hardware, production security and complete corresponding-source
-acceptance remain separate limitations; PR #15 stays draft and unmerged.
+The exact Windows engine run and SPARE matrix pass 50/50 cases at qualification
+SHA `66c8616cbe77ef162f21336274146418a540046bde12d46e9ec76369b16f09ee`;
+the warning-continuation and final owner-runtime lifecycle receipts are recorded
+in the [completion ledger](V1_COMPLETION_ACCEPTANCE.md). The frozen integration
+head `2f1ffe1` changes no qualified generator/resource byte. Historical
+exact-request parity below remains useful causal evidence but cannot qualify the
+amended build or an ordinary future request.
 <!-- /v1-generator-current -->
 
 

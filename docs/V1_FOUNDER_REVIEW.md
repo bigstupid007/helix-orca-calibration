@@ -1,11 +1,9 @@
 # Integrated V1 Founder Review
 
-> **Not the current Founder candidate yet.** The October 25 amendment reopened
-> implementation and validation on current upstream pins. The c0fa candidate
-> below is preserved history. This page will become the single guided Founder
-> Review only after current Windows, beta.12, install/rollback, AD5X, Voron,
-> five physical calibrations, independent review, Product Preflight, and CI
-> evidence pass. [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+> **Historical guide.** The c0fa candidate below is preserved history. Use the
+> [current amendment Founder Review](V1_FOUNDER_REVIEW_CURRENT.md) for the
+> frozen beta.12/current-Orca candidate and its controlled five-calibration
+> sequence. [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
 
 <!-- v1-generator-current -->
 Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)

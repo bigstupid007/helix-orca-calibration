@@ -8,22 +8,25 @@
 > account, or credential. Older “future approval” text below is historical.
 > [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
 
-The V1 program builds code and isolated evidence. It does not authorize physical
-activation, installation on the printer, another print, profile writeback,
-credentials/access changes or startup registration. The default CLI and Windows
-wrapper use no action-enabled job adapter. All current review operation stays
-within that boundary.
+The amendment authorizes only the controlled candidate described here: exact
+SPARE package/configuration, existing trusted-LAN access, the qualified Founder
+Voron identity/configuration and five native-Start-only calibration prints. It
+does not authorize an automatic Start or Save, a public listener, access or
+credential changes, firmware/printer configuration mutation, unrelated work,
+startup registration, service installation, or another printer. The default
+CLI remains action-disabled unless all typed target and owner-private approval
+bindings agree.
 
-`--deployment-authorization` is implemented for a later separately approved
-local deployment. No helper creates or signs an operational approval, and this program has not
-created an operational approval record. Unit tests use synthetic records against
-local fixtures only. A native request, result, configuration flag
-or parity report alone cannot enable the adapter.
+`--deployment-authorization` is the separate local gate. For this one amended
+run, a private helper may materialize the record from the Founder's explicit
+Issue #14 comment `6401570758`; it may not infer or broaden that authority. A
+native request, result, configuration flag or qualification report alone cannot
+enable the adapter.
 
-The exact local record schema is `helix-orca-v1-local-deployment/v1`, with only
-`schema`, `approved`, `native_start_only`, `approval_reference`, `config_sha256`
-and `runtime_sha256`. Both booleans must be true and the reference must identify
-separate explicit owner approval. The record must be an existing ordinary
+The current exact local record schema is `helix-orca-v1-local-deployment/v2`.
+It binds `approved`, `native_start_only`, `approval_reference`, `config_sha256`,
+`runtime_sha256`, and `package_manifest_sha256`. Both booleans must be true and
+the reference must identify explicit owner approval. The record must be an existing ordinary
 absolute owner-private file of 1..65536 bytes. All ancestor links/reparse points,
 network/device paths, alternate streams and shared/foreign ACLs are refused.
 Direct CLI validation enforces privacy independently of the Windows wrapper.
@@ -39,14 +42,15 @@ and rechecks the exact approval file bytes/path before child launch.
 Construction additionally requires `owned_jobs.actions_enabled:true`, validated
 physical/configuration pins, the reviewed Orca machine/nozzle context and the
 explicit native event channel pointing at that same origin/version. No action
-is dispatched at construction. Every actual job still needs independently
-verified native parity, accepted target macro signature, exact immutable bytes,
+is dispatched at construction. Every current job still needs the exact qualified
+build/route and installed-package closure, processor-ready output, exact immutable
+bytes, current exact-file target-fit analysis, any required warning acknowledgement,
 empty queue/idle preflight, native Confirm and a distinct deliberate native Start.
+No universal target macro signature is required.
 Cancellation has its own separately confirmed native intent and owned-job checks.
 
-Activation remains pending Founder acceptance and separate deployment authority.
-The candidate's native/Orca review notices, exact deployed product hashes,
-private storage/access envelope, transport-security limitations, matching target
-configuration and original profile preservation must all be reconciled at that
-boundary. Current synthetic UI/HTTP and Windows lifecycle proof must never be
-presented as a new physical print or production security qualification.
+Activation remains gated on the current Windows/build/runtime and target
+qualifications recorded in the completion ledger. Once they pass, the amendment
+is the separate deployment authority for exactly five controlled calibrations.
+Each physical receipt stays distinct from synthetic UI/HTTP and lifecycle proof;
+none of this is a general production-security qualification.

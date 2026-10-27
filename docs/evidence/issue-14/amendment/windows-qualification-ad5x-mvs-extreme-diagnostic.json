@@ -1,0 +1,30 @@
+{
+  "candidate_head": "4c0379b05e9a58a7546b42da9fbcc09658fabba8",
+  "case": {
+    "calibration": "max_volumetric_speed",
+    "context": "ad5x",
+    "parameter_case": "lower_boundary",
+    "parameters": {
+      "end": 0.011,
+      "start": 0.01,
+      "step": 0.001
+    },
+    "request_sha256": "760c6422d8bb5672fd99724ba5ef7c2df40d35c1d6c23d13d934560ad6cab655"
+  },
+  "classification": "extreme-range-harness-diagnostic",
+  "disposition": "Pinned Orca accepts the numeric domain and correctly rejects the approximately 1001 mm stock-tower request against the AD5X build volume. The failed run is preserved untouched. It is not a representative physical job or a core candidate failure. Harness-only commit 992577c15aac24ee7b23cf850c98f016c0ac73a4 keeps a small positive start and equality edge in the core matrix as 0.01 to 1.01 by 1, while ordinary product requests remain printer-neutral and report exact native fit blockers.",
+  "exit_code": 255,
+  "native_diagnostic": {
+    "message": "Native model exceeds build volume",
+    "sha256": "556d4dab6fb4c698afd0f5f11a504da430d52c4ed5fefe4fa7a00072a963b705"
+  },
+  "orca_source": "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03",
+  "physical_actions": 0,
+  "qualification_context": {
+    "effective_spiral_mode": "0",
+    "process_name": "0.20mm Standard @FF AD5X - Faster",
+    "sha256": "700f57aee7092815f3b71acfaf842fb2f94873ef65f36b68eafd742ff3e144f1"
+  },
+  "qualification_run_id": 40286504913,
+  "schema": "helix-orca-v1-windows-qualification-diagnostic-public/v1"
+}

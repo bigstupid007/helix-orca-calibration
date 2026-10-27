@@ -8,9 +8,11 @@
 > October 15 / NOT APPLIED descriptions below are preserved candidate history.
 > [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
 
-This is Issue #14 implementation, not physical deployment or production
-qualification. Accepted Temperature hardware behavior, installed files, original
-profiles/settings, first/final physical evidence and rollback are unchanged.
+This is the Issue #14 amendment candidate. The amendment explicitly authorizes
+the exact-package, exact-config, exact-target owner-local installation and five
+controlled Founder-started Voron calibrations after the non-consequential gates.
+It is not a general production deployment or security qualification. Accepted
+Temperature behavior/evidence and its rollback remain preserved.
 
 ## Responsibility and ordinary-use direction
 
@@ -21,12 +23,11 @@ reads saved preset, edited copy and merged serialized settings. Missing data is
 unavailable. Only this host storage is used for runtime data/artifact I/O.
 
 `python3 scripts/v1-companion.py /new/path/helix_calibration.py` builds the
-candidate without replacing an accepted plugin. Install only into a marked
-isolated October 15 test environment for this program. The actual Windows test
-uses `%LOCALAPPDATA%\HelixOrcaCalibration\v1-qualification\data`, separate browser
-storage, and the hash-pinned October 15 executable. `scripts/v1-windows-review.py`
-retains executable/datadir/marker/owner/WebView/pointer checks and excludes other
-Orca instances. This testing worker is not a product runtime dependency.
+candidate without replacing the accepted base plugin. Current validation uses
+the marked isolated official `b5e9cb3c` Windows portable runtime, a dedicated
+data directory, separate WebView storage and exact executable/library/plugin
+hashes. The SPARE testing bridge and UI driver remain evidence infrastructure;
+neither is an ordinary product dependency.
 
 The external coordinator runs on the Orca host. It reads local context, executes
 only the explicit configured generator with bounded arguments, retains a durable
@@ -67,22 +68,23 @@ Retraction and MVS. The private `routes` map can explicitly select `stock-cli` o
 `native-engine` per known calibration; unknown values fail and no fallback occurs.
 Native configuration is isolated under `native_engine` and must bind actual build
 receipt, inputs, executable and resources. Source presence never makes a route
-available. Native build qualification and exact native-UI parity remain separate
-gates. A caller cannot select a route through its request payload. The qualified c0fa Windows
-native Temperature combination is selected explicitly with
-`"routes":{"temperature":"native-engine"}` in the trusted private configuration;
-its nested `native_engine` binds the actual r2 package and native50 catalog. The
-focused native Prepared proof exercises this setting without replacing the original
-stock/YOLO configuration. The 50°C qualification context and original 60°C YOLO
-context remain distinct; missing matching native evidence blocks preparation.
+available. Native build qualification and exact native-UI evidence remain separate
+gates. A caller cannot select a route through its request payload. In V2, the
+exact build qualification authorizes the pinned stock routes for Temperature/YOLO
+and the pinned native-engine routes for PA Pattern, Retraction and MVS over the
+full Voron/AD5X matrix. Runtime startup and every generation revalidate the
+executing package, adapter, resources and route closure. A native-valid request
+within a qualified route does not need a new per-request native reference, but
+its own request, context, processing result, warnings and artifact bytes remain
+exact.
 
 Optional `--moonraker-events` uses only existing exact trusted-LAN HTTP origin,
 version pin, V1 event namespace and approved single-file native storage bridge.
 The config's `moonraker` object requires `origin`, `expected_host`,
 `expected_version`, `existing_trusted_lan_ack:true`; optional `api_key_env` names
 an existing environment secret (default `HELIX_ORCA_MOONRAKER_API_KEY`). This
-candidate introduces no key or access change and must not be activated against
-the accepted physical installation. Existing LAN HTTP remains unencrypted and
+candidate introduces no key or access change; only the exact separately bound
+amendment deployment may activate it against the reviewed Voron. Existing LAN HTTP remains unencrypted and
 has no per-message cryptographic authentication. This is inherited proof-boundary
 code, **not production security qualification**. A production deployment decision
 must resolve that limitation under the approved security boundary.
@@ -102,22 +104,23 @@ through read-only adapter recovery; it never replays Start. Native restart
 reconciliation binds the complete retained request, preparation, job and completion
 proof and advances the sequence without weakening stale-status rejection.
 
-**The default review launcher supplies no physical action adapter.** Start cannot
-upload, queue, heat, move or print in this review. The integrated
+**The default launcher supplies no physical action adapter.** Only the separately
+authorized amendment configuration can construct one for the exact reviewed
+Voron target; the AD5X target is generation-only. The integrated
 [owned-job adapter](V1_OWNED_JOBS.md) implements bounded staging/readback,
 separate Confirm/Start, durable one-shot dispatch, exact-job status plus independent
 history, owned cancellation and conservative recovery. Its real HTTP fixture
 proof is synthetic; no new physical qualification or activation is claimed.
 
 The optional `--deployment-authorization` path is a separate local gate, never a
-native event, profile field or incoming request. This program creates no approval
-record. A future owner-private record must reference a separate explicit approval,
+native event, profile field or incoming request. For the controlled amendment
+run, the owner-private record references Issue #14 comment `6401570758` and must
 bind the exact private configuration and complete V1 Python runtime fingerprint,
 and require native-Start-only operation. Direct CLI use independently validates
 file ownership/privacy and every path ancestor. Both this gate and the explicit
 owned-job configuration must agree before construction; active jobs also require
 the exact same native-event printer origin/version. The [deployment boundary](V1_DEPLOYMENT.md)
-records the remaining acceptance and physical activation requirements.
+records the acceptance and physical activation requirements.
 
 A returned result binds original context, prepared bytes, exact job and completion
 proof. Orca retains each immutable originating snapshot under `origins/`; only a
@@ -127,19 +130,25 @@ committed result. Supported host profile lifecycle events flag a subsequent UI
 poll to refresh saved/edited/effective context; unavailable selection disables
 new preparation without replacing an active job’s original context. Native delivery cannot be claimed before the
 originating receipt. The coordinator retains the session until native readback
-confirms ACK persistence, so event loss cannot discard the receipt. Results are
-**NOT APPLIED**. No preset setter or profile writeback exists. The companion names the calibration,
-parameter range and result setting in ordinary terms and marks edited selections
-without substituting saved values for edited or effective values.
+confirms ACK persistence, so event loss cannot discard the receipt. In the
+current V2 path the Script worker applies a verified result through Orca's
+official `preset.filament.begin_update` transaction against the immutable
+originating slot and preset. It commits one atomic batch, never calls Save,
+never writes preset files, and requires Orca to report the expected target,
+unchanged slot assignment and dirty state. Temperature changes only
+`nozzle_temperature`; Pressure Advance commits both enable and value together.
+Failure is retry-bound; an uncertain post-commit outcome is never replayed.
+The historical V1 path remains NOT APPLIED and is not the amended workflow.
 
 ## Current proof and limitations
 
 Focused tests cover source distinction, generation replay/crash, qualification
 flag rejection, separate intents, unrelated-job/history lag, long healthy jobs,
-immutable selection, original-context receipt and recovery. Native matrix and
-actual isolated Windows observations are separate evidence tiers. Generated
-G-code remains local and unqualified until exact parity passes. No new physical
-test or deployment is part of this program's validation.
+immutable selection, original-context receipt and recovery. Native matrix,
+actual isolated Windows observations and controlled physical receipts remain
+separate evidence tiers. Current G-code remains local and unavailable until its
+route's exact build qualification passes; physical Start additionally requires
+the target and exact-file gates above.
 
 ## Monitoring and companion review corrections
 

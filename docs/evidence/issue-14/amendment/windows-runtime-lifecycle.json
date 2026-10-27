@@ -1,0 +1,49 @@
+{
+  "schema": "helix-orca-v1-public-windows-runtime-lifecycle/v1",
+  "completed_at": "2026-10-27T04:56:31.9439727Z",
+  "head": "2f1ffe1041b9f591d2c621e821975f53414efd65",
+  "private_proof_sha256": "37266a439c57f0f3d5f21bbe4f5c86ba82c2003afb86bff6f4a3b8e60d5736be",
+  "private_proof_size": 34253,
+  "installation_sha256": "c0a7a88aa24c62eaef23c54cad1b05e0d304c8eaaf10359e18a68faa8445d90f",
+  "candidate": {
+    "archive_sha256": "b04296e5a9c1446afe30fa563f7d49728b8b1e2d203ba4725738b5ba828cfc95",
+    "candidate_sha256": "41dc24a7bc02bec54833b034d7c2ffb22adfa01a65dce60a80c528501a035109",
+    "manifest_sha256": "dfd5dbfd760102e4d718b1e2a9d196cba37450d82b50c5d3da217263e9e074a3",
+    "config_sha256": "b22cb5d954e4a1cac409852a2bafd14b54c4cad80797c2a62c62517a6e160566",
+    "authorization_sha256": "4410aad5b79fb793add7feee0423ba6ca423ccede27c66d8de93af810659df67"
+  },
+  "lifecycle": {
+    "before": "running",
+    "stop": "stopped",
+    "rollback_active_candidate": "eafdbe6b80a4062be3faa45db403d0d9ffbdbf316b1e13e5b7c0a109c55319d1",
+    "install_active_candidate": "41dc24a7bc02bec54833b034d7c2ffb22adfa01a65dce60a80c528501a035109",
+    "start": "running",
+    "status": "running",
+    "rollback_available": true
+  },
+  "health": {
+    "ok": true,
+    "actions_enabled": true,
+    "test_worker_required": false,
+    "run_id": "ac0549f7f08e461c8fe560b3c3f9534d"
+  },
+  "final_freeze": {
+    "completed_at": "2026-10-27T05:11:25.2861737Z",
+    "before_state": "running",
+    "stop_state": "stopped",
+    "final_state": "stopped",
+    "installed_candidate_preserved": true,
+    "journals_preserved": true,
+    "rollback_available": true,
+    "physical_action": false
+  },
+  "recovery": {
+    "retired_request_id": "92fac467f4d7e68164ad6af4cd535fd9",
+    "retired_history_sha256": "46da71f1471a704cc34f0cf4ca6a3f589581a09489bae487402c93923a182dec",
+    "fresh_offer_request_id": "7982dc7fbb026e56d38bee9f042c123a",
+    "fresh_offer_context_sha256": "ac1971c9e87b2a07f67073f10cc50ff474f9f7b06bc938820647f88222c2ac00",
+    "all_five_capabilities_available": true
+  },
+  "physical_action": false,
+  "boundary": "The ordinary owner-local per-user runtime completed the controlled lifecycle without a service, startup task, public listener, firewall rule, account, credential, test worker, or physical printer action. After the bounded physical/navigation diagnostic, it was gracefully stopped while preserving the installed package, journals, evidence, and rollback."
+}

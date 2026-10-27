@@ -11,41 +11,45 @@
 > them; they do not control the amended product.
 
 <!-- v1-generator-current -->
-Current generation candidate: [`c0fa61d` Windows build 39255585408](https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39255585408)
-completed successfully. Actual SPARE execution of the unchanged `exact-executable-v1`
-harness qualifies Temperature, PA Pattern, Retraction and Max Volumetric Speed for
-the retained explicit unsaved 50°C context and exact parameters. Their executable
-streams match native UI references: **106,508 / 2,904 / 16,585 / 35,672 commands**,
-with zero mismatches and both invariant sets passing. Both qualified YOLO modes
-retain their separate original-context qualification.
+The frozen amendment candidate is
+`2f1ffe1041b9f591d2c621e821975f53414efd65`. Its actual Windows build-level
+qualification remains bound to product head `4c0379b05e9a58a7546b42da9fbcc09658fabba8`
+and harness head `992577c15aac24ee7b23cf850c98f016c0ac73a4`; later commits are bounded
+companion, transport, runtime, and owned-job recovery corrections. The product preserves the accepted
+Temperature companion byte-for-byte, uses pinned HelixScreen beta.12 and Orca
+nightly `b5e9cb3c`, projects current Orca numeric and type-aware string vectors by
+their explicit originating filament slot, and qualifies generator builds/routes
+instead of exact request values. Its native MVS route also matches pinned Orca's
+full-asset behavior when a UI-valid requested cut height exceeds the stock tower.
+Native validation warnings retain their exact private evidence and follow Orca's
+nonblocking warning behavior rather than being promoted to fatal errors.
+Printer execution is target-qualified and does not require a universal Voron
+macro signature.
 
-Four fresh native 800×480 Helix sessions independently reach actual Windows
-Coordinator Prepared with exact request/readback values, real generation and parity;
-no Cancel, Confirm or Start is sent. Normal Orca's **1,429-file fingerprint is unchanged**.
-All verified controls, ordinary coordination and the accepted physical Temperature
-baseline remain intact. [Exact results and limits](docs/V1_GENERATOR_BLOCKER_CHECKPOINT.md#current-r2-generation-and-prepared-candidate),
-[parity receipts](docs/evidence/issue-14/generator-blockers/native-four-windows-parity-r2.json),
-[native Prepared capture bindings](docs/evidence/issue-14/generator-blockers/native-prepared-ui-r2.json).
-
-Qualification covers these exact contexts/origins/profiles/parameters only. The
-original 60°C bed / 55°C filament threshold remains unsupported; the actual PA
-negative still reports `native_warning` / `1000C001` before reference selection.
-No warning suppression, profile writeback, new physical test, printer deployment
-or merge occurred. Hardware, production security and complete corresponding-source
-acceptance remain separate limitations; PR #15 stays draft and unmerged.
+The frozen source passes 637 dependency-free tests (seven host skips), protected
+Temperature and native-evidence verification, and final independent engineering
+review. Product Preflight review is complete and the product remains blocked.
+The focused beta.12 proof is presentation lineage: 26 of its 28 captured source
+files are unchanged at freeze; the earlier eleven-target capture is also layout
+lineage, and the extreme-range run remains separate harness diagnostic evidence.
+Four CI checks passed at prior head `992577c`; frozen-head CI remains pending
+publication. The final Windows package, SPARE qualification/lifecycle, and
+controlled five-calibration Founder-started physical sequence are tracked in the
+[completion ledger](docs/V1_COMPLETION_ACCEPTANCE.md) and
+[current Founder guide](docs/V1_FOUNDER_REVIEW_CURRENT.md). The Windows matrix
+passes and the owner-local lifecycle is partial within its exact receipt. The
+amended physical sequence is explicitly
+blocked by the preserved beta.12 stale-session/navigation diagnostic after zero
+new uploads or prints; per Founder direction it was not repaired or retried.
+No automatic preset Save is claimed. PR #15 remains draft and unmerged.
 <!-- /v1-generator-current -->
 
 
-The functional parameter correction is implemented: editable native numeric
-controls, both fixed YOLO modes, explicit PA defaults and retained request values.
-Independent native800×480 input verified all five edited requests unchanged at
-the actual Windows coordinator. All14 fresh captures and complete managed cleanup
-pass; Perfectionist reaches genuine parity-qualified Review. Full Product Design
-work remains deferred.
-The historical 396-frame matrix and synthetic browser workflow do not qualify the
-changed controls. [Current correction and acceptance gate](docs/V1_PARAMETER_CORRECTION.md).
+The earlier parameter-correction, parity, synthetic-browser, and 396-frame
+records below are retained historical evidence with their original exact source
+scope. They do not override the amendment candidate or its completion ledger.
 
-## Active: integrated V1 Build Program #14
+## Historical: original integrated V1 Build Program #14
 
 The Founder launched [V1 Build Program #14](https://github.com/bigstupid007/helix-orca-calibration/issues/14)
 on 2026-10-18. It approves five calibrations, a Helix-first workflow, supporting

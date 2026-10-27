@@ -1,5 +1,12 @@
 # V1 isolated Windows Orca observations
 
+> **Historical observation scope:** this document records the October 15
+> companion candidate. The current completion build uses pinned Orca
+> `b5e9cb3c5e7a925adf8379366ae580e4dabb1d03`, V2 originating-slot capture, and
+> the official unsaved filament-preset transaction. Current Windows disposition
+> is authoritative only in the [completion ledger](V1_COMPLETION_ACCEPTANCE.md)
+> and [amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+
 These are actual Windows UI/CLI observations for Issue #14, separate from the
 synthetic native Helix matrix and Linux lab. The target is the October 15
 `6a7763f08d1a175a464a00ce13f0b5a815662fc4` nightly, executable SHA-256

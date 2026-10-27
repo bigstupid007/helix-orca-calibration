@@ -38,22 +38,22 @@ proof = adapter.observe(job)
 adapter.cancel(job, native_cancel_intent)
 ```
 
-Confirm verifies the current request, exact artifact and independent parity
-report, then requires its digest-bound
-`candidate_invariants.macro_semantics.accepted_abi_signature` to be exactly
-`true` before retaining the request/prepared objects and native Confirm ID.
-Native-only `PRINT_START EXTRUDER/BED` parity cannot pass this gate for the
-accepted target's `EXTRUDER_TEMP/BED_TEMP` signature. Missing/null semantics also
-blocks upload (including a Flow report that has not implemented this invariant).
-The report's `hardware_abi_qualified` and `physical_readiness` remain false:
-recognizing the accepted command signature alone is not a physical qualification.
-An additional independently reviewed local target qualification is mandatory;
-the source implementation and synthetic tests create no operational qualification.
+For current V2 jobs, Confirm revalidates the request, prepared record, exact
+artifact, processor status, route qualification, machine digest and executing
+runtime/package closure. It does not consult historical per-request parity or
+require a printer macro signature. The qualification record proves the exact
+generator build and route over its complete Voron/AD5X matrix; each job remains
+bound to its own request, originating context, warnings and artifact bytes.
+Known warnings additionally require the exact request/prepared acknowledgement.
+The historical V1 callback retains its accepted parity rules only for historical
+requests.
+
 Start requires a different native ID bound to the same prepared SHA-256. It
-re-verifies the artifact/parity and original expiry before any upload and again
-checks expiry before Start dispatch. Cancellation remains available after the
-original request's Start window expires, but only for the retained owned job.
-No wire flag, incoming request, result or plugin context can authorize actions.
+re-verifies the artifact, qualification closure, target fit and original expiry
+before any upload and again checks expiry before Start dispatch. Cancellation
+remains available after the original request's Start window expires, but only
+for the retained owned job. No wire flag, incoming request, result or plugin
+context can authorize actions.
 
 The typed factory is:
 
@@ -69,11 +69,14 @@ not a deployable configuration):
 ```json
 {
   "owned_jobs": {
-    "schema": "helix-orca-v1-job-deployment/v1",
+    "schema": "helix-orca-v1-job-deployment/v2",
+    "target_id": "<reviewed stable target ID>",
+    "deployment_mode": "physical",
     "origin": "http://<exact-private-IPv4>:<existing-port>",
     "expected_host": "<same exact private IPv4>",
     "expected_version": "<reviewed installed Moonraker version>",
     "physical_identity": "<reviewed lowercase 64-hex digest>",
+    "identity_algorithm": "helix-orca-physical-identity/v2-multi-mcu",
     "configuration_sha256": "<reviewed lowercase 64-hex digest>",
     "orca_machine_sha256": "<reviewed full Orca printer-profile and nozzle digest>",
     "physical_qualification": "<typed reviewed object described below; never a flag>",
@@ -91,12 +94,12 @@ storage/events or Orca data. The integrated coordinator's optional
 `--deployment-authorization` requires a separately approved, existing
 owner-private ordinary local file. It validates every ancestor against
 links/reparse points and independently inspects POSIX owner/mode or Windows
-current-token SID and file DACL without a subprocess. The exact local schema
-`helix-orca-v1-local-deployment/v1` requires `approved: true`,
+current-token SID and file DACL without a subprocess. An installed package uses
+`helix-orca-v1-local-deployment/v2`, which requires `approved: true`,
 `native_start_only: true`, a nonempty approval reference, the canonical private
 configuration digest, and a runtime closure fingerprint covering the CLI,
-`integration/v1_*.py` and `scripts/helix-display-request.py`. The review creates no
-such approval record. An enabled target also requires `--moonraker-events` and
+`integration/v1_*.py` and `scripts/helix-display-request.py`, plus the exact
+installed package-manifest digest. An enabled target also requires `--moonraker-events` and
 identical pinned native-event/job origins, hosts and versions. Only both gates permit construction of the active
 adapter. Existing credentials may be supplied separately by the local caller;
 this module neither creates/discovers credentials nor changes access policy.
@@ -104,10 +107,9 @@ The private journal root must remain beneath the launcher's owner-private
 runtime directory. One coordinator/adapter root and its kernel instance lock
 must govern the printer; independent uncoordinated installations are unsupported.
 
-The machine digest is exactly
-`digest({'printer': report['inputs']['profiles']['printer'], 'nozzle_mm': report['inputs']['nozzle_mm']})`
-from the independently verified report. It pins the complete saved/edited Orca
-machine profile object and numeric nozzle, not a display name. A missing or
+The machine digest is exactly `machine_sha256_v2(context)`, the canonical digest
+of the immutable V2 context's complete saved/edited Orca printer object and
+numeric nozzle. It is not a display name. A missing or
 mismatched machine/nozzle blocks before HTTP. Ordinary process and filament
 selection remain request scope and are not pinned by this field. Any machine-pin
 change changes the private configuration digest and requires a new separately
@@ -115,54 +117,27 @@ approved deployment record.
 
 ## Required physical target qualification
 
-The local `physical_qualification` object has exactly these fields:
+The local `physical_qualification` object is
+`helix-orca-v1-printer-target-qualification/v2`. It binds exactly:
 
-- `schema`: `helix-orca-v1-physical-target-qualification/v1`.
-- `physical_identity`, `configuration_sha256`, `orca_machine_sha256` and
-  `moonraker_version`: exactly the transport/machine pins above.
-- `macro_safety_reviewed` and `printer_safety_reviewed`: both boolean `true`;
-  `review_reference`: a nonempty bounded reference of at most 512 characters.
-- `start_required_arguments`: exactly `["BED_TEMP", "EXTRUDER_TEMP"]`.
-- `macro_sources_sha256`: uppercase custom macro names mapped to SHA-256 of each
-  actual parsed Klipper `gcode_macro <name>` settings section using the shared
-  canonical JSON digest. The exact inventory includes directly invoked custom
-  macros and every statically resolved transitive custom call.
-- `motion_bounds`: exact `X`, `Y`, `Z` keys, each a finite increasing two-number
-  list. `filament_range_c`, `nozzle_range_c`, and `bed_range_c`: reviewed finite
-  increasing temperature ranges (bounded to 0–600°C for filament/nozzle and
-  0–150°C for bed).
+- `target_id` and `deployment_mode: "physical"`;
+- the V2 multi-MCU `identity_algorithm`, `physical_identity`, complete live
+  `configuration_sha256`, reviewed `orca_machine_sha256` and Moonraker version;
+- HelixScreen commit `00a9fe6030c37d56748b2122b41fd36de1fdf831`,
+  HelixPrint API/version, file-analysis schema and fit-checker version; and
+- `printer_safety_reviewed: true` plus a bounded review reference.
 
-Constructor validation binds this record to the exact physical/configuration,
-machine/nozzle and Moonraker version. Confirm retains its digest; Start must see
-that identical qualification digest. Actual candidate bytes are independently
-parsed before any HTTP: every visible travel/deposition coordinate must fit the
-reviewed XYZ envelope, every nonzero visible nozzle target must fit both
-filament and nozzle ranges, and every nonzero bed target must fit the bed range.
-Zero heater-off commands are permitted. Exactly one positive-target
-`PRINT_START BED_TEMP=… EXTRUDER_TEMP=…` and one argument-free `PRINT_END` must
-surround actual visible deposition. Arc geometry, XYZ rebasing, unknown units,
-malformed motion/heater values, unreviewed custom commands and extra custom
-macro arguments require separate qualification and remain blocked. Named
-heater/offset/stepper mutation commands in candidate G-code are outside the
-bounded visible-command inspector and are rejected rather than skipped.
-
-Every live snapshot already re-verifies full printer configuration and physical
-identity. It additionally hashes actual macro sections, inspects the real
-PRINT_START `params.*` argument names and builds a static transitive call graph.
-The candidate's exact custom invocation closure must match the reviewed source
-inventory and digests. Standard Klipper/G-code commands remain built-ins;
-configured macro overrides of their names require their actual reviewed sources.
-Missing helper macros, dynamic command names, unsupported inline template
-constructs, unresolved calls, recursive calls or unrelated inventory entries
-block upload. No template or macro is executed during this inspection.
-
-This conservative static inventory supports literal command names, separate-line
-bounded Jinja control/set statements and response/error template actions. It
-does not claim a general Jinja interpreter or prove runtime macro expansion.
-The explicit source safety review remains mandatory; macro internals remain
-unobserved in parity reports, and their `hardware_abi_qualified` and
-`physical_readiness` flags remain false. No safety record, deployment approval,
-real macro qualification or new physical print is produced by this build.
+Constructor validation binds this record to the same deployment target and
+transport pins. Each live snapshot re-verifies the complete printer
+configuration and physical identity. Confirm obtains exact-file HelixPrint
+analysis, then the printer-neutral fit checker evaluates that file against the
+live target geometry, temperatures, kinematics, tool/extruder interpretation
+and supported command envelope. Its warning/block findings are bound to the
+exact file analysis; unknown or blocking findings stop before upload. This is
+file/target compatibility, not a universal `PRINT_START` / `PRINT_END` ABI or
+a static macro interpreter. AD5X uses the smaller generation-only V2 deployment
+shape (`target_id`, `deployment_mode`, `orca_machine_sha256`,
+`actions_enabled:false`) and cannot construct a transport or action adapter.
 
 ## Ownership and failure behavior
 
@@ -229,9 +204,11 @@ TLS/credential provisioning and public exposure are outside this candidate.
 
 The dependency-free tests use a real HTTP server bound only to loopback. A
 test-only opener rewrites the pinned synthetic private origin to that fixture;
-no printer or private network host is contacted. Synthetic G-code tests inject
-only the parity verifier, whose genuine behavior has its own mandatory harness
-tests. They claim no native generation parity or physical qualification.
+no printer or private network host is contacted. Historical V1 synthetic G-code
+tests inject only their retained parity verifier; their genuine behavior has its
+own bounded harness tests. Current V2 jobs instead require the exact
+build/package qualification closure and target-fit analysis. Neither fixture
+tier by itself claims physical qualification.
 
 The fixtures cover multipart no-print/no-queue staging, artifact tampering,
 configuration changes, busy queue/existing filenames, disabled action gates,
@@ -244,9 +221,11 @@ the adapter's durable independently confirmed `printing` journal and before
 the coordinator saves its handle. A fresh coordinator/adapter then adopts and
 observes that same job, proves successful completion and returns a result, or
 cancels the exact owned job. Both paths assert one upload and one Start only.
-Additional negative tests cover review/binding/range errors, actual macro source
-and argument mismatch, transitive/dynamic macro resolution, unchanged
-qualification digest and read-only ambiguous/mismatched recovery.
+Historical V1 negative tests retain actual macro-source/argument mismatch and
+transitive/dynamic macro-resolution coverage. Current V2 negative tests cover
+review/binding/range and target-fit errors, changed qualification/runtime/package
+closure, and read-only ambiguous/mismatched recovery; they do not impose that
+historical macro ABI on a printer-neutral job.
 
 Known limits remain explicit:
 
@@ -264,6 +243,7 @@ Known limits remain explicit:
   may finish after it. Individual HTTP operations retain their five-second
   timeouts. This is not a hard real-time supervisor.
 - Journal integrity assumes the launcher's private user ACL and a single retained
-  adapter root. A separately approved deployment must verify that envelope,
-  existing credentials/transport security, and actual target behavior. No such
-  physical activation or new print is authorized or performed here.
+  adapter root. The separately authorized amendment deployment must verify that
+  envelope, existing credentials/transport security, and actual target behavior.
+  Source and synthetic fixtures do not claim that the controlled prints occurred;
+  only the completion ledger and exact physical receipts may do so.

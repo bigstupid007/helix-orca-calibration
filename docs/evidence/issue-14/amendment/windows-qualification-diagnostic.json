@@ -1,0 +1,25 @@
+{
+  "candidate_head": "60dbbadb1d95dd211ae8b1b7756e7ba573aa8992",
+  "case": {
+    "calibration": "max_volumetric_speed",
+    "context": "voron",
+    "parameter_case": "lower_boundary",
+    "parameters": {
+      "end": 0.011,
+      "start": 0.01,
+      "step": 0.001
+    },
+    "request_sha256": "af69f262b454d45b4324ea54331300cd3c4272ab2b6fca6b00d308d478742a89"
+  },
+  "classification": "actual-product-assertion",
+  "disposition": "The failed run is preserved and was not retried at the same head. Pinned Orca accepts this range and retains the full native asset when the requested cut height exceeds it; the adapter's additional rejection was removed in f838503c13a3a53f396d6cac71d9caf923f89ee1.",
+  "exit_code": 255,
+  "native_diagnostic": {
+    "message": "Requested range exceeds native volumetric asset",
+    "sha256": "22dc3fbb2e66debcbbc3d79b052e192ed39db4e39c8e1d9403703fa740bc5b5a"
+  },
+  "orca_source": "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03",
+  "physical_actions": 0,
+  "qualification_run_id": 40261833869,
+  "schema": "helix-orca-v1-windows-qualification-diagnostic-public/v1"
+}

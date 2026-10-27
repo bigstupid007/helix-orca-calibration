@@ -148,3 +148,83 @@ the five authorized calibrations run one at a time on the Founder's Voron. Each
 physical dispatch still requires the Founder to deliberately press the native
 Helix Start control; generation, receipt, recovery, or an agent never substitutes
 for that action.
+
+## Frozen completion candidate
+
+The completion candidate is frozen at
+`2f1ffe1041b9f591d2c621e821975f53414efd65`. Build-level qualification remains
+bound to product head `4c0379b05e9a58a7546b42da9fbcc09658fabba8` and harness
+head `992577c15aac24ee7b23cf850c98f016c0ac73a4`. The intervening commits are
+bounded companion-name/UI-thread, transport, machine-binding, warning-recovery,
+owner-runtime, and owned-job recovery corrections; they do not change the
+qualified generator, route, Orca executable, or resource closure. The final generator corrections
+project current Orca's comma-delimited numeric/nullable vectors and its exact
+semicolon/C-style string cells into each active CLI filament preset, while
+retaining comma/bracket-bearing strings and the accepted V2
+`filament_flow_ratio` wire representation. The 55-key string-vector type
+inventory exactly matches the pinned Orca source. The accepted base
+Temperature companion remains byte-identical at
+`8f0269e6510ca11848144c14fc2c42a33ea288e8dd1bfa7bd1e5789636bf3d52`.
+The correction changes no Helix product byte.
+
+The initial exact Windows qualification at `60dbbad` then exposed one native
+MVS parity defect rather than a navigation/timing failure: the adapter rejected
+a UI-valid range when its calculated cut height exceeded the stock asset.
+Pinned Orca keeps the full asset and attempts the final slice in that case.
+`f838503` removes the extra rejection; the failed run remains preserved as a
+separate diagnostic and was not retried at the old head.
+
+The first `f838503` Windows qualification then exposed a second actual adapter
+assertion at AD5X Temperature/default: the adapter promoted a pinned Orca
+`Print::validate` floating-cantilever warning to a fatal error. Pinned Plater
+instead continues when `error.string` is empty and presents those entries as
+nonblocking `ValidateWarning` notifications. `cb46647` restores that split and
+retains the exact warning array as hash-bound private case evidence. The failed
+run remains preserved and was not retried at `f838503`.
+
+The next exact Windows qualification exposed a third actual adapter assertion:
+an Orca final-slice warning was still classified as fatal. `4c0379b` follows
+pinned Orca's warning severity while retaining the exact warning evidence. Its
+subsequent AD5X Flow failure came from a preserved owner process with Spiral
+vase enabled, not a product defect; the product was frozen and representative
+qualification moved to another already-preserved native AD5X process with
+Spiral vase off.
+
+That context-corrected run then reached the exact `0.01→0.011/0.001` MVS
+stress corner. Pinned Orca correctly rejected the approximately 1001 mm tower
+against AD5X build volume. Per Founder direction the failed run is retained as
+separate extreme-range evidence. `992577c` changes only the representative
+matrix cell to `0.01→1.01/1`; ordinary runtime remains open to every finite
+native-valid request and reports exact native fit blockers.
+
+The frozen source passes 637 dependency-free tests with seven host skips,
+the protected Temperature preservation verifier, the beta.9 preservation proof,
+and `git diff --check`. Exact-`992577c` CI run `40342726011`, Temperature
+readiness run `40342726039`, and V1 native-UI run `40342726496` pass;
+source-pinned Windows run `40342726026` passes. The retained actual Windows
+matrix qualifies 50/50 cases and the final owner-local runtime completes its
+stop/rollback/install/start/status sequence. Exact frozen-head CI is rerun after
+publication; no pass is inferred before that run completes.
+
+One exact-head official-Orca GUI capture ended before product interaction with
+`Capture is occluded.` The diagnostic is preserved and separated from product
+evidence. It is not an application assertion, was not retried, and caused no
+product change. The focused beta.12 proof remains the core presentation
+evidence; its frames are independent fixtures, not a sequential exact-job
+trace. Twenty-six of its 28
+captured source files are unchanged at freeze, while the two protocol/runtime
+files changed later and are covered by tests and bounded playback rather than a
+new screenshot matrix. The prior eleven-target run remains layout lineage and
+the separate range proof remains an extreme harness diagnostic.
+
+The bounded physical continuation then exposed a different limit. One exact
+Temperature job reached prepared review, warning acknowledgement, Confirm, and
+the Founder's deliberate Start, but printer readiness rejected before upload.
+Independent readback proved that no file was uploaded or started. After the
+recovery corrections and a complete owner-runtime upgrade, beta.12 still
+presented that retired uncertain request as active while the healthy coordinator
+held no request; Request generation returned to the chooser. Per Founder
+direction this stale-session/navigation failure was preserved, the product was
+frozen, and no further repair loop or physical retry began. The amendment's five
+new end-to-end physical workflows therefore remain incomplete rather than being
+inferred from the accepted Issue #12 Temperature print.

@@ -12,8 +12,11 @@ per-user process, independently of Codex, the Spare testing worker and an open
 foreground terminal. It starts one fixed repository entry point with existing
 Python, repository, originating plugin storage and private configuration paths.
 It neither installs Python nor copies/replaces Orca or the accepted Helix plugin.
-The shipped coordinator has no action-enabled printer adapter. Packaging is not
-production print or transport-security qualification.
+The default source invocation has no action-enabled printer adapter. The amendment
+package can construct one only when its exact private configuration, owner-local
+deployment authorization, build qualification, installed manifest, native event
+channel, and reviewed Voron target all agree. Packaging alone is not production
+print or transport-security qualification.
 
 ## Review and operation
 

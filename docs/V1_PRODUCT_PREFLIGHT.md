@@ -1,24 +1,62 @@
 # V1 AI Product Preflight
 
-> **Historical preflight pending replacement:** the October 25 amendment changes
-> native Helix, Orca companion, result application, physical execution, and
-> installation. Earlier beta.9/October 15 observations below remain useful
-> history but do not preflight the amended candidate. A fresh evidence-first
-> Product Preflight is required before guided Founder Review.
-> [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
+> **Product Preflight review complete; product blocked:** the candidate is
+> frozen at `2f1ffe1041b9f591d2c621e821975f53414efd65`. The current beta.12 native
+> evidence-first review is complete; build qualification, owner-runtime and
+> controlled physical observations are recorded here when their bounded runs
+> complete.  Earlier beta.9/October 15 sections remain history, not current
+> evidence. [Amendment record](V1_CURRENT_UPSTREAM_REBASE.md).
 
-Current functional status: independent actual800×480 native operator proof passes
-all five edited requests against the actual Windows coordinator. All14 fresh
-captures, exact source bindings and complete managed cleanup pass. Both PA default
-sets, invalid Retraction rejection, all numeric fields and Perfectionist selection
-were operated. Flow reaches real parity-qualified Review; four actual blockers
-retain exact values. The [focused proof](evidence/issue-14/parameters/README.md)
-records this functional inspection; it is not a new visual design audit.
+The current native Product Preflight uses the focused
+`480x272` proof and sixteen deliberately selected state frames. All 28 captured
+source digests match capture candidate `cb46647`, and 26 of 28 remain unchanged
+at the frozen head; 26 workflow assertions and 39 frames
+pass, with HelixScreen beta.12 source-built at the exact pin, Docker network
+`none`, zero physical actions, and complete managed cleanup. The inspected
+states cover entry, chooser, all five configuration surfaces, prepared review,
+Confirm, deliberate Start, monitoring, evaluation, applied/unsaved, application
+failure, known warning, cancellation confirmation, and terminal cancellation.
 
-The following visual audit, 396-frame matrix and earlier synthetic browser workflow
-are historical, tied to their exact source snapshots. They do not qualify the
-changed controls. Full Product Design work remains deferred; this correction
-restores functionality. [Current functional acceptance gate](V1_PARAMETER_CORRECTION.md).
+The frames are independent fixtures rather than a chronological job. Their
+values may differ across states; exact-job continuity must come from Windows
+and physical receipts. Within the focused screenshots, the UI is coherent and
+contains no screenshot-level blocker. Primary and safety actions are clear, warning Continue explicitly does
+not start a print, and APPLIED / UNSAVED is prominent. Remaining risks are small
+low-contrast secondary text, vertical-scroll discoverability, dense Pressure
+Advance labels, compact touch targets, and unmeasured keyboard, focus,
+assistive-technology, zoom, motor, and contrast behavior.
+
+The `f838503`, `cb46647`, and `4c0379b` corrections leave the captured 28-file
+inventory unchanged, and `992577c` changes only the qualification harness.
+Later capability-refresh, machine-binding, and warning-recovery work changes
+protocol validation/recovery lines in `integration/v1-native/main.lua` and
+`integration/v1_runtime.py`, so the focused frames are presentation/layout
+lineage rather than byte-current proof. Current source
+tests and actual bounded beta.12 playback cover those protocol deltas and show
+the same visible chooser/configuration/warning/review/Confirm/Start surfaces.
+
+The older eleven-size beta.12 run is retained only as layout lineage because
+four subsequently corrected source digests differ. The extreme-range proof is
+separate harness diagnostic evidence. The current Windows GUI capture stopped
+before product interaction because capture ownership reported `Capture is
+occluded.` Per Founder instruction it was preserved, not retried or treated as
+a product failure. See the [focused beta.12 evidence and exact limits](evidence/issue-14/amendment/native-beta12-focused/README.md)
+and [sanitized capture diagnostic](evidence/issue-14/amendment/windows-gui-diagnostic.json).
+
+The bounded Founder/Voron continuation later returned from Request generation
+to the chooser while beta.12 still presented the retired uncertain request as
+active. Readback found a healthy idle coordinator with no current request and
+no new prepared job; Moonraker was ready with no active virtual-SD file and no
+new owned upload. This is retained as a
+[stale-session/navigation diagnostic](evidence/issue-14/amendment/physical-stale-session-navigation-diagnostic.json).
+It is an actual product session/navigation failure and the Product Preflight
+blocker, while independent readback shows it is not evidence of generation,
+upload, dispatch, or printing failure. Per Founder direction it was not
+retried, and product behavior was frozen.
+
+The following visual audit, 396-frame matrix and earlier synthetic browser
+workflow are historical, tied to their exact source snapshots. They do not
+qualify the amended controls or current result transaction.
 
 ## Historical visual review and corrections
 

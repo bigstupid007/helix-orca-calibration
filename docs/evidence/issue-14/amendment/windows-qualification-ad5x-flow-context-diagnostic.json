@@ -1,0 +1,28 @@
+{
+  "candidate_head": "4c0379b05e9a58a7546b42da9fbcc09658fabba8",
+  "case": {
+    "calibration": "flow_ratio_yolo",
+    "context": "ad5x",
+    "parameter_case": "default",
+    "parameters": {
+      "pass": 1,
+      "pattern": "archimedean_chords"
+    }
+  },
+  "classification": "actual-native-context-assertion",
+  "disposition": "The failed run is preserved and was not repaired by mutating the request or overriding Orca. The selected preserved owner process had Spiral vase enabled, and pinned Orca correctly rejected the multi-object native Flow model. The product was frozen. Subsequent representative qualification uses the separate preserved owner process 0.20mm Standard @FF AD5X - Faster, whose effective spiral_mode is 0, without changing either saved preset.",
+  "exit_code": 255,
+  "native_diagnostic": {
+    "message": "Please select \"By object\" print sequence to print multiple objects in spiral vase mode.",
+    "sha256": "f03a0b4111e62ccb7e738854c3b5867120d2ba8aab008892f0801ca2a64266fa"
+  },
+  "orca_source": "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03",
+  "physical_actions": 0,
+  "qualification_context": {
+    "effective_spiral_mode": "1",
+    "process_name": "0.20mm Standard RapidPLA v1",
+    "sha256": "eb32e5e181d70fbd30184cbc5f4418ec84140e89fe4fd30462fc0c562ecc3862"
+  },
+  "qualification_run_id": 40286504913,
+  "schema": "helix-orca-v1-windows-qualification-diagnostic-public/v1"
+}
