@@ -1,0 +1,148 @@
+{
+  "temperature": {
+    "name": "Temperature",
+    "kind": "Standard tower",
+    "help": "Choose a temperature range. Evaluate the cleanest band after successful completion.",
+    "parameters": {
+      "start": {
+        "kind": "number",
+        "min": 160,
+        "max": 500,
+        "integer": true,
+        "multiple": 5
+      },
+      "end": {
+        "kind": "number",
+        "min": 155,
+        "max": 495,
+        "integer": true,
+        "multiple": 5
+      },
+      "step": {
+        "kind": "fixed",
+        "value": 5
+      },
+      "scale": {
+        "kind": "boolean"
+      }
+    },
+    "labels": {
+      "start": "Starting temperature (\u00b0C)",
+      "end": "Ending temperature (\u00b0C)",
+      "step": "Temperature step (\u00b0C)",
+      "scale": "Scale tower"
+    }
+  },
+  "flow_ratio_yolo": {
+    "name": "Flow Ratio",
+    "kind": "YOLO",
+    "help": "Uses an Orca-native Flow Ratio surface pattern. Compare the printed patches and choose the smoothest surface after successful completion.",
+    "parameters": {
+      "pass": {
+        "kind": "choice",
+        "values": [
+          1,
+          2
+        ]
+      },
+      "pattern": {
+        "kind": "choice",
+        "values": [
+          "archimedean_chords",
+          "monotonic"
+        ]
+      }
+    },
+    "labels": {
+      "pass": "YOLO pass",
+      "pattern": "Surface pattern"
+    }
+  },
+  "pressure_advance_pattern": {
+    "name": "Pressure Advance",
+    "kind": "Pattern",
+    "help": "Compare the pattern lines and select the cleanest transition after successful completion.",
+    "parameters": {
+      "start": {
+        "kind": "number",
+        "min": 0,
+        "max": 2.0
+      },
+      "end": {
+        "kind": "number",
+        "min": 0,
+        "max": 2.0
+      },
+      "step": {
+        "kind": "number",
+        "min": 0.001
+      },
+      "accelerations": {
+        "kind": "positive_int_list",
+        "max_items": 64
+      },
+      "speeds": {
+        "kind": "positive_int_list",
+        "max_items": 64
+      }
+    },
+    "labels": {
+      "start": "Starting PA",
+      "end": "Ending PA",
+      "step": "PA increment",
+      "accelerations": "Printing accelerations (comma-separated)",
+      "speeds": "Printing speeds (comma-separated)"
+    }
+  },
+  "retraction": {
+    "name": "Retraction",
+    "kind": "Tower",
+    "help": "Compare stringing between tower levels after successful completion.",
+    "parameters": {
+      "start": {
+        "kind": "number",
+        "min": 0
+      },
+      "end": {
+        "kind": "number",
+        "min": 0
+      },
+      "step": {
+        "kind": "number",
+        "min": 0,
+        "exclusive_min": true
+      }
+    },
+    "labels": {
+      "start": "Starting retraction (mm)",
+      "end": "Ending retraction (mm)",
+      "step": "Retraction increment (mm)"
+    }
+  },
+  "max_volumetric_speed": {
+    "name": "Max Volumetric Speed",
+    "kind": "Tower",
+    "help": "Find the highest clean flow region after successful completion.",
+    "parameters": {
+      "start": {
+        "kind": "number",
+        "min": 0,
+        "exclusive_min": true
+      },
+      "end": {
+        "kind": "number",
+        "min": 0
+      },
+      "step": {
+        "kind": "number",
+        "min": 0,
+        "exclusive_min": true
+      }
+    },
+    "labels": {
+      "start": "Starting flow (mm\u00b3/s)",
+      "end": "Ending flow (mm\u00b3/s)",
+      "step": "Flow increment (mm\u00b3/s)"
+    }
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "actual_windows_compilation_succeeded": true,
+  "application_commit": "b603ffb11677de4cbe04d0adf39834e83d5e0958",
+  "build_lifecycle": {
+    "elapsed_seconds": 4027.11,
+    "owned_runner_vm": true,
+    "peak_filesystem_loss_bytes": 12768280576,
+    "physical_actions": false,
+    "runtime_cleanup": "GitHub-hosted disposable job teardown",
+    "schema": "helix-orca-v1-windows-build-lifecycle/v1",
+    "stage_processes_exited": true,
+    "state": "failed"
+  },
+  "classification_reference": "https://learn.microsoft.com/en-us/windows/win32/winsock/windows-sockets-compatibility-issues-2",
+  "dependency_checkpoint": {
+    "contract_sha256": "db6cc609784ba2d8bc0fc998bff1fd3f3ed3bdfeb6f2b376e75235a7b6e14e15",
+    "file_count": 29616,
+    "manifest_sha256": "dee71045955e2761a39e510a83bd48d05e450c984ce709265a2f7d54f734d4f9",
+    "publisher": {
+      "application_commit": "b603ffb11677de4cbe04d0adf39834e83d5e0958",
+      "image_version": "20261012.333.1",
+      "repository": "bigstupid007/helix-orca-calibration",
+      "run_attempt": "1",
+      "run_id": "39224687302",
+      "run_url": "https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39224687302",
+      "runner_image": "windows-2022",
+      "schema": "helix-orca-v1-windows-builder/v1",
+      "toolchain": {
+        "cl": {
+          "sha256": "fe251ef50a1545b1b0835ee17b1e785459712b38d79e45b5c1d3d28970a36619",
+          "size": 677776
+        },
+        "cmake": {
+          "sha256": "3fe22eb02e1c6184ec207366ed21a6f2f9c3828c1e9f3324546befadfb362be3",
+          "size": 12029392
+        },
+        "link": {
+          "sha256": "a364af801a8539e4324d9489313dbf001d959128451fc99a27b24676bbac058f",
+          "size": 3252616
+        },
+        "msbuild": {
+          "sha256": "7da5f86d7dfa627c4071edc9563fda7ace7ec0aaadd8b2aaccb92d2a823535c0",
+          "size": 435504
+        },
+        "ninja": {
+          "sha256": "48e5bbae070b3cf7a9d9793209d410f458d0a8cbd20bd0e68e92ce7d29c57b05",
+          "size": 392704
+        },
+        "perl": {
+          "sha256": "4d61ebe19311dbf7b9710ac2c6c402e3cba3e23b63e8b82be88e471343bed52d",
+          "size": 39936
+        }
+      },
+      "workflow": ".github/workflows/v1-windows-engine.yml"
+    },
+    "qualified": false,
+    "restored": false,
+    "schema": "helix-orca-v1-windows-dependency-receipt/v1",
+    "sha256": "e283d9a2984caf724c78ce03b1b715e4759601213b09df86a46808ae5cc269e6",
+    "size": 756988297,
+    "uncompressed_bytes": 1555857027
+  },
+  "failure": "Missing or ambiguous non-system DLL: wsock32.dll",
+  "package_complete": false,
+  "physical_actions": false,
+  "profile_writeback": false,
+  "qualified": false,
+  "run_id": "39224687302",
+  "run_url": "https://github.com/bigstupid007/helix-orca-calibration/actions/runs/39224687302",
+  "schema": "helix-orca-v1-windows-build-checkpoint/v1",
+  "stages": {
+    "dep_OCCT": {
+      "elapsed_seconds": 1379.5,
+      "exit_code": 0,
+      "log_bytes": 1048576,
+      "output_bytes": 1465613
+    },
+    "engine-configure": {
+      "elapsed_seconds": 4.234,
+      "exit_code": 0,
+      "log_bytes": 6468,
+      "output_bytes": 6468
+    },
+    "native-adapter": {
+      "elapsed_seconds": 1547.485,
+      "exit_code": 0,
+      "log_bytes": 31444,
+      "output_bytes": 31444
+    }
+  },
+  "system_dll_target_probe": {
+    "company": "Microsoft Corporation",
+    "description": "Windows Socket 32-Bit DLL",
+    "name": "wsock32.dll",
+    "physical_actions": false,
+    "qualified": false,
+    "schema": "helix-orca-v1-windows-system-dll-probe/v1",
+    "sha256": "7c6658e8ddb19e10679c13050bc7febc33d190b162b653ebafb0da6e7d292519",
+    "signature_status": "Valid",
+    "signer_subject": "CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+    "size": 40960,
+    "system_directory_match": true,
+    "version": "10.0.26100.1 (WinBuild.160101.0800)"
+  }
+}

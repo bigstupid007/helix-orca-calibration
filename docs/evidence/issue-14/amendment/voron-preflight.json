@@ -1,0 +1,26 @@
+{
+  "candidate_head": "60dbbadb1d95dd211ae8b1b7756e7ba573aa8992",
+  "checked_at": "2026-10-26T03:15:11Z",
+  "helix_plugin_inventory": "current-candidate-exact",
+  "helixprint": {
+    "active_prints": 0,
+    "api": 2,
+    "file_analysis_enabled": true,
+    "file_analysis_version": 1,
+    "version": "1.4.0"
+  },
+  "moonraker": {
+    "failed_components": [],
+    "klippy_state": "ready",
+    "version": "v0.10.0-31-gd5ee171"
+  },
+  "physical_actions": 0,
+  "printer": {
+    "bed_target": 0.0,
+    "extruder_target": 0.0,
+    "homed_axes": "",
+    "print_state": "complete",
+    "virtual_sdcard_active": false
+  },
+  "schema": "helix-orca-v1-voron-preflight-public/v1"
+}

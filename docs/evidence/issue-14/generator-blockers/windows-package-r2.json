@@ -1,0 +1,115 @@
+{
+  "build_inputs_sha256": "5b586ec76ef7509e670522d8819927d7e1030aac0087f4c1341d705083d2ed64",
+  "build_lifecycle": {
+    "elapsed_seconds": 5932.656,
+    "owned_runner_vm": true,
+    "peak_filesystem_loss_bytes": 9244848128,
+    "physical_actions": false,
+    "runtime_cleanup": "GitHub-hosted disposable job teardown",
+    "schema": "helix-orca-v1-windows-build-lifecycle/v1",
+    "stage_processes_exited": true,
+    "state": "complete"
+  },
+  "build_receipt_sha256": "ae314910a11c0394e108c67f2929fc42b272c1a17863ea5593e9f45d5d9b986a",
+  "builder_commit": "c0fa61d2217fb36d1b64c0f515b70beff327399e",
+  "builder_run_id": "39255585408",
+  "compiler": {
+    "configuration": "Release",
+    "family": "Clang",
+    "frontend_variant": "MSVC",
+    "generator": "Ninja Multi-Config",
+    "linker_family": "LLD",
+    "linker_version": "22.1.3",
+    "msvc_toolset_version": "14.51.36231",
+    "probe_sha256": "49059e121e0345b0d398852ae7247d128a78c81c007bf239a207b8db97fadd96",
+    "release_flags_sha256": "d4a0862161a7b287c43752221b5a3bbcf15cbeee48fa1ce8096b2fe0210b5bad",
+    "runtime_library": "MD",
+    "version": "22.1.3",
+    "visual_studio_major": "18",
+    "windows_sdk_version": "10.0.26100.0"
+  },
+  "image_version": "20261007.264.1",
+  "managed_fetch_lifecycle": {
+    "exit_code": 0,
+    "run_id": "8bfa0592f6fa494db9e52a7726af099b",
+    "state": "complete",
+    "verification": {
+      "errors": [],
+      "runtime_clear": true
+    }
+  },
+  "native_executable_sha256": "c64ef7473c5575d0fc6d35a03b54c607cd160e54b1d5332bad2dd362cf98ff5a",
+  "package_sha256": "5f258c15cf4c4949071491c132e0e643f04e8eeaa52e94ef8b361e1c890d1588",
+  "physical_actions": false,
+  "qualification_runtime_commit": "c0fa61d2217fb36d1b64c0f515b70beff327399e",
+  "qualified": false,
+  "run_id": "8bfa0592f6fa494db9e52a7726af099b",
+  "runner_image": "windows-2025-vs2026",
+  "schema": "helix-orca-v1-public-windows-package-receipt/v1",
+  "source_materials": {
+    "complete_corresponding_source_claim": false,
+    "exact_historical_vendor_build_reproduced": false,
+    "excluded_binary_build_inputs": [
+      "ffmpeg-n7.0.3-33-g887d4b4919-win64-orca-shared-7.0.zip",
+      "cpython-bin-deps-libffi-3.4.4.zip",
+      "cpython-bin-deps-openssl-bin-3.0.16.2.zip"
+    ],
+    "opaque_static_components": [
+      "OpenCV Intel IPP-ICV enabled by upstream Windows recipe; vendor build/source provenance unverified"
+    ],
+    "production_source_acceptance_required": true,
+    "schema": "helix-orca-v1-windows-source-materials/v1",
+    "source_archive_created": true,
+    "source_archive_inventory_sha256": "fbba9a2a18676fde5470725ed43d529872d95943ba82c26ad5e591af4c85cb20",
+    "source_failure": null,
+    "source_materials_state": "matching-upstream-sources-retained",
+    "source_supplements": [
+      {
+        "archive": "gmp-5.0.1.tar.bz2",
+        "component": "GMP",
+        "executed": false,
+        "sha256": "a2a610f01fd3298dc08c87bf30498c2402590e1bcb227fc40b15ee6d280939fb",
+        "size": 2006109,
+        "url": "https://ftp.gnu.org/gnu/gmp/gmp-5.0.1.tar.bz2",
+        "verified": true,
+        "version": "5.0.1"
+      },
+      {
+        "archive": "mpfr-3.0.0.tar.bz2",
+        "component": "MPFR",
+        "executed": false,
+        "sha256": "8f4e5f9c53536cb798a30455ac429b1f9fc75a0f8af32d6e0ac31ebf1024821f",
+        "size": 1138685,
+        "url": "https://www.mpfr.org/mpfr-3.0.0/mpfr-3.0.0.tar.bz2",
+        "verified": true,
+        "version": "3.0.0"
+      }
+    ],
+    "unresolved_prebuilt_runtime_components": [],
+    "vendor_limitation": "Pinned GMP/MPFR binaries match upstream versions; historical vendor compiler, flags and patches are unverified."
+  },
+  "target": {
+    "application_commit": "c0fa61d2217fb36d1b64c0f515b70beff327399e",
+    "bridge_closure_sha256": {
+      "scripts/orca-windows-review.py": "cf8df1933cb77b67b59b84e147e1f2c87528731de6cefabc5072d6e33f089353",
+      "scripts/spare-access.py": "2b72e1b7856c535490e2e258234df75c38dd691fa7eb91c72c23116d00a168d0"
+    },
+    "build_inputs_sha256": "5b586ec76ef7509e670522d8819927d7e1030aac0087f4c1341d705083d2ed64",
+    "build_receipt_sha256": "ae314910a11c0394e108c67f2929fc42b272c1a17863ea5593e9f45d5d9b986a",
+    "fetch_receipt_sha256": "6d7e06f0256f257514b36b2b97c409dbb268d69f085a7f6f00eaa5320eae354c",
+    "native_executable_sha256": "c64ef7473c5575d0fc6d35a03b54c607cd160e54b1d5332bad2dd362cf98ff5a",
+    "package_sha256": "5f258c15cf4c4949071491c132e0e643f04e8eeaa52e94ef8b361e1c890d1588",
+    "package_verified": true,
+    "physical_actions": false,
+    "qualified": false,
+    "runtime_dll_count": 29,
+    "schema": "helix-orca-v1-public-windows-target-package/v1",
+    "source_manifest_sha256": "9072582c4c9f28c84da10fd4491a52300984d23f3fcf8801ca9a79bf76585344",
+    "source_receipt_sha256": "9414f4455af6d6c3936df406ef080480549f478aa39f5f52ded547f6a0135a76",
+    "transfer_identity_sha256": [
+      "a4b7eb39a7ead5b0f1489b3a7946ad195f8b1ff051974dfd1b495e6d702291ea",
+      "08a64dc73ac3e3776b49f0097c6306bdb9c8f7990a037065213324d328467bf5",
+      "b9cc1ae5fdba1f3833cc1130f6e11a9bed84a7953099dc40789c7d2744a862a1"
+    ]
+  }
+}

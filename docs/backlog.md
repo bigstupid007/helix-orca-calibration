@@ -1,5 +1,45 @@
 # Backlog
 
+The 2026-10-25 Founder amendment is the active Issue #14 completion authority.
+It supersedes the exact-request, beta.9, October 15, NOT APPLIED, universal
+Voron-macro, and no-physical-test limitations in the historical status below.
+[Current-upstream completion record](V1_CURRENT_UPSTREAM_REBASE.md).
+
+The functional parameter correction passes independent actual800×480 native
+operator proof: all five changed requests match Windows transport/journal readback,
+all14 fresh captures pass, and source-bound managed cleanup completes. Perfectionist
+reaches real parity-qualified Review; four generators retain their actual blockers.
+Full Product Design work remains deferred. The historical 396-frame matrix and
+synthetic browser workflow do not qualify changed controls.
+[Current functional acceptance gate](V1_PARAMETER_CORRECTION.md).
+
+## Active approved: Issue #14 integrated V1
+
+Founder launch on 2026-10-18 approves Temperature standard tower, Flow Ratio YOLO,
+Pressure Advance Pattern, Retraction tower and Max Volumetric Speed tower; both
+UX redesigns; verified preparation/slicing; mandatory independent native parity;
+and a product coordinator independent of agent test workers. This is one
+integrated program with bounded parallel writers and one combined review.
+[Program authority](BUILD_PROGRAM_V1.md) and [contracts](V1_CONTRACT.md) govern
+implementation. Unavailable/unqualified generators remain blocked.
+No new physical test, automatic Start/writeback, firmware/configuration change,
+public exposure, physical deployment or merge is approved. Prior physical and
+synthetic Temperature evidence, profiles and rollback remain preserved.
+
+Current integration has common contracts, both five-calibration UI surfaces,
+strict native-reference parity, a durable external runtime and a per-user Windows
+lifecycle. Exact retained Recommended and Perfectionist inputs pass separate actual Windows
+production parity;
+Temperature remains blocked by unexplained differences. The grouped Linux engine
+exports real PA with passing candidate-only invariants, but native warning
+`1000C001` (retained bed 60°C versus vitrification 55°C) rejects Prepared. Native
+parity and Windows packaging remain open. The earlier native matrix passed
+396 frames across eleven targets; its synthetic browser workflow/protections and exact teardown passed. Current control
+acceptance now passes the separate healthy14-frame operator capture and complete
+managed-lifecycle verification. See the [Founder review candidate](V1_FOUNDER_REVIEW.md)
+for exact scope and limitations. Acceptance/merge/physical activation remain open.
+
+
 ## Accepted: Issue #10 — official OrcaSlicer 2.5.0 Alpha qualification
 
 - [x] Verify isolated OSS identity, accepted Issue #8 / PR #9 baseline and no overlapping active work.

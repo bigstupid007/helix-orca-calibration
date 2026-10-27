@@ -1,5 +1,11 @@
 # Architecture
 
+> **Current V1 architecture:** Issue #14's October 25 amendment layers a
+> beta.12-native five-calibration product, current Orca build/route-qualified
+> generation, printer-neutral exact-job execution, official originating-preset
+> transactions, and an owner-local runtime on top of the preserved Issue #1/#12
+> foundations below. [Current architecture authority](V1_CURRENT_UPSTREAM_REBASE.md).
+
 ## Issue #1 HelixScreen foundation
 
 `helix-plugin/orcacal/` is an independent permissionless Lua plugin for the
@@ -393,3 +399,63 @@ See [acceptance](ISSUE_12_ACCEPTANCE.md) for exact scope and proof limits.
 After merge/main verification and Issue closure, stop implementation. A fresh
 Founder-led review of the overall product goal comes next; no successor build
 or further physical action is implied.
+
+
+## Issue #14 V1 candidate architecture
+
+The approved V1 redesign is an isolated derivative of the accepted native shell
+and self-contained October 15 Orca plugin. Native UI persists only correlated
+requests/intents/results; Orca captures saved/edited/effective snapshots through
+verified host APIs and performs bounded local artifact I/O. Neither plugin runs
+processes, slices, networks or writes profiles. The external local coordinator
+owns durable jobs, explicit generator configuration, stock subprocess execution,
+parity re-verification and original-context result/receipt correlation. It does
+not depend on the Spare testing worker. The review launcher supplies no action-enabled physical
+adapter; direct events/storage transport is candidate code, not a
+production deployment/security qualification.
+
+Stock CLI recipes and grouped native engine reuse are separate generator
+adapters, not separate product shells. Every generated job requires independent
+native-UI reference provenance and matching build/profile/parameter evidence.
+Slice success is not qualification. See [contracts](V1_CONTRACT.md),
+[runtime](V1_RUNTIME.md), [parity](V1_GENERATION_PARITY.md) and
+[native engine](V1_ENGINE_REUSE.md). Earlier accepted implementations/evidence
+remain historical baseline; this candidate changes none of their installed
+physical behavior or consumed physical authorizations.
+
+The integrated correction path now binds atomic intent consumption to its durable
+outcome, permits only read-only exact-job restart adoption, and reconciles native
+restart without relaxing sequence checks. Same-job progress/elapsed are nullable
+and cannot authorize evaluation. Windows lifecycle and local privacy checks run
+against a complete source-fingerprinted closure. The bounded native reviewer is
+separate test infrastructure: fixed private LAN, typed input, no physical adapter,
+source/owner binding and exact managed cleanup. Its earlier synthetic completion
+fixture belongs to historical evidence; current review uses the real coordinator.
+Its clean-clone imports do not require the devbox lifecycle checkout.
+
+
+Historical verification binds the earlier native UI to 396 frames across eleven
+targets and its synthetic browser workflow to exact owner-bound cleanup. That
+source-bound evidence does not qualify the changed parameter controls. The
+Linux native engine uses a two-thread task arena as well as a persistent global
+cap; these must agree with upstream's initialization barrier. A real PA artifact
+exists but a retained-profile processor warning blocks Prepared and parity
+remains false. Generator availability, actual generation, parity qualification
+and physical deployment remain separate gates.
+
+
+The functional parameter correction uses a plugin-owned native numeric keypad
+because the pinned plugin allowlist does not expose the app text-input widget.
+The shared contract defines bounds/defaults; numeric fields are not finite test
+picklists. Fixed YOLO modes select separate native assets/sample sets. Submitted
+parameter scalars are copied, retained and validated through preparation/results.
+The bounded viewer now delivers real Coordinator/DirectoryEvents events through
+an explicitly test-only fragmented hook (beta.9 subjects have 1023-byte capacity).
+It creates no prepared/completion fixtures. Captured context stays outside the
+container mount; normal plugin/runtime networking boundaries remain unchanged.
+Historical full-size fixture proof is preserved. The current acceptance gate is
+focused 800×480 operator input through unchanged transport into the actual Windows
+coordinator. All five exact requests, genuine qualified Flow Review, all14 healthy
+captures and final managed/source verification pass in run
+`b04728721c2741bd8d05b3001a343cdf`. No prepared/status fixture or physical adapter
+participates in that focused proof.

@@ -1,0 +1,77 @@
+{
+  "schema": "helix-orca-v1-private-browser-library-cache/v1",
+  "packages": [
+    {
+      "name": "libasound2t64_1.2.11-1ubuntu0.3_amd64.deb",
+      "size": 397772,
+      "sha256": "5d17bfb5683eb99f1be951fe48e1be5bf3c52391913b6b74a8aecf9b4f5e779f"
+    },
+    {
+      "name": "libatk-bridge2.0-0t64_2.52.0-1build1_amd64.deb",
+      "size": 66020,
+      "sha256": "22b7d47e3c0f7953a78d3cfd309d1b20771085de9220fbe610c0989b9e808c9b"
+    },
+    {
+      "name": "libatk1.0-0t64_2.52.0-1build1_amd64.deb",
+      "size": 55282,
+      "sha256": "42c5d4b00954f17c2c3c4b866844f691eb8b6d57bf08b59203e65f12dc84a4f9"
+    },
+    {
+      "name": "libatspi2.0-0t64_2.52.0-1build1_amd64.deb",
+      "size": 80548,
+      "sha256": "d686ace4080eca9c2d6ce8de69392a5ac56c846701894c0858922d4ce341a1d7"
+    },
+    {
+      "name": "libdrm2_2.4.125-1ubuntu0.1~24.04.2_amd64.deb",
+      "size": 41388,
+      "sha256": "4d3e858dd57be617c49d87c5ddcdb35df744a4f0a559981256ae2ba174718584"
+    },
+    {
+      "name": "libgbm1_25.2.8-0ubuntu0.24.04.4_amd64.deb",
+      "size": 34172,
+      "sha256": "4bfe348b456db5b445a80e0a3ffb9e9a01b91499bb86e0e568ca3634b134da7e"
+    },
+    {
+      "name": "libwayland-server0_1.22.0-2.1build1_amd64.deb",
+      "size": 33928,
+      "sha256": "edbfa4b6857691ae922cc768a753fab230eee9e956aa2ce4f2eaa8d9ad777dca"
+    },
+    {
+      "name": "libxcomposite1_1%3a0.4.5-1build3_amd64.deb",
+      "size": 6320,
+      "sha256": "a12d5d9ae70b798cbbf284080eae32b87367561fc9c24492f641b8860ac0f308"
+    },
+    {
+      "name": "libxdamage1_1%3a1.1.6-1build1_amd64.deb",
+      "size": 6150,
+      "sha256": "6891faf325e996ebd28ef53ebb9c043dc96f67327500490affc3e89d366d35ed"
+    },
+    {
+      "name": "libxfixes3_1%3a6.0.0-2build1_amd64.deb",
+      "size": 10764,
+      "sha256": "0ee1015cccd063249e01c0cd0bf45f513c8ac9a1e5e485070c12e69192455e4a"
+    },
+    {
+      "name": "libxi6_2%3a1.8.1-1build1_amd64.deb",
+      "size": 32404,
+      "sha256": "0ea7acb5e8a8ce4d6653b30e03a319bfe136db7bfb5ee7cad34c2aa1272ea8d9"
+    },
+    {
+      "name": "libxrandr2_2%3a1.5.2-2build1_amd64.deb",
+      "size": 19670,
+      "sha256": "f2955a5e594f5724b58ad241d9231ea191cb36574a0d5e5ca6b661cd41d6256d"
+    },
+    {
+      "name": "libxrender1_1%3a0.9.10-1.1build1_amd64.deb",
+      "size": 19016,
+      "sha256": "d70bd831aebe8d4834b5dd2ed98df26dd6bd27f1042c47543bd7f66df1ae22ea"
+    },
+    {
+      "name": "libxshmfence1_1.3-1build5_amd64.deb",
+      "size": 4764,
+      "sha256": "bc6de4bfaf9050a8ba83d4bcfb114131b081084a7972c03417f8523d52b5c742"
+    }
+  ],
+  "system_install": false,
+  "maintainer_scripts_executed": false
+}

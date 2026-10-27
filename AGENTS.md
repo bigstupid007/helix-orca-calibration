@@ -1,5 +1,24 @@
 # AGENTS.md
 
+## Issue #14 October 25 completion amendment
+
+The Founder's 2026-10-25 Issue #14 amendment controls the current V1 completion
+work. Preserve accepted Issue #12 physical Temperature evidence and valid PR #15
+work, but rebaseline the V1 derivative to HelixScreen beta.12 commit
+`00a9fe6030c37d56748b2122b41fd36de1fdf831` and OrcaSlicer commit
+`b5e9cb3c5e7a925adf8379366ae580e4dabb1d03`. Build/route qualification replaces
+exact-request eligibility; Orca owns printer-specific generation/final slicing;
+the job adapter is printer-neutral; and results use the official originating
+filament preset transaction and remain dirty/unsaved until the user saves them.
+The ordinary owner-local runtime, current Windows/beta.12/AD5X/Voron validation,
+five controlled physical calibrations, independent review, Product Preflight,
+CI, and guided Founder Review are in scope. Generation or receipt never starts a
+print; every physical job still requires a deliberate native Helix Start. PR #15
+must remain draft and unmerged. [Exact interpretation and pins](docs/V1_CURRENT_UPSTREAM_REBASE.md).
+
+Issue-specific sections below describe preserved historical foundations unless
+the amendment record explicitly carries them forward.
+
 ## Issue #1 product authority
 
 `helix-plugin/orcacal/` is the accepted permissionless HelixScreen calibration
@@ -432,3 +451,20 @@ to make a pre-print snapshot identical. See `docs/ISSUE_12_ACCEPTANCE.md`.
 After governed closeout, **stop implementation**. The next activity is a fresh
 Founder-led review of the overall Helix–Orca product goal, not another build.
 Deferred work remains unapproved; do not launch a new feature or calibration.
+
+## Issue #14 — approved integrated V1 program
+
+The Founder's 2026-10-18 launch and GitHub Issue #14 supersede earlier stop/new
+build restrictions only for the integrated V1 candidate in
+`docs/BUILD_PROGRAM_V1.md`. Five named calibrations, Helix-first and Orca UX
+redesign, verified programmatic Orca preparation/slicing, production-oriented
+coordination and mandatory independent native-UI G-code parity are approved.
+Lead owns shared contracts before bounded parallel writers, one combined
+integration/review and unmerged PR(s). Preserve all accepted Temperature product,
+physical evidence, installation, rollback material, original profiles/settings
+and canonical dirty work. No new physical test, upload/queue/heat/motion,
+autonomous physical Start, firmware/printer configuration change, public exposure,
+automatic profile writeback, physical deployment, merge or release is authorized.
+Reference checkouts and independent lab remain immutable. Specific unavailable
+generators must remain visibly blocked; fixture proof is never qualification.
+See `docs/V1_CONTRACT.md` for worker ownership and wire contracts.

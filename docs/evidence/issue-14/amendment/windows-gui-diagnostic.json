@@ -1,0 +1,15 @@
+{
+  "candidate_head": "cb37f7057ad576ca4774f55e31ca45c1a2e608a2",
+  "capture": {
+    "exit_code": 1,
+    "message": "Capture is occluded.",
+    "product_interaction_attempted": false,
+    "screenshot_created": false
+  },
+  "classification": "synthetic-capture-ownership",
+  "companion_sha256": "3ce6a00257773845c8837c3fcf60d13d443a9fa077f09bfe452664410544a172",
+  "disposition": "No retry, navigation, or UI-harness repair. The product assertion was not tested by this bounded capture; non-GUI Windows and physical gates continue separately.",
+  "orca_source": "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03",
+  "private_diagnostic_sha256": "6f33630bdc89d774ae1a5af0458579aaaac2f4b04d8530302aa9607c5be469e7",
+  "schema": "helix-orca-v1-windows-ui-diagnostic-public/v1"
+}

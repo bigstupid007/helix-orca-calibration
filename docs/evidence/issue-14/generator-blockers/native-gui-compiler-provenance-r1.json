@@ -1,0 +1,39 @@
+{
+  "actual_public_job_logs": {
+    "dependencies": {
+      "compiler_family": "Clang",
+      "compiler_frontend": "clang-cl",
+      "compiler_version": "22.1.3",
+      "generator": "Ninja Multi-Config",
+      "image": "windows-2025-vs2026",
+      "job_id": "116217127759",
+      "log_bytes": 13242072,
+      "log_sha256": "9a5d2774fe30c08eb2bf81dedcd3a9c31e8b1fdf43fe9405402d8adc05199b0a"
+    },
+    "native": {
+      "compiler_family": "Clang",
+      "compiler_frontend": "clang-cl",
+      "compiler_version": "22.1.3",
+      "generator": "Ninja Multi-Config",
+      "image": "windows-2025-vs2026",
+      "job_id": "116226507073",
+      "log_bytes": 4545661,
+      "log_sha256": "1b0b04fb633a02bd4cbfc2498c4fccdb8395689eac76f7f894766271f831bd28"
+    }
+  },
+  "adapter_comparison": {
+    "application_commit": "227b44795a69d68999fc5cda429002d73764626b",
+    "compiler_family": "MSVC",
+    "compiler_version": "19.44.35229.0",
+    "generator": "Ninja",
+    "image": "windows-2022",
+    "run_id": "39233686041"
+  },
+  "conclusion": "Compiler recipe mismatch established; matching geometry alone did not establish native executable parity.",
+  "physical_actions": false,
+  "qualified": false,
+  "run_id": "38671673715",
+  "run_url": "https://github.com/OrcaSlicer/OrcaSlicer/actions/runs/38671673715",
+  "schema": "helix-orca-v1-native-gui-compiler-provenance/v1",
+  "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4"
+}

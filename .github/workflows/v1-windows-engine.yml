@@ -1,0 +1,176 @@
+name: V1 Windows native engine
+on:
+  pull_request:
+    paths:
+      - 'integration/v1-native*'
+      - 'integration/v1-native-engine/**'
+      - 'integration/v1_contract.py'
+      - 'integration/v1_deployment.py'
+      - 'integration/v1_engine.py'
+      - 'integration/v1_fit.py'
+      - 'integration/v1_generation.py'
+      - 'integration/v1_jobs.py'
+      - 'integration/v1_orca_extension.py'
+      - 'integration/v1_qualification.py'
+      - 'integration/v1_pe.py'
+      - 'integration/v1_routing.py'
+      - 'integration/v1_runtime.py'
+      - 'integration/v1_transport.py'
+      - 'integration/v1_windows_dependencies.py'
+      - 'plugin/helix_calibration.py'
+      - 'scripts/v1-build-qualify.py'
+      - 'scripts/v1-companion.py'
+      - 'scripts/v1-engine-windows.py'
+      - 'scripts/v1-native-evidence.py'
+      - 'scripts/v1-native-plugin.py'
+      - 'scripts/v1-native-qualify.py'
+      - 'scripts/v1-parameter-preservation.py'
+      - 'scripts/v1-runtime.py'
+      - 'scripts/v1-runtime-windows.ps1'
+      - 'tests/test_v1_build_qualification.py'
+      - 'tests/test_v1_deployment.py'
+      - 'tests/test_v1_fit.py'
+      - 'tests/test_v1_jobs.py'
+      - 'tests/test_v1_native.py'
+      - 'tests/test_v1_native_evidence.py'
+      - 'tests/test_v1_native_parameters.py'
+      - 'tests/test_v1_parameter_preservation.py'
+      - 'tests/test_v1_windows_runtime.py'
+      - 'tests/test_v2_contract_application.py'
+      - '.github/workflows/v1-windows-engine.yml'
+  workflow_dispatch:
+    inputs:
+      toolchain_preflight_only:
+        description: Only run bounded compiler and static archive diagnostics; no dependencies or package
+        required: false
+        default: false
+        type: boolean
+      dependency_run_id:
+        description: Explicit reviewed dependency producer run (optional)
+        required: false
+        type: string
+      dependency_application_commit:
+        description: Exact producer application commit
+        required: false
+        type: string
+      dependency_bundle_sha256:
+        description: Exact inner dependency ZIP SHA-256
+        required: false
+        type: string
+      dependency_run_attempt:
+        description: Exact producer attempt
+        required: false
+        default: '1'
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: v1-windows-engine-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-windows:
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 130
+    steps:
+      - name: Preserve exact source line endings in this disposable runner
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: OrcaSlicer/OrcaSlicer
+          ref: b5e9cb3c5e7a925adf8379366ae580e4dabb1d03
+          path: upstream
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify the amended contract, native bridge, owner runtime, and qualification boundary
+        run: |
+          $env:PYTHONPATH = (Join-Path $env:GITHUB_WORKSPACE 'tests')
+          python -m unittest -v `
+            tests.test_v1_build_qualification `
+            tests.test_v1_jobs `
+            tests.test_v1_native_evidence `
+            tests.test_v1_native_parameters `
+            tests.test_v1_parameter_preservation `
+            tests.test_v1_windows_runtime `
+            tests.test_v2_contract_application
+      - name: Retrieve only an explicitly pinned owned dependency checkpoint
+        if: github.event_name == 'workflow_dispatch' && !inputs.toolchain_preflight_only && inputs.dependency_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPENDENCY_RUN_ID: ${{ inputs.dependency_run_id }}
+          DEPENDENCY_COMMIT: ${{ inputs.dependency_application_commit }}
+          DEPENDENCY_SHA: ${{ inputs.dependency_bundle_sha256 }}
+          DEPENDENCY_ATTEMPT: ${{ inputs.dependency_run_attempt }}
+        run: |
+          if ($env:DEPENDENCY_RUN_ID -notmatch '^[1-9][0-9]{0,31}$' -or
+              $env:DEPENDENCY_COMMIT -notmatch '^[a-f0-9]{40}$' -or
+              $env:DEPENDENCY_SHA -notmatch '^[a-f0-9]{64}$' -or
+              $env:DEPENDENCY_ATTEMPT -notmatch '^[1-9][0-9]{0,31}$') {
+            throw 'Complete exact dependency checkpoint pins are required.'
+          }
+          $Producer = gh api ("repos/"+$env:GITHUB_REPOSITORY+"/actions/runs/"+$env:DEPENDENCY_RUN_ID) | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $Producer.status -ne 'completed' -or
+              $Producer.head_sha -ne $env:DEPENDENCY_COMMIT -or
+              $Producer.repository.full_name -ne $env:GITHUB_REPOSITORY -or
+              $Producer.head_repository.full_name -ne $env:GITHUB_REPOSITORY -or
+              $Producer.path -ne '.github/workflows/v1-windows-engine.yml' -or
+              [string]$Producer.run_attempt -ne $env:DEPENDENCY_ATTEMPT) {
+            throw 'Dependency producer is not the exact reviewed owned workflow run.'
+          }
+          $Destination = "${{ runner.temp }}/helix-orca-dependency-input"
+          if (Test-Path -LiteralPath $Destination) { throw 'Fresh checkpoint input directory required.' }
+          gh run download $env:DEPENDENCY_RUN_ID --repo $env:GITHUB_REPOSITORY --name ("v1-windows-native-dependencies-"+$env:DEPENDENCY_RUN_ID) --dir $Destination
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned dependency checkpoint download failed.' }
+      - name: Run bounded toolchain preflight or source-pinned native package
+        timeout-minutes: 120
+        env:
+          DEPENDENCY_RUN_ID: ${{ inputs.dependency_run_id }}
+          DEPENDENCY_COMMIT: ${{ inputs.dependency_application_commit }}
+          DEPENDENCY_SHA: ${{ inputs.dependency_bundle_sha256 }}
+          DEPENDENCY_ATTEMPT: ${{ inputs.dependency_run_attempt }}
+          TOOLCHAIN_PREFLIGHT_ONLY: ${{ inputs.toolchain_preflight_only }}
+        run: |
+          $Arguments = @('scripts/v1-engine-windows.py', '--source', 'upstream', '--work', "${{ runner.temp }}/helix-orca-native-windows")
+          if ($env:TOOLCHAIN_PREFLIGHT_ONLY -eq 'true') {
+            if ($env:DEPENDENCY_RUN_ID -or $env:DEPENDENCY_COMMIT -or $env:DEPENDENCY_SHA -or ($env:DEPENDENCY_ATTEMPT -and $env:DEPENDENCY_ATTEMPT -ne '1')) { throw 'Preflight cannot consume dependency inputs.' }
+            $Arguments += '--toolchain-preflight-only'
+          } elseif ($env:DEPENDENCY_RUN_ID) {
+            $Arguments += @('--dependency-bundle', "${{ runner.temp }}/helix-orca-dependency-input/native-windows-dependencies.zip",
+              '--dependency-bundle-sha256', $env:DEPENDENCY_SHA, '--dependency-run-id', $env:DEPENDENCY_RUN_ID,
+              '--dependency-application-commit', $env:DEPENDENCY_COMMIT, '--dependency-run-attempt', $env:DEPENDENCY_ATTEMPT)
+          } elseif ($env:DEPENDENCY_COMMIT -or $env:DEPENDENCY_SHA -or ($env:DEPENDENCY_ATTEMPT -and $env:DEPENDENCY_ATTEMPT -ne '1')) {
+            throw 'Complete dependency checkpoint pins are required.'
+          }
+          python @Arguments
+      - name: Preserve completed public dependency checkpoint even if native compilation fails
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v1-windows-native-dependencies-${{ github.run_id }}
+          path: ${{ runner.temp }}/helix-orca-native-windows/native-windows-dependencies.zip
+          if-no-files-found: ignore
+          compression-level: 0
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v1-windows-native-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/helix-orca-native-windows/evidence
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: ${{ !inputs.toolchain_preflight_only }}
+        with:
+          name: v1-windows-native-package-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/helix-orca-native-windows/native-windows-package.zip
+            ${{ runner.temp }}/helix-orca-native-windows/native-windows-source.zip
+          retention-days: 7

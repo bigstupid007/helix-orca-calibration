@@ -1,0 +1,1689 @@
+{
+  "schema": "helix-orca-v1-windows-parameter-operator/v1",
+  "passed": true,
+  "viewport": "800x480",
+  "source": "actual browser pointer/drag/keypad to native Helix; actual Windows-origin offers, Coordinator statuses, Perfectionist generation and native parity",
+  "health": {
+    "status": "ok",
+    "synthetic_only": true,
+    "run_id": "b04728721c2741bd8d05b3001a343cdf"
+  },
+  "physical_actions": false,
+  "profile_writeback": false,
+  "prepared_fixtures": false,
+  "values": {
+    "temperature": {
+      "start": 235,
+      "end": 195,
+      "step": 5,
+      "scale": false
+    },
+    "pressure_advance_pattern": {
+      "start": 0.01,
+      "end": 0.09,
+      "step": 0.01
+    },
+    "retraction": {
+      "start": 0.2,
+      "end": 2.2,
+      "step": 0.2
+    },
+    "max_volumetric_speed": {
+      "start": 6,
+      "end": 21,
+      "step": 0.75
+    },
+    "flow_ratio_yolo": {
+      "pass": 2
+    }
+  },
+  "proofs": [
+    {
+      "kind": "temperature",
+      "request_id": "7bb4bc5552fa00509a7424d21a2b8814",
+      "parameters": {
+        "end": 195,
+        "scale": false,
+        "start": 235,
+        "step": 5
+      },
+      "request_sha256": "6771d84e855e6d6f8a22ee17c14a6254bc674897a0e79f8b8554c0b5811f7525",
+      "native_request": {
+        "calibration": "temperature",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382066,
+        "expires_at": 1792385666,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 195,
+          "scale": false,
+          "start": 235,
+          "step": 5
+        },
+        "request_id": "7bb4bc5552fa00509a7424d21a2b8814",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "transport_request": {
+        "calibration": "temperature",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382066,
+        "expires_at": 1792385666,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 195,
+          "scale": false,
+          "start": 235,
+          "step": 5
+        },
+        "request_id": "7bb4bc5552fa00509a7424d21a2b8814",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "coordinator_request": {
+        "calibration": "temperature",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382066,
+        "expires_at": 1792385666,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 195,
+          "scale": false,
+          "start": 235,
+          "step": 5
+        },
+        "request_id": "7bb4bc5552fa00509a7424d21a2b8814",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "native_sha256": "6771d84e855e6d6f8a22ee17c14a6254bc674897a0e79f8b8554c0b5811f7525",
+      "transport_sha256": "6771d84e855e6d6f8a22ee17c14a6254bc674897a0e79f8b8554c0b5811f7525",
+      "coordinator_sha256": "6771d84e855e6d6f8a22ee17c14a6254bc674897a0e79f8b8554c0b5811f7525",
+      "phase": "blocked",
+      "message": "A hash-bound native-derived model matching this range/nozzle is required.",
+      "generator_dispatched": false,
+      "artifact_generated": false,
+      "qualified": false,
+      "prepared": null,
+      "physical_adapter_enabled": false,
+      "actual_windows_coordinator": true,
+      "actual_windows_transport": "DirectoryEvents",
+      "actual_windows_qualified": false,
+      "actual_windows_source_files": {
+        "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+        "integration/v1_engine.py": "a23b47a74c3ae3e43c044a4501baf53178a6d73bc72a7f2ad92ffeb1fa477716",
+        "integration/v1_generation.py": "0b420ed14d9e3956809d4bd7f6eae0a6bde3bb2a40c1266d3369c45c1c935bad",
+        "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+        "integration/v1_routing.py": "636c2ffe1450e7afdca37e5779984582eeae86ad9e38b8fe47806e2b25955a7a",
+        "integration/v1_runtime.py": "c2669ec5976cd41c2ff04e3043691ff21a062c9bba00ac44f0916b0439cf29f1",
+        "integration/v1_transport.py": "85ecf76101eb87cc185da6148643ac803f54b754e86005ea4b104fcd04104600",
+        "scripts/v1-runtime.py": "31e75a9fe94ae05030f7cd16a6de00a89aae40fb2e33193ca85493819ca85426",
+        "scripts/v1-windows-parameter-bridge.py": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb"
+      },
+      "actual_windows_bridge_sha256": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb",
+      "actual_windows_config_file_sha256": "9800aba0585d003cfe5776f397503e409ad45c91c4f08e0153d125e2e95119ae",
+      "actual_windows_offer_sha256": "f4e673f486914b44916daa555b90ff6dbde5091ca6b2cc8a9b6f94fc01a6036f",
+      "actual_windows_context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+      "actual_windows_metadata_sha256": "4e447bf33873ab9e78be1eb32f9659cc6614d24d55fec2cb92879fb1d9568b15",
+      "actual_native_session_sha256": "1428a923f041771eb258fa86035649cbbf2441fb2a8c7c2225ea14752b0378fc",
+      "actual_windows_event_sha256": "af9b413127a1c2ee2185dc5f7ec4b7437f9dc701397fe8da723aa49bcff22679",
+      "native_status_readback_sha256": "611f97dd2781c2d6bac011ff1b256e5febf5097fb00c5e4ec520f509542f0771",
+      "native_frame_sha256": "846c193e9bfc92056b02210f098196c139770d62dd97907e02e49969d5f561ad",
+      "parameter_trial_completion": "terminal"
+    },
+    {
+      "kind": "pressure_advance_pattern",
+      "request_id": "e5c2e20d7c1c0085cff1aec529d8f3bb",
+      "parameters": {
+        "end": 0.09,
+        "start": 0.01,
+        "step": 0.01
+      },
+      "request_sha256": "1e52c281193053a05199c3e498861ddfb2187dfdb3cec5b46af9e57149294dd7",
+      "native_request": {
+        "calibration": "pressure_advance_pattern",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382116,
+        "expires_at": 1792385716,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 0.09,
+          "start": 0.01,
+          "step": 0.01
+        },
+        "request_id": "e5c2e20d7c1c0085cff1aec529d8f3bb",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "transport_request": {
+        "calibration": "pressure_advance_pattern",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382116,
+        "expires_at": 1792385716,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 0.09,
+          "start": 0.01,
+          "step": 0.01
+        },
+        "request_id": "e5c2e20d7c1c0085cff1aec529d8f3bb",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "coordinator_request": {
+        "calibration": "pressure_advance_pattern",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382116,
+        "expires_at": 1792385716,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 0.09,
+          "start": 0.01,
+          "step": 0.01
+        },
+        "request_id": "e5c2e20d7c1c0085cff1aec529d8f3bb",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "native_sha256": "1e52c281193053a05199c3e498861ddfb2187dfdb3cec5b46af9e57149294dd7",
+      "transport_sha256": "1e52c281193053a05199c3e498861ddfb2187dfdb3cec5b46af9e57149294dd7",
+      "coordinator_sha256": "1e52c281193053a05199c3e498861ddfb2187dfdb3cec5b46af9e57149294dd7",
+      "phase": "blocked",
+      "message": "Native Linux x86_64 target is unavailable on this host; a compatible audited build is required. Native CalibPressureAdvancePattern and per-plate custom G-code are required.",
+      "generator_dispatched": false,
+      "artifact_generated": false,
+      "qualified": false,
+      "prepared": null,
+      "physical_adapter_enabled": false,
+      "actual_windows_coordinator": true,
+      "actual_windows_transport": "DirectoryEvents",
+      "actual_windows_qualified": false,
+      "actual_windows_source_files": {
+        "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+        "integration/v1_engine.py": "a23b47a74c3ae3e43c044a4501baf53178a6d73bc72a7f2ad92ffeb1fa477716",
+        "integration/v1_generation.py": "0b420ed14d9e3956809d4bd7f6eae0a6bde3bb2a40c1266d3369c45c1c935bad",
+        "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+        "integration/v1_routing.py": "636c2ffe1450e7afdca37e5779984582eeae86ad9e38b8fe47806e2b25955a7a",
+        "integration/v1_runtime.py": "c2669ec5976cd41c2ff04e3043691ff21a062c9bba00ac44f0916b0439cf29f1",
+        "integration/v1_transport.py": "85ecf76101eb87cc185da6148643ac803f54b754e86005ea4b104fcd04104600",
+        "scripts/v1-runtime.py": "31e75a9fe94ae05030f7cd16a6de00a89aae40fb2e33193ca85493819ca85426",
+        "scripts/v1-windows-parameter-bridge.py": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb"
+      },
+      "actual_windows_bridge_sha256": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb",
+      "actual_windows_config_file_sha256": "9800aba0585d003cfe5776f397503e409ad45c91c4f08e0153d125e2e95119ae",
+      "actual_windows_offer_sha256": "4ee88508594d5b1a37630d0b261500599a49e8605fa81b00bedf3dd3100854e0",
+      "actual_windows_context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+      "actual_windows_metadata_sha256": "12a6cb5d5e0e872b7c026906cbf51377850193dbc87b06b9ccc38eacb95c67b7",
+      "actual_native_session_sha256": "e334bc130ac75352936c0c2730f98106fcd831a5e3b20fbc77f4ab705d20f302",
+      "actual_windows_event_sha256": "6a21af5440e762c67a418423c0c98064e2a4b80153046bbcbb94b155e2b62ab3",
+      "native_status_readback_sha256": "e9b8582858d6fff9fe00199c993b0c2a3bdb90dc7437726fb5fe31696ff59ca4",
+      "native_frame_sha256": "050ba42c5e898bd6b5fe52ea63d20d74b6de389af96e44eb94339f4f18430f07",
+      "parameter_trial_completion": "terminal"
+    },
+    {
+      "kind": "retraction",
+      "request_id": "8b02efe9a2c73177d21c414b053d57bd",
+      "parameters": {
+        "end": 2.2,
+        "start": 0.2,
+        "step": 0.2
+      },
+      "request_sha256": "a302960ab4e326d366aa709d771c89fce1e55d33a0d5c4bda2f575697c95cfe8",
+      "native_request": {
+        "calibration": "retraction",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382157,
+        "expires_at": 1792385757,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 2.2,
+          "start": 0.2,
+          "step": 0.2
+        },
+        "request_id": "8b02efe9a2c73177d21c414b053d57bd",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "transport_request": {
+        "calibration": "retraction",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382157,
+        "expires_at": 1792385757,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 2.2,
+          "start": 0.2,
+          "step": 0.2
+        },
+        "request_id": "8b02efe9a2c73177d21c414b053d57bd",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "coordinator_request": {
+        "calibration": "retraction",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382157,
+        "expires_at": 1792385757,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 2.2,
+          "start": 0.2,
+          "step": 0.2
+        },
+        "request_id": "8b02efe9a2c73177d21c414b053d57bd",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "native_sha256": "a302960ab4e326d366aa709d771c89fce1e55d33a0d5c4bda2f575697c95cfe8",
+      "transport_sha256": "a302960ab4e326d366aa709d771c89fce1e55d33a0d5c4bda2f575697c95cfe8",
+      "coordinator_sha256": "a302960ab4e326d366aa709d771c89fce1e55d33a0d5c4bda2f575697c95cfe8",
+      "phase": "blocked",
+      "message": "Native Linux x86_64 target is unavailable on this host; a compatible audited build is required. Native software retract writer changes by height; a firmware command is insufficient.",
+      "generator_dispatched": false,
+      "artifact_generated": false,
+      "qualified": false,
+      "prepared": null,
+      "physical_adapter_enabled": false,
+      "actual_windows_coordinator": true,
+      "actual_windows_transport": "DirectoryEvents",
+      "actual_windows_qualified": false,
+      "actual_windows_source_files": {
+        "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+        "integration/v1_engine.py": "a23b47a74c3ae3e43c044a4501baf53178a6d73bc72a7f2ad92ffeb1fa477716",
+        "integration/v1_generation.py": "0b420ed14d9e3956809d4bd7f6eae0a6bde3bb2a40c1266d3369c45c1c935bad",
+        "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+        "integration/v1_routing.py": "636c2ffe1450e7afdca37e5779984582eeae86ad9e38b8fe47806e2b25955a7a",
+        "integration/v1_runtime.py": "c2669ec5976cd41c2ff04e3043691ff21a062c9bba00ac44f0916b0439cf29f1",
+        "integration/v1_transport.py": "85ecf76101eb87cc185da6148643ac803f54b754e86005ea4b104fcd04104600",
+        "scripts/v1-runtime.py": "31e75a9fe94ae05030f7cd16a6de00a89aae40fb2e33193ca85493819ca85426",
+        "scripts/v1-windows-parameter-bridge.py": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb"
+      },
+      "actual_windows_bridge_sha256": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb",
+      "actual_windows_config_file_sha256": "9800aba0585d003cfe5776f397503e409ad45c91c4f08e0153d125e2e95119ae",
+      "actual_windows_offer_sha256": "01982caedb0a468bd2d21cebd71c93e3425d7f2343da65c2f9d846fb66d398ef",
+      "actual_windows_context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+      "actual_windows_metadata_sha256": "81fedb6b6a36e4767261c9f68918418da22b93702485cfb449fbeb114ebe6f58",
+      "actual_native_session_sha256": "cd2be9864934143aa3a00d5339ac58b8e63a521f9b0baf545f02581696cfa115",
+      "actual_windows_event_sha256": "5fa2a9cb3614d59c29f795cd7cb213743828ce140228177b38890c5def48ab55",
+      "native_status_readback_sha256": "7e66613c5b31d149992021c88b019915d2b27b8db3ff510f7fae653425068464",
+      "native_frame_sha256": "79a351c2ceb4db6707d57d91c50e9e296b0abd5719fb8013a9125a03a78f0ddd",
+      "parameter_trial_completion": "terminal"
+    },
+    {
+      "kind": "max_volumetric_speed",
+      "request_id": "fdfce7ce085be02f685341b808bfc037",
+      "parameters": {
+        "end": 21,
+        "start": 6,
+        "step": 0.75
+      },
+      "request_sha256": "91645d29db1c3eb4d99bd871a21fe0b025e7780d3d8bd11a6546baeac387b614",
+      "native_request": {
+        "calibration": "max_volumetric_speed",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382194,
+        "expires_at": 1792385794,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 21,
+          "start": 6,
+          "step": 0.75
+        },
+        "request_id": "fdfce7ce085be02f685341b808bfc037",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "transport_request": {
+        "calibration": "max_volumetric_speed",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382194,
+        "expires_at": 1792385794,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 21,
+          "start": 6,
+          "step": 0.75
+        },
+        "request_id": "fdfce7ce085be02f685341b808bfc037",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "coordinator_request": {
+        "calibration": "max_volumetric_speed",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382194,
+        "expires_at": 1792385794,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "end": 21,
+          "start": 6,
+          "step": 0.75
+        },
+        "request_id": "fdfce7ce085be02f685341b808bfc037",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "native_sha256": "91645d29db1c3eb4d99bd871a21fe0b025e7780d3d8bd11a6546baeac387b614",
+      "transport_sha256": "91645d29db1c3eb4d99bd871a21fe0b025e7780d3d8bd11a6546baeac387b614",
+      "coordinator_sha256": "91645d29db1c3eb4d99bd871a21fe0b025e7780d3d8bd11a6546baeac387b614",
+      "phase": "blocked",
+      "message": "Native Linux x86_64 target is unavailable on this host; a compatible audited build is required. Native outer-wall speed changes within extrusion planning; firmware scaling is insufficient.",
+      "generator_dispatched": false,
+      "artifact_generated": false,
+      "qualified": false,
+      "prepared": null,
+      "physical_adapter_enabled": false,
+      "actual_windows_coordinator": true,
+      "actual_windows_transport": "DirectoryEvents",
+      "actual_windows_qualified": false,
+      "actual_windows_source_files": {
+        "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+        "integration/v1_engine.py": "a23b47a74c3ae3e43c044a4501baf53178a6d73bc72a7f2ad92ffeb1fa477716",
+        "integration/v1_generation.py": "0b420ed14d9e3956809d4bd7f6eae0a6bde3bb2a40c1266d3369c45c1c935bad",
+        "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+        "integration/v1_routing.py": "636c2ffe1450e7afdca37e5779984582eeae86ad9e38b8fe47806e2b25955a7a",
+        "integration/v1_runtime.py": "c2669ec5976cd41c2ff04e3043691ff21a062c9bba00ac44f0916b0439cf29f1",
+        "integration/v1_transport.py": "85ecf76101eb87cc185da6148643ac803f54b754e86005ea4b104fcd04104600",
+        "scripts/v1-runtime.py": "31e75a9fe94ae05030f7cd16a6de00a89aae40fb2e33193ca85493819ca85426",
+        "scripts/v1-windows-parameter-bridge.py": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb"
+      },
+      "actual_windows_bridge_sha256": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb",
+      "actual_windows_config_file_sha256": "9800aba0585d003cfe5776f397503e409ad45c91c4f08e0153d125e2e95119ae",
+      "actual_windows_offer_sha256": "5caf56d865a17beda8829e09c7f367f312cf529d7490561967135bc9fd34a219",
+      "actual_windows_context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+      "actual_windows_metadata_sha256": "f032dc8eb17f8072623a83f3bafaddb6437eb0993fbfdd3b1ddace22ea90d735",
+      "actual_native_session_sha256": "8e5698ebe7eaab6323be127f30ada6cdfc4df0789cd0d7375a3b6f154b050c96",
+      "actual_windows_event_sha256": "1819f54b2f3913f683a83a1e8189685230467d7f2a919e746d4f1744eaf84a7c",
+      "native_status_readback_sha256": "fcc61a294df8960c14231601f0422a33a93411e27863963dbd576179421186ff",
+      "native_frame_sha256": "03ffa89a6a8557635ad1faf2a32f29ac1908d852fe614daac36729e1ebf0539a",
+      "parameter_trial_completion": "terminal"
+    },
+    {
+      "kind": "flow_ratio_yolo",
+      "request_id": "8ae294344ae5636c28032039916936d6",
+      "parameters": {
+        "pass": 2
+      },
+      "request_sha256": "b6f56115fbe220567ec7bf7cca98faa68c1357bec9bae97656995cc248e20138",
+      "native_request": {
+        "calibration": "flow_ratio_yolo",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382224,
+        "expires_at": 1792385824,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "pass": 2
+        },
+        "request_id": "8ae294344ae5636c28032039916936d6",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "transport_request": {
+        "calibration": "flow_ratio_yolo",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382224,
+        "expires_at": 1792385824,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "pass": 2
+        },
+        "request_id": "8ae294344ae5636c28032039916936d6",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "coordinator_request": {
+        "calibration": "flow_ratio_yolo",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "created_at": 1792382224,
+        "expires_at": 1792385824,
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "pass": 2
+        },
+        "request_id": "8ae294344ae5636c28032039916936d6",
+        "schema": "helix-orca-v1-request/v1"
+      },
+      "native_sha256": "b6f56115fbe220567ec7bf7cca98faa68c1357bec9bae97656995cc248e20138",
+      "transport_sha256": "b6f56115fbe220567ec7bf7cca98faa68c1357bec9bae97656995cc248e20138",
+      "coordinator_sha256": "b6f56115fbe220567ec7bf7cca98faa68c1357bec9bae97656995cc248e20138",
+      "phase": "review",
+      "message": "Prepared job verified. Review profiles and parameters, then Confirm.",
+      "generator_dispatched": true,
+      "artifact_generated": true,
+      "qualified": true,
+      "prepared": {
+        "artifact": {
+          "name": "plate_1.gcode",
+          "sha256": "14e88c262b0685dd61bb285ff48c4b185cee8c96be8373a1b022888058fcc244",
+          "size": 2293171
+        },
+        "calibration": "flow_ratio_yolo",
+        "context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+        "generator": {
+          "build": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+          "route": "stock-cli-recipe-v1"
+        },
+        "not_applied": true,
+        "origin_id": "240d6515d17688f0e53f08cc1f66f757",
+        "parameters": {
+          "pass": 2
+        },
+        "parity": {
+          "qualified": true,
+          "reason": "Exact executable stream and calibration invariants match independently prepared native UI reference.",
+          "report_sha256": "ffe947043c42596beea42d2e376aa6e0dceba8599c119626668326164a494013"
+        },
+        "request_id": "8ae294344ae5636c28032039916936d6",
+        "request_sha256": "b6f56115fbe220567ec7bf7cca98faa68c1357bec9bae97656995cc248e20138",
+        "schema": "helix-orca-v1-prepared/v1"
+      },
+      "physical_adapter_enabled": false,
+      "actual_windows_coordinator": true,
+      "actual_windows_transport": "DirectoryEvents",
+      "actual_windows_qualified": true,
+      "actual_windows_source_files": {
+        "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+        "integration/v1_engine.py": "a23b47a74c3ae3e43c044a4501baf53178a6d73bc72a7f2ad92ffeb1fa477716",
+        "integration/v1_generation.py": "0b420ed14d9e3956809d4bd7f6eae0a6bde3bb2a40c1266d3369c45c1c935bad",
+        "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+        "integration/v1_routing.py": "636c2ffe1450e7afdca37e5779984582eeae86ad9e38b8fe47806e2b25955a7a",
+        "integration/v1_runtime.py": "c2669ec5976cd41c2ff04e3043691ff21a062c9bba00ac44f0916b0439cf29f1",
+        "integration/v1_transport.py": "85ecf76101eb87cc185da6148643ac803f54b754e86005ea4b104fcd04104600",
+        "scripts/v1-runtime.py": "31e75a9fe94ae05030f7cd16a6de00a89aae40fb2e33193ca85493819ca85426",
+        "scripts/v1-windows-parameter-bridge.py": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb"
+      },
+      "actual_windows_bridge_sha256": "a1c10dd20b17015824a37e71586b313b4d18ffddaf3a2eb8db989606a2eb8deb",
+      "actual_windows_config_file_sha256": "9800aba0585d003cfe5776f397503e409ad45c91c4f08e0153d125e2e95119ae",
+      "actual_windows_offer_sha256": "30363b8f051977a76647f3db8b08ff49eb9368313f52b86223193cb3c7d19cbf",
+      "actual_windows_context_sha256": "3bf24bab6c2ac71cf7c0017d8889d4430006d3cd489a512ff656990f41324b3c",
+      "actual_windows_metadata_sha256": "9c37bd97a5f5143a555a6c38e3670a38579ca2595853640c2c0f810065666e19",
+      "actual_native_session_sha256": "6e70b5a01bcebed0cc3c3c3f0ee8b90047eca0a3e15a0cb9b8738177ebd98c7d",
+      "actual_windows_event_sha256": "dcaf3059ec115a3c88d0ccd5bb47914e3a27ad82b0d84639e42ab0a58a88e0c3",
+      "native_status_readback_sha256": "327197dd442a4dcf3ecb857840ed6f64843d5a152ff3a1ec994f0673d509a1ae",
+      "native_frame_sha256": "fa0986df5cb64dd05be834d61109a1b348b36c3af9a500a7fa6b2ce7985d8b30",
+      "parameter_trial_completion": "final-qualified-review-no-start"
+    }
+  ],
+  "actions": [
+    {
+      "type": "browser-native-navigation",
+      "action": "Home"
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__tile",
+      "geometry": {
+        "x": 679,
+        "y": 361,
+        "w": 114,
+        "h": 112
+      },
+      "x": 736,
+      "y": 417
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_choose_temperature",
+      "geometry": {
+        "x": 102,
+        "y": 258,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 284
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_temperature_start",
+      "geometry": {
+        "x": 102,
+        "y": 328,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 354
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_2",
+      "geometry": {
+        "x": 327,
+        "y": 367,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 393
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_3",
+      "geometry": {
+        "x": 552,
+        "y": 367,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 393
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_5",
+      "geometry": {
+        "x": 327,
+        "y": 310,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 336
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_temperature_end",
+      "geometry": {
+        "x": 102,
+        "y": 213,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 239
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_1",
+      "geometry": {
+        "x": 102,
+        "y": 367,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 393
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_9",
+      "geometry": {
+        "x": 552,
+        "y": 253,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 279
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_5",
+      "geometry": {
+        "x": 327,
+        "y": 310,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 336
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_temperature_scale",
+      "geometry": {
+        "x": 102,
+        "y": 330,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 356
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_generate_temperature",
+      "geometry": {
+        "x": 102,
+        "y": 418,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 444
+    },
+    {
+      "type": "browser-native-navigation",
+      "action": "Back"
+    },
+    {
+      "type": "browser-native-navigation",
+      "action": "Back"
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_choose_pressure_advance_pattern",
+      "geometry": {
+        "x": 102,
+        "y": 112,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 138
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_pa_direct_drive",
+      "geometry": {
+        "x": 102,
+        "y": 350,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 376
+    },
+    {
+      "type": "pa-defaults",
+      "selected": "direct_drive",
+      "values": {
+        "start": 0,
+        "end": 0.08,
+        "step": 0.005
+      }
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_pa_bowden",
+      "geometry": {
+        "x": 102,
+        "y": 409,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 435
+    },
+    {
+      "type": "pa-defaults",
+      "selected": "bowden",
+      "values": {
+        "start": 0,
+        "end": 1,
+        "step": 0.05
+      }
+    },
+    {
+      "type": "browser-native-drag",
+      "reason": "reveal orcacal__v1_pressure_advance_pattern_start",
+      "x0": 400,
+      "y0": 410,
+      "x1": 400,
+      "y1": 115
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_pressure_advance_pattern_start",
+      "geometry": {
+        "x": 102,
+        "y": 125,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 151
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_0",
+      "geometry": {
+        "x": 327,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_dot",
+      "geometry": {
+        "x": 102,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_0",
+      "geometry": {
+        "x": 327,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_1",
+      "geometry": {
+        "x": 102,
+        "y": 361,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 387
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_pressure_advance_pattern_end",
+      "geometry": {
+        "x": 102,
+        "y": 213,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 239
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_0",
+      "geometry": {
+        "x": 327,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_dot",
+      "geometry": {
+        "x": 102,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_0",
+      "geometry": {
+        "x": 327,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_9",
+      "geometry": {
+        "x": 552,
+        "y": 247,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 273
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_pressure_advance_pattern_step",
+      "geometry": {
+        "x": 102,
+        "y": 301,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 327
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_0",
+      "geometry": {
+        "x": 327,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_dot",
+      "geometry": {
+        "x": 102,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_0",
+      "geometry": {
+        "x": 327,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_1",
+      "geometry": {
+        "x": 102,
+        "y": 361,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 387
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_generate_pressure_advance_pattern",
+      "geometry": {
+        "x": 102,
+        "y": 389,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 415
+    },
+    {
+      "type": "browser-native-navigation",
+      "action": "Back"
+    },
+    {
+      "type": "browser-native-navigation",
+      "action": "Back"
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_choose_retraction",
+      "geometry": {
+        "x": 102,
+        "y": 214,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 240
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_retraction_start",
+      "geometry": {
+        "x": 102,
+        "y": 372,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 398
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_9",
+      "geometry": {
+        "x": 552,
+        "y": 253,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 279
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_9",
+      "geometry": {
+        "x": 552,
+        "y": 253,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 279
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 450
+    },
+    {
+      "type": "invalid-input-preserved",
+      "field": "retraction.start",
+      "attempt": "99",
+      "prior": "0",
+      "error": "Enter a valid value within the displayed range."
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 190,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 216
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_0",
+      "geometry": {
+        "x": 327,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_dot",
+      "geometry": {
+        "x": 102,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_2",
+      "geometry": {
+        "x": 327,
+        "y": 361,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 387
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_retraction_end",
+      "geometry": {
+        "x": 102,
+        "y": 242,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 268
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_2",
+      "geometry": {
+        "x": 327,
+        "y": 367,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 393
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_dot",
+      "geometry": {
+        "x": 102,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_2",
+      "geometry": {
+        "x": 327,
+        "y": 361,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 387
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_retraction_step",
+      "geometry": {
+        "x": 102,
+        "y": 330,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 356
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_0",
+      "geometry": {
+        "x": 327,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_dot",
+      "geometry": {
+        "x": 102,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_2",
+      "geometry": {
+        "x": 327,
+        "y": 361,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 387
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_generate_retraction",
+      "geometry": {
+        "x": 102,
+        "y": 418,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 444
+    },
+    {
+      "type": "browser-native-navigation",
+      "action": "Back"
+    },
+    {
+      "type": "browser-native-navigation",
+      "action": "Back"
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_choose_max_volumetric_speed",
+      "geometry": {
+        "x": 102,
+        "y": 316,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 342
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_max_volumetric_speed_start",
+      "geometry": {
+        "x": 102,
+        "y": 372,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 398
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_6",
+      "geometry": {
+        "x": 552,
+        "y": 310,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 336
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_max_volumetric_speed_end",
+      "geometry": {
+        "x": 102,
+        "y": 242,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 268
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_2",
+      "geometry": {
+        "x": 327,
+        "y": 367,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 393
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_1",
+      "geometry": {
+        "x": 102,
+        "y": 367,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 393
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_max_volumetric_speed_step",
+      "geometry": {
+        "x": 102,
+        "y": 330,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 356
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_clear",
+      "geometry": {
+        "x": 102,
+        "y": 196,
+        "w": 337,
+        "h": 52
+      },
+      "x": 270,
+      "y": 222
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_0",
+      "geometry": {
+        "x": 327,
+        "y": 424,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 450
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_dot",
+      "geometry": {
+        "x": 102,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_7",
+      "geometry": {
+        "x": 102,
+        "y": 247,
+        "w": 220,
+        "h": 52
+      },
+      "x": 212,
+      "y": 273
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_5",
+      "geometry": {
+        "x": 327,
+        "y": 304,
+        "w": 220,
+        "h": 52
+      },
+      "x": 437,
+      "y": 330
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_key_set",
+      "geometry": {
+        "x": 552,
+        "y": 418,
+        "w": 220,
+        "h": 52
+      },
+      "x": 662,
+      "y": 444
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_generate_max_volumetric_speed",
+      "geometry": {
+        "x": 102,
+        "y": 418,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 444
+    },
+    {
+      "type": "browser-native-navigation",
+      "action": "Back"
+    },
+    {
+      "type": "browser-native-navigation",
+      "action": "Back"
+    },
+    {
+      "type": "browser-native-drag",
+      "reason": "reveal orcacal__v1_choose_flow_ratio_yolo",
+      "x0": 400,
+      "y0": 115,
+      "x1": 400,
+      "y1": 410
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_choose_flow_ratio_yolo",
+      "geometry": {
+        "x": 102,
+        "y": 364,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 390
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_flow_perfectionist",
+      "geometry": {
+        "x": 102,
+        "y": 428,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 454
+    },
+    {
+      "type": "browser-native-drag",
+      "reason": "reveal orcacal__v1_generate_flow_ratio_yolo",
+      "x0": 400,
+      "y0": 410,
+      "x1": 400,
+      "y1": 115
+    },
+    {
+      "type": "browser-native-tap",
+      "widget": "orcacal__v1_generate_flow_ratio_yolo",
+      "geometry": {
+        "x": 102,
+        "y": 367,
+        "w": 688,
+        "h": 52
+      },
+      "x": 446,
+      "y": 393
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "00-chooser.png",
+      "sha256": "d630d868c32c26781266c53e9ba93823e8639c878c238a79566ef69676abc036"
+    },
+    {
+      "name": "temperature-configured.png",
+      "sha256": "a2a4b2f8229e241ac0c4c102aa359cb754ab49d50313531364b000699503e51b"
+    },
+    {
+      "name": "temperature-blocked.png",
+      "sha256": "588bdddb53d923077d5ffc368892969ddd81323cf804b3f84dd74585a4774a5e"
+    },
+    {
+      "name": "pressure_advance_pattern-direct-defaults.png",
+      "sha256": "37616301d176fbb7b10584bad30ce902fc995aecc7ef42aa094bcfe5b87b003b"
+    },
+    {
+      "name": "pressure_advance_pattern-bowden-defaults.png",
+      "sha256": "0e7fdc0e5ca6afd5d0e22f70c163b6708951fd3e30be01db4036509b426e8c54"
+    },
+    {
+      "name": "pressure_advance_pattern-configured.png",
+      "sha256": "38945bd14e742cdddae8ec4f4703427d1c577ef2170976283e409b8f0d055722"
+    },
+    {
+      "name": "pressure_advance_pattern-blocked.png",
+      "sha256": "696ee4652012ded5faf351d0ad88611dcec11d8c429f8135e43ec4eea39f0554"
+    },
+    {
+      "name": "retraction-start-invalid.png",
+      "sha256": "dd5cf16c8f843a28e50abe5437322205437edaf9d384f98cbea595a76f974b4f"
+    },
+    {
+      "name": "retraction-configured.png",
+      "sha256": "167d47060b9afcca2d695da3d446f889e09703028d6176f740b8d9c98a77cd66"
+    },
+    {
+      "name": "retraction-blocked.png",
+      "sha256": "a033d24e3c7541bee6e8754fd224fb42e4ec1b265b965f90ca08b546017446ff"
+    },
+    {
+      "name": "max_volumetric_speed-configured.png",
+      "sha256": "35f193a7953f2e2a6a60ad922469da3d8f9934caeb930ac0144738af633f4baf"
+    },
+    {
+      "name": "max_volumetric_speed-blocked.png",
+      "sha256": "a4aff58f603dfa30d92d46e90831f2cd40a815279491381be7aadca4fad5379b"
+    },
+    {
+      "name": "flow_ratio_yolo-configured.png",
+      "sha256": "087f947be5fa4af14e5c3e1447254d4917c2d0e253473a6965a88845941fadb0"
+    },
+    {
+      "name": "flow_ratio_yolo-review.png",
+      "sha256": "eec3931191bd6f8e51d183ed28ef58fa0e835ce95881202aeaa8c0db5d9d587e"
+    }
+  ],
+  "page_errors": [],
+  "read_retries": [],
+  "driver_sha256": "8284483945350ea699e4e7f56b7d1f0bec0d4b7a2df08a14ad379fb37c55f389",
+  "browser_version": "140.0.7339.186"
+}

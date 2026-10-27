@@ -1,0 +1,152 @@
+{
+  "candidate": {
+    "executable_count": 105929,
+    "executable_sha256": "b7757f3be31e5b69de8c6749e5473c88831af63a38e626ee334e5297e413d1de",
+    "global_setting_count": 729,
+    "global_settings_sha256": "19697793b99f88c98bea8d01b3ca4e6475af2a47649254feed2d3c5b2fcc1a61",
+    "groups": {
+      "acceleration": {
+        "count": 11721,
+        "sha256": "6e2d7c742f50b78b4fd0e0343c4097d3b752097aff391a0d7bcf4efe00fec5a0"
+      },
+      "heaters": {
+        "count": 453,
+        "sha256": "ea63d6a386c9417b61a2ae9e7cae4341b784ee05714eea4fa964f6615b8fe35d"
+      },
+      "motion": {
+        "count": 91311,
+        "sha256": "5686891baa4da18b8695e2bf02eda5cf17cd603268b433849882eaf3dd6347cf"
+      },
+      "motion_with_acceleration": {
+        "count": 102582,
+        "sha256": "2a8ec4ab6e14e65ad64fb01ffbdf868a5af132dd152ea6c1ce41d9dd9e78252f"
+      },
+      "progress": {
+        "count": 174,
+        "sha256": "315937f77ccdc672474bf180c51b0acd203a7c2d921ab41a5e91a1fba262faac"
+      }
+    },
+    "opcode_counts": {
+      "EXCLUDE_OBJECT_DEFINE": 1,
+      "EXCLUDE_OBJECT_END": 450,
+      "EXCLUDE_OBJECT_START": 450,
+      "G0": 0,
+      "G1": 90861,
+      "G2": 0,
+      "G21": 1,
+      "G3": 0,
+      "G90": 1,
+      "G91": 0,
+      "G92": 450,
+      "M104": 450,
+      "M106": 1363,
+      "M107": 0,
+      "M109": 1,
+      "M140": 1,
+      "M190": 1,
+      "M201": 0,
+      "M203": 0,
+      "M204": 0,
+      "M205": 0,
+      "M566": 0,
+      "M73": 174,
+      "M82": 0,
+      "M83": 1,
+      "OTHER": 0,
+      "PRINT_END": 1,
+      "PRINT_START": 1,
+      "SET_PRESSURE_ADVANCE": 1,
+      "SET_VELOCITY_LIMIT": 11721
+    }
+  },
+  "candidate_gcode_sha256": "5446c08a7ad0953ddbd1907f4fba4f38799be8215d78cf8debd63decd3716a0a",
+  "candidate_matches_retained_linux_executable": false,
+  "emitted_setting_difference_categories": {
+    "bookkeeping": 1,
+    "object_override": 0,
+    "template_state": 0,
+    "unclassified": 3
+  },
+  "emitted_setting_difference_count": 4,
+  "exact_executable_equal": false,
+  "first_executable_difference": {
+    "candidate_layer": -1,
+    "candidate_opcode": "EXCLUDE_OBJECT_DEFINE",
+    "index": 0,
+    "native_layer": -1,
+    "native_opcode": "EXCLUDE_OBJECT_DEFINE"
+  },
+  "helper_sha256": "c65d56736fb4735a8638f4fe973622de58127ffd356a86791bae96e56f937415",
+  "inputs_sha256": "3f78083ec3c740df148ae07d66375b332c3c26944e82556fb72bdd0ece9b44bb",
+  "native": {
+    "executable_count": 106508,
+    "executable_sha256": "e20fe60aeacd9feb39ddeaf07f1777ac7a440db2cf20ccc9afe7c3f57d2887c0",
+    "global_setting_count": 732,
+    "global_settings_sha256": "466e2a82c5d50c34f0e35f1dced0e77dbbeab2349276372a19f8ec6860472b8e",
+    "groups": {
+      "acceleration": {
+        "count": 11749,
+        "sha256": "1c718b0b1263e86ade43eae5e92f6d9f92d1618537bcd6574e42370cbdfb1aa0"
+      },
+      "heaters": {
+        "count": 453,
+        "sha256": "ea63d6a386c9417b61a2ae9e7cae4341b784ee05714eea4fa964f6615b8fe35d"
+      },
+      "motion": {
+        "count": 91859,
+        "sha256": "780a91996cc9cf4e108128c95ad4880fed2abb89b18ea02b6b9b2e3936dfd708"
+      },
+      "motion_with_acceleration": {
+        "count": 103158,
+        "sha256": "aa2158a80c7e144346bfbee74cc5949247133e14ba2e00fe028b74984cc2fe3b"
+      },
+      "progress": {
+        "count": 175,
+        "sha256": "455e929ebe7d8f085e0a8a6625d84c66650b47c4e902376ab961b1c39cc507bf"
+      }
+    },
+    "opcode_counts": {
+      "EXCLUDE_OBJECT_DEFINE": 1,
+      "EXCLUDE_OBJECT_END": 450,
+      "EXCLUDE_OBJECT_START": 450,
+      "G0": 0,
+      "G1": 91409,
+      "G2": 0,
+      "G21": 1,
+      "G3": 0,
+      "G90": 1,
+      "G91": 0,
+      "G92": 450,
+      "M104": 450,
+      "M106": 1365,
+      "M107": 0,
+      "M109": 1,
+      "M140": 1,
+      "M190": 1,
+      "M201": 0,
+      "M203": 0,
+      "M204": 0,
+      "M205": 0,
+      "M566": 0,
+      "M73": 175,
+      "M82": 0,
+      "M83": 1,
+      "OTHER": 0,
+      "PRINT_END": 1,
+      "PRINT_START": 1,
+      "SET_PRESSURE_ADVANCE": 1,
+      "SET_VELOCITY_LIMIT": 11749
+    }
+  },
+  "native_gcode_sha256": "9a8b245a507229d8652656d7c173e316f31b61b7e55fbfa6db031660f961dd0d",
+  "parity_file_sha256": "383153535760809478b7e3f1e196f13bc5e294b7a84ca28309504308b89c617c",
+  "physical_actions": false,
+  "physical_readiness": false,
+  "prepared": false,
+  "probe_sha256": "856df7b0bde6fc9e364ec188bc35e5bde131c9f7acd3443e9aa80a3e2689e8ff",
+  "processor_error_code": 0,
+  "processor_warning_count": 0,
+  "qualified": false,
+  "schema": "helix-orca-v1-native-temperature-candidate-scalar-diagnostic/v1",
+  "source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5"
+}

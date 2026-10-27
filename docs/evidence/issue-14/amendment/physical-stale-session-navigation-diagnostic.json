@@ -1,0 +1,47 @@
+{
+  "schema": "helix-orca-v1-physical-stale-session-navigation-diagnostic/v1",
+  "observed_at": "2026-10-27T05:01:41Z",
+  "disposition": "separated_diagnostic_product_frozen_no_retry",
+  "candidate": {
+    "git_head": "2f1ffe1041b9f591d2c621e821975f53414efd65",
+    "runtime_candidate_sha256": "41dc24a7bc02bec54833b034d7c2ffb22adfa01a65dce60a80c528501a035109",
+    "runtime_run_id": "ac0549f7f08e461c8fe560b3c3f9534d",
+    "runtime_health_ok": true,
+    "actions_enabled": true
+  },
+  "founder_observation": {
+    "photo_sha256": "9700f12d6f9d49592deb40dd8437df21e6cf825b47be518b0bd5ab1d437bf42d",
+    "photo_size": 169819,
+    "screen": "Orca Calibration chooser",
+    "visible_message": "Finish or return the active calibration before starting another",
+    "reported_outcome": "Request generation returned to the chooser and did not advance"
+  },
+  "coordinator_readback": {
+    "phase": "requested",
+    "sequence": 230,
+    "message": "Choose a calibration on Helix.",
+    "request": null,
+    "prepared": null,
+    "job": null,
+    "completion": null
+  },
+  "retained_native_session": {
+    "request_id": "92fac467f4d7e68164ad6af4cd535fd9",
+    "phase": "uncertain",
+    "sequence": 12,
+    "intent_action": "start",
+    "message": "Start outcome is uncertain; no automatic retry is permitted.",
+    "prepared_sha256": "00e973ee98a7c3975498addf70faa7e0eab5b93dedca2e0ef8fdd842692f7278",
+    "artifact_sha256": "e96e8bba3556357fff44978b19bfbdf18b6e3548d2b32b9f22c1485dfcb40531"
+  },
+  "printer_readback": {
+    "moonraker_state": "ready",
+    "virtual_sd_active": false,
+    "file_path": null,
+    "retained_completed_filename": "temperature-miniature-225-215-step5-uniform70-oct15.gcode",
+    "new_owned_file_uploaded": false,
+    "new_owned_print_started": false
+  },
+  "finding": "The healthy idle coordinator had no current request while beta.12 continued to present the retired uncertain session as active. This is a product session/navigation failure; independent readback shows it is not evidence of generation, slicing, upload, dispatch, or physical-print failure.",
+  "boundary": "Per Founder direction, do not begin another repair loop for this navigation/state-ownership failure. Preserve the evidence, keep it outside the core candidate proof, freeze product behavior, and continue the remaining Windows and physical gates."
+}

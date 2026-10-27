@@ -1,0 +1,26 @@
+{
+  "candidate_head": "f838503c13a3a53f396d6cac71d9caf923f89ee1",
+  "case": {
+    "calibration": "temperature",
+    "context": "ad5x",
+    "parameter_case": "default",
+    "parameters": {
+      "end": 190,
+      "scale": true,
+      "start": 230,
+      "step": 5
+    },
+    "request_sha256": "07667ce3815272a26337f085158b5d0a405c82ed481df14629fc7e043a8b50ca"
+  },
+  "classification": "actual-product-assertion",
+  "disposition": "The failed run is preserved and was not retried at the same head. Pinned Orca presents Print::validate warnings as nonblocking ValidateWarning notifications and continues slicing when error.string is empty. The adapter now retains those warnings as hash-bound private evidence without converting them to a fatal error in cb46647b27377b7350622c28aab9a8e93c77b328.",
+  "exit_code": 255,
+  "native_diagnostic": {
+    "message": "Native slicing warning: It seems object temperature_tower.drc has a floating cantilever. Please re-orient the object or enable support generation.",
+    "sha256": "3e842c5b367194ba4274d76b3193f9c228c328f1287f99ddfeb6281b0bffb1c4"
+  },
+  "orca_source": "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03",
+  "physical_actions": 0,
+  "qualification_run_id": 40270472371,
+  "schema": "helix-orca-v1-windows-qualification-diagnostic-public/v1"
+}

@@ -1,0 +1,18 @@
+{
+  "schema": "helix-orca-v1-windows-process-exit-diagnostic/v1",
+  "captured_at_utc": "2026-10-26T17:19:36.1930921Z",
+  "host": "SPARE",
+  "isolated_process_id": 26344,
+  "isolated_data_dir": "%LOCALAPPDATA%\\HelixOrcaCalibration\\v1-current-b5e9cb3-e38b26af\\orca-data-cb37f70",
+  "command_line_matched_isolated_data_dir": true,
+  "visible_window_present": false,
+  "stop_process_force_returned": true,
+  "cleanup_check_result": "The hidden isolated Orca process did not exit.",
+  "follow_up_get_process_present": true,
+  "follow_up_get_process_has_exited": true,
+  "follow_up_cim_present": true,
+  "follow_up_thread_count": 1,
+  "follow_up_main_window_handle": 0,
+  "classification": "terminating Windows process record; not a running or visible Orca session",
+  "disposition": "preserve diagnostic and permit atomic isolated-plugin replacement; do not repeat the close loop"
+}

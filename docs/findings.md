@@ -469,3 +469,69 @@ See [acceptance](ISSUE_12_ACCEPTANCE.md) for exact scope and proof limits.
 After merge/main verification and Issue closure, stop implementation. A fresh
 Founder-led review of the overall product goal comes next; no successor build
 or further physical action is implied.
+
+
+## V1 grouped findings (2026-10-18)
+
+Exact October 15 source verifies no stock CLI calibration selector or supported
+Python Calib_Params generator API. Temperature and Flow YOLO can be attempted
+through prepared stock inputs; native PA paths, Retraction writer state and MVS
+internal speed state require grouped engine reuse. Effective dynamic machine
+limits must not be dropped by a regex inventory: registration occurs in loops.
+`PresetBundle.full_config()` includes project bed type through full_fff_config;
+`full_config_keys/full_config_value` preserve its serialized enum and distinguish
+merged values from saved or edited profiles. Beta.9 Lua lacks wallclock/hash
+APIs, so the coordinator supplies timestamps/nonces and digest tokens.
+Source constraints, actual offline slices and unresolved qualification remain
+separate in [generation/parity](V1_GENERATION_PARITY.md) and
+[engine reuse](V1_ENGINE_REUSE.md).
+
+The corrected Windows YOLO route passes exact executable parity only after
+preserving Orca's eleven-patch relative layout: native import uniformly centers
+the group, while the initial stock recipe repacked patches. `--center` is not
+registered in this baseline despite an implementation branch. The replacement
+changes only job-local 3MF build-instance translations and disables arranging.
+All resources/mesh bytes are retained, unsupported layouts block, and the R8
+actual production run matches all executable commands and invariants without
+tolerance changes. Historical failed runs remain retained.
+
+The native build requires all 25 pinned dependencies and real NASM/Clang-backed
+FFmpeg tooling. A successful link/capability response does not prove generation:
+actual smoke caught null enum lookup maps in cloned static defaults. Fresh
+definition-created options supplied only from retained values repair that crash.
+The subsequent thread-name/locale barrier counted the larger host task arena
+while a global cap admitted only two threads. An explicit two-thread arena
+cleared the wait: real PA export and candidate-only invariants pass. The native
+processor then rejects warning `1000C001` for the retained bed 60°C/filament
+vitrification 55°C condition. Mandatory parity remains false and no Prepared job
+is created; no warning or profile was changed. Windows availability is absent. The native mock matrix separately
+exposed test-grid stamping and scroll-parent issues, corrected against actual
+source/native pixels before full evidence promotion.
+
+
+The functional correction independently verifies native source defaults and both
+YOLO modes. Perfectionist uses 16 asymmetric offsets from −0.04 to +0.035 by 0.005 and a separate
+public asset, with native max-positive speed adjustment. Actual Windows generation
+now passes strict parity against an independently selected Perfectionist reference
+(82,060 executable commands), while Recommended R8 remains preserved (55,273).
+Native free numeric input uses supported owned overlays/buttons; no unsupported
+Python generator or Helix app-only text-input API is assumed. Earlier control
+proofs that assigned subjects/picklist values were inadequate operator evidence.
+Focused actual pointer/keypad/native→transport→Coordinator proof controls the
+correction's acceptance. Profile preservation and all physical safeguards persist.
+
+
+The final focused run `b04728721c2741bd8d05b3001a343cdf` passes all five exact
+operator-selected requests, all14 healthy frames and complete source-bound managed
+cleanup. Browser page errors and retries are empty. Native-selected Perfectionist
+passes strict parity with82,060 executable commands and63,357 model moves against
+its independent native reference. Four other routes retain exact values and real
+blockers. Earlier resource-guard/read-only HTTP/baseline-drift failures stay private
+and unpromoted. Historical396-frame and synthetic browser records are unchanged.
+
+Test-only event delivery must respect beta.9's 1023-byte string-subject capacity.
+A full offer exceeded it; bounded fragmented JSON delivery restored the event
+object without altering native-selected requests. Frame-refresh serialization,
+post-action image loading, content clipping and scroll-inertia checks correct
+emulator/probe assumptions. They add no product timer, unsupported input API,
+physical action or profile mutation. Failed/incomplete attempts remain retained.

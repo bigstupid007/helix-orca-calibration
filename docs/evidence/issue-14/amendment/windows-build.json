@@ -1,0 +1,20 @@
+{
+  "artifacts": {
+    "evidence": {
+      "id": 12627935037,
+      "name": "v1-windows-native-evidence-40261833869"
+    },
+    "package": {
+      "id": 12627464303,
+      "name": "v1-windows-native-package-40261833869",
+      "native_package_sha256": "db803b0ecf96ecc21a8235d3718c82e3511b4e4079994395dedf1eca967c59e3",
+      "native_source_sha256": "c6ff720be1d34cc8de62ae2fc203b8028b265f1c689c273f178fbe711a04ec62"
+    }
+  },
+  "candidate_head": "60dbbadb1d95dd211ae8b1b7756e7ba573aa8992",
+  "conclusion": "success",
+  "job_id": 121375912921,
+  "orca_source": "b5e9cb3c5e7a925adf8379366ae580e4dabb1d03",
+  "run_id": 40261833869,
+  "schema": "helix-orca-v1-windows-build-public/v1"
+}

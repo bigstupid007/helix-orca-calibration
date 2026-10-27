@@ -1,0 +1,732 @@
+{
+  "application_commit": "227b44795a69d68999fc5cda429002d73764626b",
+  "builder_run_id": "39233686041",
+  "cases": {
+    "mvs": {
+      "exact": {
+        "application_commit": "227b44795a69d68999fc5cda429002d73764626b",
+        "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+        "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+        "builder_run_id": "39233686041",
+        "calibration": "max_volumetric_speed",
+        "candidate_executable_commands": 35672,
+        "candidate_executable_sha256": "dc2d81549cb3f8c9dca3c832afdcef6b9f73c92c1322ae422d111f0a5355cda6",
+        "candidate_gcode_sha256": "bc71c8a1e99dd110607c097c764ca151dcabe4e838b0c7644df5e577d7f033da",
+        "candidate_gcode_size": 1294625,
+        "candidate_invariants_passed": true,
+        "context_file_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+        "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+        "executable_count_delta": 0,
+        "executable_mismatch_count": 203,
+        "extractor_sha256": "f10bee278605b5baf2aad09d6f56246657031057ee161fecf690ec885cc7939d",
+        "generation_provenance_sha256": "67ee1dd8a2387cbb8f88f5b98a023e8c1f40dbfc4aa05bc9439c4b83d84f232b",
+        "inputs_sha256": "113fd3047703d15ed337da6f087fbfead27e41e84f27a36ba8a97d236571555e",
+        "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+        "native_engine_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+        "native_executable_commands": 35672,
+        "native_executable_sha256": "ccaa2987d08f22d6164a036bbad6e3d3c5602bdd7c012cf427c7f1433ba1faf6",
+        "native_invariants_passed": true,
+        "native_manifest_file_sha256": "fe1b9908e95f1c3616705c3acae8dfd908511d52e202c7c97940e21678dad621",
+        "native_sha256": "12ee569f713d1d070598127de9212b65204dae5250d35e6fc6dc885ea9ab2efb",
+        "not_applied": true,
+        "package_fetch_receipt_file_sha256": "4facd585ca535689101e51befe244b231e314e1109038220f5c2f3a8d949f7be",
+        "package_sha256": "d4f250e89867b2e49df0ca179420f6ce6d0880c381987de5805a7d0f72eba07c",
+        "parameters": {
+          "end": 20,
+          "start": 5,
+          "step": 0.5
+        },
+        "parameters_sha256": "78b01ca89e747a4d6d045367930258e4c7ecc0489526f0a5444650617e3beb46",
+        "physical_actions": false,
+        "physical_readiness": false,
+        "policy": "exact-executable-v1",
+        "prepared": false,
+        "prepared_sha256": "b0791bd593e7a6fc5c42b62b2e6fd29e76581cd0d2321c0573c52a5cc5db37f5",
+        "qualification_receipt_file_sha256": "776577987cac1c6921d08f2f8539dbf6517e50ca255a84b71c3b1065b28b1fc1",
+        "qualification_summary_sha256": "8267fbf51209d8a6c737da5bc8f658792d2ed7b9729c1c7b0731d7d3fb8294a3",
+        "qualified": false,
+        "report_sha256": "d81ad2e369ae70ef8aa432ac5f59fe1aa6b860c639ba14fba685ebf48c41c180",
+        "schema": "helix-orca-v1-exact-windows-parity-scalars/v1",
+        "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+        "source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5",
+        "success": true
+      },
+      "qualification": {
+        "process_exit": 2,
+        "summary": {
+          "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+          "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+          "calibration": "max_volumetric_speed",
+          "candidate": {
+            "sha256": "bc71c8a1e99dd110607c097c764ca151dcabe4e838b0c7644df5e577d7f033da",
+            "size": 1294625
+          },
+          "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+          "disposition": "executable_difference",
+          "emitted_setting_difference_count": 4,
+          "generation_provenance_sha256": "67ee1dd8a2387cbb8f88f5b98a023e8c1f40dbfc4aa05bc9439c4b83d84f232b",
+          "hardware_abi_qualified": false,
+          "inputs_sha256": "113fd3047703d15ed337da6f087fbfead27e41e84f27a36ba8a97d236571555e",
+          "invariants": {
+            "candidate": {
+              "accepted_abi_signature": false,
+              "deposition_temperatures": [
+                220.0
+              ],
+              "executable_commands": 35672,
+              "layers": 101,
+              "macro_semantics_present": true,
+              "model_moves": 30791,
+              "passed": true
+            },
+            "native": {
+              "accepted_abi_signature": false,
+              "deposition_temperatures": [
+                220.0
+              ],
+              "executable_commands": 35672,
+              "layers": 101,
+              "macro_semantics_present": true,
+              "model_moves": 30791,
+              "passed": true
+            }
+          },
+          "macro_internals_observed": false,
+          "mode": "native-package-generation",
+          "native": {
+            "sha256": "12ee569f713d1d070598127de9212b65204dae5250d35e6fc6dc885ea9ab2efb",
+            "size": 1296372
+          },
+          "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+          "native_evidence": [
+            {
+              "sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+              "size": 75490
+            },
+            {
+              "sha256": "d4d147608e071d068c9a01db832ecdddee8be989d2f78c4172d4c423d4cb7882",
+              "size": 122301
+            },
+            {
+              "sha256": "532376180f9f77613ad4db198eeb86b4ecc27d5bafef693f42b4bec93898a2cb",
+              "size": 229407
+            },
+            {
+              "sha256": "56508f1740a8f8ee4d984bdce665f8b71f34b71da299b97c9a928445a9d11c96",
+              "size": 238644
+            }
+          ],
+          "native_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+          "native_manifest_sha256": "fe1b9908e95f1c3616705c3acae8dfd908511d52e202c7c97940e21678dad621",
+          "observations": {
+            "candidate_dynamic_acceleration_commands": 37,
+            "candidate_model_extrusion_mm": 9493.77077,
+            "candidate_model_moves": 30791,
+            "dynamic_acceleration_stream_equal": true,
+            "dynamic_acceleration_unique_values_equal": true,
+            "heater_stream_equal": true,
+            "machine_limits_equal": true,
+            "motion_extrusion_equal": true,
+            "native_dynamic_acceleration_commands": 37,
+            "native_model_extrusion_mm": 9493.77077,
+            "native_model_moves": 30791,
+            "printed_xy_bounds_equal": true,
+            "progress_estimates_equal": true,
+            "static_machine_limit_commands_present": false
+          },
+          "parameters": {
+            "end": 20,
+            "start": 5,
+            "step": 0.5
+          },
+          "physical_actions": false,
+          "physical_readiness": false,
+          "policy": "exact-executable-v1",
+          "prepared": false,
+          "prepared_sha256": "b0791bd593e7a6fc5c42b62b2e6fd29e76581cd0d2321c0573c52a5cc5db37f5",
+          "production_generator": "integration.v1_engine.generate",
+          "qualified": false,
+          "report_sha256": "d81ad2e369ae70ef8aa432ac5f59fe1aa6b860c639ba14fba685ebf48c41c180",
+          "request_id": "ae16b819a3611425e686b5d365ccab25",
+          "request_sha256": "24cf468d84455d81add6bf455c2751ce0d0dfb55714fc501a754875b28dc8e2c",
+          "reviewed_source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5",
+          "schema": "helix-orca-v1-windows-native-qualification/v1",
+          "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+          "source_files": {
+            ".github/workflows/v1-windows-engine.yml": "4da51e8730deaa223f173ebd56b82cd09e8645a90964f70d6b7afd32cca643e6",
+            "integration/v1-native-build-tools.py": "6a1cb112a9b091715907c17af06d769af1947b15dd6927a4ae0b2dbd27897b30",
+            "integration/v1-native-dependencies.json": "14fca0b1f471a4ced824d98523e8bb21a1038e02bd4d368e50e0383b67a3dc0b",
+            "integration/v1-native-engine/add-target.cmake": "8f0dc9cf18b0ddd400f284dc8d06acec32d78615a78ca426f68d453657feb09d",
+            "integration/v1-native-engine/main.cpp": "9cc4fc332f774f3264bc09c3fa842fcf2646e062188bee6cb9682adca67b01d8",
+            "integration/v1-native-engine/temperature_prepare.hpp": "2fe971e83f7feab78fcb4816ee3b44d62d28084c2d2dd6c0a5c8ac482cca325e",
+            "integration/v1-native-engine/windows-cmake/FindEXPAT.cmake": "5a8327cc3885d937bd59b033047ae22cbb6828d78396488e971bc717afb9acf8",
+            "integration/v1-native-engine/windows-target.cmake": "8bda06dabd3e73e4629966ee33e18cf8f8cc3b61f330dcf2d561311c449b3b76",
+            "integration/v1-native-windows-dependencies.json": "0db1eaa1561f8d63aace3773bca2d3ced19f8b36b2c9b3af5771e543172e64e2",
+            "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+            "integration/v1_engine.py": "63aec37eabcd532e64b71373a5726ce5efada7d044bac4aae3501308288c00e2",
+            "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+            "integration/v1_pe.py": "688f547d1944a0f4eb2c3ea4b91d9a25f1746ce53fb10f5fb1e89e297ccf4d23",
+            "integration/v1_windows_dependencies.py": "8fa06d79b9ef4d7f1c99066ae6b386d084f03de9f8ee6fa0bb0a7e786fe580f8",
+            "scripts/v1-engine-native.py": "1dbca10ce774c9aaf0f15bbe60cd4901c053e0255a215607587badc881a6e653",
+            "scripts/v1-engine-windows.py": "d607534b1cc3111eebf9bd6a77b5f938df1def2f3bee5416b39c94ee5b5fa503",
+            "scripts/v1-windows-native-qualify.py": "c65d56736fb4735a8638f4fe973622de58127ffd356a86791bae96e56f937415",
+            "scripts/v1-windows-parity.py": "d820b3cb1e452763cc73199a5f825e741a2fd509250fc1a94fa1e088a034b9a9"
+          },
+          "success": true,
+          "timeout_seconds": 40,
+          "unclassified_setting_difference_count": 3
+        }
+      }
+    },
+    "pa": {
+      "exact": {
+        "application_commit": "227b44795a69d68999fc5cda429002d73764626b",
+        "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+        "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+        "builder_run_id": "39233686041",
+        "calibration": "pressure_advance_pattern",
+        "candidate_executable_commands": 2904,
+        "candidate_executable_sha256": "5e8e5478a1f5b312e7ff3d21a547948f648a4c5c9c65e61745c7fece3f273173",
+        "candidate_gcode_sha256": "43cc6047956068037a9ec553d1bfb83213b042824d059ea284c5d85253741487",
+        "candidate_gcode_size": 122119,
+        "candidate_invariants_passed": true,
+        "context_file_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+        "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+        "executable_count_delta": 0,
+        "executable_mismatch_count": 0,
+        "extractor_sha256": "f10bee278605b5baf2aad09d6f56246657031057ee161fecf690ec885cc7939d",
+        "generation_provenance_sha256": "c67608c9bd7ec4f3ae43680a5094d6c7b5168aee0f47edfc3c4e92e4b69aa84f",
+        "inputs_sha256": "50ea6878428f9bde94d8faf1d366ae9107b77a7eaee3d0764840d7254d3ec949",
+        "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+        "native_engine_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+        "native_executable_commands": 2904,
+        "native_executable_sha256": "5e8e5478a1f5b312e7ff3d21a547948f648a4c5c9c65e61745c7fece3f273173",
+        "native_invariants_passed": true,
+        "native_manifest_file_sha256": "7aeada5d98960f4949c68f6dea919ce057a784225fcc32f031e7a305df17a86b",
+        "native_sha256": "a664ad23b7c905d70a30dfbad42111e4afbaff261604c1e2ae34c7546962efe8",
+        "not_applied": true,
+        "package_fetch_receipt_file_sha256": "4facd585ca535689101e51befe244b231e314e1109038220f5c2f3a8d949f7be",
+        "package_sha256": "d4f250e89867b2e49df0ca179420f6ce6d0880c381987de5805a7d0f72eba07c",
+        "parameters": {
+          "end": 0.08,
+          "start": 0,
+          "step": 0.005
+        },
+        "parameters_sha256": "050e53a76a7f8c816e15434c6dd3fcf5073db9b1a0ea1656898dbefb52b1681f",
+        "physical_actions": false,
+        "physical_readiness": false,
+        "policy": "exact-executable-v1",
+        "prepared": true,
+        "prepared_sha256": "20b4bb393ed7cfa6b36f9efd3c0e0fe1c614ed8f351874d5b0bab7a6d21c53a1",
+        "qualification_receipt_file_sha256": "544f6168ffe8e3a89dec0345f69e1a45353a3a7f495cc8ec8006edf3db4e4c66",
+        "qualification_summary_sha256": "0ef36907a10c97e93ab9703853c2ec3d0bb2c813108268bc1d75645e2e3f01f3",
+        "qualified": true,
+        "report_sha256": "2f0779f1134e4a734c6530c4a22d2633e381e3e636c16c08f9b2e29d0dc708b4",
+        "schema": "helix-orca-v1-exact-windows-parity-scalars/v1",
+        "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+        "source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5",
+        "success": true
+      },
+      "qualification": {
+        "process_exit": 0,
+        "summary": {
+          "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+          "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+          "calibration": "pressure_advance_pattern",
+          "candidate": {
+            "sha256": "43cc6047956068037a9ec553d1bfb83213b042824d059ea284c5d85253741487",
+            "size": 122119
+          },
+          "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+          "disposition": "exact_executable_and_invariants_match",
+          "emitted_setting_difference_count": 4,
+          "generation_provenance_sha256": "c67608c9bd7ec4f3ae43680a5094d6c7b5168aee0f47edfc3c4e92e4b69aa84f",
+          "hardware_abi_qualified": false,
+          "inputs_sha256": "50ea6878428f9bde94d8faf1d366ae9107b77a7eaee3d0764840d7254d3ec949",
+          "invariants": {
+            "candidate": {
+              "accepted_abi_signature": false,
+              "deposition_temperatures": [
+                220.0
+              ],
+              "executable_commands": 2904,
+              "layers": 4,
+              "macro_semantics_present": true,
+              "model_moves": 789,
+              "passed": true
+            },
+            "native": {
+              "accepted_abi_signature": false,
+              "deposition_temperatures": [
+                220.0
+              ],
+              "executable_commands": 2904,
+              "layers": 4,
+              "macro_semantics_present": true,
+              "model_moves": 789,
+              "passed": true
+            }
+          },
+          "macro_internals_observed": false,
+          "mode": "native-package-generation",
+          "native": {
+            "sha256": "a664ad23b7c905d70a30dfbad42111e4afbaff261604c1e2ae34c7546962efe8",
+            "size": 92568
+          },
+          "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+          "native_evidence": [
+            {
+              "sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+              "size": 75490
+            },
+            {
+              "sha256": "780a2ed5492ae4a2f30b1cfbc3da2463f8ad57ff7877a79a4a930cd28696b743",
+              "size": 122870
+            },
+            {
+              "sha256": "19bfab6a97946b6f29d24934853bb710e9e6acc2e88eb87dc7c5e43751a2e0f7",
+              "size": 213112
+            },
+            {
+              "sha256": "3d2c913e8bfc8854aa904cf7342d193a6b2791437a904935873b74a6f7d17e3d",
+              "size": 223293
+            }
+          ],
+          "native_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+          "native_manifest_sha256": "7aeada5d98960f4949c68f6dea919ce057a784225fcc32f031e7a305df17a86b",
+          "observations": {
+            "candidate_dynamic_acceleration_commands": 58,
+            "candidate_model_extrusion_mm": 561.34798,
+            "candidate_model_moves": 789,
+            "dynamic_acceleration_stream_equal": true,
+            "dynamic_acceleration_unique_values_equal": true,
+            "heater_stream_equal": true,
+            "machine_limits_equal": true,
+            "motion_extrusion_equal": true,
+            "native_dynamic_acceleration_commands": 58,
+            "native_model_extrusion_mm": 561.34798,
+            "native_model_moves": 789,
+            "printed_xy_bounds_equal": true,
+            "progress_estimates_equal": true,
+            "static_machine_limit_commands_present": false
+          },
+          "parameters": {
+            "end": 0.08,
+            "start": 0,
+            "step": 0.005
+          },
+          "physical_actions": false,
+          "physical_readiness": false,
+          "policy": "exact-executable-v1",
+          "prepared": true,
+          "prepared_sha256": "20b4bb393ed7cfa6b36f9efd3c0e0fe1c614ed8f351874d5b0bab7a6d21c53a1",
+          "production_generator": "integration.v1_engine.generate",
+          "qualified": true,
+          "report_sha256": "2f0779f1134e4a734c6530c4a22d2633e381e3e636c16c08f9b2e29d0dc708b4",
+          "request_id": "3991ea809dd38db8a209c42cd183ea47",
+          "request_sha256": "e22393123c04d09ec8af77fca02e26ac24ecda13b4bd97a8e8d65d307d414086",
+          "reviewed_source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5",
+          "schema": "helix-orca-v1-windows-native-qualification/v1",
+          "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+          "source_files": {
+            ".github/workflows/v1-windows-engine.yml": "4da51e8730deaa223f173ebd56b82cd09e8645a90964f70d6b7afd32cca643e6",
+            "integration/v1-native-build-tools.py": "6a1cb112a9b091715907c17af06d769af1947b15dd6927a4ae0b2dbd27897b30",
+            "integration/v1-native-dependencies.json": "14fca0b1f471a4ced824d98523e8bb21a1038e02bd4d368e50e0383b67a3dc0b",
+            "integration/v1-native-engine/add-target.cmake": "8f0dc9cf18b0ddd400f284dc8d06acec32d78615a78ca426f68d453657feb09d",
+            "integration/v1-native-engine/main.cpp": "9cc4fc332f774f3264bc09c3fa842fcf2646e062188bee6cb9682adca67b01d8",
+            "integration/v1-native-engine/temperature_prepare.hpp": "2fe971e83f7feab78fcb4816ee3b44d62d28084c2d2dd6c0a5c8ac482cca325e",
+            "integration/v1-native-engine/windows-cmake/FindEXPAT.cmake": "5a8327cc3885d937bd59b033047ae22cbb6828d78396488e971bc717afb9acf8",
+            "integration/v1-native-engine/windows-target.cmake": "8bda06dabd3e73e4629966ee33e18cf8f8cc3b61f330dcf2d561311c449b3b76",
+            "integration/v1-native-windows-dependencies.json": "0db1eaa1561f8d63aace3773bca2d3ced19f8b36b2c9b3af5771e543172e64e2",
+            "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+            "integration/v1_engine.py": "63aec37eabcd532e64b71373a5726ce5efada7d044bac4aae3501308288c00e2",
+            "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+            "integration/v1_pe.py": "688f547d1944a0f4eb2c3ea4b91d9a25f1746ce53fb10f5fb1e89e297ccf4d23",
+            "integration/v1_windows_dependencies.py": "8fa06d79b9ef4d7f1c99066ae6b386d084f03de9f8ee6fa0bb0a7e786fe580f8",
+            "scripts/v1-engine-native.py": "1dbca10ce774c9aaf0f15bbe60cd4901c053e0255a215607587badc881a6e653",
+            "scripts/v1-engine-windows.py": "d607534b1cc3111eebf9bd6a77b5f938df1def2f3bee5416b39c94ee5b5fa503",
+            "scripts/v1-windows-native-qualify.py": "c65d56736fb4735a8638f4fe973622de58127ffd356a86791bae96e56f937415",
+            "scripts/v1-windows-parity.py": "d820b3cb1e452763cc73199a5f825e741a2fd509250fc1a94fa1e088a034b9a9"
+          },
+          "success": true,
+          "timeout_seconds": 40,
+          "unclassified_setting_difference_count": 3
+        }
+      }
+    },
+    "retraction": {
+      "exact": {
+        "application_commit": "227b44795a69d68999fc5cda429002d73764626b",
+        "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+        "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+        "builder_run_id": "39233686041",
+        "calibration": "retraction",
+        "candidate_executable_commands": 16585,
+        "candidate_executable_sha256": "7b90d8cbcaff38216da3781748599604661c1d806eecec4fa8db1353b1aee916",
+        "candidate_gcode_sha256": "fa59f10edbc0a30b70377c4ae3aba91fdd99566fcc6b4e6109ea1f1d85d0207f",
+        "candidate_gcode_size": 524435,
+        "candidate_invariants_passed": true,
+        "context_file_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+        "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+        "executable_count_delta": 0,
+        "executable_mismatch_count": 215,
+        "extractor_sha256": "f10bee278605b5baf2aad09d6f56246657031057ee161fecf690ec885cc7939d",
+        "generation_provenance_sha256": "7e8b4f07087eaa853627a1e775d3bc52469a5df998143c99e41e03c1c0da8c08",
+        "inputs_sha256": "d8652d61e3fc82a74ac43d4e6f1a3b1afb9a0efca4949756843d346292f9b168",
+        "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+        "native_engine_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+        "native_executable_commands": 16585,
+        "native_executable_sha256": "00bc2203f8c8fd15b8f05dba51391c9c922dd85a846c7af320e76f7ef112ea78",
+        "native_invariants_passed": true,
+        "native_manifest_file_sha256": "65522568fb12b4116dc18ffcc178bf04adf691565393b1beb7f7dcca4878619a",
+        "native_sha256": "e2de2e49764c8bb9dd018cde61a98488dec989ddd1c3c42de7daf9080d56e23a",
+        "not_applied": true,
+        "package_fetch_receipt_file_sha256": "4facd585ca535689101e51befe244b231e314e1109038220f5c2f3a8d949f7be",
+        "package_sha256": "d4f250e89867b2e49df0ca179420f6ce6d0880c381987de5805a7d0f72eba07c",
+        "parameters": {
+          "end": 2,
+          "start": 0,
+          "step": 0.1
+        },
+        "parameters_sha256": "b614fa578b6c21944ed92cee999ae5923d3584dc69dac332ccea4e0a6eead1e9",
+        "physical_actions": false,
+        "physical_readiness": false,
+        "policy": "exact-executable-v1",
+        "prepared": false,
+        "prepared_sha256": "2233c8a3b0b9e4e76398c41ecafd8d8a7c60b5cd300d11cbb96582c56f226664",
+        "qualification_receipt_file_sha256": "fdc7c5746cdaefe03643fba587a8bf2aaf3121f183f618f42ec37ab517d73efe",
+        "qualification_summary_sha256": "46fdbdd254c2407cf144b6f9778053663bb29f1f0b0fd22245fdcbd3a3f9b30d",
+        "qualified": false,
+        "report_sha256": "c7859da8fb9a9648f7ba8dd3ec79d100bdff1ffe26a5bb5f3bb922a6a47f8658",
+        "schema": "helix-orca-v1-exact-windows-parity-scalars/v1",
+        "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+        "source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5",
+        "success": true
+      },
+      "qualification": {
+        "process_exit": 2,
+        "summary": {
+          "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+          "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+          "calibration": "retraction",
+          "candidate": {
+            "sha256": "fa59f10edbc0a30b70377c4ae3aba91fdd99566fcc6b4e6109ea1f1d85d0207f",
+            "size": 524435
+          },
+          "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+          "disposition": "executable_difference",
+          "emitted_setting_difference_count": 3,
+          "generation_provenance_sha256": "7e8b4f07087eaa853627a1e775d3bc52469a5df998143c99e41e03c1c0da8c08",
+          "hardware_abi_qualified": false,
+          "inputs_sha256": "d8652d61e3fc82a74ac43d4e6f1a3b1afb9a0efca4949756843d346292f9b168",
+          "invariants": {
+            "candidate": {
+              "accepted_abi_signature": false,
+              "deposition_temperatures": [
+                220.0
+              ],
+              "executable_commands": 16585,
+              "layers": 107,
+              "macro_semantics_present": true,
+              "model_moves": 12661,
+              "passed": true
+            },
+            "native": {
+              "accepted_abi_signature": false,
+              "deposition_temperatures": [
+                220.0
+              ],
+              "executable_commands": 16585,
+              "layers": 107,
+              "macro_semantics_present": true,
+              "model_moves": 12661,
+              "passed": true
+            }
+          },
+          "macro_internals_observed": false,
+          "mode": "native-package-generation",
+          "native": {
+            "sha256": "e2de2e49764c8bb9dd018cde61a98488dec989ddd1c3c42de7daf9080d56e23a",
+            "size": 539980
+          },
+          "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+          "native_evidence": [
+            {
+              "sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+              "size": 75490
+            },
+            {
+              "sha256": "b63eda982bda0049cf64eebe4b93ffcce43adb6986973ec74878e531d72dab1d",
+              "size": 121052
+            },
+            {
+              "sha256": "d8f44f64cca5606edefb009e12dffe618bd0d418c7222097bb0c8d942f0d5f83",
+              "size": 205676
+            },
+            {
+              "sha256": "f068e006ac68e7c8614331e9003d6a66e44bca0c2a083b8e050db32a49bdbf1e",
+              "size": 213741
+            }
+          ],
+          "native_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+          "native_manifest_sha256": "65522568fb12b4116dc18ffcc178bf04adf691565393b1beb7f7dcca4878619a",
+          "observations": {
+            "candidate_dynamic_acceleration_commands": 648,
+            "candidate_model_extrusion_mm": 304.13147,
+            "candidate_model_moves": 12661,
+            "dynamic_acceleration_stream_equal": true,
+            "dynamic_acceleration_unique_values_equal": true,
+            "heater_stream_equal": true,
+            "machine_limits_equal": true,
+            "motion_extrusion_equal": true,
+            "native_dynamic_acceleration_commands": 648,
+            "native_model_extrusion_mm": 304.13147,
+            "native_model_moves": 12661,
+            "printed_xy_bounds_equal": true,
+            "progress_estimates_equal": true,
+            "static_machine_limit_commands_present": false
+          },
+          "parameters": {
+            "end": 2,
+            "start": 0,
+            "step": 0.1
+          },
+          "physical_actions": false,
+          "physical_readiness": false,
+          "policy": "exact-executable-v1",
+          "prepared": false,
+          "prepared_sha256": "2233c8a3b0b9e4e76398c41ecafd8d8a7c60b5cd300d11cbb96582c56f226664",
+          "production_generator": "integration.v1_engine.generate",
+          "qualified": false,
+          "report_sha256": "c7859da8fb9a9648f7ba8dd3ec79d100bdff1ffe26a5bb5f3bb922a6a47f8658",
+          "request_id": "6a8cb32ad777948c751ddcdcb28aef0b",
+          "request_sha256": "2ad65df832440c56898f106b1ddfa07d674c0bbb42f02f6924a307a3c146d9da",
+          "reviewed_source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5",
+          "schema": "helix-orca-v1-windows-native-qualification/v1",
+          "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+          "source_files": {
+            ".github/workflows/v1-windows-engine.yml": "4da51e8730deaa223f173ebd56b82cd09e8645a90964f70d6b7afd32cca643e6",
+            "integration/v1-native-build-tools.py": "6a1cb112a9b091715907c17af06d769af1947b15dd6927a4ae0b2dbd27897b30",
+            "integration/v1-native-dependencies.json": "14fca0b1f471a4ced824d98523e8bb21a1038e02bd4d368e50e0383b67a3dc0b",
+            "integration/v1-native-engine/add-target.cmake": "8f0dc9cf18b0ddd400f284dc8d06acec32d78615a78ca426f68d453657feb09d",
+            "integration/v1-native-engine/main.cpp": "9cc4fc332f774f3264bc09c3fa842fcf2646e062188bee6cb9682adca67b01d8",
+            "integration/v1-native-engine/temperature_prepare.hpp": "2fe971e83f7feab78fcb4816ee3b44d62d28084c2d2dd6c0a5c8ac482cca325e",
+            "integration/v1-native-engine/windows-cmake/FindEXPAT.cmake": "5a8327cc3885d937bd59b033047ae22cbb6828d78396488e971bc717afb9acf8",
+            "integration/v1-native-engine/windows-target.cmake": "8bda06dabd3e73e4629966ee33e18cf8f8cc3b61f330dcf2d561311c449b3b76",
+            "integration/v1-native-windows-dependencies.json": "0db1eaa1561f8d63aace3773bca2d3ced19f8b36b2c9b3af5771e543172e64e2",
+            "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+            "integration/v1_engine.py": "63aec37eabcd532e64b71373a5726ce5efada7d044bac4aae3501308288c00e2",
+            "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+            "integration/v1_pe.py": "688f547d1944a0f4eb2c3ea4b91d9a25f1746ce53fb10f5fb1e89e297ccf4d23",
+            "integration/v1_windows_dependencies.py": "8fa06d79b9ef4d7f1c99066ae6b386d084f03de9f8ee6fa0bb0a7e786fe580f8",
+            "scripts/v1-engine-native.py": "1dbca10ce774c9aaf0f15bbe60cd4901c053e0255a215607587badc881a6e653",
+            "scripts/v1-engine-windows.py": "d607534b1cc3111eebf9bd6a77b5f938df1def2f3bee5416b39c94ee5b5fa503",
+            "scripts/v1-windows-native-qualify.py": "c65d56736fb4735a8638f4fe973622de58127ffd356a86791bae96e56f937415",
+            "scripts/v1-windows-parity.py": "d820b3cb1e452763cc73199a5f825e741a2fd509250fc1a94fa1e088a034b9a9"
+          },
+          "success": true,
+          "timeout_seconds": 40,
+          "unclassified_setting_difference_count": 3
+        }
+      }
+    },
+    "temperature": {
+      "exact": {
+        "application_commit": "227b44795a69d68999fc5cda429002d73764626b",
+        "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+        "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+        "builder_run_id": "39233686041",
+        "calibration": "temperature",
+        "candidate_executable_commands": 105929,
+        "candidate_executable_sha256": "b7757f3be31e5b69de8c6749e5473c88831af63a38e626ee334e5297e413d1de",
+        "candidate_gcode_sha256": "5446c08a7ad0953ddbd1907f4fba4f38799be8215d78cf8debd63decd3716a0a",
+        "candidate_gcode_size": 3034541,
+        "candidate_invariants_passed": true,
+        "context_file_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+        "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+        "executable_count_delta": -579,
+        "executable_mismatch_count": 105357,
+        "extractor_sha256": "f10bee278605b5baf2aad09d6f56246657031057ee161fecf690ec885cc7939d",
+        "generation_provenance_sha256": "e10fecf91064451388fbe7c1a170a9e461e1090efacda9787f07e642169155bf",
+        "inputs_sha256": "3f78083ec3c740df148ae07d66375b332c3c26944e82556fb72bdd0ece9b44bb",
+        "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+        "native_engine_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+        "native_executable_commands": 106508,
+        "native_executable_sha256": "e20fe60aeacd9feb39ddeaf07f1777ac7a440db2cf20ccc9afe7c3f57d2887c0",
+        "native_invariants_passed": true,
+        "native_manifest_file_sha256": "1d675631a4ac4f49875ddeb6f2a9da4cfef7da88a2655337261dccf4992a3113",
+        "native_sha256": "9a8b245a507229d8652656d7c173e316f31b61b7e55fbfa6db031660f961dd0d",
+        "not_applied": true,
+        "package_fetch_receipt_file_sha256": "4facd585ca535689101e51befe244b231e314e1109038220f5c2f3a8d949f7be",
+        "package_sha256": "d4f250e89867b2e49df0ca179420f6ce6d0880c381987de5805a7d0f72eba07c",
+        "parameters": {
+          "end": 190,
+          "scale": true,
+          "start": 230,
+          "step": 5
+        },
+        "parameters_sha256": "44a5864a4088316e89e850ea93f9b587380ee4ec184e2ef36ddf5034f4026efb",
+        "physical_actions": false,
+        "physical_readiness": false,
+        "policy": "exact-executable-v1",
+        "prepared": false,
+        "prepared_sha256": "e3277d815f12f600e92a31b92f1d5b79412f0b6f41cc97388a28cd6d02484b3b",
+        "qualification_receipt_file_sha256": "0a6fc59b72d37c381740b4616dbec2a00d7648a51badcf593d4437956d612aed",
+        "qualification_summary_sha256": "9d6693c4145ddcb46d42aa4360618e9ce25b03d058ca2cc982f6fcff69dbf6d2",
+        "qualified": false,
+        "report_sha256": "383153535760809478b7e3f1e196f13bc5e294b7a84ca28309504308b89c617c",
+        "schema": "helix-orca-v1-exact-windows-parity-scalars/v1",
+        "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+        "source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5",
+        "success": true
+      },
+      "qualification": {
+        "process_exit": 2,
+        "summary": {
+          "build_inputs_sha256": "8294048d87c7362333e41da78304983db14391da1a32c06adde98782eb4022ce",
+          "build_receipt_sha256": "4294f6811d13299450c14d35167f60fac1794e467544976877d9a88eee069c3d",
+          "calibration": "temperature",
+          "candidate": {
+            "sha256": "5446c08a7ad0953ddbd1907f4fba4f38799be8215d78cf8debd63decd3716a0a",
+            "size": 3034541
+          },
+          "context_sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+          "disposition": "executable_difference",
+          "emitted_setting_difference_count": 4,
+          "generation_provenance_sha256": "e10fecf91064451388fbe7c1a170a9e461e1090efacda9787f07e642169155bf",
+          "hardware_abi_qualified": false,
+          "inputs_sha256": "3f78083ec3c740df148ae07d66375b332c3c26944e82556fb72bdd0ece9b44bb",
+          "invariants": {
+            "candidate": {
+              "accepted_abi_signature": false,
+              "deposition_temperatures": [
+                190.0,
+                195.0,
+                200.0,
+                205.0,
+                210.0,
+                215.0,
+                220.0,
+                225.0,
+                230.0
+              ],
+              "executable_commands": 105929,
+              "layers": 450,
+              "macro_semantics_present": true,
+              "model_moves": 59558,
+              "passed": true
+            },
+            "native": {
+              "accepted_abi_signature": false,
+              "deposition_temperatures": [
+                190.0,
+                195.0,
+                200.0,
+                205.0,
+                210.0,
+                215.0,
+                220.0,
+                225.0,
+                230.0
+              ],
+              "executable_commands": 106508,
+              "layers": 450,
+              "macro_semantics_present": true,
+              "model_moves": 59562,
+              "passed": true
+            }
+          },
+          "macro_internals_observed": false,
+          "mode": "native-package-generation",
+          "native": {
+            "sha256": "9a8b245a507229d8652656d7c173e316f31b61b7e55fbfa6db031660f961dd0d",
+            "size": 3028201
+          },
+          "native_catalog_sha256": "73b94ad20ad0bd7b005ac84c0a0240a56ec09a418df748f2d0ebe5cb121b1c38",
+          "native_evidence": [
+            {
+              "sha256": "bd62b71f7b082465e61bf1eb193a8fb569a802f075e3828391cfb44166861711",
+              "size": 75490
+            },
+            {
+              "sha256": "e90bef9a3fa6e0337b688c54613db0f43033814b05751d31f12faf0dc59e385a",
+              "size": 128497
+            },
+            {
+              "sha256": "f5442071c0b82b7e2612b6da9453e83e87017c0af4e9077bebd38b75e54a6fcc",
+              "size": 221048
+            },
+            {
+              "sha256": "ffb94b028c58146dcce125c40081beaf6e0249395a17454f7100efacedb4ef79",
+              "size": 230375
+            }
+          ],
+          "native_executable_sha256": "6136a1ddd821ea083307073de8682329cdc6e8917adfb69b43a77ed5a7a63dc0",
+          "native_manifest_sha256": "1d675631a4ac4f49875ddeb6f2a9da4cfef7da88a2655337261dccf4992a3113",
+          "observations": {
+            "candidate_dynamic_acceleration_commands": 11721,
+            "candidate_model_extrusion_mm": 5558.0758,
+            "candidate_model_moves": 59558,
+            "dynamic_acceleration_stream_equal": false,
+            "dynamic_acceleration_unique_values_equal": true,
+            "heater_stream_equal": true,
+            "machine_limits_equal": true,
+            "motion_extrusion_equal": false,
+            "native_dynamic_acceleration_commands": 11749,
+            "native_model_extrusion_mm": 5558.07546,
+            "native_model_moves": 59562,
+            "printed_xy_bounds_equal": true,
+            "progress_estimates_equal": false,
+            "static_machine_limit_commands_present": false
+          },
+          "parameters": {
+            "end": 190,
+            "scale": true,
+            "start": 230,
+            "step": 5
+          },
+          "physical_actions": false,
+          "physical_readiness": false,
+          "policy": "exact-executable-v1",
+          "prepared": false,
+          "prepared_sha256": "e3277d815f12f600e92a31b92f1d5b79412f0b6f41cc97388a28cd6d02484b3b",
+          "production_generator": "integration.v1_engine.generate",
+          "qualified": false,
+          "report_sha256": "383153535760809478b7e3f1e196f13bc5e294b7a84ca28309504308b89c617c",
+          "request_id": "1cfa5c0fd482b979cd933a6021eecc17",
+          "request_sha256": "3f7e6658ec7b63b952fbbd8d4786110c3b467a6f6b2cc383fed3981cff3c8f4f",
+          "reviewed_source_manifest_sha256": "f7b19a403f8bc0032fb9b2172d62c8f8f98334d4ebbd88a0cdbf3374ede70bb5",
+          "schema": "helix-orca-v1-windows-native-qualification/v1",
+          "source_commit": "6a7763f08d1a175a464a00ce13f0b5a815662fc4",
+          "source_files": {
+            ".github/workflows/v1-windows-engine.yml": "4da51e8730deaa223f173ebd56b82cd09e8645a90964f70d6b7afd32cca643e6",
+            "integration/v1-native-build-tools.py": "6a1cb112a9b091715907c17af06d769af1947b15dd6927a4ae0b2dbd27897b30",
+            "integration/v1-native-dependencies.json": "14fca0b1f471a4ced824d98523e8bb21a1038e02bd4d368e50e0383b67a3dc0b",
+            "integration/v1-native-engine/add-target.cmake": "8f0dc9cf18b0ddd400f284dc8d06acec32d78615a78ca426f68d453657feb09d",
+            "integration/v1-native-engine/main.cpp": "9cc4fc332f774f3264bc09c3fa842fcf2646e062188bee6cb9682adca67b01d8",
+            "integration/v1-native-engine/temperature_prepare.hpp": "2fe971e83f7feab78fcb4816ee3b44d62d28084c2d2dd6c0a5c8ac482cca325e",
+            "integration/v1-native-engine/windows-cmake/FindEXPAT.cmake": "5a8327cc3885d937bd59b033047ae22cbb6828d78396488e971bc717afb9acf8",
+            "integration/v1-native-engine/windows-target.cmake": "8bda06dabd3e73e4629966ee33e18cf8f8cc3b61f330dcf2d561311c449b3b76",
+            "integration/v1-native-windows-dependencies.json": "0db1eaa1561f8d63aace3773bca2d3ced19f8b36b2c9b3af5771e543172e64e2",
+            "integration/v1_contract.py": "0ecf16aa59a330748d6562983ee933b3fc5d4e048e88fd6f5f2a7d89ac182205",
+            "integration/v1_engine.py": "63aec37eabcd532e64b71373a5726ce5efada7d044bac4aae3501308288c00e2",
+            "integration/v1_parity.py": "4423e27eb1547a2733fbaaaaa109c210c4c1f40eebe2545ecdcdb113e91bcbdb",
+            "integration/v1_pe.py": "688f547d1944a0f4eb2c3ea4b91d9a25f1746ce53fb10f5fb1e89e297ccf4d23",
+            "integration/v1_windows_dependencies.py": "8fa06d79b9ef4d7f1c99066ae6b386d084f03de9f8ee6fa0bb0a7e786fe580f8",
+            "scripts/v1-engine-native.py": "1dbca10ce774c9aaf0f15bbe60cd4901c053e0255a215607587badc881a6e653",
+            "scripts/v1-engine-windows.py": "d607534b1cc3111eebf9bd6a77b5f938df1def2f3bee5416b39c94ee5b5fa503",
+            "scripts/v1-windows-native-qualify.py": "c65d56736fb4735a8638f4fe973622de58127ffd356a86791bae96e56f937415",
+            "scripts/v1-windows-parity.py": "d820b3cb1e452763cc73199a5f825e741a2fd509250fc1a94fa1e088a034b9a9"
+          },
+          "success": true,
+          "timeout_seconds": 40,
+          "unclassified_setting_difference_count": 3
+        }
+      }
+    }
+  },
+  "package_sha256": "d4f250e89867b2e49df0ca179420f6ce6d0880c381987de5805a7d0f72eba07c",
+  "parity_policy": "exact-executable-v1",
+  "physical_actions": false,
+  "schema": "helix-orca-v1-four-windows-native-parity/v1"
+}
