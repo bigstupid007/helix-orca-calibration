@@ -372,9 +372,10 @@ end)
 v1_v2_validate_prepared=function(p)
     if type(p)~='table' or p.schema~='helix-orca-v1-prepared/v2'
         or not v1_exact(p,'schema request_id origin_id context_sha256 request_sha256 calibration parameters artifact generator processing')
-        or not v1_exact(p.generator,'source_commit route executable_sha256 qualification_sha256')
+        or not v1_exact(p.generator,'source_commit route executable_sha256 qualification_sha256 machine_sha256')
         or not v1_hex(p.generator.source_commit,40) or not v1_text(p.generator.route,128)
         or not v1_hex(p.generator.executable_sha256,64) or not v1_hex(p.generator.qualification_sha256,64)
+        or not v1_hex(p.generator.machine_sha256,64)
         or not v1_exact(p.processing,'error_code warnings status')
         or not v1_number(p.processing.error_code) or p.processing.error_code<0 or p.processing.error_code%1~=0
         or (p.processing.status~='ready' and p.processing.status~='blocked')

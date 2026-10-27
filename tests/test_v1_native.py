@@ -76,7 +76,8 @@ class V1NativeTests(unittest.TestCase):
         for schema in ('helix-orca-v1-request/v2','helix-orca-v1-prepared/v2','helix-orca-v1-result/v2',
                        'helix-orca-v1-native-warning-decision/v2','helix-orca-v1-application-retry/v2'):
             self.assertIn(schema,source)
-        self.assertIn("v1_exact(p.generator,'source_commit route executable_sha256 qualification_sha256')",source)
+        self.assertIn("v1_exact(p.generator,'source_commit route executable_sha256 qualification_sha256 machine_sha256')",source)
+        self.assertIn("v1_hex(p.generator.machine_sha256,64)",source)
         self.assertIn("v1_exact(p.processing,'error_code warnings status')",source)
         self.assertIn("d.dirty~=true or d.unsaved~=true",source)
         self.assertIn("application.state='failed'",source)
