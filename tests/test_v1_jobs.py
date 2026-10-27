@@ -25,7 +25,7 @@ from integration.v1_contract import (CALIBRATIONS, ORCA_ARCHIVE_SHA256_V2,
     ContractError, DEFAULTS, digest, validate_request_v2)
 from integration.v1_fit import HELIXPRINT_VERSION, HELIXSCREEN_COMMIT
 from integration.v1_jobs import (IDENTITY_V2, OwnedJobAdapter, PinnedMoonraker,
-    current_candidate_verifier, from_config)
+    current_candidate_verifier, from_config, retire_predispatch_rejection)
 from integration.v1_runtime import read_json
 from integration.v1_transport import NoRedirect
 
@@ -294,6 +294,36 @@ class OwnedJobsTests(unittest.TestCase):
                     adapter.start(self.request, self.prepared, self.directory,
                         self.intent('start', '6'))
                 self.assertEqual(self.fixture.posts, posts)
+
+    def test_predispatch_readiness_rejection_is_proven_even_after_rebind(self):
+        self.confirm()
+        self.fixture.state = 'complete'; self.fixture.filename = 'prior.gcode'
+        self.fixture.baseline = []
+        with self.assertRaises(ContractError):
+            self.start()
+        record = self.record()
+        self.assertEqual(record['phase'], 'confirmed')
+        self.assertIsNone(record['start'])
+        self.assertIsNone(record['job'])
+        self.assertEqual(self.fixture.posts, [])
+        changed = copy.deepcopy(self.qualification)
+        changed['review_reference'] += '; rebound package'
+        recovered = OwnedJobAdapter(self.fixture.transport(), self.root/'journal',
+            orca_machine_sha256=self.machine, physical_qualification=changed,
+            actions=True, now=lambda: 100)
+        self.assertTrue(recovered.predispatch_rejected(
+            self.request, self.prepared, self.intent('start', '6')))
+        coordinator = self.root/'coordinator.json'
+        state = dict(schema='helix-orca-v1-journal/v1', phase='uncertain',
+            request=self.request, prepared=self.prepared,
+            pending_start_intent=self.intent('start', '6'), job=None,
+            sequence=4, message='Start outcome is uncertain')
+        coordinator.write_text(json.dumps(state))
+        self.assertTrue(retire_predispatch_rejection(recovered, coordinator))
+        retired = read_json(coordinator)
+        self.assertEqual(retired['phase'], 'blocked')
+        self.assertEqual(retired['sequence'], 5)
+        self.assertIn('before upload', retired['message'])
     def test_upload_readback_difference_blocks_start_and_restart_replay(self):
         self.confirm(); self.fixture.tamper = True
         with self.assertRaises(ContractError): self.start()

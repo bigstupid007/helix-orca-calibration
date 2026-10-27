@@ -630,6 +630,18 @@ class OwnedJobAdapter:
             _number(record['job']['start_time'], 'durable owned job start')
             return self._public_job(record)
 
+    def predispatch_rejected(self, request, prepared, intent):
+        """Prove an uncertain coordinator never crossed the upload boundary."""
+        self._intent(request, prepared, intent, 'start')
+        with InstanceLock(self.root / 'adapter.lock'):
+            path = self._path(request['request_id'])
+            if path.is_symlink() or not path.exists():
+                return False
+            record = self._read(request['request_id'])
+            return bool(record['request'] == request and record['prepared'] == prepared
+                and record['phase'] == 'confirmed' and record['start'] is None
+                and record['job'] is None and record.get('ownership_confirmed') is False)
+
     def monitor(self, job):
         """Display-only data from this exact job's most recent successful observe."""
         retained = getattr(self, "_last_monitor", None)
@@ -727,7 +739,32 @@ def from_config(config: dict, root: Path, *, deployment_authorized: bool = False
     if not deployment_authorized or not value["actions_enabled"]:
         return None
     transport.actions = True
-    return OwnedJobAdapter(transport, root, orca_machine_sha256=machine,
+    adapter = OwnedJobAdapter(transport, root, orca_machine_sha256=machine,
         physical_qualification=qualification, candidate_verifier=candidate_verifier,
         request_validator=request_validator, warning_acknowledger=warning_acknowledger,
         actions=True)
+    retire_predispatch_rejection(adapter, Path(root).parent / "coordinator.json")
+    return adapter
+
+
+def retire_predispatch_rejection(adapter, coordinator_path):
+    """On restart, terminally classify a proven no-upload readiness rejection."""
+    path = Path(coordinator_path)
+    if path.is_symlink() or not path.exists():
+        return False
+    state = read_json(path)
+    if (state.get("schema") != "helix-orca-v1-journal/v1"
+            or state.get("phase") != "uncertain" or state.get("job") is not None
+            or not isinstance(state.get("request"), dict)
+            or not isinstance(state.get("prepared"), dict)
+            or not isinstance(state.get("pending_start_intent"), dict)
+            or type(state.get("sequence")) is not int or state["sequence"] < 0):
+        return False
+    if not adapter.predispatch_rejected(state["request"], state["prepared"],
+                                        state["pending_start_intent"]):
+        return False
+    state["phase"] = "blocked"
+    state["message"] = "Retained printer readiness rejection occurred before upload; nothing was sent to the printer."
+    state["sequence"] += 1
+    atomic_json(path, state)
+    return True
